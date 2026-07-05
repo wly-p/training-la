@@ -1,0 +1,46 @@
+# ── macOS ──
+.DS_Store
+
+# ── Xcode ──
+DerivedData/
+build/
+*.xcuserstate
+xcuserdata/
+*.moved-aside
+*.pbxuser
+!default.pbxuser
+*.perspectivev3
+!default.perspectivev3
+*.hmap
+*.ipa
+*.dSYM.zip
+*.dSYM
+
+# ── Swift Package Manager ──
+.build/
+.swiftpm/xcode/package.xcworkspace/xcuserdata/
+.swiftpm/xcode/xcuserdata/
+.swiftpm/configuration/
+# Package.resolved 要進版控（鎖第三方版本，讓 build 可重現）
+
+# ── 簽章 / 機密：永不進 repo ──
+*.p12
+*.cer
+*.certSigningRequest
+*.mobileprovision
+*.provisionprofile
+AuthKey_*.p8
+Secrets.xcconfig
+*.secrets.xcconfig
+.env
+.env.*
+!.env.example
+
+# ── fastlane（日後 CI 用到）──
+fastlane/report.xml
+fastlane/Preview.html
+fastlane/test_output/
+fastlane/screenshots/**/*.png
+
+# ── 其他 ──
+*.log
