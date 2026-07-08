@@ -1,0 +1,48 @@
+# xcodegen 專案定義：`xcodegen generate` 重生 TrainingLa.xcodeproj（xcodeproj 不進版控）
+name: TrainingLa
+options:
+  bundleIdPrefix: com.wly-p
+  deploymentTarget:
+    iOS: "17.0"
+packages:
+  SharedKernel:
+    path: Packages/SharedKernel
+  Spec:
+    path: Packages/Spec
+targets:
+  TrainingLa:
+    type: application
+    platform: iOS
+    sources: [App]
+    dependencies:
+      - package: Spec
+        products: [SpecDomain, SpecData, SpecPresentation]
+      - package: SharedKernel
+    settings:
+      base:
+        GENERATE_INFOPLIST_FILE: YES
+        INFOPLIST_KEY_UILaunchScreen_Generation: YES
+        PRODUCT_BUNDLE_IDENTIFIER: com.wly-p.training-la
+        SWIFT_VERSION: "6.0"
+        CODE_SIGN_STYLE: Automatic
+  TrainingLaUITests:
+    type: bundle.ui-testing
+    platform: iOS
+    sources: [UITests]
+    dependencies:
+      - target: TrainingLa
+    settings:
+      base:
+        GENERATE_INFOPLIST_FILE: YES
+        SWIFT_VERSION: "6.0"
+schemes:
+  TrainingLa:
+    build:
+      targets:
+        TrainingLa: all
+        TrainingLaUITests: [test]
+    run:
+      config: Debug
+    test:
+      config: Debug
+      targets: [TrainingLaUITests]

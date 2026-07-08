@@ -44,3 +44,6 @@ fastlane/screenshots/**/*.png
 
 # ── 其他 ──
 *.log
+
+# xcodegen 產物（用 xcodegen generate 重生）
+TrainingLa.xcodeproj/
