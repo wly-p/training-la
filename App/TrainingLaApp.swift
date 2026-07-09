@@ -6,7 +6,8 @@ struct TrainingLaApp: App {
 
     init() {
         do {
-            dependencies = try AppDependencies.live()
+            let inMemory = CommandLine.arguments.contains("--uitest-inmemory")
+            dependencies = try AppDependencies.live(inMemory: inMemory)
         } catch {
             fatalError("無法初始化資料層：\(error)")
         }

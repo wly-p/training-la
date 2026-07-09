@@ -9,6 +9,8 @@ packages:
     path: Packages/SharedKernel
   Spec:
     path: Packages/Spec
+  Training:
+    path: Packages/Training
 targets:
   TrainingLa:
     type: application
@@ -17,6 +19,8 @@ targets:
     dependencies:
       - package: Spec
         products: [SpecDomain, SpecData, SpecPresentation]
+      - package: Training
+        products: [TrainingDomain, TrainingData, TrainingPresentation]
       - package: SharedKernel
     settings:
       base:
