@@ -8,6 +8,7 @@ import TrainingDomain
 final class WorkoutModel {
     @Attribute(.unique) var id: UUID
     var day: String
+    var planWorkoutId: UUID?
     var startedAt: Date?
     var endedAt: Date?
     var overallFeeling: Int?
@@ -18,6 +19,7 @@ final class WorkoutModel {
     init(
         id: UUID,
         day: String,
+        planWorkoutId: UUID?,
         startedAt: Date?,
         endedAt: Date?,
         overallFeeling: Int?,
@@ -26,6 +28,7 @@ final class WorkoutModel {
     ) {
         self.id = id
         self.day = day
+        self.planWorkoutId = planWorkoutId
         self.startedAt = startedAt
         self.endedAt = endedAt
         self.overallFeeling = overallFeeling
@@ -44,6 +47,7 @@ final class WorkoutSetModel {
     var weightUnitRaw: String
     var reps: Int
     var statusRaw: String
+    var fromPlanSetId: UUID?
     var targetWeightValue: Double?
     var targetWeightUnitRaw: String?
     var targetReps: Int?
@@ -58,6 +62,7 @@ final class WorkoutSetModel {
         weightUnitRaw: String,
         reps: Int,
         statusRaw: String,
+        fromPlanSetId: UUID?,
         targetWeightValue: Double?,
         targetWeightUnitRaw: String?,
         targetReps: Int?
@@ -70,6 +75,7 @@ final class WorkoutSetModel {
         self.weightUnitRaw = weightUnitRaw
         self.reps = reps
         self.statusRaw = statusRaw
+        self.fromPlanSetId = fromPlanSetId
         self.targetWeightValue = targetWeightValue
         self.targetWeightUnitRaw = targetWeightUnitRaw
         self.targetReps = targetReps
@@ -83,6 +89,7 @@ extension WorkoutModel {
         self.init(
             id: workout.id,
             day: workout.day.isoString,
+            planWorkoutId: workout.planWorkoutId,
             startedAt: workout.startedAt,
             endedAt: workout.endedAt,
             overallFeeling: workout.overallFeeling,
@@ -95,6 +102,7 @@ extension WorkoutModel {
         Workout(
             id: id,
             day: DayDate(isoString: day) ?? DayDate(year: 1970, month: 1, day: 1),
+            planWorkoutId: planWorkoutId,
             startedAt: startedAt,
             endedAt: endedAt,
             overallFeeling: overallFeeling,
@@ -117,6 +125,7 @@ extension WorkoutSetModel {
             weightUnitRaw: set.weight.unit.rawValue,
             reps: set.reps,
             statusRaw: set.status.rawValue,
+            fromPlanSetId: set.fromPlanSetId,
             targetWeightValue: set.targetWeight?.value,
             targetWeightUnitRaw: set.targetWeight?.unit.rawValue,
             targetReps: set.targetReps
@@ -135,6 +144,7 @@ extension WorkoutSetModel {
             ),
             reps: reps,
             status: WorkoutSetStatus(rawValue: statusRaw) ?? .done,
+            fromPlanSetId: fromPlanSetId,
             targetWeight: targetWeightValue.map {
                 Weight(value: $0, unit: WeightUnit(rawValue: targetWeightUnitRaw ?? "kg") ?? .kg)
             },

@@ -119,6 +119,44 @@ struct WorkoutUseCaseTests {
         #expect(try await repo.get(id: workout.id)?.isFinished == true)
     }
 
+    @Test func startFromBlueprintRecordsPlanSource() async throws {
+        let repo = MockWorkoutRepository()
+        let planWorkoutId = UUID()
+        let blueprint = PlannedWorkoutBlueprint(planWorkoutId: planWorkoutId, name: "推日", targets: [])
+        let start = StartWorkout(repository: repo)
+
+        let workout = try await start(blueprint: blueprint)
+
+        #expect(workout.planWorkoutId == planWorkoutId)
+    }
+
+    @Test func finishPlanLinkedWorkoutMarksPlanDone() async throws {
+        let repo = MockWorkoutRepository()
+        let recorder = SpyPlanProgress()
+        let planWorkoutId = UUID()
+        var workout = Workout(id: UUID(), day: DayDate(year: 2026, month: 7, day: 9),
+                              planWorkoutId: planWorkoutId, startedAt: Date())
+        workout.appendSet(exerciseId: UUID(), weight: kg60, reps: 8)
+        await repo.seed([workout])
+        let finish = FinishWorkout(repository: repo, planProgress: recorder)
+
+        try await finish(workout, overallFeeling: nil, note: nil)
+
+        #expect(await recorder.markedDone == [planWorkoutId])
+    }
+
+    @Test func finishFreeWorkoutDoesNotTouchPlan() async throws {
+        let repo = MockWorkoutRepository()
+        let recorder = SpyPlanProgress()
+        let workout = Workout(id: UUID(), day: DayDate(year: 2026, month: 7, day: 9), startedAt: Date())
+        await repo.seed([workout])
+        let finish = FinishWorkout(repository: repo, planProgress: recorder)
+
+        try await finish(workout, overallFeeling: nil, note: nil)
+
+        #expect(await recorder.markedDone.isEmpty)
+    }
+
     @Test func finishRejectsFeelingOutOfRange() async throws {
         let repo = MockWorkoutRepository()
         let workout = Workout(id: UUID(), day: DayDate(year: 2026, month: 7, day: 9))

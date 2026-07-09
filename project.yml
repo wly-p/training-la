@@ -11,6 +11,8 @@ packages:
     path: Packages/Spec
   Training:
     path: Packages/Training
+  History:
+    path: Packages/History
 targets:
   TrainingLa:
     type: application
@@ -21,6 +23,8 @@ targets:
         products: [SpecDomain, SpecData, SpecPresentation]
       - package: Training
         products: [TrainingDomain, TrainingData, TrainingPresentation]
+      - package: History
+        products: [HistoryDomain, HistoryPresentation]
       - package: SharedKernel
     settings:
       base:

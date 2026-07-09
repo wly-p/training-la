@@ -60,6 +60,29 @@ public actor SwiftDataWorkoutRepository: WorkoutRepository {
         return []
     }
 
+    public func finishedWorkouts() async throws -> [Workout] {
+        let descriptor = FetchDescriptor<WorkoutModel>(
+            predicate: #Predicate { $0.endedAt != nil },
+            sortBy: [SortDescriptor(\.day, order: .reverse), SortDescriptor(\.startedAt, order: .reverse)]
+        )
+        return try modelContext.fetch(descriptor).map { $0.toDomain() }
+    }
+
+    public func exerciseHistory(exerciseId: UUID) async throws -> [ExerciseSetRecord] {
+        let descriptor = FetchDescriptor<WorkoutModel>(
+            predicate: #Predicate { $0.endedAt != nil },
+            sortBy: [SortDescriptor(\.day, order: .reverse), SortDescriptor(\.startedAt, order: .reverse)]
+        )
+        var records: [ExerciseSetRecord] = []
+        for model in try modelContext.fetch(descriptor) {
+            let workout = model.toDomain()
+            for set in workout.sets where set.exerciseId == exerciseId {
+                records.append(ExerciseSetRecord(workoutId: workout.id, day: workout.day, set: set))
+            }
+        }
+        return records
+    }
+
     private func fetchModel(id: UUID) throws -> WorkoutModel? {
         var descriptor = FetchDescriptor<WorkoutModel>(predicate: #Predicate { $0.id == id })
         descriptor.fetchLimit = 1

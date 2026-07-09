@@ -6,6 +6,8 @@ import SharedKernel
 public struct Workout: Identifiable, Equatable, Sendable {
     public var id: UUID
     public var day: DayDate
+    /// 照哪個排課做；nil＝自由訓練。
+    public var planWorkoutId: UUID?
     public var startedAt: Date?
     public var endedAt: Date?
     /// 1–5；結束訓練時才填。
@@ -17,6 +19,7 @@ public struct Workout: Identifiable, Equatable, Sendable {
     public init(
         id: UUID,
         day: DayDate,
+        planWorkoutId: UUID? = nil,
         startedAt: Date? = nil,
         endedAt: Date? = nil,
         overallFeeling: Int? = nil,
@@ -25,6 +28,7 @@ public struct Workout: Identifiable, Equatable, Sendable {
     ) {
         self.id = id
         self.day = day
+        self.planWorkoutId = planWorkoutId
         self.startedAt = startedAt
         self.endedAt = endedAt
         self.overallFeeling = overallFeeling
@@ -44,7 +48,9 @@ public struct WorkoutSet: Identifiable, Equatable, Sendable {
     public var weight: Weight
     public var reps: Int
     public var status: WorkoutSetStatus
-    /// 目標快照（之後接排課預填時使用；課表事後被改不影響已存紀錄）。
+    /// 照課表哪一組做的；nil＝臨時加練。
+    public var fromPlanSetId: UUID?
+    /// 目標快照（完成當下複製；課表事後被改不影響已存紀錄）。
     public var targetWeight: Weight?
     public var targetReps: Int?
 
@@ -56,6 +62,7 @@ public struct WorkoutSet: Identifiable, Equatable, Sendable {
         weight: Weight,
         reps: Int,
         status: WorkoutSetStatus = .done,
+        fromPlanSetId: UUID? = nil,
         targetWeight: Weight? = nil,
         targetReps: Int? = nil
     ) {
@@ -66,15 +73,10 @@ public struct WorkoutSet: Identifiable, Equatable, Sendable {
         self.weight = weight
         self.reps = reps
         self.status = status
+        self.fromPlanSetId = fromPlanSetId
         self.targetWeight = targetWeight
         self.targetReps = targetReps
     }
-}
-
-public enum WorkoutSetStatus: String, CaseIterable, Codable, Sendable {
-    case done
-    case skipped
-    case interrupted
 }
 
 /// 同一動作的連續組（依 exerciseIndex 分組後的視圖）。
@@ -102,12 +104,16 @@ extension Workout {
 
     /// 記一組：該動作已有區塊就接在最後一個同動作區塊之後，否則開新區塊。
     /// index 指派規則集中在這裡，保證 (exerciseIndex, setIndex) 唯一且連續。
+    /// 照課表做的組帶 `fromPlanSetId` ＋ `target*` 快照；臨時加練都留 nil。
     public mutating func appendSet(
         id: UUID = UUID(),
         exerciseId: UUID,
         weight: Weight,
         reps: Int,
-        status: WorkoutSetStatus = .done
+        status: WorkoutSetStatus = .done,
+        fromPlanSetId: UUID? = nil,
+        targetWeight: Weight? = nil,
+        targetReps: Int? = nil
     ) {
         let exerciseIndex: Int
         let setIndex: Int
@@ -125,7 +131,10 @@ extension Workout {
             setIndex: setIndex,
             weight: weight,
             reps: reps,
-            status: status
+            status: status,
+            fromPlanSetId: fromPlanSetId,
+            targetWeight: targetWeight,
+            targetReps: targetReps
         ))
         sets.sort { ($0.exerciseIndex, $0.setIndex) < ($1.exerciseIndex, $1.setIndex) }
     }

@@ -46,5 +46,17 @@ final class TrainingFlowUITests: XCTestCase {
 
         // 5. 回到訓練首頁：場次已結束，重新顯示「開始訓練」
         XCTAssertTrue(app.buttons["開始訓練"].waitForExistence(timeout: 5))
+
+        // 6. 歷史頁「按日期」看得到這場，點進去看得到動作
+        app.tabBars.buttons["歷史"].tap()
+        let dateRow = app.staticTexts.matching(NSPredicate(format: "label CONTAINS '個動作'")).firstMatch
+        XCTAssertTrue(dateRow.waitForExistence(timeout: 5))
+        app.cells.firstMatch.tap()
+        XCTAssertTrue(app.staticTexts["深蹲"].waitForExistence(timeout: 5))
+
+        // 7. 切「按動作」，該動作有紀錄
+        app.navigationBars.buttons.firstMatch.tap() // 返回
+        app.buttons["按動作"].tap()
+        XCTAssertTrue(app.staticTexts["共練過"].waitForExistence(timeout: 5))
     }
 }

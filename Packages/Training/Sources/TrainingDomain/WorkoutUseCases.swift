@@ -20,8 +20,14 @@ public struct StartWorkout: Sendable {
         self.today = today
     }
 
-    public func callAsFunction() async throws -> Workout {
-        let workout = Workout(id: makeID(), day: today(), startedAt: now())
+    /// `blueprint` 非 nil＝照課表開始（workout 記下排課來源）。
+    public func callAsFunction(blueprint: PlannedWorkoutBlueprint? = nil) async throws -> Workout {
+        let workout = Workout(
+            id: makeID(),
+            day: today(),
+            planWorkoutId: blueprint?.planWorkoutId,
+            startedAt: now()
+        )
         try await repository.save(workout)
         return workout
     }
@@ -57,16 +63,19 @@ public enum FinishWorkoutError: Error, Equatable, Sendable {
     case feelingOutOfRange
 }
 
-/// 結束場次：補上 endedAt / 感受 / 備註。
+/// 結束場次：補上 endedAt / 感受 / 備註；照課表的場次順帶把排課標成 done（App 端邏輯，見 DOMAIN.md §8）。
 public struct FinishWorkout: Sendable {
     private let repository: any WorkoutRepository
+    private let planProgress: (any PlanProgressRecorder)?
     private let now: @Sendable () -> Date
 
     public init(
         repository: any WorkoutRepository,
+        planProgress: (any PlanProgressRecorder)? = nil,
         now: @escaping @Sendable () -> Date = { Date() }
     ) {
         self.repository = repository
+        self.planProgress = planProgress
         self.now = now
     }
 
@@ -80,6 +89,10 @@ public struct FinishWorkout: Sendable {
         finished.overallFeeling = overallFeeling
         finished.note = note?.isEmpty == true ? nil : note
         try await repository.save(finished)
+        if let planWorkoutId = finished.planWorkoutId {
+            // 紀錄本身已保存成功；標記排課失敗不應讓整個結束流程失敗
+            try? await planProgress?.markDone(planWorkoutId: planWorkoutId)
+        }
         return finished
     }
 }

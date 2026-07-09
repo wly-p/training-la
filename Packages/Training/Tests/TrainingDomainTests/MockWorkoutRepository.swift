@@ -40,4 +40,29 @@ actor MockWorkoutRepository: WorkoutRepository {
     func lastPerformance(exerciseId: UUID, excludingWorkout: UUID?) async throws -> [WorkoutSet] {
         stubbedLastPerformance[exerciseId] ?? []
     }
+
+    func finishedWorkouts() async throws -> [Workout] {
+        storage.values
+            .filter { $0.isFinished }
+            .sorted { $0.day > $1.day }
+    }
+
+    func exerciseHistory(exerciseId: UUID) async throws -> [ExerciseSetRecord] {
+        storage.values
+            .filter { $0.isFinished }
+            .sorted { $0.day > $1.day }
+            .flatMap { workout in
+                workout.sets
+                    .filter { $0.exerciseId == exerciseId }
+                    .map { ExerciseSetRecord(workoutId: workout.id, day: workout.day, set: $0) }
+            }
+    }
+}
+
+actor SpyPlanProgress: PlanProgressRecorder {
+    private(set) var markedDone: [UUID] = []
+
+    func markDone(planWorkoutId: UUID) async throws {
+        markedDone.append(planWorkoutId)
+    }
 }

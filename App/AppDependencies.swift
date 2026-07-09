@@ -1,3 +1,5 @@
+import HistoryDomain
+import HistoryPresentation
 import SpecData
 import SpecDomain
 import SpecPresentation
@@ -13,6 +15,7 @@ struct AppDependencies {
     let makeExerciseListViewModel: @MainActor () -> ExerciseListViewModel
     let makeTrainingHomeViewModel: @MainActor () -> TrainingHomeViewModel
     let makeActiveWorkoutViewModel: @MainActor (Workout) -> ActiveWorkoutViewModel
+    let makeHistoryViewModel: @MainActor () -> HistoryViewModel
 
     /// 正式組裝：SwiftData 落地儲存，各 domain 的 models 併進同一個 Schema。
     /// `inMemory`：UI 測試用，換成不落地的 store（每次啟動都是乾淨狀態）。
@@ -35,6 +38,11 @@ struct AppDependencies {
     ) -> AppDependencies {
         // Training 的 ExerciseCatalog port ← Spec 的 use case（兩個 domain 互不相識，只在這裡接線）
         let catalog = SpecCatalogAdapter(listExercises: ListExercises(repository: exerciseRepository))
+        // History 的讀取 port ← Training 紀錄 ＋ Spec 動作名稱
+        let historyReading = HistoryReadingAdapter(
+            workoutRepository: workoutRepository,
+            listExercises: ListExercises(repository: exerciseRepository)
+        )
 
         return AppDependencies(
             makeExerciseListViewModel: {
@@ -60,6 +68,9 @@ struct AppDependencies {
                     lastPerformance: LastPerformance(repository: workoutRepository),
                     exerciseCatalog: catalog
                 )
+            },
+            makeHistoryViewModel: {
+                HistoryViewModel(reading: historyReading)
             }
         )
     }
