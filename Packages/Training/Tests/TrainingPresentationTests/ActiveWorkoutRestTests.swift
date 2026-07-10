@@ -100,3 +100,88 @@ struct ActiveWorkoutRestTests {
         #expect(vm.restRemaining == nil)
     }
 }
+
+@MainActor
+struct ActiveWorkoutCompletionTests {
+    private let benchId = UUID()
+    private let squatId = UUID()
+    private let planWorkoutId = UUID()
+
+    /// 臥推 benchSets 組 + 深蹲 squatSets 組的照課表場次。
+    private func makeViewModel(benchSets: Int, squatSets: Int) -> ActiveWorkoutViewModel {
+        let repo = MockWorkoutRepo()
+        func targets(_ id: UUID, _ name: String, _ index: Int, _ count: Int) -> [PlannedTargetSet] {
+            (0..<count).map { i in
+                PlannedTargetSet(id: UUID(), exerciseId: id, exerciseName: name,
+                                 exerciseIndex: index, setIndex: i,
+                                 targetWeight: Weight(value: 60, unit: .kg), targetReps: 8, restSec: nil)
+            }
+        }
+        let blueprint = PlannedWorkoutBlueprint(
+            planWorkoutId: planWorkoutId, name: "推日",
+            targets: targets(benchId, "臥推", 0, benchSets) + targets(squatId, "深蹲", 1, squatSets)
+        )
+        let workout = Workout(id: UUID(), day: DayDate(year: 2026, month: 7, day: 10),
+                              planWorkoutId: planWorkoutId, startedAt: Date())
+        return ActiveWorkoutViewModel(
+            workout: workout,
+            saveProgress: SaveWorkoutProgress(repository: repo),
+            finishWorkout: FinishWorkout(repository: repo),
+            discardWorkout: DiscardWorkout(repository: repo),
+            lastPerformance: LastPerformance(repository: repo),
+            exerciseCatalog: MockCatalog(items: [
+                CatalogExercise(id: benchId, name: "臥推", muscleGroup: .chest),
+                CatalogExercise(id: squatId, name: "深蹲", muscleGroup: .legs),
+            ]),
+            plannedProvider: MockPlanProvider(blueprint: blueprint)
+        )
+    }
+
+    private func complete(_ vm: ActiveWorkoutViewModel, times: Int) async {
+        for _ in 0..<times {
+            await vm.completeCurrentSet()
+            vm.dismissRest()
+        }
+    }
+
+    @Test func cardShowsOnlyAfterLastPlannedSet() async {
+        let vm = makeViewModel(benchSets: 3, squatSets: 3)
+        await vm.onAppear() // 自動選臥推
+
+        await complete(vm, times: 2)
+        #expect(vm.showExerciseComplete == false) // 還沒做滿 3 組
+
+        await complete(vm, times: 1)
+        #expect(vm.showExerciseComplete == true)  // 第 3 組 → 跳卡片
+        #expect(vm.completedExerciseName == "臥推")
+        #expect(vm.isPlanFullyDone == false)       // 還有深蹲
+        #expect(vm.nextPlannedName == "深蹲")
+    }
+
+    @Test func continueSameExerciseDoesNotRetrigger() async {
+        let vm = makeViewModel(benchSets: 3, squatSets: 3)
+        await vm.onAppear()
+        await complete(vm, times: 3)
+        #expect(vm.showExerciseComplete == true)
+
+        vm.continueSameExercise()       // 選「再做一組」
+        #expect(vm.showExerciseComplete == false)
+
+        await complete(vm, times: 1)    // 加練第 4 組
+        #expect(vm.showExerciseComplete == false) // 不再重複跳
+    }
+
+    @Test func lastExerciseMarksPlanFullyDone() async {
+        let vm = makeViewModel(benchSets: 1, squatSets: 1)
+        await vm.onAppear()
+
+        await complete(vm, times: 1)    // 臥推做完
+        #expect(vm.isPlanFullyDone == false)
+        vm.dismissExerciseComplete()
+
+        await vm.advanceToNextPlanned() // 到深蹲
+        await complete(vm, times: 1)    // 深蹲做完（課表最後一個）
+        #expect(vm.showExerciseComplete == true)
+        #expect(vm.isPlanFullyDone == true)
+    }
+}

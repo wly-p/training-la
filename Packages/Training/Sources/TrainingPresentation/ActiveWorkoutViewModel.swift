@@ -22,6 +22,11 @@ public final class ActiveWorkoutViewModel {
     public private(set) var restEnded = false
     private var restTask: Task<Void, Never>?
 
+    /// 剛做滿某動作的課表組數 → View 顯示完成卡片。
+    public private(set) var showExerciseComplete = false
+    /// 每個動作只跳一次完成卡片（選「再做一組」後不再重複跳）。
+    private var completionShownFor: Set<UUID> = []
+
     public var draftWeightValue: Double = 20
     public var draftWeightUnit: WeightUnit = .kg
     public var draftReps: Int = 8
@@ -158,6 +163,36 @@ public final class ActiveWorkoutViewModel {
         await appendSet(status: .skipped)
     }
 
+    // MARK: - 動作完成卡片
+
+    /// 剛完成的動作名稱（卡片標題用）。
+    public var completedExerciseName: String {
+        currentExerciseId.map { name(for: $0) } ?? ""
+    }
+
+    /// 完成當前動作後，課表是否全部做完（沒有下一個未做的課表動作）。
+    public var isPlanFullyDone: Bool { nextPlannedExerciseId == nil }
+
+    /// 「再做一組」：留在原動作，關掉卡片。
+    public func continueSameExercise() {
+        showExerciseComplete = false
+    }
+
+    public func dismissExerciseComplete() {
+        showExerciseComplete = false
+    }
+
+    /// append 後檢查：剛好做滿課表組數 → 觸發完成卡片（每動作一次）。
+    private func maybeTriggerExerciseComplete() {
+        guard let id = currentExerciseId, let blueprint else { return }
+        let planned = blueprint.exercises.first { $0.exerciseId == id }?.setCount ?? 0
+        guard planned > 0, !completionShownFor.contains(id) else { return }
+        if currentBlockSets.count == planned {
+            completionShownFor.insert(id)
+            showExerciseComplete = true
+        }
+    }
+
     // MARK: - 休息倒數
 
     /// 開始休息倒數。
@@ -255,6 +290,7 @@ public final class ActiveWorkoutViewModel {
             errorMessage = "儲存失敗：\(error.localizedDescription)"
         }
         prefillDraft() // 記完一組後，替下一組預填（照課表會帶下一組目標）
+        maybeTriggerExerciseComplete() // 剛做滿課表組數 → 完成卡片
     }
 
     /// 預填優先序：照課表目標 → 本場同動作上一組 → 上次紀錄對應組 → 預設 20kg × 8。

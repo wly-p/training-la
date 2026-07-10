@@ -71,6 +71,14 @@ public struct ActiveWorkoutView: View {
                 }
             }
         }
+        // 動作完成卡片：用 overlay 而非 sheet，避免與其他 sheet 疊放衝突，
+        // 也讓「結束訓練」能無縫接到結束 sheet。
+        .overlay {
+            if viewModel.showExerciseComplete {
+                exerciseCompleteCard
+            }
+        }
+        .animation(.spring(duration: 0.3), value: viewModel.showExerciseComplete)
         // 錯誤彈窗掛在 NavigationStack 外層：與「休息結束」彈窗分屬不同 view，
         // 避免同一 view 上兩個 .alert 互相壓制。
         .alert(
@@ -83,6 +91,57 @@ public struct ActiveWorkoutView: View {
             Button("好", role: .cancel) {}
         } message: {
             Text(viewModel.errorMessage ?? "")
+        }
+    }
+
+    private var exerciseCompleteCard: some View {
+        ZStack(alignment: .bottom) {
+            Color.black.opacity(0.35)
+                .ignoresSafeArea()
+            VStack(spacing: 14) {
+                Text(viewModel.isPlanFullyDone ? "🎉" : "💪")
+                    .font(.system(size: 44))
+                Text(viewModel.isPlanFullyDone ? "課表完成" : "\(viewModel.completedExerciseName) 完成")
+                    .font(.title2.bold())
+                if viewModel.isPlanFullyDone {
+                    Text("所有課表動作都做完了")
+                        .foregroundStyle(.secondary)
+                    Button {
+                        viewModel.dismissExerciseComplete()
+                        showsFinishSheet = true
+                    } label: {
+                        Text("結束訓練")
+                            .font(.headline)
+                            .frame(maxWidth: .infinity)
+                            .padding(.vertical, 10)
+                    }
+                    .buttonStyle(.borderedProminent)
+                } else {
+                    Text("接下來：\(viewModel.nextPlannedName ?? "")")
+                        .foregroundStyle(.secondary)
+                    Button {
+                        viewModel.dismissExerciseComplete()
+                        Task { await viewModel.advanceToNextPlanned() }
+                    } label: {
+                        Label("下一個動作", systemImage: "arrow.right")
+                            .font(.headline)
+                            .frame(maxWidth: .infinity)
+                            .padding(.vertical, 10)
+                    }
+                    .buttonStyle(.borderedProminent)
+                }
+                Button("再做一組") {
+                    viewModel.continueSameExercise()
+                }
+                .font(.subheadline)
+                .foregroundStyle(.secondary)
+                .padding(.top, 2)
+            }
+            .padding(24)
+            .frame(maxWidth: .infinity)
+            .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 24))
+            .padding()
+            .transition(.move(edge: .bottom).combined(with: .opacity))
         }
     }
 
