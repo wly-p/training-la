@@ -108,10 +108,28 @@ public struct ActiveWorkoutView: View {
             }
 
             Section {
-                Button {
-                    showsExercisePicker = true
-                } label: {
-                    Label("下一個動作", systemImage: "arrow.right")
+                if viewModel.isFollowingPlan {
+                    if let nextName = viewModel.nextPlannedName {
+                        Button {
+                            Task { await viewModel.advanceToNextPlanned() }
+                        } label: {
+                            Label("下一個動作：\(nextName)", systemImage: "arrow.right")
+                        }
+                    } else {
+                        Label("課表動作都做完了，可結束或加練", systemImage: "checkmark.circle")
+                            .foregroundStyle(.secondary)
+                    }
+                    Button {
+                        showsExercisePicker = true
+                    } label: {
+                        Label("加入其他動作", systemImage: "plus")
+                    }
+                } else {
+                    Button {
+                        showsExercisePicker = true
+                    } label: {
+                        Label("下一個動作", systemImage: "arrow.right")
+                    }
                 }
             }
 

@@ -81,6 +81,23 @@ public final class ActiveWorkoutViewModel {
         return blueprint?.target(exerciseId: exerciseId, position: currentBlockSets.count)
     }
 
+    /// 是否照課表訓練。
+    public var isFollowingPlan: Bool { blueprint != nil }
+
+    /// 照課表的下一個動作：課表順序中還沒記過、且非當前動作的第一個。全部做過回 nil。
+    public var nextPlannedExerciseId: UUID? {
+        guard let blueprint else { return nil }
+        let recorded = Set(workout.sets.map(\.exerciseId))
+        return blueprint.exercises.first {
+            $0.exerciseId != currentExerciseId && !recorded.contains($0.exerciseId)
+        }?.exerciseId
+    }
+
+    /// 下一個課表動作的名稱（給按鈕標題）。
+    public var nextPlannedName: String? {
+        nextPlannedExerciseId.map { name(for: $0) }
+    }
+
     // MARK: - 動作
 
     public func onAppear() async {
@@ -108,6 +125,12 @@ public final class ActiveWorkoutViewModel {
             lastPerformances[exerciseId] = sets
         }
         prefillDraft()
+    }
+
+    /// 照課表：跳到課表的下一個動作。
+    public func advanceToNextPlanned() async {
+        guard let id = nextPlannedExerciseId else { return }
+        await select(exerciseId: id)
     }
 
     public func completeCurrentSet() async {
