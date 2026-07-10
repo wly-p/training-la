@@ -7,40 +7,57 @@ import TrainingDomain
 public final class TrainingHomeViewModel {
     /// 有進行中的場次可以繼續。
     public private(set) var resumable: Workout?
+    /// 今天的排課（照課表訓練的來源）。
+    public private(set) var todaysPlan: PlannedWorkoutBlueprint?
     /// 非 nil → 呈現記錄畫面。
     public var recording: Workout?
     public private(set) var errorMessage: String?
 
     private let startWorkout: StartWorkout
     private let resumeWorkout: ResumeWorkout
+    private let plannedProvider: (any PlannedWorkoutProvider)?
 
-    public init(startWorkout: StartWorkout, resumeWorkout: ResumeWorkout) {
+    public init(
+        startWorkout: StartWorkout,
+        resumeWorkout: ResumeWorkout,
+        plannedProvider: (any PlannedWorkoutProvider)? = nil
+    ) {
         self.startWorkout = startWorkout
         self.resumeWorkout = resumeWorkout
+        self.plannedProvider = plannedProvider
     }
 
     public func refresh() async {
         do {
             resumable = try await resumeWorkout()
+            todaysPlan = try await plannedProvider?.todaysPlan()
             errorMessage = nil
         } catch {
-            errorMessage = "讀取進行中訓練失敗：\(error.localizedDescription)"
+            errorMessage = "讀取狀態失敗：\(error.localizedDescription)"
         }
     }
 
-    public func startNew() async {
-        do {
-            recording = try await startWorkout()
-        } catch {
-            errorMessage = "無法開始訓練：\(error.localizedDescription)"
-        }
+    /// 自由訓練（不帶課表）。
+    public func startFree() async {
+        await start(blueprint: nil)
+    }
+
+    /// 照今天的課表開始。
+    public func startFromPlan() async {
+        await start(blueprint: todaysPlan)
     }
 
     public func resume() {
         recording = resumable
     }
 
-    public func dismissError() {
-        errorMessage = nil
+    public func dismissError() { errorMessage = nil }
+
+    private func start(blueprint: PlannedWorkoutBlueprint?) async {
+        do {
+            recording = try await startWorkout(blueprint: blueprint)
+        } catch {
+            errorMessage = "無法開始訓練：\(error.localizedDescription)"
+        }
     }
 }

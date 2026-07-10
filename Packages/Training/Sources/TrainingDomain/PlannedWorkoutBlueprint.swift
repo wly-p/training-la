@@ -14,12 +14,41 @@ public struct PlannedWorkoutBlueprint: Equatable, Sendable {
         self.name = name
         self.targets = targets
     }
+
+    /// 依 exerciseIndex 排序的動作清單（去重，保留順序）。
+    public var exercises: [(exerciseId: UUID, name: String, setCount: Int)] {
+        var order: [Int] = []
+        var grouped: [Int: (UUID, String, Int)] = [:]
+        for target in targets.sorted(by: { ($0.exerciseIndex, $0.setIndex) < ($1.exerciseIndex, $1.setIndex) }) {
+            if grouped[target.exerciseIndex] == nil {
+                order.append(target.exerciseIndex)
+                grouped[target.exerciseIndex] = (target.exerciseId, target.exerciseName, 0)
+            }
+            grouped[target.exerciseIndex]!.2 += 1
+        }
+        return order.map { grouped[$0]! }
+    }
+
+    /// "臥推 3組 · 肩推 3組"
+    public var summary: String {
+        exercises.map { "\($0.name) \($0.setCount)組" }.joined(separator: " · ")
+    }
+
+    /// 某動作在此藍圖裡、第 `position` 組（0-based）的目標。
+    public func target(exerciseId: UUID, position: Int) -> PlannedTargetSet? {
+        targets
+            .filter { $0.exerciseId == exerciseId }
+            .sorted { ($0.exerciseIndex, $0.setIndex) < ($1.exerciseIndex, $1.setIndex) }
+            .dropFirst(position)
+            .first
+    }
 }
 
 public struct PlannedTargetSet: Identifiable, Equatable, Sendable {
     /// 對應 plan_set 的 id（記錄時寫進 `WorkoutSet.fromPlanSetId`）。
     public let id: UUID
     public let exerciseId: UUID
+    public let exerciseName: String
     public let exerciseIndex: Int
     public let setIndex: Int
     public let targetWeight: Weight?
@@ -28,6 +57,7 @@ public struct PlannedTargetSet: Identifiable, Equatable, Sendable {
     public init(
         id: UUID,
         exerciseId: UUID,
+        exerciseName: String,
         exerciseIndex: Int,
         setIndex: Int,
         targetWeight: Weight?,
@@ -35,6 +65,7 @@ public struct PlannedTargetSet: Identifiable, Equatable, Sendable {
     ) {
         self.id = id
         self.exerciseId = exerciseId
+        self.exerciseName = exerciseName
         self.exerciseIndex = exerciseIndex
         self.setIndex = setIndex
         self.targetWeight = targetWeight

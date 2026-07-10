@@ -138,6 +138,11 @@ public struct ActiveWorkoutView: View {
 
     private var currentSetEditor: some View {
         VStack(spacing: 16) {
+            if let target = viewModel.currentTarget, let weight = target.targetWeight {
+                Text("目標：\(WeightDisplay.weight(weight))\(target.targetReps.map { " × \($0)" } ?? "")")
+                    .font(.subheadline)
+                    .foregroundStyle(.tint)
+            }
             HStack(spacing: 24) {
                 stepper(
                     label: "重量",

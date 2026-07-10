@@ -1,5 +1,8 @@
 import HistoryDomain
 import HistoryPresentation
+import PlanData
+import PlanDomain
+import PlanPresentation
 import SpecData
 import SpecDomain
 import SpecPresentation
@@ -16,33 +19,46 @@ struct AppDependencies {
     let makeTrainingHomeViewModel: @MainActor () -> TrainingHomeViewModel
     let makeActiveWorkoutViewModel: @MainActor (Workout) -> ActiveWorkoutViewModel
     let makeHistoryViewModel: @MainActor () -> HistoryViewModel
+    let makePlanScheduleViewModel: @MainActor () -> PlanScheduleViewModel
 
     /// 正式組裝：SwiftData 落地儲存，各 domain 的 models 併進同一個 Schema。
     /// `inMemory`：UI 測試用，換成不落地的 store（每次啟動都是乾淨狀態）。
     static func live(inMemory: Bool = false) throws -> AppDependencies {
-        let schema = Schema(SpecDataFactory.models + TrainingDataFactory.models)
+        let schema = Schema(
+            SpecDataFactory.models + TrainingDataFactory.models + PlanDataFactory.models
+        )
         let container = try ModelContainer(
             for: schema,
             configurations: ModelConfiguration(isStoredInMemoryOnly: inMemory)
         )
         return assemble(
             exerciseRepository: SpecDataFactory.makeExerciseRepository(container: container),
-            workoutRepository: TrainingDataFactory.makeWorkoutRepository(container: container)
+            workoutRepository: TrainingDataFactory.makeWorkoutRepository(container: container),
+            planRepository: PlanDataFactory.makePlanWorkoutRepository(container: container)
         )
     }
 
     /// 共用組裝邏輯：給定 repositories（真實或 mock）長出整張相依圖。
     static func assemble(
         exerciseRepository: any ExerciseRepository,
-        workoutRepository: any WorkoutRepository
+        workoutRepository: any WorkoutRepository,
+        planRepository: any PlanWorkoutRepository
     ) -> AppDependencies {
-        // Training 的 ExerciseCatalog port ← Spec 的 use case（兩個 domain 互不相識，只在這裡接線）
+        // Training 的 ExerciseCatalog port ← Spec 的 use case
         let catalog = SpecCatalogAdapter(listExercises: ListExercises(repository: exerciseRepository))
         // History 的讀取 port ← Training 紀錄 ＋ Spec 動作名稱
         let historyReading = HistoryReadingAdapter(
             workoutRepository: workoutRepository,
             listExercises: ListExercises(repository: exerciseRepository)
         )
+        // Training ↔ Plan 的兩條 port（今天排課、標記完成）
+        let plannedProvider = PlanProviderAdapter(
+            todaysWorkout: TodaysWorkout(repository: planRepository),
+            getPlanWorkout: { try await planRepository.get(id: $0) },
+            listExercises: ListExercises(repository: exerciseRepository)
+        )
+        let planProgress = PlanProgressAdapter(markDone: MarkPlanWorkoutDone(repository: planRepository))
+        let planCatalog = PlanCatalogAdapter(listExercises: ListExercises(repository: exerciseRepository))
 
         return AppDependencies(
             makeExerciseListViewModel: {
@@ -56,21 +72,32 @@ struct AppDependencies {
             makeTrainingHomeViewModel: {
                 TrainingHomeViewModel(
                     startWorkout: StartWorkout(repository: workoutRepository),
-                    resumeWorkout: ResumeWorkout(repository: workoutRepository)
+                    resumeWorkout: ResumeWorkout(repository: workoutRepository),
+                    plannedProvider: plannedProvider
                 )
             },
             makeActiveWorkoutViewModel: { workout in
                 ActiveWorkoutViewModel(
                     workout: workout,
                     saveProgress: SaveWorkoutProgress(repository: workoutRepository),
-                    finishWorkout: FinishWorkout(repository: workoutRepository),
+                    finishWorkout: FinishWorkout(repository: workoutRepository, planProgress: planProgress),
                     discardWorkout: DiscardWorkout(repository: workoutRepository),
                     lastPerformance: LastPerformance(repository: workoutRepository),
-                    exerciseCatalog: catalog
+                    exerciseCatalog: catalog,
+                    plannedProvider: plannedProvider
                 )
             },
             makeHistoryViewModel: {
                 HistoryViewModel(reading: historyReading)
+            },
+            makePlanScheduleViewModel: {
+                PlanScheduleViewModel(
+                    listPlanWorkouts: ListPlanWorkouts(repository: planRepository),
+                    createPlanWorkout: CreatePlanWorkout(repository: planRepository),
+                    updatePlanWorkout: UpdatePlanWorkout(repository: planRepository),
+                    deletePlanWorkout: DeletePlanWorkout(repository: planRepository),
+                    exerciseCatalog: planCatalog
+                )
             }
         )
     }

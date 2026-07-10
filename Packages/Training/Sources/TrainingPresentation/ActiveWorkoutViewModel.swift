@@ -11,6 +11,8 @@ public final class ActiveWorkoutViewModel {
     public private(set) var lastPerformances: [UUID: [WorkoutSet]] = [:]
     public private(set) var currentExerciseId: UUID?
     public private(set) var errorMessage: String?
+    /// 照課表訓練時的目標藍圖（自由訓練為 nil）。
+    public private(set) var blueprint: PlannedWorkoutBlueprint?
     /// 結束或放棄後設為 true，View 觀察到就關閉畫面。
     public private(set) var isDismissed = false
 
@@ -23,6 +25,7 @@ public final class ActiveWorkoutViewModel {
     private let discardWorkout: DiscardWorkout
     private let lastPerformance: LastPerformance
     private let exerciseCatalog: any ExerciseCatalog
+    private let plannedProvider: (any PlannedWorkoutProvider)?
 
     public init(
         workout: Workout,
@@ -30,7 +33,8 @@ public final class ActiveWorkoutViewModel {
         finishWorkout: FinishWorkout,
         discardWorkout: DiscardWorkout,
         lastPerformance: LastPerformance,
-        exerciseCatalog: any ExerciseCatalog
+        exerciseCatalog: any ExerciseCatalog,
+        plannedProvider: (any PlannedWorkoutProvider)? = nil
     ) {
         self.workout = workout
         self.saveProgress = saveProgress
@@ -38,6 +42,7 @@ public final class ActiveWorkoutViewModel {
         self.discardWorkout = discardWorkout
         self.lastPerformance = lastPerformance
         self.exerciseCatalog = exerciseCatalog
+        self.plannedProvider = plannedProvider
     }
 
     // MARK: - 衍生狀態
@@ -70,6 +75,12 @@ public final class ActiveWorkoutViewModel {
         return "上次：\(WeightDisplay.summary(of: sets))"
     }
 
+    /// 照課表時，當前這一組的目標；自由訓練回 nil。
+    public var currentTarget: PlannedTargetSet? {
+        guard let exerciseId = currentExerciseId else { return nil }
+        return blueprint?.target(exerciseId: exerciseId, position: currentBlockSets.count)
+    }
+
     // MARK: - 動作
 
     public func onAppear() async {
@@ -78,9 +89,15 @@ public final class ActiveWorkoutViewModel {
         } catch {
             errorMessage = "載入動作庫失敗：\(error.localizedDescription)"
         }
-        // 恢復進行中場次時，回到最後一個動作
+        // 照課表訓練：載入藍圖（含恢復進行中場次的情況）
+        if let planWorkoutId = workout.planWorkoutId {
+            blueprint = try? await plannedProvider?.blueprint(planWorkoutId: planWorkoutId)
+        }
+        // 起點：恢復時回到最後一個動作；照課表且尚未開始時跳到課表第一個動作
         if currentExerciseId == nil, let lastBlock = workout.blocks.last {
             await select(exerciseId: lastBlock.exerciseId)
+        } else if currentExerciseId == nil, let first = blueprint?.exercises.first {
+            await select(exerciseId: first.exerciseId)
         }
     }
 
@@ -135,23 +152,31 @@ public final class ActiveWorkoutViewModel {
 
     private func appendSet(status: WorkoutSetStatus) async {
         guard let exerciseId = currentExerciseId else { return }
+        // 照課表：把當下的目標當快照存入（fromPlanSetId + target_*），脫稿加練則為 nil
+        let target = currentTarget
         workout.appendSet(
             exerciseId: exerciseId,
             weight: Weight(value: draftWeightValue, unit: draftWeightUnit),
             reps: draftReps,
-            status: status
+            status: status,
+            fromPlanSetId: target?.id,
+            targetWeight: target?.targetWeight,
+            targetReps: target?.targetReps
         )
         do {
             try await saveProgress(workout) // 每組立即落地，中途被殺不掉資料
         } catch {
             errorMessage = "儲存失敗：\(error.localizedDescription)"
         }
+        prefillDraft() // 記完一組後，替下一組預填（照課表會帶下一組目標）
     }
 
-    /// 預填優先序：本場同動作上一組 → 上次紀錄的對應組 → 預設 20kg × 8。
+    /// 預填優先序：照課表目標 → 本場同動作上一組 → 上次紀錄對應組 → 預設 20kg × 8。
     private func prefillDraft() {
         guard let exerciseId = currentExerciseId else { return }
-        if let last = currentBlockSets.last {
+        if let target = currentTarget, let weight = target.targetWeight {
+            apply(weight: weight, reps: target.targetReps ?? draftReps)
+        } else if let last = currentBlockSets.last {
             apply(weight: last.weight, reps: last.reps)
         } else if let history = lastPerformances[exerciseId], let first = history.first {
             apply(weight: first.weight, reps: first.reps)
