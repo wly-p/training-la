@@ -44,6 +44,19 @@ public struct ActiveWorkoutView: View {
             .onChange(of: viewModel.isDismissed) { _, dismissed in
                 if dismissed { dismiss() }
             }
+            .safeAreaInset(edge: .bottom) {
+                if viewModel.restRemaining != nil, !viewModel.restEnded {
+                    restBar
+                }
+            }
+            .alert("休息結束", isPresented: Binding(
+                get: { viewModel.restEnded },
+                set: { if !$0 { viewModel.dismissRest() } }
+            )) {
+                Button("開始下一組") { viewModel.dismissRest() }
+            } message: {
+                Text("休息時間到了，準備下一組。")
+            }
             .sheet(isPresented: $showsExercisePicker) {
                 ExercisePickerView(catalog: viewModel.catalog) { exercise in
                     Task { await viewModel.select(exerciseId: exercise.id) }
@@ -57,17 +70,19 @@ public struct ActiveWorkoutView: View {
                     await viewModel.finish(feeling: feeling, note: note)
                 }
             }
-            .alert(
-                "出錯了",
-                isPresented: Binding(
-                    get: { viewModel.errorMessage != nil },
-                    set: { if !$0 { viewModel.dismissError() } }
-                )
-            ) {
-                Button("好", role: .cancel) {}
-            } message: {
-                Text(viewModel.errorMessage ?? "")
-            }
+        }
+        // 錯誤彈窗掛在 NavigationStack 外層：與「休息結束」彈窗分屬不同 view，
+        // 避免同一 view 上兩個 .alert 互相壓制。
+        .alert(
+            "出錯了",
+            isPresented: Binding(
+                get: { viewModel.errorMessage != nil },
+                set: { if !$0 { viewModel.dismissError() } }
+            )
+        ) {
+            Button("好", role: .cancel) {}
+        } message: {
+            Text(viewModel.errorMessage ?? "")
         }
     }
 
@@ -78,6 +93,35 @@ public struct ActiveWorkoutView: View {
             Button("加入動作") { showsExercisePicker = true }
                 .buttonStyle(.borderedProminent)
         }
+    }
+
+    private var restBar: some View {
+        HStack(spacing: 16) {
+            Button {
+                viewModel.adjustRest(-15)
+            } label: {
+                Image(systemName: "minus.circle.fill").font(.title2)
+            }
+            VStack(spacing: 0) {
+                Text("休息中").font(.caption).foregroundStyle(.secondary)
+                Text(restClock(viewModel.restRemaining ?? 0))
+                    .font(.title.bold().monospacedDigit())
+            }
+            .frame(maxWidth: .infinity)
+            Button {
+                viewModel.adjustRest(15)
+            } label: {
+                Image(systemName: "plus.circle.fill").font(.title2)
+            }
+            Button("跳過") { viewModel.dismissRest() }
+                .font(.subheadline)
+        }
+        .padding()
+        .background(.regularMaterial)
+    }
+
+    private func restClock(_ seconds: Int) -> String {
+        String(format: "%d:%02d", seconds / 60, seconds % 60)
     }
 
     private func recordingContent(exerciseId: UUID) -> some View {

@@ -32,6 +32,18 @@ struct PlanCreateTests {
         }
     }
 
+    @Test func createCarriesRestSecondsToEverySet() async throws {
+        let repo = MockPlanWorkoutRepository()
+        let create = CreatePlanWorkout(repository: repo)
+        let withRest = ExerciseTargetDraft(exerciseId: UUID(), setCount: 3,
+                                           targetWeight: Weight(value: 100, unit: .kg),
+                                           targetReps: 5, restSec: 90)
+
+        let plan = try await create(name: "推日", date: nil, drafts: [withRest])
+
+        #expect(plan.sets.allSatisfy { $0.restSec == 90 })
+    }
+
     @Test func createAssignsIncreasingOrderIndex() async throws {
         let repo = MockPlanWorkoutRepository()
         let create = CreatePlanWorkout(repository: repo)

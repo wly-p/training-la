@@ -34,7 +34,8 @@ struct PlanProviderAdapter: PlannedWorkoutProvider {
                 exerciseIndex: set.exerciseIndex,
                 setIndex: set.setIndex,
                 targetWeight: set.targetWeight,
-                targetReps: set.targetReps
+                targetReps: set.targetReps,
+                restSec: set.restSec
             )
         }
         return PlannedWorkoutBlueprint(planWorkoutId: plan.id, name: plan.name, targets: targets)

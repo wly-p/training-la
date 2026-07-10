@@ -136,6 +136,25 @@ struct PlanWorkoutFormView: View {
                 #endif
             }
             .font(.subheadline)
+
+            HStack {
+                Text("休息")
+                TextField("秒（可留空）", text: Binding(
+                    get: { draft.wrappedValue.restSec.map(String.init) ?? "" },
+                    set: {
+                        let n = Int($0.trimmingCharacters(in: .whitespaces))
+                        draft.wrappedValue.restSec = (n ?? 0) > 0 ? n : nil
+                    }
+                ))
+                .frame(width: 70)
+                #if os(iOS)
+                .keyboardType(.numberPad)
+                #endif
+                Text("秒")
+                Spacer()
+            }
+            .font(.subheadline)
+            .foregroundStyle(.secondary)
         }
         .padding(.vertical, 4)
     }

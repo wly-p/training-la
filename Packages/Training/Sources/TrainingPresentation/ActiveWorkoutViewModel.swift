@@ -16,6 +16,12 @@ public final class ActiveWorkoutViewModel {
     /// 結束或放棄後設為 true，View 觀察到就關閉畫面。
     public private(set) var isDismissed = false
 
+    /// 休息倒數剩餘秒數；nil＝沒在休息。
+    public private(set) var restRemaining: Int?
+    /// 倒數歸零 → View 彈窗提示「休息結束」。
+    public private(set) var restEnded = false
+    private var restTask: Task<Void, Never>?
+
     public var draftWeightValue: Double = 20
     public var draftWeightUnit: WeightUnit = .kg
     public var draftReps: Int = 8
@@ -134,15 +140,64 @@ public final class ActiveWorkoutViewModel {
     }
 
     public func completeCurrentSet() async {
+        let rest = currentTarget?.restSec // 完成這組後的休息（取自這組的目標）
         await appendSet(status: .done)
+        if let rest, rest > 0 {
+            startRest(seconds: rest)
+        }
     }
 
     public func skipCurrentSet() async {
         await appendSet(status: .skipped)
     }
 
+    // MARK: - 休息倒數
+
+    /// 開始休息倒數。
+    public func startRest(seconds: Int) {
+        restTask?.cancel()
+        restRemaining = seconds
+        restEnded = false
+        restTask = Task { [weak self] in
+            while true {
+                try? await Task.sleep(for: .seconds(1))
+                if Task.isCancelled { return }
+                guard let self else { return }
+                let done = self.tickRest()
+                if done { return }
+            }
+        }
+    }
+
+    /// 訓練中調整休息剩餘秒數（+/- 15 秒）。
+    public func adjustRest(_ delta: Int) {
+        guard let remaining = restRemaining else { return }
+        restRemaining = max(0, remaining + delta)
+    }
+
+    /// 跳過休息 / 關掉彈窗開始下一組。
+    public func dismissRest() {
+        restTask?.cancel()
+        restTask = nil
+        restRemaining = nil
+        restEnded = false
+    }
+
+    /// 回傳 true＝倒數結束（呼叫端該停止 loop）。
+    private func tickRest() -> Bool {
+        guard let remaining = restRemaining else { return true }
+        if remaining <= 1 {
+            restRemaining = 0
+            restEnded = true
+            return true
+        }
+        restRemaining = remaining - 1
+        return false
+    }
+
     /// 離開（未結束）。回傳 true＝可關閉畫面；空場次直接放棄刪掉。
     public func leave() async {
+        dismissRest()
         if workout.sets.isEmpty {
             try? await discardWorkout(id: workout.id)
         }
@@ -150,6 +205,7 @@ public final class ActiveWorkoutViewModel {
     }
 
     public func finish(feeling: Int?, note: String) async {
+        dismissRest()
         do {
             try await finishWorkout(workout, overallFeeling: feeling, note: note)
             isDismissed = true

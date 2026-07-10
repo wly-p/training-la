@@ -53,6 +53,8 @@ public struct PlannedTargetSet: Identifiable, Equatable, Sendable {
     public let setIndex: Int
     public let targetWeight: Weight?
     public let targetReps: Int?
+    /// 這組做完的休息秒數；nil＝沒設。
+    public let restSec: Int?
 
     public init(
         id: UUID,
@@ -61,7 +63,8 @@ public struct PlannedTargetSet: Identifiable, Equatable, Sendable {
         exerciseIndex: Int,
         setIndex: Int,
         targetWeight: Weight?,
-        targetReps: Int?
+        targetReps: Int?,
+        restSec: Int?
     ) {
         self.id = id
         self.exerciseId = exerciseId
@@ -70,6 +73,7 @@ public struct PlannedTargetSet: Identifiable, Equatable, Sendable {
         self.setIndex = setIndex
         self.targetWeight = targetWeight
         self.targetReps = targetReps
+        self.restSec = restSec
     }
 }
 
