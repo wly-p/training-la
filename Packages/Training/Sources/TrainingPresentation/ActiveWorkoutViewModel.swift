@@ -142,9 +142,16 @@ public final class ActiveWorkoutViewModel {
     public func completeCurrentSet() async {
         let rest = currentTarget?.restSec // 完成這組後的休息（取自這組的目標）
         await appendSet(status: .done)
-        if let rest, rest > 0 {
+        // 只有「這個動作還有下一組」才倒數；做完該動作最後一組不休息（該換動作了）
+        if let rest, rest > 0, hasNextPlannedSetForCurrentExercise {
             startRest(seconds: rest)
         }
+    }
+
+    /// append 之後，目前動作是否還有下一組課表目標。
+    private var hasNextPlannedSetForCurrentExercise: Bool {
+        guard let id = currentExerciseId else { return false }
+        return blueprint?.target(exerciseId: id, position: currentBlockSets.count) != nil
     }
 
     public func skipCurrentSet() async {

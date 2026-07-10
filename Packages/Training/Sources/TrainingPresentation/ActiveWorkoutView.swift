@@ -237,14 +237,27 @@ public struct ActiveWorkoutView: View {
             }
             .buttonStyle(.borderedProminent)
 
-            Button("跳過此組") {
-                Task { await viewModel.skipCurrentSet() }
+            HStack(spacing: 20) {
+                Button("跳過此組") {
+                    Task { await viewModel.skipCurrentSet() }
+                }
+                if viewModel.restRemaining == nil {
+                    Menu {
+                        ForEach(restPresets, id: \.self) { sec in
+                            Button(restClock(sec)) { viewModel.startRest(seconds: sec) }
+                        }
+                    } label: {
+                        Label("休息計時", systemImage: "timer")
+                    }
+                }
             }
             .font(.footnote)
             .foregroundStyle(.secondary)
         }
         .padding(.vertical, 8)
     }
+
+    private let restPresets = [30, 60, 90, 120, 150, 180, 240, 300]
 
     private func stepper(
         label: String,
