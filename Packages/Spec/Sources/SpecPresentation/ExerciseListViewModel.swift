@@ -86,6 +86,8 @@ public final class ExerciseListViewModel {
             "動作名稱最長 \(max) 字"
         case ExerciseRepositoryError.notFound:
             "找不到這個動作，可能已被刪除"
+        case ExerciseRepositoryError.inUse:
+            "此動作已被課表或訓練紀錄使用，無法刪除"
         default:
             "發生錯誤：\(error.localizedDescription)"
         }

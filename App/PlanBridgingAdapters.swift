@@ -61,3 +61,15 @@ struct PlanCatalogAdapter: PlanExerciseCatalog {
         }
     }
 }
+
+/// Spec 的「動作有沒有被引用」port ← Training 紀錄 ＋ Plan 排課（任一引用即算被用）。
+/// 這是本地落實 in_use 的地方；未來走 API 時改由伺服器 409 落實，本 adapter 不再被 wire。
+struct ExerciseUsageChecker: ExerciseUsageChecking {
+    let workoutRepository: any WorkoutRepository
+    let planRepository: any PlanWorkoutRepository
+
+    func isUsed(exerciseId: UUID) async throws -> Bool {
+        if try await workoutRepository.usesExercise(exerciseId) { return true }
+        return try await planRepository.usesExercise(exerciseId)
+    }
+}

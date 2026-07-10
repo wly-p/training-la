@@ -87,6 +87,16 @@ struct SwiftDataWorkoutRepositoryTests {
         #expect(sets.isEmpty)
     }
 
+    @Test func usesExerciseReflectsRecordedSets() async throws {
+        let repo = try makeRepository()
+        let benchPress = UUID()
+        let squat = UUID()
+        try await repo.save(workoutWithSets(benchPress, reps: [8, 8]))
+
+        #expect(try await repo.usesExercise(benchPress) == true)
+        #expect(try await repo.usesExercise(squat) == false)
+    }
+
     @Test func deleteRemovesWorkout() async throws {
         let repo = try makeRepository()
         let workout = workoutWithSets(UUID(), reps: [8])

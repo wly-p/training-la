@@ -31,10 +31,19 @@ struct AppDependencies {
             for: schema,
             configurations: ModelConfiguration(isStoredInMemoryOnly: inMemory)
         )
+        let workoutRepository = TrainingDataFactory.makeWorkoutRepository(container: container)
+        let planRepository = PlanDataFactory.makePlanWorkoutRepository(container: container)
+        // 本地落實 in_use：刪動作前查 Training / Plan 有沒有引用
+        let usageChecker = ExerciseUsageChecker(
+            workoutRepository: workoutRepository,
+            planRepository: planRepository
+        )
         return assemble(
-            exerciseRepository: SpecDataFactory.makeExerciseRepository(container: container),
-            workoutRepository: TrainingDataFactory.makeWorkoutRepository(container: container),
-            planRepository: PlanDataFactory.makePlanWorkoutRepository(container: container)
+            exerciseRepository: SpecDataFactory.makeExerciseRepository(
+                container: container, usageChecker: usageChecker
+            ),
+            workoutRepository: workoutRepository,
+            planRepository: planRepository
         )
     }
 

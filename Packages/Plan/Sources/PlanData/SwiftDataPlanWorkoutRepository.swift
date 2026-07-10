@@ -49,6 +49,14 @@ public actor SwiftDataPlanWorkoutRepository: PlanWorkoutRepository {
         return try modelContext.fetch(descriptor).map { $0.toDomain() }
     }
 
+    public func usesExercise(_ exerciseId: UUID) async throws -> Bool {
+        var descriptor = FetchDescriptor<PlanSetModel>(
+            predicate: #Predicate { $0.exerciseId == exerciseId }
+        )
+        descriptor.fetchLimit = 1
+        return try modelContext.fetch(descriptor).first != nil
+    }
+
     private func fetchModel(id: UUID) throws -> PlanWorkoutModel? {
         var descriptor = FetchDescriptor<PlanWorkoutModel>(predicate: #Predicate { $0.id == id })
         descriptor.fetchLimit = 1

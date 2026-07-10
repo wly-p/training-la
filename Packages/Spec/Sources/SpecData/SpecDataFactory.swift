@@ -8,7 +8,13 @@ public enum SpecDataFactory {
     /// 本 package 需要納入 schema 的模型。
     public static var models: [any PersistentModel.Type] { [ExerciseModel.self] }
 
-    public static func makeExerciseRepository(container: ModelContainer) -> any ExerciseRepository {
-        SwiftDataExerciseRepository(modelContainer: container)
+    /// `usageChecker` 非 nil 時，包一層 decorator 在刪除前擋掉被引用的動作（丟 `inUse`）。
+    public static func makeExerciseRepository(
+        container: ModelContainer,
+        usageChecker: (any ExerciseUsageChecking)? = nil
+    ) -> any ExerciseRepository {
+        let base = SwiftDataExerciseRepository(modelContainer: container)
+        guard let usageChecker else { return base }
+        return UsageCheckingExerciseRepository(base: base, usageChecker: usageChecker)
     }
 }

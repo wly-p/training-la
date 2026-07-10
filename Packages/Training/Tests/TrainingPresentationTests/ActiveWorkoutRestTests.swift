@@ -16,6 +16,7 @@ private actor MockWorkoutRepo: WorkoutRepository {
     func lastPerformance(exerciseId: UUID, excludingWorkout: UUID?) async throws -> [WorkoutSet] { [] }
     func finishedWorkouts() async throws -> [Workout] { [] }
     func exerciseHistory(exerciseId: UUID) async throws -> [ExerciseSetRecord] { [] }
+    func usesExercise(_ exerciseId: UUID) async throws -> Bool { false }
 }
 
 private struct MockCatalog: ExerciseCatalog {

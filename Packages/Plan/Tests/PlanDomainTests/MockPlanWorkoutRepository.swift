@@ -34,4 +34,8 @@ actor MockPlanWorkoutRepository: PlanWorkoutRepository {
     func cycle() async throws -> [PlanWorkout] {
         storage.values.filter { $0.date == nil }.sorted { $0.orderIndex < $1.orderIndex }
     }
+
+    func usesExercise(_ exerciseId: UUID) async throws -> Bool {
+        storage.values.contains { $0.sets.contains { $0.exerciseId == exerciseId } }
+    }
 }

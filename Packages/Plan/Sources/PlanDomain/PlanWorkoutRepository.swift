@@ -12,6 +12,8 @@ public protocol PlanWorkoutRepository: Sendable {
     func onDate(_ day: DayDate) async throws -> [PlanWorkout]
     /// 循環排課（date == nil），依 orderIndex 升序。
     func cycle() async throws -> [PlanWorkout]
+    /// 有沒有任何一組排課目標引用這個動作（給刪動作的 in_use 檢查）。
+    func usesExercise(_ exerciseId: UUID) async throws -> Bool
 }
 
 public enum PlanWorkoutRepositoryError: Error, Equatable, Sendable {

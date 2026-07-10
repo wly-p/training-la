@@ -13,4 +13,12 @@ public protocol ExerciseRepository: Sendable {
 
 public enum ExerciseRepositoryError: Error, Equatable, Sendable {
     case notFound(id: UUID)
+    /// 動作被課表 / 訓練紀錄引用，無法刪除（對齊 API 契約的 `in_use`）。
+    case inUse(id: UUID)
+}
+
+/// 「這個動作有沒有被引用」的查詢 port。
+/// 本地由 App 接到 Training / Plan 的資料落實；未來走 API 時改由伺服器的 409 落實，此 port 不再被 wire。
+public protocol ExerciseUsageChecking: Sendable {
+    func isUsed(exerciseId: UUID) async throws -> Bool
 }

@@ -57,6 +57,10 @@ actor MockWorkoutRepository: WorkoutRepository {
                     .map { ExerciseSetRecord(workoutId: workout.id, day: workout.day, set: $0) }
             }
     }
+
+    func usesExercise(_ exerciseId: UUID) async throws -> Bool {
+        storage.values.contains { $0.sets.contains { $0.exerciseId == exerciseId } }
+    }
 }
 
 actor SpyPlanProgress: PlanProgressRecorder {

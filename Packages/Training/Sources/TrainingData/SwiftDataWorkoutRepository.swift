@@ -83,6 +83,14 @@ public actor SwiftDataWorkoutRepository: WorkoutRepository {
         return records
     }
 
+    public func usesExercise(_ exerciseId: UUID) async throws -> Bool {
+        var descriptor = FetchDescriptor<WorkoutSetModel>(
+            predicate: #Predicate { $0.exerciseId == exerciseId }
+        )
+        descriptor.fetchLimit = 1
+        return try modelContext.fetch(descriptor).first != nil
+    }
+
     private func fetchModel(id: UUID) throws -> WorkoutModel? {
         var descriptor = FetchDescriptor<WorkoutModel>(predicate: #Predicate { $0.id == id })
         descriptor.fetchLimit = 1

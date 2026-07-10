@@ -16,6 +16,8 @@ public protocol WorkoutRepository: Sendable {
     func finishedWorkouts() async throws -> [Workout]
     /// 某動作跨所有已完成場次的每一組（新到舊；本地版的 /v1/workout-sets?exercise_id=）。
     func exerciseHistory(exerciseId: UUID) async throws -> [ExerciseSetRecord]
+    /// 有沒有任何一組紀錄引用這個動作（給刪動作的 in_use 檢查）。
+    func usesExercise(_ exerciseId: UUID) async throws -> Bool
 }
 
 /// 動作歷史的一列：一組實際紀錄＋所屬場次的日期。

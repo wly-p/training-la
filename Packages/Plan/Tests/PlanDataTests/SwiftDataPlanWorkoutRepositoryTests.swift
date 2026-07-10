@@ -63,6 +63,16 @@ struct SwiftDataPlanWorkoutRepositoryTests {
         #expect(fetched?.name == "改過")
     }
 
+    @Test func usesExerciseReflectsPlanSets() async throws {
+        let repo = try makeRepository()
+        let plan = planWorkout(date: nil, order: 0, sets: 2)
+        let usedExerciseId = plan.sets[0].exerciseId
+        try await repo.save(plan)
+
+        #expect(try await repo.usesExercise(usedExerciseId) == true)
+        #expect(try await repo.usesExercise(UUID()) == false)
+    }
+
     @Test func deleteRemoves() async throws {
         let repo = try makeRepository()
         let plan = planWorkout(date: nil, order: 0)
