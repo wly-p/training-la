@@ -3,6 +3,7 @@ import HistoryPresentation
 import PlanData
 import PlanDomain
 import PlanPresentation
+import SettingsPresentation
 import SpecData
 import SpecDomain
 import SpecPresentation
@@ -20,6 +21,7 @@ struct AppDependencies {
     let makeActiveWorkoutViewModel: @MainActor (Workout) -> ActiveWorkoutViewModel
     let makeHistoryViewModel: @MainActor () -> HistoryViewModel
     let makePlanScheduleViewModel: @MainActor () -> PlanScheduleViewModel
+    let makeSettingsViewModel: @MainActor () -> SettingsViewModel
 
     /// 正式組裝：SwiftData 落地儲存，各 domain 的 models 併進同一個 Schema。
     /// `inMemory`：UI 測試用，換成不落地的 store（每次啟動都是乾淨狀態）。
@@ -107,6 +109,9 @@ struct AppDependencies {
                     deletePlanWorkout: DeletePlanWorkout(repository: planRepository),
                     exerciseCatalog: planCatalog
                 )
+            },
+            makeSettingsViewModel: {
+                SettingsViewModel(store: UserDefaultsThemeStore())
             }
         )
     }
