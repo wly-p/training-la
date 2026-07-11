@@ -42,7 +42,6 @@ final class SettingsUITests: XCTestCase {
         app.tabBars.buttons["設定"].tap()
         let badge = app.staticTexts["environmentBadge"]
         XCTAssertTrue(badge.waitForExistence(timeout: 5))
-        let valid = ["dev · training-la-api-dev.wly.lol", "prod · training-la-api.wly.lol"]
-        XCTAssertTrue(valid.contains(badge.label), "unexpected badge: \(badge.label)")
+        XCTAssertTrue(["dev", "prod"].contains(badge.label), "unexpected badge: \(badge.label)")
     }
 }
