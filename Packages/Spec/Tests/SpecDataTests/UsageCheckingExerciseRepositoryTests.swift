@@ -26,7 +26,7 @@ private struct StubChecker: ExerciseUsageChecking {
 
 struct UsageCheckingExerciseRepositoryTests {
     private func exercise() -> Exercise {
-        Exercise(id: UUID(), name: "臥推", muscleGroup: .chest, description: nil,
+        Exercise(id: UUID(), name: "臥推", muscleGroup: .chest, equipment: .barbell, description: nil,
                  createdAt: Date(), updatedAt: Date())
     }
 

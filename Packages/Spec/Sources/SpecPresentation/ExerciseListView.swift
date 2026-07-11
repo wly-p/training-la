@@ -54,12 +54,12 @@ public struct ExerciseListView: View {
                 await viewModel.load()
             }
             .sheet(item: $editingTarget) { target in
-                ExerciseFormView(target: target) { name, muscleGroup, description in
+                ExerciseFormView(target: target) { name, muscleGroup, equipment, description in
                     switch target {
                     case .create:
-                        await viewModel.add(name: name, muscleGroup: muscleGroup, description: description)
+                        await viewModel.add(name: name, muscleGroup: muscleGroup, equipment: equipment, description: description)
                     case .edit(let exercise):
-                        await viewModel.edit(id: exercise.id, name: name, muscleGroup: muscleGroup, description: description)
+                        await viewModel.edit(id: exercise.id, name: name, muscleGroup: muscleGroup, equipment: equipment, description: description)
                     }
                 }
             }
@@ -81,6 +81,9 @@ public struct ExerciseListView: View {
         HStack {
             VStack(alignment: .leading, spacing: 2) {
                 Text(exercise.name)
+                Text(exercise.equipment.displayName)
+                    .font(.footnote)
+                    .foregroundStyle(.secondary)
                 if let description = exercise.description {
                     Text(description)
                         .font(.footnote)
