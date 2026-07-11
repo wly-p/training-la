@@ -1,52 +1,88 @@
-# 健身課表追踪工具
+<div align="center">
 
-## 專案簡介
+# Training La
 
-一個個人健身訓練管理工具，用於安排、紀錄、分析健身訓練。幫助追踪訓練進度、管理課表安排、記錄每次訓練的實際表現和感受。
+**A local-first iOS app for planning, logging, and reviewing your strength training.**
 
-## 核心用途
+![Swift](https://img.shields.io/badge/Swift-6.0-F05138?logo=swift&logoColor=white)
+![Platform](https://img.shields.io/badge/iOS-17%2B-000000?logo=apple&logoColor=white)
+![License](https://img.shields.io/badge/License-Apache--2.0-blue)
 
-- **課表規劃**：安排每週或每月的訓練菜單
-- **訓練執行**：在健身房記錄當日完成情況
-- **進度追踪**：檢視單一動作或整體訓練的進展趨勢
-- **資料沉澱**：長期累積訓練數據，用於調整計劃
+</div>
 
-## 主要功能模塊
+---
 
-### 1. 訓練項目庫（Spec）
-管理所有可用的訓練動作
-- 動作基本資訊（名稱、描述、肌群分類）
-- 動作庫的新增、編輯、刪除
-- 快速瀏覽和搜尋動作
+Training La helps you schedule what to train, log every set as you go, and look back at how a lift has
+progressed over time — no account, no backend, no network required. All data lives on-device.
 
-### 2. 個人課表（Personal）
-根據訓練目標安排課表
-- 為特定日期安排訓練項目
-- 設定每項訓練的目標參數（重量、次數、組數、休息時間）
-- 編輯和調整課表
-- 支援課表範本複製（方便週期性訓練）
+## Features
 
-### 3. 訓練紀錄（TrainingRecord）
-記錄每次訓練的實際執行情況
-- 記錄實際完成的次數、重量
-- 訓練感受評分
-- 標記訓練狀態（完成/跳過/中斷）
-- 訓練狀況備註（困難、調整、心得）
+- **Exercise library** — build your own catalog of movements (name, muscle group, equipment), and
+  reuse them across schedules and sessions.
+- **Scheduling** — plan workouts for a specific date, or as a repeating cycle (e.g. push/pull/legs)
+  that advances automatically as you complete each one.
+- **Workout tracking** — log weight and reps set-by-set, with a built-in rest timer and an
+  exercise-complete prompt when a planned exercise is done. Works equally well for a scheduled
+  workout or an unplanned one.
+- **History** — browse past sessions by date, or drill into a single exercise to see every set
+  you've ever logged for it.
+- **Theme** — light / dark / follow system.
 
-### 4. 進度分析（可選）
-檢視訓練進展
-- 單一動作的歷史紀錄和趨勢
-- 訓練完成率統計
-- 訓練量變化
+## Project status
 
-## 測試
+This is a **v0, feasibility-stage, single-user, local-only build**: no login, no sync, no remote
+API. The goal is to validate the core loop — *define an exercise → (optionally) schedule it → log
+it set-by-set → review the history* — before any backend work begins. See
+[`PROJECT_PLAN.md`](./PROJECT_PLAN.md) for the full roadmap (a Go backend with account sync is
+planned for v1).
 
+## Architecture
+
+Training La follows **Clean Architecture**, split into one local Swift Package per domain
+(`Spec`, `Plan`, `Training`, `History`, `Settings`), each with its own `Domain` / `Data` /
+`Presentation` layers. The domain layer is plain Swift with no framework imports, so business
+logic can be unit-tested without SwiftUI, SwiftData, or a simulator. See
+[`ARCHITECTURE.md`](./ARCHITECTURE.md) for the full breakdown, including the data model and
+cross-domain boundaries.
+
+## Tech stack
+
+| | |
+|---|---|
+| Language | Swift 6.0 |
+| UI | SwiftUI |
+| Persistence | SwiftData (on-device) |
+| Modules | Local Swift Packages (SPM), one per domain |
+| Project generation | [XcodeGen](https://github.com/yonaskolb/XcodeGen) (`project.yml` → `.xcodeproj`, not checked into git) |
+| Tests | [Swift Testing](https://developer.apple.com/documentation/testing) |
+
+## Getting started
+
+**Requirements:** Xcode 16+ (the full app, not just the Command Line Tools — `swift test` needs the
+bundled Testing framework), and [XcodeGen](https://github.com/yonaskolb/XcodeGen).
+
+```sh
+git clone git@github.com:wly-p/training-la.git
+cd training-la
+xcodegen generate
+open TrainingLa.xcodeproj
 ```
-make test-unit    # 六個 package 的 unit test（swift test，免模擬器）
-make test-uitest  # UITests（模擬器）
-make test-e2e     # 真實後端 API，v0 尚無，先佔位
+
+Then pick the **TrainingLa-Dev** scheme and run.
+
+## Testing
+
+```sh
+make test-unit    # unit tests for all 6 packages (swift test, no simulator needed)
+make test-uitest  # UI tests, on a simulator
+make test-e2e     # against a real backend — not applicable yet in v0, placeholder for now
 make test         # test-unit + test-uitest
 ```
 
-細節（Test Plan 拆分、`Config.xcconfig` 的 `TEST_DEVICE`/`TEST_HEADLESS`、環境需求）見 [`ARCHITECTURE.md`](./ARCHITECTURE.md#測試)。
+`DEVICE` and `HEADLESS` (which simulator to use, and whether to show its window) are configurable —
+see [`Config.xcconfig`](./Config.xcconfig). More detail on how unit tests and UI tests are wired up
+in Xcode lives in [`ARCHITECTURE.md`](./ARCHITECTURE.md#測試).
 
+## License
+
+[Apache-2.0](./LICENSE)
