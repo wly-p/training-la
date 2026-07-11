@@ -45,6 +45,7 @@ public struct CreateExercise: Sendable {
     public func callAsFunction(
         name: String,
         muscleGroup: MuscleGroup,
+        equipment: Equipment,
         description: String?
     ) async throws -> Exercise {
         let timestamp = now()
@@ -52,6 +53,7 @@ public struct CreateExercise: Sendable {
             id: makeID(),
             name: try validatedName(name),
             muscleGroup: muscleGroup,
+            equipment: equipment,
             description: description?.isEmpty == true ? nil : description,
             createdAt: timestamp,
             updatedAt: timestamp
@@ -78,6 +80,7 @@ public struct UpdateExercise: Sendable {
         id: UUID,
         name: String,
         muscleGroup: MuscleGroup,
+        equipment: Equipment,
         description: String?
     ) async throws -> Exercise {
         guard var exercise = try await repository.get(id: id) else {
@@ -85,6 +88,7 @@ public struct UpdateExercise: Sendable {
         }
         exercise.name = try validatedName(name)
         exercise.muscleGroup = muscleGroup
+        exercise.equipment = equipment
         exercise.description = description?.isEmpty == true ? nil : description
         exercise.updatedAt = now()
         try await repository.update(exercise)

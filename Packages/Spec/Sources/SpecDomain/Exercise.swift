@@ -6,6 +6,7 @@ public struct Exercise: Identifiable, Equatable, Sendable {
     public var id: UUID
     public var name: String
     public var muscleGroup: MuscleGroup
+    public var equipment: Equipment
     public var description: String?
     public var createdAt: Date
     public var updatedAt: Date
@@ -14,6 +15,7 @@ public struct Exercise: Identifiable, Equatable, Sendable {
         id: UUID,
         name: String,
         muscleGroup: MuscleGroup,
+        equipment: Equipment,
         description: String?,
         createdAt: Date,
         updatedAt: Date
@@ -21,6 +23,7 @@ public struct Exercise: Identifiable, Equatable, Sendable {
         self.id = id
         self.name = name
         self.muscleGroup = muscleGroup
+        self.equipment = equipment
         self.description = description
         self.createdAt = createdAt
         self.updatedAt = updatedAt

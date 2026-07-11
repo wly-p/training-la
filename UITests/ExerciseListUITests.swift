@@ -14,9 +14,11 @@ final class ExerciseListUITests: XCTestCase {
         XCTAssertTrue(nameField.waitForExistence(timeout: 5))
         nameField.tap()
         nameField.typeText("臥推")
-        app.buttons["儲存"].tap()
+        app.buttons["儲存"].tap() // 器材用預設（槓鈴）
 
         XCTAssertTrue(app.staticTexts["臥推"].waitForExistence(timeout: 5))
+        // 列表列顯示器材（預設槓鈴）→ 證明 equipment 有存進去並顯示
+        XCTAssertTrue(app.staticTexts["槓鈴"].waitForExistence(timeout: 5))
 
         // swipe 刪除
         let row = app.cells.containing(.staticText, identifier: "臥推").firstMatch

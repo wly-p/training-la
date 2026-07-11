@@ -47,12 +47,14 @@ extension Exercise {
         id: UUID = UUID(),
         name: String = "臥推",
         muscleGroup: MuscleGroup = .chest,
+        equipment: Equipment = .barbell,
         description: String? = nil
     ) -> Exercise {
         Exercise(
             id: id,
             name: name,
             muscleGroup: muscleGroup,
+            equipment: equipment,
             description: description,
             createdAt: Date(timeIntervalSince1970: 0),
             updatedAt: Date(timeIntervalSince1970: 0)
