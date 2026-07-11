@@ -33,5 +33,9 @@ let package = Package(
             name: "SpecDataTests",
             dependencies: ["SpecData"]
         ),
+        .testTarget(
+            name: "SpecPresentationTests",
+            dependencies: ["SpecPresentation"]
+        ),
     ]
 )

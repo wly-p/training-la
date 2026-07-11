@@ -18,5 +18,6 @@ let package = Package(
         .target(name: "PlanPresentation", dependencies: ["PlanDomain"]),
         .testTarget(name: "PlanDomainTests", dependencies: ["PlanDomain"]),
         .testTarget(name: "PlanDataTests", dependencies: ["PlanData"]),
+        .testTarget(name: "PlanPresentationTests", dependencies: ["PlanPresentation"]),
     ]
 )

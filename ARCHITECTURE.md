@@ -73,8 +73,9 @@ Packages/
       SpecData/           ← @Model + Mapper + Repository 實作（依賴 SpecDomain）
       SpecPresentation/   ← View + ViewModel（依賴 SpecDomain）
     Tests/
-      SpecDomainTests/    ← UseCase 注 mock repo，純邏輯測（秒級、免模擬器）
-      SpecDataTests/      ← Repository 用 in-memory SwiftData 測
+      SpecDomainTests/       ← UseCase 注 mock repo，純邏輯測（秒級、免模擬器）
+      SpecDataTests/         ← Repository 用 in-memory SwiftData 測
+      SpecPresentationTests/ ← ViewModel 注 mock repo/port 測
   Plan/       (同結構)
   Training/   (同結構：Session → SessionExercise → SetRecord)
   History/    (讀多，可只有 Domain + Presentation)
@@ -101,6 +102,43 @@ Packages/
 
 1. **View 裡不要用 `@Query`**：它把 SwiftUI 直接綁死 SwiftData，破壞分層。改走 View→ViewModel→UseCase→Repo；要反應式就讓 Repo 對外吐 `AsyncStream`。
 2. **`@Model` 不准漏出 Data 層**：邊界一律轉成 Domain struct。
+
+---
+
+# 測試
+
+三類測試，各自獨立：
+
+1. **Unit test**：六個 package（SharedKernel/Spec/Training/Plan/History/Settings）各自的 `Tests/`，用 Swift Testing（`import Testing`）。
+   - `*DomainTests`：UseCase 注 mock repository，純邏輯測，秒級、免模擬器。
+   - `*DataTests`：Repository 用 in-memory SwiftData 測。
+   - `*PresentationTests`：ViewModel 注 mock repository/port 測。
+2. **UI test**：`UITests/`（Xcode UI Testing target `TrainingLaUITests`），跑在模擬器上，走真實 App 畫面互動流程。
+3. **E2E UI test（真實後端 API）**：v0 是 local-first、尚無後端（見 [`PROJECT_PLAN.md`](./PROJECT_PLAN.md)），暫無此類測試；等 v1 接 Go 後端後才補。
+
+## 怎麼跑
+
+- `make test-unit`：逐 package 執行 `swift test`（不需模擬器，最快）。
+- `make test-uitest`：`xcodegen generate` 重生專案後，用 `UITests.xctestplan` 跑 `TrainingLaUITests`。
+- `make test-e2e`：目前是佔位（echo 提示尚無真實後端）。
+- `make test`：`test-unit` + `test-uitest`。
+
+同一份 `swift test` 也能在 Xcode 裡跑：`project.yml` 把每個 package 的 unit test target 都掛進 `UnitTests.xctestplan`，跟只含 `TrainingLaUITests` 的 `UITests.xctestplan` 是兩個獨立的 Test Plan（scheme 的 Test Plan 下拉選單可切換），Test Navigator 兩邊都看得到、能分開跑，不會混在一起。
+
+## `Config.xcconfig`：device / headless 可調參數
+
+`Config.xcconfig`（進版控）定義 `TEST_DEVICE`（跑 UITests 的模擬器機型，預設 `iPhone 17`）與 `TEST_HEADLESS`（bool，預設 `true`＝不開 Simulator.app 視窗）。這是 Makefile 與 Xcode 專案共用的單一真實來源：
+
+- Makefile 用 `awk` 讀這個檔案當預設值，可指令列覆蓋：`make test-uitest DEVICE="iPhone 16 Pro" HEADLESS=false`。
+- `project.yml` 用 `configFiles` 把它掛進全部 build configuration，`xcodebuild -showBuildSettings` 可看到同樣的值——但 Xcode GUI 工具列的模擬器下拉選單是互動式狀態，不會被這兩個值動態帶動，這是 Xcode 本身的限制。
+
+## 環境需求
+
+本機 `xcode-select` 必須指向完整的 `Xcode.app`（而非單獨安裝的 Command Line Tools），否則 `swift test` 找不到 `Testing` framework、`xcodebuild`／模擬器也跑不了：
+
+```
+sudo xcode-select -s /Applications/Xcode.app/Contents/Developer
+```
 
 ---
 

@@ -1,0 +1,14 @@
+// 專案層級共用設定：套用到全部 build configuration（連 App 本身的 build 都會讀到，
+// 不是只有測試才用），Makefile 與 Xcode 專案共用同一份（單一真實來源）。
+// 改這裡就好，不要在 Makefile / project.yml 裡另外寫死。
+//
+// TEST_DEVICE：跑 UITests 用的模擬器機型名稱（對應 `xcrun simctl list devicetypes`）。
+// Makefile 用它組 `xcodebuild -destination`；同時也放進 Xcode 的 Build Settings（User-Defined），
+// 讓專案裡讀得到同一個值——但 Xcode GUI 工具列的模擬器下拉選單是互動式狀態，
+// 不會被這個值動態帶動，仍要在 Xcode 裡手動選（這是 Xcode 本身的限制）。
+TEST_DEVICE = iPhone 17
+
+// TEST_HEADLESS（bool：true/false）：true（預設）＝ 不主動打開 Simulator.app 視覺化視窗；
+// false ＝ Makefile 會先 `open -a Simulator` 讓你能看著 UITests 跑。
+// 不管哪個值，xcodebuild 都還是會啟動模擬器 process，這個開關只影響「要不要順便開視窗給人看」。
+TEST_HEADLESS = true

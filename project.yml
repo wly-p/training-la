@@ -11,6 +11,15 @@ configs:
   Release-Dev: release
   Debug-Prod: debug
   Release-Prod: release
+# Config.xcconfig：專案層級共用設定（目前是 TEST_DEVICE / TEST_HEADLESS），套用到全部
+# build configuration，跟 Makefile 共用同一份（單一真實來源）。
+# Xcode GUI 的模擬器下拉選單仍是互動式狀態、不會被這兩個值動態帶動，這是 Xcode 本身的限制；
+# 這裡只保證專案的 Build Settings 讀得到跟 Makefile 一樣的值。
+configFiles:
+  Debug-Dev: Config.xcconfig
+  Release-Dev: Config.xcconfig
+  Debug-Prod: Config.xcconfig
+  Release-Prod: Config.xcconfig
 packages:
   SharedKernel:
     path: Packages/SharedKernel
@@ -76,6 +85,10 @@ targets:
         GENERATE_INFOPLIST_FILE: YES
         SWIFT_VERSION: "6.0"
 schemes:
+  # unit test 與 UITests 分成兩個獨立 Test Plan（UnitTests.xctestplan / UITests.xctestplan），
+  # 在 Xcode 的 Test Navigator／scheme 的 Test Plan 下拉選單可以分開選、分開跑，不會混在一起。
+  # 不能用 XcodeGen 的 test.targets 指到 SPM package 的 test target（XcodeGen 驗證會擋掉），
+  # 用 Test Plan 才是 Xcode 支援 local package tests 的正規做法。
   TrainingLa-Dev:
     build:
       targets:
@@ -85,7 +98,10 @@ schemes:
       config: Debug-Dev
     test:
       config: Debug-Dev
-      targets: [TrainingLaUITests]
+      testPlans:
+        - path: UnitTests.xctestplan
+          defaultPlan: true
+        - path: UITests.xctestplan
     profile:
       config: Release-Dev
     analyze:
@@ -101,7 +117,10 @@ schemes:
       config: Debug-Prod
     test:
       config: Debug-Prod
-      targets: [TrainingLaUITests]
+      testPlans:
+        - path: UnitTests.xctestplan
+          defaultPlan: true
+        - path: UITests.xctestplan
     profile:
       config: Release-Prod
     analyze:

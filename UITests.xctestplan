@@ -1,0 +1,24 @@
+{
+  "configurations" : [
+    {
+      "id" : "A010CCF7-BA7E-4CB4-BB15-9D264BFF382F",
+      "name" : "Configuration 1",
+      "options" : {
+
+      }
+    }
+  ],
+  "defaultOptions" : {
+
+  },
+  "testTargets" : [
+    {
+      "target" : {
+        "containerPath" : "container:TrainingLa.xcodeproj",
+        "identifier" : "TrainingLaUITests",
+        "name" : "TrainingLaUITests"
+      }
+    }
+  ],
+  "version" : 1
+}

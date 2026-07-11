@@ -39,3 +39,14 @@
 - 訓練完成率統計
 - 訓練量變化
 
+## 測試
+
+```
+make test-unit    # 六個 package 的 unit test（swift test，免模擬器）
+make test-uitest  # UITests（模擬器）
+make test-e2e     # 真實後端 API，v0 尚無，先佔位
+make test         # test-unit + test-uitest
+```
+
+細節（Test Plan 拆分、`Config.xcconfig` 的 `TEST_DEVICE`/`TEST_HEADLESS`、環境需求）見 [`ARCHITECTURE.md`](./ARCHITECTURE.md#測試)。
+
