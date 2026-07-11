@@ -111,7 +111,7 @@ struct AppDependencies {
                 )
             },
             makeSettingsViewModel: {
-                SettingsViewModel(store: UserDefaultsThemeStore())
+                SettingsViewModel(store: UserDefaultsThemeStore(), iconSwitcher: UIApplicationIconSwitcher())
             }
         )
     }

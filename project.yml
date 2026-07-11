@@ -61,6 +61,11 @@ targets:
       base:
         SWIFT_VERSION: "6.0"
         CODE_SIGN_STYLE: Automatic
+        # App/Assets.xcassets：預設 app icon（AppIcon＝G_sand-arrow）＋ 7 個可切換的 alternate icon。
+        # ALTERNATE_APPICON_NAMES 讓 actool 在 build 時自動把 CFBundleIcons 併進 Info.plist，
+        # 不用手動維護 CFBundleAlternateIcons（見 SettingsPresentation 的 AppIcon/IconSwitching）。
+        ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
+        ASSETCATALOG_COMPILER_ALTERNATE_APPICON_NAMES: "AppIcon-StepWave AppIcon-ProgressCurve AppIcon-RhythmBars AppIcon-BarbellPlate AppIcon-Checkmark AppIcon-PulseLine AppIcon-ConcentricCircles"
       # 環境值放 per-config 的 target build settings（不是 xcconfig）：
       # PRODUCT_BUNDLE_IDENTIFIER 必須在此，Xcode 實機自動簽章才讀得到。
       configs:
