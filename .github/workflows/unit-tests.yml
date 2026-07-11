@@ -5,6 +5,7 @@ name: Unit Tests
     branches: [main, dev]
   pull_request:
     branches: [main, dev]
+  workflow_dispatch: {} # 需要時可以在 GitHub Actions 頁面手動觸發
 
 jobs:
   test-unit:
