@@ -28,15 +28,10 @@ targets:
     type: application
     platform: iOS
     sources: [App]
-    configFiles:
-      Debug-Dev: Config/Dev.xcconfig
-      Release-Dev: Config/Dev.xcconfig
-      Debug-Prod: Config/Prod.xcconfig
-      Release-Prod: Config/Prod.xcconfig
     info:
       path: App/Info.plist
       properties:
-        # 由 xcconfig 注入、build 時展開；App 啟動讀成 AppEnvironment
+        # 由 per-config 的 build settings 注入、build 時展開；App 啟動讀成 AppEnvironment
         APIBaseURL: https://$(API_HOST)
         AppEnv: $(APP_ENV)
         CFBundleDisplayName: $(APP_DISPLAY_NAME)
@@ -57,6 +52,21 @@ targets:
       base:
         SWIFT_VERSION: "6.0"
         CODE_SIGN_STYLE: Automatic
+      # 環境值放 per-config 的 target build settings（不是 xcconfig）：
+      # PRODUCT_BUNDLE_IDENTIFIER 必須在此，Xcode 實機自動簽章才讀得到。
+      configs:
+        Debug-Dev: &envDev
+          PRODUCT_BUNDLE_IDENTIFIER: com.wly-p.training-la.dev
+          APP_ENV: dev
+          API_HOST: training-la-api-dev.wly.lol
+          APP_DISPLAY_NAME: "Training-la Dev"
+        Release-Dev: *envDev
+        Debug-Prod: &envProd
+          PRODUCT_BUNDLE_IDENTIFIER: com.wly-p.training-la
+          APP_ENV: prod
+          API_HOST: training-la-api.wly.lol
+          APP_DISPLAY_NAME: "Training-la"
+        Release-Prod: *envProd
   TrainingLaUITests:
     type: bundle.ui-testing
     platform: iOS

@@ -1,6 +1,0 @@
-// Prod 環境設定（尚未部署，先設好；真的部署後改 API_HOST 即可）。
-API_HOST = training-la-api.wly.lol
-APP_ENV = prod
-
-PRODUCT_BUNDLE_IDENTIFIER = com.wly-p.training-la
-APP_DISPLAY_NAME = Training-la
