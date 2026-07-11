@@ -1,0 +1,36 @@
+name: Unit Tests
+
+"on":
+  # 只用 pull_request：所有變更都經 PR 進 main/dev，push 會跟 pull_request 的
+  # synchronize 事件重複跑同一個 commit，沒有意義。
+  pull_request:
+    branches: [main, dev]
+  workflow_dispatch: {} # 需要時可以在 GitHub Actions 頁面手動觸發
+
+jobs:
+  test-unit:
+    name: swift test (6 packages)
+    runs-on: macos-15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      # 六個 package 都是本地 path dependency、無遠端相依，unit test target platform 是
+      # macOS，`swift test` 不用開模擬器，只要選對 Xcode 版本即可（Swift Testing 需要 Xcode
+      # 本體，不是單獨的 Command Line Tools）。
+      - name: Select Xcode
+        uses: maxim-lobanov/setup-xcode@v1
+        with:
+          xcode-version: latest-stable
+
+      # swift-testing 的 runner 偶爾會在測試全部通過後、收尾時發生間歇性 crash
+      # （swiftpm-testing-helper exited with signal 11），已知非測試本身的問題，重試一次即可。
+      - name: make test-unit
+        run: |
+          for attempt in 1 2; do
+            if make test-unit; then
+              exit 0
+            fi
+            echo "::warning::test-unit attempt $attempt failed, retrying..."
+          done
+          exit 1
