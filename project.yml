@@ -1,9 +1,15 @@
-# xcodegen 專案定義：`xcodegen generate` 重生 TrainingLa.xcodeproj（xcodeproj 不進版控）
+# xcodegen 專案定義：`xcodegen generate` 重生 TrainingLa.xcodeproj（xcodeproj、App/Info.plist 皆不進版控）
 name: TrainingLa
 options:
   bundleIdPrefix: com.wly-p
   deploymentTarget:
     iOS: "17.0"
+# 兩個軸獨立：debug/release ＝ 建置型別；dev/prod ＝ 環境（由 xcconfig 決定 API_HOST/APP_ENV）
+configs:
+  Debug-Dev: debug
+  Release-Dev: release
+  Debug-Prod: debug
+  Release-Prod: release
 packages:
   SharedKernel:
     path: Packages/SharedKernel
@@ -22,6 +28,19 @@ targets:
     type: application
     platform: iOS
     sources: [App]
+    configFiles:
+      Debug-Dev: Config/Dev.xcconfig
+      Release-Dev: Config/Dev.xcconfig
+      Debug-Prod: Config/Prod.xcconfig
+      Release-Prod: Config/Prod.xcconfig
+    info:
+      path: App/Info.plist
+      properties:
+        # 由 xcconfig 注入、build 時展開；App 啟動讀成 AppEnvironment
+        APIBaseURL: https://$(API_HOST)
+        AppEnv: $(APP_ENV)
+        CFBundleDisplayName: $(APP_DISPLAY_NAME)
+        UILaunchScreen: {}
     dependencies:
       - package: Spec
         products: [SpecDomain, SpecData, SpecPresentation]
@@ -36,9 +55,6 @@ targets:
       - package: SharedKernel
     settings:
       base:
-        GENERATE_INFOPLIST_FILE: YES
-        INFOPLIST_KEY_UILaunchScreen_Generation: YES
-        PRODUCT_BUNDLE_IDENTIFIER: com.wly-p.training-la
         SWIFT_VERSION: "6.0"
         CODE_SIGN_STYLE: Automatic
   TrainingLaUITests:
@@ -52,13 +68,35 @@ targets:
         GENERATE_INFOPLIST_FILE: YES
         SWIFT_VERSION: "6.0"
 schemes:
-  TrainingLa:
+  TrainingLa-Dev:
     build:
       targets:
         TrainingLa: all
         TrainingLaUITests: [test]
     run:
-      config: Debug
+      config: Debug-Dev
     test:
-      config: Debug
+      config: Debug-Dev
       targets: [TrainingLaUITests]
+    profile:
+      config: Release-Dev
+    analyze:
+      config: Debug-Dev
+    archive:
+      config: Release-Dev
+  TrainingLa-Prod:
+    build:
+      targets:
+        TrainingLa: all
+        TrainingLaUITests: [test]
+    run:
+      config: Debug-Prod
+    test:
+      config: Debug-Prod
+      targets: [TrainingLaUITests]
+    profile:
+      config: Release-Prod
+    analyze:
+      config: Debug-Prod
+    archive:
+      config: Release-Prod

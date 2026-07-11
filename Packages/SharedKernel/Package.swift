@@ -8,6 +8,7 @@ let package = Package(
         .library(name: "SharedKernel", targets: ["SharedKernel"])
     ],
     targets: [
-        .target(name: "SharedKernel")
+        .target(name: "SharedKernel"),
+        .testTarget(name: "SharedKernelTests", dependencies: ["SharedKernel"]),
     ]
 )

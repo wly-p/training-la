@@ -30,4 +30,19 @@ final class SettingsUITests: XCTestCase {
         XCTAssertTrue(row.waitForExistence(timeout: 5))
         XCTAssertEqual(row.value as? String, "深色")
     }
+
+    @MainActor
+    func testEnvironmentBadgeReflectsBuildConfig() throws {
+        // scheme-agnostic：dev/prod scheme 下都該顯示對應環境的小標。
+        // 哪個 config 對到哪組值，已由 build 端的 Info.plist 檢查釘死。
+        let app = XCUIApplication()
+        app.launchArguments = ["--uitest-inmemory"]
+        app.launch()
+
+        app.tabBars.buttons["設定"].tap()
+        let badge = app.staticTexts["environmentBadge"]
+        XCTAssertTrue(badge.waitForExistence(timeout: 5))
+        let valid = ["dev · training-la-api-dev.wly.lol", "prod · training-la-api.wly.lol"]
+        XCTAssertTrue(valid.contains(badge.label), "unexpected badge: \(badge.label)")
+    }
 }
