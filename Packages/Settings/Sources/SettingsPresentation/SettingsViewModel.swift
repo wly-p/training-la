@@ -9,10 +9,28 @@ public final class SettingsViewModel {
         didSet { store.save(theme) }
     }
 
-    private let store: any ThemeStoring
+    /// 目前 app icon。改動即呼叫 `UIApplication.setAlternateIconName`。
+    public var icon: AppIcon {
+        didSet {
+            guard icon != oldValue else { return }
+            let target = icon
+            Task { [iconSwitcher] in
+                do {
+                    try await iconSwitcher.setIcon(target.assetName)
+                } catch {
+                    // 系統若拒絕切換（例如使用者取消系統彈窗），維持顯示原本選取值即可，不擋 App 其他功能。
+                }
+            }
+        }
+    }
 
-    public init(store: any ThemeStoring) {
+    private let store: any ThemeStoring
+    private let iconSwitcher: any IconSwitching
+
+    public init(store: any ThemeStoring, iconSwitcher: any IconSwitching) {
         self.store = store
+        self.iconSwitcher = iconSwitcher
         self.theme = store.load() // init 期間 didSet 不觸發，不會多存一次
+        self.icon = AppIcon(assetName: iconSwitcher.currentIconName)
     }
 }

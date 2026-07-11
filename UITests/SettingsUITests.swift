@@ -32,6 +32,47 @@ final class SettingsUITests: XCTestCase {
     }
 
     @MainActor
+    func testAppIconSelectionUpdatesValue() throws {
+        let app = XCUIApplication()
+        app.launchArguments = ["--uitest-inmemory"]
+        app.launch()
+
+        app.tabBars.buttons["設定"].tap()
+
+        // 不假設起始值：app icon 是系統／安裝層級的持久狀態（`UIApplication.alternateIconName`），
+        // 不會像 SwiftData 那樣被 `--uitest-inmemory` 重置，測試裝置上可能殘留上次選的 icon。
+        select(icon: "槓片", app: app)
+        select(icon: "預設", app: app)
+    }
+
+    /// 點「App 圖示」列 → 選指定 icon → 確認（若跳系統彈窗）→ 回到設定根頁 → 確認列上的值已更新。
+    private func select(icon name: String, app: XCUIApplication) {
+        let iconRow = app.buttons["App 圖示"]
+        XCTAssertTrue(iconRow.waitForExistence(timeout: 5))
+        iconRow.tap()
+
+        let option = app.buttons[name]
+        XCTAssertTrue(option.waitForExistence(timeout: 5))
+        option.tap()
+
+        // 系統可能會跳「要不要換 icon」的確認彈窗，有的話按下去。
+        let confirm = app.alerts.buttons.element(boundBy: 0)
+        if confirm.waitForExistence(timeout: 2) {
+            confirm.tap()
+        }
+
+        let settingsNav = app.navigationBars["設定"]
+        if !settingsNav.waitForExistence(timeout: 2) {
+            app.navigationBars.buttons.firstMatch.tap()
+            XCTAssertTrue(settingsNav.waitForExistence(timeout: 5))
+        }
+
+        let row = app.buttons["App 圖示"]
+        XCTAssertTrue(row.waitForExistence(timeout: 5))
+        XCTAssertEqual(row.value as? String, name)
+    }
+
+    @MainActor
     func testEnvironmentBadgeReflectsBuildConfig() throws {
         // scheme-agnostic：dev/prod scheme 下都該顯示對應環境的小標。
         // 哪個 config 對到哪組值，已由 build 端的 Info.plist 檢查釘死。

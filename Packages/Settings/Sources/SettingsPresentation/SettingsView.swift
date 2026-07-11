@@ -24,6 +24,25 @@ public struct SettingsView: View {
                     #endif
                 }
 
+                Section("App 圖示") {
+                    Picker("App 圖示", selection: $viewModel.icon) {
+                        ForEach(AppIcon.allCases) { icon in
+                            Label {
+                                Text(icon.displayName)
+                            } icon: {
+                                Image(icon.previewImageName)
+                                    .resizable()
+                                    .frame(width: 32, height: 32)
+                                    .clipShape(RoundedRectangle(cornerRadius: 7))
+                            }
+                            .tag(icon)
+                        }
+                    }
+                    #if os(iOS)
+                    .pickerStyle(.navigationLink)
+                    #endif
+                }
+
                 if let environmentBadge {
                     Section("環境") {
                         HStack {
