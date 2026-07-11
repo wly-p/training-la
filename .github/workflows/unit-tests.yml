@@ -1,8 +1,8 @@
 name: Unit Tests
 
 "on":
-  push:
-    branches: [main, dev]
+  # 只用 pull_request：所有變更都經 PR 進 main/dev，push 會跟 pull_request 的
+  # synchronize 事件重複跑同一個 commit，沒有意義。
   pull_request:
     branches: [main, dev]
   workflow_dispatch: {} # 需要時可以在 GitHub Actions 頁面手動觸發
