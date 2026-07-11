@@ -72,12 +72,12 @@ targets:
         Debug-Dev: &envDev
           PRODUCT_BUNDLE_IDENTIFIER: com.wly-p.training-la.dev
           APP_ENV: dev
-          APP_DISPLAY_NAME: "Training-la Dev"
+          APP_DISPLAY_NAME: "Training La Dev"
         Release-Dev: *envDev
         Debug-Prod: &envProd
           PRODUCT_BUNDLE_IDENTIFIER: com.wly-p.training-la
           APP_ENV: prod
-          APP_DISPLAY_NAME: "Training-la"
+          APP_DISPLAY_NAME: "Training La"
         Release-Prod: *envProd
   TrainingLaUITests:
     type: bundle.ui-testing
