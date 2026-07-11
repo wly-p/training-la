@@ -47,3 +47,6 @@ fastlane/screenshots/**/*.png
 
 # xcodegen 產物（用 xcodegen generate 重生）
 TrainingLa.xcodeproj/
+
+# xcodegen 產生的 Info.plist（由 project.yml 定義）
+App/Info.plist

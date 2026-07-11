@@ -1,0 +1,8 @@
+// Dev 環境設定。API_HOST 只放主機名（xcconfig 裡 `//` 是註解，避免把 scheme 寫進來），
+// https:// 前綴在 Info.plist 的 APIBaseURL = https://$(API_HOST) 補上。
+API_HOST = training-la-api-dev.wly.lol
+APP_ENV = dev
+
+// dev/prod 用不同 bundle id 與名稱，讓兩個環境的 App 能同時裝在裝置上、一眼分得出來。
+PRODUCT_BUNDLE_IDENTIFIER = com.wly-p.training-la.dev
+APP_DISPLAY_NAME = Training-la Dev
