@@ -47,18 +47,18 @@ public final class ExerciseListViewModel {
         await load()
     }
 
-    public func add(name: String, muscleGroup: MuscleGroup, description: String?) async {
+    public func add(name: String, muscleGroup: MuscleGroup, equipment: Equipment, description: String?) async {
         do {
-            try await createExercise(name: name, muscleGroup: muscleGroup, description: description)
+            try await createExercise(name: name, muscleGroup: muscleGroup, equipment: equipment, description: description)
             await load()
         } catch {
             errorMessage = Self.message(for: error)
         }
     }
 
-    public func edit(id: UUID, name: String, muscleGroup: MuscleGroup, description: String?) async {
+    public func edit(id: UUID, name: String, muscleGroup: MuscleGroup, equipment: Equipment, description: String?) async {
         do {
-            try await updateExercise(id: id, name: name, muscleGroup: muscleGroup, description: description)
+            try await updateExercise(id: id, name: name, muscleGroup: muscleGroup, equipment: equipment, description: description)
             await load()
         } catch {
             errorMessage = Self.message(for: error)

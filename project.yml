@@ -4,7 +4,8 @@ options:
   bundleIdPrefix: com.wly-p
   deploymentTarget:
     iOS: "17.0"
-# 兩個軸獨立：debug/release ＝ 建置型別；dev/prod ＝ 環境（由 xcconfig 決定 API_HOST/APP_ENV）
+# 兩個軸獨立：debug/release ＝ 建置型別；dev/prod ＝ 環境（APP_ENV / bundle id / 顯示名稱）
+# v0 單機版不含任何 API host；之後接同步再以注入變數餵入 base URL。
 configs:
   Debug-Dev: debug
   Release-Dev: release
@@ -32,7 +33,6 @@ targets:
       path: App/Info.plist
       properties:
         # 由 per-config 的 build settings 注入、build 時展開；App 啟動讀成 AppEnvironment
-        APIBaseURL: https://$(API_HOST)
         AppEnv: $(APP_ENV)
         CFBundleDisplayName: $(APP_DISPLAY_NAME)
         UILaunchScreen: {}
@@ -58,13 +58,11 @@ targets:
         Debug-Dev: &envDev
           PRODUCT_BUNDLE_IDENTIFIER: com.wly-p.training-la.dev
           APP_ENV: dev
-          API_HOST: training-la-api-dev.wly.lol
           APP_DISPLAY_NAME: "Training-la Dev"
         Release-Dev: *envDev
         Debug-Prod: &envProd
           PRODUCT_BUNDLE_IDENTIFIER: com.wly-p.training-la
           APP_ENV: prod
-          API_HOST: training-la-api.wly.lol
           APP_DISPLAY_NAME: "Training-la"
         Release-Prod: *envProd
   TrainingLaUITests:

@@ -17,11 +17,12 @@ struct SwiftDataExerciseRepositoryTests {
         return SpecDataFactory.makeExerciseRepository(container: container)
     }
 
-    private func exercise(name: String, muscleGroup: MuscleGroup = .chest) -> Exercise {
+    private func exercise(name: String, muscleGroup: MuscleGroup = .chest, equipment: Equipment = .barbell) -> Exercise {
         Exercise(
             id: UUID(),
             name: name,
             muscleGroup: muscleGroup,
+            equipment: equipment,
             description: nil,
             createdAt: Date(),
             updatedAt: Date()
