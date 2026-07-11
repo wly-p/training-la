@@ -15,6 +15,8 @@ packages:
     path: Packages/History
   Plan:
     path: Packages/Plan
+  Settings:
+    path: Packages/Settings
 targets:
   TrainingLa:
     type: application
@@ -29,6 +31,8 @@ targets:
         products: [HistoryDomain, HistoryPresentation]
       - package: Plan
         products: [PlanDomain, PlanData, PlanPresentation]
+      - package: Settings
+        products: [SettingsPresentation]
       - package: SharedKernel
     settings:
       base:

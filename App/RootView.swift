@@ -1,5 +1,6 @@
 import HistoryPresentation
 import PlanPresentation
+import SettingsPresentation
 import SpecPresentation
 import SwiftUI
 import TrainingPresentation
@@ -10,6 +11,7 @@ struct RootView: View {
     @State private var trainingHomeViewModel: TrainingHomeViewModel
     @State private var historyViewModel: HistoryViewModel
     @State private var planScheduleViewModel: PlanScheduleViewModel
+    @State private var settingsViewModel: SettingsViewModel
 
     init(dependencies: AppDependencies) {
         self.dependencies = dependencies
@@ -17,6 +19,7 @@ struct RootView: View {
         _trainingHomeViewModel = State(initialValue: dependencies.makeTrainingHomeViewModel())
         _historyViewModel = State(initialValue: dependencies.makeHistoryViewModel())
         _planScheduleViewModel = State(initialValue: dependencies.makePlanScheduleViewModel())
+        _settingsViewModel = State(initialValue: dependencies.makeSettingsViewModel())
     }
 
     var body: some View {
@@ -32,6 +35,10 @@ struct RootView: View {
                 .tabItem { Label("課表", systemImage: "calendar") }
             HistoryView(viewModel: historyViewModel)
                 .tabItem { Label("歷史", systemImage: "chart.line.uptrend.xyaxis") }
+            SettingsView(viewModel: settingsViewModel)
+                .tabItem { Label("設定", systemImage: "gearshape") }
         }
+        // 主題套在根部：設定 tab 一改，整個 App 立即換色
+        .preferredColorScheme(settingsViewModel.theme.colorScheme)
     }
 }
