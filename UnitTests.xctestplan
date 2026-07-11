@@ -1,0 +1,101 @@
+{
+  "configurations" : [
+    {
+      "id" : "1F273217-D5C4-4C63-8710-CC3FDBB02ECA",
+      "name" : "Configuration 1",
+      "options" : {
+
+      }
+    }
+  ],
+  "defaultOptions" : {
+
+  },
+  "testTargets" : [
+    {
+      "target" : {
+        "containerPath" : "container:Packages/SharedKernel",
+        "identifier" : "SharedKernelTests",
+        "name" : "SharedKernelTests"
+      }
+    },
+    {
+      "target" : {
+        "containerPath" : "container:Packages/Spec",
+        "identifier" : "SpecDomainTests",
+        "name" : "SpecDomainTests"
+      }
+    },
+    {
+      "target" : {
+        "containerPath" : "container:Packages/Spec",
+        "identifier" : "SpecDataTests",
+        "name" : "SpecDataTests"
+      }
+    },
+    {
+      "target" : {
+        "containerPath" : "container:Packages/Spec",
+        "identifier" : "SpecPresentationTests",
+        "name" : "SpecPresentationTests"
+      }
+    },
+    {
+      "target" : {
+        "containerPath" : "container:Packages/Training",
+        "identifier" : "TrainingDomainTests",
+        "name" : "TrainingDomainTests"
+      }
+    },
+    {
+      "target" : {
+        "containerPath" : "container:Packages/Training",
+        "identifier" : "TrainingDataTests",
+        "name" : "TrainingDataTests"
+      }
+    },
+    {
+      "target" : {
+        "containerPath" : "container:Packages/Training",
+        "identifier" : "TrainingPresentationTests",
+        "name" : "TrainingPresentationTests"
+      }
+    },
+    {
+      "target" : {
+        "containerPath" : "container:Packages/Plan",
+        "identifier" : "PlanDomainTests",
+        "name" : "PlanDomainTests"
+      }
+    },
+    {
+      "target" : {
+        "containerPath" : "container:Packages/Plan",
+        "identifier" : "PlanDataTests",
+        "name" : "PlanDataTests"
+      }
+    },
+    {
+      "target" : {
+        "containerPath" : "container:Packages/Plan",
+        "identifier" : "PlanPresentationTests",
+        "name" : "PlanPresentationTests"
+      }
+    },
+    {
+      "target" : {
+        "containerPath" : "container:Packages/History",
+        "identifier" : "HistoryPresentationTests",
+        "name" : "HistoryPresentationTests"
+      }
+    },
+    {
+      "target" : {
+        "containerPath" : "container:Packages/Settings",
+        "identifier" : "SettingsPresentationTests",
+        "name" : "SettingsPresentationTests"
+      }
+    }
+  ],
+  "version" : 1
+}
