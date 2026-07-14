@@ -69,6 +69,39 @@ struct WorkoutAppendSetTests {
 
         #expect(workout.blocks.map(\.exerciseIndex) == [0, 1, 2])
     }
+
+    @Test func removeSetDropsLastSetKeepingRemainderContiguous() {
+        var workout = makeWorkout()
+        let benchPress = UUID()
+        let lastId = UUID()
+        workout.appendSet(exerciseId: benchPress, weight: kg60, reps: 8)
+        workout.appendSet(id: lastId, exerciseId: benchPress, weight: kg60, reps: 6)
+
+        workout.removeSet(id: lastId)
+
+        #expect(workout.sets.count == 1)
+        #expect(workout.blocks.first?.sets.map(\.setIndex) == [0]) // 其餘維持連續
+    }
+
+    @Test func removeOnlySetLeavesWorkoutEmpty() {
+        var workout = makeWorkout()
+        let onlyId = UUID()
+        workout.appendSet(id: onlyId, exerciseId: UUID(), weight: kg60, reps: 8)
+
+        workout.removeSet(id: onlyId)
+
+        #expect(workout.sets.isEmpty)
+        #expect(workout.blocks.isEmpty)
+    }
+
+    @Test func removeSetIgnoresUnknownId() {
+        var workout = makeWorkout()
+        workout.appendSet(exerciseId: UUID(), weight: kg60, reps: 8)
+
+        workout.removeSet(id: UUID()) // 不存在的 id
+
+        #expect(workout.sets.count == 1)
+    }
 }
 
 struct WorkoutUseCaseTests {
