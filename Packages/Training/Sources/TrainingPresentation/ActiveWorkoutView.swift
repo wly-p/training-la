@@ -5,6 +5,7 @@ import TrainingDomain
 public struct ActiveWorkoutView: View {
     @Bindable private var viewModel: ActiveWorkoutViewModel
     @Environment(\.dismiss) private var dismiss
+    @Environment(\.scenePhase) private var scenePhase
     @State private var showsExercisePicker = false
     @State private var showsFinishSheet = false
 
@@ -43,6 +44,10 @@ public struct ActiveWorkoutView: View {
             }
             .onChange(of: viewModel.isDismissed) { _, dismissed in
                 if dismissed { dismiss() }
+            }
+            .onChange(of: scenePhase) { _, phase in
+                // 切回前景：用結束時間重算剩餘秒數，補上背景期間經過的時間。
+                if phase == .active { viewModel.refreshRest() }
             }
             .safeAreaInset(edge: .bottom) {
                 if viewModel.restRemaining != nil, !viewModel.restEnded {
