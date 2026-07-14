@@ -100,6 +100,19 @@ struct ActiveWorkoutRestTests {
         vm.dismissRest()
         #expect(vm.restRemaining == nil)
     }
+
+    /// 跳過此組的契約：只記一組、狀態 .skipped、且不觸發休息。
+    /// （bug③ 的誤觸表現就是多記了 .skipped 組，這裡固定住「正常跳過」的預期行為。）
+    @Test func skipRecordsSingleSkippedSetWithoutRest() async {
+        let vm = makeViewModel(plannedSets: 3)
+        await vm.onAppear()
+
+        await vm.skipCurrentSet()
+
+        #expect(vm.currentBlockSets.count == 1)
+        #expect(vm.currentBlockSets.last?.status == .skipped)
+        #expect(vm.restRemaining == nil)
+    }
 }
 
 @MainActor
