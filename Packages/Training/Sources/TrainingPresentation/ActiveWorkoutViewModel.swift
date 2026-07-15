@@ -21,6 +21,10 @@ public final class ActiveWorkoutViewModel {
     /// 倒數歸零 → View 彈窗提示「休息結束」。
     public private(set) var restEnded = false
     private var restTask: Task<Void, Never>?
+    /// 休息倒數的結束時間點；剩餘秒數一律由它與現在時間換算，背景期間也不失準。
+    private var restEndDate: Date?
+    /// 排/取消通知的非同步工作（fire-and-forget，不擋 UI）；測試可 await 它確認已排。
+    var pendingRestNotify: Task<Void, Never>?
 
     /// 剛做滿某動作的課表組數 → View 顯示完成卡片。
     public private(set) var showExerciseComplete = false
@@ -43,6 +47,10 @@ public final class ActiveWorkoutViewModel {
     private let lastPerformance: LastPerformance
     private let exerciseCatalog: any ExerciseCatalog
     private let plannedProvider: (any PlannedWorkoutProvider)?
+    /// 目前時間來源（可注入以測試背景經過時間）。
+    private let now: () -> Date
+    /// 休息結束的本地通知排程。
+    private let notifications: any RestNotificationScheduling
 
     public init(
         workout: Workout,
@@ -51,7 +59,9 @@ public final class ActiveWorkoutViewModel {
         discardWorkout: DiscardWorkout,
         lastPerformance: LastPerformance,
         exerciseCatalog: any ExerciseCatalog,
-        plannedProvider: (any PlannedWorkoutProvider)? = nil
+        plannedProvider: (any PlannedWorkoutProvider)? = nil,
+        notifications: any RestNotificationScheduling = NoopRestNotificationScheduler(),
+        now: @escaping () -> Date = { Date() }
     ) {
         self.workout = workout
         self.saveProgress = saveProgress
@@ -60,6 +70,8 @@ public final class ActiveWorkoutViewModel {
         self.lastPerformance = lastPerformance
         self.exerciseCatalog = exerciseCatalog
         self.plannedProvider = plannedProvider
+        self.notifications = notifications
+        self.now = now
     }
 
     // MARK: - 衍生狀態
@@ -221,46 +233,77 @@ public final class ActiveWorkoutViewModel {
 
     // MARK: - 休息倒數
 
-    /// 開始休息倒數。
+    /// 開始休息倒數。剩餘秒數以「結束時間」為準（背景不失準），並排一則本地通知，
+    /// 讓 App 進背景／被切走時，時間到照樣提醒。
     public func startRest(seconds: Int) {
         restTask?.cancel()
+        let end = now().addingTimeInterval(TimeInterval(seconds))
+        restEndDate = end
         restRemaining = seconds
         restEnded = false
-        restTask = Task { [weak self] in
-            while true {
-                try? await Task.sleep(for: .seconds(1))
-                if Task.isCancelled { return }
-                guard let self else { return }
-                let done = self.tickRest()
-                if done { return }
-            }
-        }
+        scheduleRestNotification(at: end)
+        startRestTicking()
     }
 
-    /// 訓練中調整休息剩餘秒數（+/- 15 秒）。
+    /// 訓練中調整休息剩餘秒數（+/- 15 秒）：移動結束時間並重排通知。
     public func adjustRest(_ delta: Int) {
-        guard let remaining = restRemaining else { return }
-        restRemaining = max(0, remaining + delta)
+        guard let end = restEndDate else { return }
+        let newEnd = max(now(), end.addingTimeInterval(TimeInterval(delta)))
+        restEndDate = newEnd
+        scheduleRestNotification(at: newEnd)
+        _ = refreshRest()
+    }
+
+    /// 依結束時間重算剩餘秒數（切回前景時呼叫，補上背景經過的時間）。回傳 true＝已結束。
+    @discardableResult
+    public func refreshRest() -> Bool {
+        guard let end = restEndDate else { return true }
+        let remaining = Int(ceil(end.timeIntervalSince(now())))
+        if remaining <= 0 {
+            restRemaining = 0
+            restEnded = true
+            restEndDate = nil
+            restTask?.cancel()
+            restTask = nil
+            return true
+        }
+        restRemaining = remaining
+        return false
     }
 
     /// 跳過休息 / 關掉彈窗開始下一組。
     public func dismissRest() {
         restTask?.cancel()
         restTask = nil
+        restEndDate = nil
         restRemaining = nil
         restEnded = false
+        cancelRestNotification()
     }
 
-    /// 回傳 true＝倒數結束（呼叫端該停止 loop）。
-    private func tickRest() -> Bool {
-        guard let remaining = restRemaining else { return true }
-        if remaining <= 1 {
-            restRemaining = 0
-            restEnded = true
-            return true
+    /// 每秒重算一次剩餘秒數（僅為前景時的畫面更新；真正的時間依據是 restEndDate）。
+    private func startRestTicking() {
+        restTask = Task { [weak self] in
+            while true {
+                try? await Task.sleep(for: .seconds(1))
+                if Task.isCancelled { return }
+                guard let self else { return }
+                if self.refreshRest() { return }
+            }
         }
-        restRemaining = remaining - 1
-        return false
+    }
+
+    private func scheduleRestNotification(at end: Date) {
+        pendingRestNotify = Task { [notifications] in
+            await notifications.requestAuthorization()
+            await notifications.scheduleRestEnd(at: end)
+        }
+    }
+
+    private func cancelRestNotification() {
+        pendingRestNotify = Task { [notifications] in
+            await notifications.cancelRestEnd()
+        }
     }
 
     /// 離開（未結束）。回傳 true＝可關閉畫面；空場次直接放棄刪掉。

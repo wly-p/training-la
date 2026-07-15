@@ -100,6 +100,19 @@ struct ActiveWorkoutRestTests {
         vm.dismissRest()
         #expect(vm.restRemaining == nil)
     }
+
+    /// 跳過此組的契約：只記一組、狀態 .skipped、且不觸發休息。
+    /// （bug③ 的誤觸表現就是多記了 .skipped 組，這裡固定住「正常跳過」的預期行為。）
+    @Test func skipRecordsSingleSkippedSetWithoutRest() async {
+        let vm = makeViewModel(plannedSets: 3)
+        await vm.onAppear()
+
+        await vm.skipCurrentSet()
+
+        #expect(vm.currentBlockSets.count == 1)
+        #expect(vm.currentBlockSets.last?.status == .skipped)
+        #expect(vm.restRemaining == nil)
+    }
 }
 
 @MainActor
@@ -184,6 +197,112 @@ struct ActiveWorkoutCompletionTests {
         await complete(vm, times: 1)    // 深蹲做完（課表最後一個）
         #expect(vm.showExerciseComplete == true)
         #expect(vm.isPlanFullyDone == true)
+    }
+}
+
+// MARK: - 背景倒數（bug①）
+
+/// 可控時鐘：模擬 App 進背景時「牆上時間」持續前進。
+private final class MutableClock: @unchecked Sendable {
+    var current: Date
+    init(_ start: Date) { current = start }
+    func advance(_ seconds: TimeInterval) { current += seconds }
+}
+
+/// 記錄通知排程互動的間諜。
+private actor SpyRestScheduler: RestNotificationScheduling {
+    private(set) var authRequested = 0
+    private(set) var scheduledDates: [Date] = []
+    private(set) var cancelCount = 0
+    func requestAuthorization() async { authRequested += 1 }
+    func scheduleRestEnd(at date: Date) async { scheduledDates.append(date) }
+    func cancelRestEnd() async { cancelCount += 1 }
+}
+
+@MainActor
+struct ActiveWorkoutBackgroundRestTests {
+    private func makeViewModel(
+        now: @escaping () -> Date,
+        notifications: any RestNotificationScheduling = NoopRestNotificationScheduler()
+    ) -> ActiveWorkoutViewModel {
+        let repo = MockWorkoutRepo()
+        let blueprint = PlannedWorkoutBlueprint(planWorkoutId: UUID(), name: "推日", targets: [])
+        let workout = Workout(id: UUID(), day: DayDate(year: 2026, month: 7, day: 10), startedAt: Date())
+        return ActiveWorkoutViewModel(
+            workout: workout,
+            saveProgress: SaveWorkoutProgress(repository: repo),
+            finishWorkout: FinishWorkout(repository: repo),
+            discardWorkout: DiscardWorkout(repository: repo),
+            lastPerformance: LastPerformance(repository: repo),
+            exerciseCatalog: MockCatalog(items: []),
+            plannedProvider: MockPlanProvider(blueprint: blueprint),
+            notifications: notifications,
+            now: now
+        )
+    }
+
+    @Test func refreshReflectsRealElapsedTimeInsteadOfPausing() {
+        let clock = MutableClock(Date(timeIntervalSince1970: 1000))
+        let vm = makeViewModel(now: { clock.current })
+
+        vm.startRest(seconds: 60)
+        #expect(vm.restRemaining == 60)
+
+        clock.advance(40) // 模擬切到其他 App 40 秒
+        #expect(vm.refreshRest() == false)
+        #expect(vm.restRemaining == 20) // 沒有暫停，剩 20 秒
+    }
+
+    @Test func refreshEndsRestWhenTimeElapsedInBackground() {
+        let clock = MutableClock(Date(timeIntervalSince1970: 1000))
+        let vm = makeViewModel(now: { clock.current })
+
+        vm.startRest(seconds: 60)
+        clock.advance(65) // 背景期間就超過休息時間
+
+        #expect(vm.refreshRest() == true)
+        #expect(vm.restEnded)
+        #expect(vm.restRemaining == 0)
+    }
+
+    @Test func startRestRequestsAuthAndSchedulesNotificationAtEndDate() async {
+        let clock = MutableClock(Date(timeIntervalSince1970: 1000))
+        let spy = SpyRestScheduler()
+        let vm = makeViewModel(now: { clock.current }, notifications: spy)
+
+        vm.startRest(seconds: 60)
+        await vm.pendingRestNotify?.value
+
+        #expect(await spy.authRequested == 1)
+        #expect(await spy.scheduledDates == [Date(timeIntervalSince1970: 1060)])
+    }
+
+    @Test func adjustRestMovesEndAndReschedules() async {
+        let clock = MutableClock(Date(timeIntervalSince1970: 1000))
+        let spy = SpyRestScheduler()
+        let vm = makeViewModel(now: { clock.current }, notifications: spy)
+
+        vm.startRest(seconds: 60)
+        await vm.pendingRestNotify?.value
+        vm.adjustRest(15)
+        await vm.pendingRestNotify?.value
+
+        #expect(vm.restRemaining == 75)
+        #expect(await spy.scheduledDates.last == Date(timeIntervalSince1970: 1075))
+    }
+
+    @Test func dismissRestCancelsPendingNotification() async {
+        let clock = MutableClock(Date(timeIntervalSince1970: 1000))
+        let spy = SpyRestScheduler()
+        let vm = makeViewModel(now: { clock.current }, notifications: spy)
+
+        vm.startRest(seconds: 60)
+        await vm.pendingRestNotify?.value
+        vm.dismissRest()
+        await vm.pendingRestNotify?.value
+
+        #expect(await spy.cancelCount == 1)
+        #expect(vm.restRemaining == nil)
     }
 }
 

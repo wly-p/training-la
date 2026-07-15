@@ -5,6 +5,7 @@ import TrainingDomain
 public struct ActiveWorkoutView: View {
     @Bindable private var viewModel: ActiveWorkoutViewModel
     @Environment(\.dismiss) private var dismiss
+    @Environment(\.scenePhase) private var scenePhase
     @State private var showsExercisePicker = false
     @State private var showsFinishSheet = false
 
@@ -43,6 +44,10 @@ public struct ActiveWorkoutView: View {
             }
             .onChange(of: viewModel.isDismissed) { _, dismissed in
                 if dismissed { dismiss() }
+            }
+            .onChange(of: scenePhase) { _, phase in
+                // 切回前景：用結束時間重算剩餘秒數，補上背景期間經過的時間。
+                if phase == .active { viewModel.refreshRest() }
             }
             .safeAreaInset(edge: .bottom) {
                 if viewModel.restRemaining != nil, !viewModel.restEnded {
@@ -282,12 +287,14 @@ public struct ActiveWorkoutView: View {
                 stepper(
                     label: "重量",
                     value: "\(WeightDisplay.value(viewModel.draftWeightValue)) \(viewModel.draftWeightUnit.rawValue)",
+                    idPrefix: "activeWorkout.weight",
                     onMinus: { viewModel.bumpWeight(-1) },
                     onPlus: { viewModel.bumpWeight(1) }
                 )
                 stepper(
                     label: "次數",
                     value: "\(viewModel.draftReps)",
+                    idPrefix: "activeWorkout.reps",
                     onMinus: { viewModel.bumpReps(-1) },
                     onPlus: { viewModel.bumpReps(1) }
                 )
@@ -299,6 +306,7 @@ public struct ActiveWorkoutView: View {
             }
             .pickerStyle(.segmented)
             .frame(maxWidth: 160)
+            .accessibilityIdentifier("activeWorkout.unitPicker")
 
             Button {
                 Task { await viewModel.completeCurrentSet() }
@@ -309,11 +317,16 @@ public struct ActiveWorkoutView: View {
                     .padding(.vertical, 8)
             }
             .buttonStyle(.borderedProminent)
+            .accessibilityIdentifier("activeWorkout.completeSet")
 
             HStack(spacing: 20) {
+                // .borderless（而非預設樣式）：這格是含多個控制項的 List cell，預設樣式的按鈕
+                // 會讓整個 cell 空白處都轉發點擊給它，導致誤觸「跳過此組」多記一組。侷限點擊區才不誤觸。
                 Button("跳過此組") {
                     Task { await viewModel.skipCurrentSet() }
                 }
+                .buttonStyle(.borderless)
+                .accessibilityIdentifier("activeWorkout.skipSet")
                 if viewModel.restRemaining == nil {
                     Menu {
                         ForEach(restPresets, id: \.self) { sec in
@@ -322,6 +335,9 @@ public struct ActiveWorkoutView: View {
                     } label: {
                         Label("休息計時", systemImage: "timer")
                     }
+                    .menuStyle(.button)
+                    .buttonStyle(.borderless)
+                    .accessibilityIdentifier("activeWorkout.restTimer")
                 }
             }
             .font(.footnote)
@@ -335,6 +351,7 @@ public struct ActiveWorkoutView: View {
     private func stepper(
         label: String,
         value: String,
+        idPrefix: String,
         onMinus: @escaping () -> Void,
         onPlus: @escaping () -> Void
     ) -> some View {
@@ -348,6 +365,7 @@ public struct ActiveWorkoutView: View {
                         .font(.title)
                 }
                 .buttonStyle(.plain)
+                .accessibilityIdentifier("\(idPrefix).minus")
                 Text(value)
                     .font(.title2.bold())
                     .monospacedDigit()
@@ -357,6 +375,7 @@ public struct ActiveWorkoutView: View {
                         .font(.title)
                 }
                 .buttonStyle(.plain)
+                .accessibilityIdentifier("\(idPrefix).plus")
             }
         }
     }
