@@ -34,8 +34,10 @@ public final class ActiveWorkoutViewModel {
     /// 剛記錄（完成/跳過）的那一組 id，供「復原上一組」撤銷用。
     /// 切換動作即清空 → 單層 undo，只撤銷「當下這格剛按的」那組。
     private var lastRecordedSetId: UUID?
-    /// 是否有可撤銷的上一組（driving「復原上一組」按鈕顯示）。
+    /// 是否有可撤銷的上一組（driving 完成卡片上的復原入口）。
     public var canUndoLastSet: Bool { lastRecordedSetId != nil }
+    /// 這一組是不是「剛記錄、可撤銷」的那組（記錄列上的復原鍵只掛在它身上）。
+    public func isUndoable(setId: UUID) -> Bool { lastRecordedSetId == setId }
 
     public var draftWeightValue: Double = 20
     public var draftWeightUnit: WeightUnit = .kg
