@@ -45,7 +45,9 @@ struct AppDependencies {
                 container: container, usageChecker: usageChecker
             ),
             workoutRepository: workoutRepository,
-            planRepository: planRepository
+            planRepository: planRepository,
+            // UI 測試（in-memory）用 Noop，避免真實通知權限系統彈窗干擾測試。
+            restNotifications: inMemory ? NoopRestNotificationScheduler() : UserNotificationRestScheduler()
         )
     }
 
@@ -53,7 +55,8 @@ struct AppDependencies {
     static func assemble(
         exerciseRepository: any ExerciseRepository,
         workoutRepository: any WorkoutRepository,
-        planRepository: any PlanWorkoutRepository
+        planRepository: any PlanWorkoutRepository,
+        restNotifications: any RestNotificationScheduling = UserNotificationRestScheduler()
     ) -> AppDependencies {
         // Training 的 ExerciseCatalog port ← Spec 的 use case
         let catalog = SpecCatalogAdapter(listExercises: ListExercises(repository: exerciseRepository))
@@ -95,7 +98,8 @@ struct AppDependencies {
                     discardWorkout: DiscardWorkout(repository: workoutRepository),
                     lastPerformance: LastPerformance(repository: workoutRepository),
                     exerciseCatalog: catalog,
-                    plannedProvider: plannedProvider
+                    plannedProvider: plannedProvider,
+                    notifications: restNotifications
                 )
             },
             makeHistoryViewModel: {
