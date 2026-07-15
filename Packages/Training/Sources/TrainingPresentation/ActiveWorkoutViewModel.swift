@@ -31,6 +31,12 @@ public final class ActiveWorkoutViewModel {
     /// 每個動作只跳一次完成卡片（選「再做一組」後不再重複跳）。
     private var completionShownFor: Set<UUID> = []
 
+    /// 剛記錄（完成/跳過）的那一組 id，供「復原上一組」撤銷用。
+    /// 切換動作即清空 → 單層 undo，只撤銷「當下這格剛按的」那組。
+    private var lastRecordedSetId: UUID?
+    /// 是否有可撤銷的上一組（driving「復原上一組」按鈕顯示）。
+    public var canUndoLastSet: Bool { lastRecordedSetId != nil }
+
     public var draftWeightValue: Double = 20
     public var draftWeightUnit: WeightUnit = .kg
     public var draftReps: Int = 8
@@ -142,6 +148,7 @@ public final class ActiveWorkoutViewModel {
     }
 
     public func select(exerciseId: UUID) async {
+        lastRecordedSetId = nil // 換動作 → 先前那組不再可撤銷
         currentExerciseId = exerciseId
         if lastPerformances[exerciseId] == nil {
             let sets = (try? await lastPerformance(exerciseId: exerciseId, excludingWorkout: workout.id)) ?? []
@@ -173,6 +180,25 @@ public final class ActiveWorkoutViewModel {
 
     public func skipCurrentSet() async {
         await appendSet(status: .skipped)
+    }
+
+    /// 復原剛記錄的那一組（撤銷誤按的「完成此組」/「跳過此組」）。
+    /// 連帶取消因完成而起的休息倒數與完成卡片，並允許該動作的完成卡片之後重新觸發。
+    public func undoLastSet() async {
+        guard let id = lastRecordedSetId else { return }
+        dismissRest()
+        showExerciseComplete = false
+        if let exerciseId = currentExerciseId {
+            completionShownFor.remove(exerciseId)
+        }
+        workout.removeSet(id: id)
+        lastRecordedSetId = nil
+        do {
+            try await saveProgress(workout)
+        } catch {
+            errorMessage = "儲存失敗：\(error.localizedDescription)"
+        }
+        prefillDraft()
     }
 
     // MARK: - 動作完成卡片
@@ -318,7 +344,9 @@ public final class ActiveWorkoutViewModel {
         guard let exerciseId = currentExerciseId else { return }
         // 照課表：把當下的目標當快照存入（fromPlanSetId + target_*），脫稿加練則為 nil
         let target = currentTarget
+        let newSetId = UUID()
         workout.appendSet(
+            id: newSetId,
             exerciseId: exerciseId,
             weight: Weight(value: draftWeightValue, unit: draftWeightUnit),
             reps: draftReps,
@@ -327,6 +355,7 @@ public final class ActiveWorkoutViewModel {
             targetWeight: target?.targetWeight,
             targetReps: target?.targetReps
         )
+        lastRecordedSetId = newSetId
         do {
             try await saveProgress(workout) // 每組立即落地，中途被殺不掉資料
         } catch {

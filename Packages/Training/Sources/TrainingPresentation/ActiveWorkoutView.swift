@@ -212,7 +212,21 @@ public struct ActiveWorkoutView: View {
                 }
                 currentSetEditor
             } header: {
-                Text("第\(viewModel.currentBlockSets.count + 1)組")
+                HStack {
+                    Text("第\(viewModel.currentBlockSets.count + 1)組")
+                    if viewModel.canUndoLastSet {
+                        Spacer()
+                        Button {
+                            Task { await viewModel.undoLastSet() }
+                        } label: {
+                            Label("復原上一組", systemImage: "arrow.uturn.backward")
+                        }
+                        .font(.caption)
+                        .buttonStyle(.borderless) // 侷限點擊區，避免整列誤觸（同 bug③ 教訓）
+                        .textCase(nil)
+                        .accessibilityIdentifier("activeWorkout.undoSet")
+                    }
+                }
             }
 
             Section {

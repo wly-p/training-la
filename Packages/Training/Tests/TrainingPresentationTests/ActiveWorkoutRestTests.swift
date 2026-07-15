@@ -305,3 +305,91 @@ struct ActiveWorkoutBackgroundRestTests {
         #expect(vm.restRemaining == nil)
     }
 }
+
+@MainActor
+struct ActiveWorkoutUndoTests {
+    private let benchId = UUID()
+    private let squatId = UUID()
+    private let planWorkoutId = UUID()
+
+    /// 臥推 benchSets 組 + 深蹲 squatSets 組的照課表場次（squatSets 0＝只有臥推）。
+    private func makeViewModel(benchSets: Int, squatSets: Int = 0, restSec: Int? = 60) -> ActiveWorkoutViewModel {
+        let repo = MockWorkoutRepo()
+        func targets(_ id: UUID, _ name: String, _ index: Int, _ count: Int) -> [PlannedTargetSet] {
+            (0..<count).map { i in
+                PlannedTargetSet(id: UUID(), exerciseId: id, exerciseName: name,
+                                 exerciseIndex: index, setIndex: i,
+                                 targetWeight: Weight(value: 60, unit: .kg), targetReps: 8, restSec: restSec)
+            }
+        }
+        let blueprint = PlannedWorkoutBlueprint(
+            planWorkoutId: planWorkoutId, name: "推日",
+            targets: targets(benchId, "臥推", 0, benchSets) + targets(squatId, "深蹲", 1, squatSets)
+        )
+        let workout = Workout(id: UUID(), day: DayDate(year: 2026, month: 7, day: 10),
+                              planWorkoutId: planWorkoutId, startedAt: Date())
+        return ActiveWorkoutViewModel(
+            workout: workout,
+            saveProgress: SaveWorkoutProgress(repository: repo),
+            finishWorkout: FinishWorkout(repository: repo),
+            discardWorkout: DiscardWorkout(repository: repo),
+            lastPerformance: LastPerformance(repository: repo),
+            exerciseCatalog: MockCatalog(items: [
+                CatalogExercise(id: benchId, name: "臥推", muscleGroup: .chest),
+                CatalogExercise(id: squatId, name: "深蹲", muscleGroup: .legs),
+            ]),
+            plannedProvider: MockPlanProvider(blueprint: blueprint)
+        )
+    }
+
+    @Test func undoRemovesLastRecordedSet() async {
+        let vm = makeViewModel(benchSets: 3)
+        await vm.onAppear()
+
+        await vm.completeCurrentSet()
+        #expect(vm.currentBlockSets.count == 1)
+        #expect(vm.canUndoLastSet)
+
+        await vm.undoLastSet()
+        #expect(vm.currentBlockSets.count == 0)
+        #expect(vm.canUndoLastSet == false)
+    }
+
+    @Test func undoCancelsRestStartedByCompletion() async {
+        let vm = makeViewModel(benchSets: 3)
+        await vm.onAppear()
+
+        await vm.completeCurrentSet()
+        #expect(vm.restRemaining == 60) // 完成後起休息
+
+        await vm.undoLastSet()
+        #expect(vm.restRemaining == nil) // 撤銷連帶取消休息
+    }
+
+    @Test func undoAfterCompletionCardAllowsRetrigger() async {
+        let vm = makeViewModel(benchSets: 1) // 單組 → 完成即跳完成卡片、不休息
+        await vm.onAppear()
+
+        await vm.completeCurrentSet()
+        #expect(vm.showExerciseComplete)
+
+        await vm.undoLastSet()
+        #expect(vm.showExerciseComplete == false)
+        #expect(vm.currentBlockSets.count == 0)
+
+        await vm.completeCurrentSet()    // 重做
+        #expect(vm.showExerciseComplete) // 完成卡片能再次觸發
+    }
+
+    @Test func switchingExerciseClearsUndo() async {
+        let vm = makeViewModel(benchSets: 1, squatSets: 1)
+        await vm.onAppear() // 自動選臥推
+
+        await vm.completeCurrentSet()
+        #expect(vm.canUndoLastSet)
+        vm.dismissExerciseComplete()
+
+        await vm.advanceToNextPlanned() // 換到深蹲
+        #expect(vm.canUndoLastSet == false)
+    }
+}
