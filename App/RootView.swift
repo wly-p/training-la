@@ -15,14 +15,14 @@ struct RootView: View {
     @State private var planScheduleViewModel: PlanScheduleViewModel
     @State private var settingsViewModel: SettingsViewModel
 
-    init(dependencies: AppDependencies, environment: AppEnvironment) {
+    init(dependencies: AppDependencies, environment: AppEnvironment, onEraseAll: @escaping @MainActor () -> Void) {
         self.dependencies = dependencies
         self.environment = environment
         _exerciseListViewModel = State(initialValue: dependencies.makeExerciseListViewModel())
         _trainingHomeViewModel = State(initialValue: dependencies.makeTrainingHomeViewModel())
         _historyViewModel = State(initialValue: dependencies.makeHistoryViewModel())
         _planScheduleViewModel = State(initialValue: dependencies.makePlanScheduleViewModel())
-        _settingsViewModel = State(initialValue: dependencies.makeSettingsViewModel())
+        _settingsViewModel = State(initialValue: dependencies.makeSettingsViewModel(onEraseAll))
     }
 
     var body: some View {

@@ -21,14 +21,14 @@ struct AppDependencies {
     let makeActiveWorkoutViewModel: @MainActor (Workout) -> ActiveWorkoutViewModel
     let makeHistoryViewModel: @MainActor () -> HistoryViewModel
     let makePlanScheduleViewModel: @MainActor () -> PlanScheduleViewModel
-    let makeSettingsViewModel: @MainActor () -> SettingsViewModel
+    /// `onErased`：清除成功後由 App 層觸發整個畫面重建（回到全新初始狀態）。
+    let makeSettingsViewModel: @MainActor (_ onErased: @escaping @MainActor () -> Void) -> SettingsViewModel
 
     /// 正式組裝：SwiftData 落地儲存，各 domain 的 models 併進同一個 Schema。
     /// `inMemory`：UI 測試用，換成不落地的 store（每次啟動都是乾淨狀態）。
     static func live(inMemory: Bool = false) throws -> AppDependencies {
-        let schema = Schema(
-            SpecDataFactory.models + TrainingDataFactory.models + PlanDataFactory.models
-        )
+        let allModels = SpecDataFactory.models + TrainingDataFactory.models + PlanDataFactory.models
+        let schema = Schema(allModels)
         let container = try ModelContainer(
             for: schema,
             configurations: ModelConfiguration(isStoredInMemoryOnly: inMemory)
@@ -47,7 +47,8 @@ struct AppDependencies {
             workoutRepository: workoutRepository,
             planRepository: planRepository,
             // UI 測試（in-memory）用 Noop，避免真實通知權限系統彈窗干擾測試。
-            restNotifications: inMemory ? NoopRestNotificationScheduler() : UserNotificationRestScheduler()
+            restNotifications: inMemory ? NoopRestNotificationScheduler() : UserNotificationRestScheduler(),
+            dataEraser: SwiftDataEraser(container: container, modelTypes: allModels)
         )
     }
 
@@ -56,7 +57,8 @@ struct AppDependencies {
         exerciseRepository: any ExerciseRepository,
         workoutRepository: any WorkoutRepository,
         planRepository: any PlanWorkoutRepository,
-        restNotifications: any RestNotificationScheduling = UserNotificationRestScheduler()
+        restNotifications: any RestNotificationScheduling = UserNotificationRestScheduler(),
+        dataEraser: any DataErasing = NoopDataEraser()
     ) -> AppDependencies {
         // Training 的 ExerciseCatalog port ← Spec 的 use case
         let catalog = SpecCatalogAdapter(listExercises: ListExercises(repository: exerciseRepository))
@@ -114,8 +116,13 @@ struct AppDependencies {
                     exerciseCatalog: planCatalog
                 )
             },
-            makeSettingsViewModel: {
-                SettingsViewModel(store: UserDefaultsThemeStore(), iconSwitcher: UIApplicationIconSwitcher())
+            makeSettingsViewModel: { onErased in
+                SettingsViewModel(
+                    store: UserDefaultsThemeStore(),
+                    iconSwitcher: UIApplicationIconSwitcher(),
+                    dataEraser: dataEraser,
+                    onErased: onErased
+                )
             }
         )
     }
