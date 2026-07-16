@@ -1,5 +1,6 @@
 import Foundation
 import Observation
+import RemindersDomain
 import SharedKernel
 import TrainingDomain
 
@@ -57,8 +58,8 @@ public final class ActiveWorkoutViewModel {
     private let plannedProvider: (any PlannedWorkoutProvider)?
     /// 目前時間來源（可注入以測試背景經過時間）。
     private let now: () -> Date
-    /// 休息結束的本地通知排程。
-    private let notifications: any RestNotificationScheduling
+    /// 休息結束提醒（背景通知＋前景聲音/震動；彈窗依偏好由 View 決定）。
+    private let reminder: any RestEndReminding
 
     public init(
         workout: Workout,
@@ -68,7 +69,7 @@ public final class ActiveWorkoutViewModel {
         lastPerformance: LastPerformance,
         exerciseCatalog: any ExerciseCatalog,
         plannedProvider: (any PlannedWorkoutProvider)? = nil,
-        notifications: any RestNotificationScheduling = NoopRestNotificationScheduler(),
+        reminder: any RestEndReminding = NoopRestEndReminding(),
         now: @escaping () -> Date = { Date() }
     ) {
         self.workout = workout
@@ -78,7 +79,7 @@ public final class ActiveWorkoutViewModel {
         self.lastPerformance = lastPerformance
         self.exerciseCatalog = exerciseCatalog
         self.plannedProvider = plannedProvider
-        self.notifications = notifications
+        self.reminder = reminder
         self.now = now
     }
 
@@ -274,7 +275,7 @@ public final class ActiveWorkoutViewModel {
         restSeconds = seconds
         restExerciseId = currentExerciseId
         restEnded = false
-        scheduleRestNotification(at: end)
+        scheduleReminder(at: end)
         startRestTicking()
     }
 
@@ -284,7 +285,7 @@ public final class ActiveWorkoutViewModel {
         guard let end = restEndDate else { return }
         let newEnd = max(now(), end.addingTimeInterval(TimeInterval(delta)))
         restEndDate = newEnd
-        scheduleRestNotification(at: newEnd)
+        scheduleReminder(at: newEnd)
         _ = refreshRest()
         // 同步更新該動作後續各組的休息時間（起始長度＋累計調整，不小於 0）
         if let base = restSeconds {
@@ -322,32 +323,55 @@ public final class ActiveWorkoutViewModel {
         restSeconds = nil
         restExerciseId = nil
         restEnded = false
-        cancelRestNotification()
+        cancelReminder()
     }
 
-    /// 每秒重算一次剩餘秒數（僅為前景時的畫面更新；真正的時間依據是 restEndDate）。
+    /// 前景是否顯示「休息結束」彈窗（依使用者提醒偏好）。
+    public var showsRestEndedAlert: Bool { restEnded && reminder.preference.popup }
+
+    /// App 進背景：停掉前景 ticking（保留結束時間）。避免回前景時補跑「到點前景提醒」，
+    /// 與背景已投遞的通知重複發聲。
+    public func suspendRestTicking() {
+        restTask?.cancel()
+        restTask = nil
+    }
+
+    /// App 回前景：補算剩餘秒數；若還在休息就重啟 ticking。
+    public func enterForeground() {
+        guard restEndDate != nil else { return }
+        if !refreshRest() { startRestTicking() }
+    }
+
+    /// 每秒重算一次剩餘秒數（僅前景；背景由 suspendRestTicking 停掉）。
+    /// 於前景到點歸零時觸發前景提醒（聲音/震動）。
     private func startRestTicking() {
         restTask = Task { [weak self] in
             while true {
                 try? await Task.sleep(for: .seconds(1))
                 if Task.isCancelled { return }
                 guard let self else { return }
-                if self.refreshRest() { return }
+                if self.refreshRest() {
+                    self.deliverForegroundReminder()
+                    return
+                }
             }
         }
     }
 
-    private func scheduleRestNotification(at end: Date) {
-        pendingRestNotify = Task { [notifications] in
-            await notifications.requestAuthorization()
-            await notifications.scheduleRestEnd(at: end)
+    private func scheduleReminder(at end: Date) {
+        pendingRestNotify = Task { [reminder] in
+            await reminder.schedule(at: end)
         }
     }
 
-    private func cancelRestNotification() {
-        pendingRestNotify = Task { [notifications] in
-            await notifications.cancelRestEnd()
+    private func cancelReminder() {
+        pendingRestNotify = Task { [reminder] in
+            await reminder.cancel()
         }
+    }
+
+    private func deliverForegroundReminder() {
+        Task { [reminder] in await reminder.deliverForeground() }
     }
 
     /// 離開（未結束）。回傳 true＝可關閉畫面；空場次直接放棄刪掉。

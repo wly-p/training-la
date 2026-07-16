@@ -43,6 +43,17 @@ public struct SettingsView: View {
                     #endif
                 }
 
+                Section {
+                    Toggle("彈窗", isOn: $viewModel.restReminder.popup)
+                    Toggle("通知列", isOn: $viewModel.restReminder.banner)
+                    Toggle("聲音", isOn: $viewModel.restReminder.sound)
+                    Toggle("震動", isOn: $viewModel.restReminder.haptic)
+                } header: {
+                    Text("休息結束提醒")
+                } footer: {
+                    Text("彈窗只在 App 開著時出現；背景/鎖屏要收到提醒需開「通知列」或「聲音」。震動主要在前景生效。")
+                }
+
                 if let environmentBadge {
                     Section("環境") {
                         HStack {

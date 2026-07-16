@@ -1,3 +1,4 @@
+import RemindersDomain
 import Testing
 
 @testable import SettingsPresentation
@@ -88,5 +89,30 @@ struct SettingsViewModelTests {
         try await Task.sleep(nanoseconds: 20_000_000)
 
         #expect(switcher.setCallCount == 0)
+    }
+
+    @Test func loadsInitialRestReminderFromStore() {
+        let pref = RestReminderPreference(popup: false, banner: true, sound: false, haptic: true)
+        let vm = SettingsViewModel(
+            store: InMemoryThemeStore(initial: .system),
+            iconSwitcher: MockIconSwitcher(),
+            restReminderStore: InMemoryRestReminderPreferenceStore(pref)
+        )
+        #expect(vm.restReminder == pref)
+    }
+
+    @Test func changingRestReminderPersists() {
+        let store = InMemoryRestReminderPreferenceStore(.default)
+        let vm = SettingsViewModel(
+            store: InMemoryThemeStore(initial: .system),
+            iconSwitcher: MockIconSwitcher(),
+            restReminderStore: store
+        )
+
+        vm.restReminder.haptic = true
+        vm.restReminder.sound = false
+
+        #expect(store.load().haptic == true)
+        #expect(store.load().sound == false)
     }
 }
