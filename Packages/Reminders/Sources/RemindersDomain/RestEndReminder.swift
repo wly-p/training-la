@@ -29,8 +29,10 @@ public struct RestEndReminder: RestEndReminding {
 
     public func schedule(at endDate: Date) async {
         let pref = store.load()
-        guard pref.banner else {
-            // 通知列關 → 背景不留任何通知（聲音無法脫離通知在背景獨立投遞）。
+        // 背景只能靠一則本地通知投遞。通知列「或」聲音任一開就排（聲音依偏好帶上）；
+        // 兩者皆關才完全不排。註：iOS 一旦排通知，背景就會顯示橫幅——「聲音開但通知列關」
+        // 仍會出現橫幅，這是本地通知無法「只出聲不顯示」的限制。
+        guard pref.hasBackgroundDelivery else {
             await notifications.cancelRestEnd()
             return
         }

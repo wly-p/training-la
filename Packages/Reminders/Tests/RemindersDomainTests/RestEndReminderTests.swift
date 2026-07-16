@@ -56,10 +56,21 @@ struct RestEndReminderTests {
         #expect(await notifs.scheduled.first?.sound == false)
     }
 
-    @Test func skipsNotificationAndClearsWhenBannerOff() async {
+    @Test func schedulesSoundNotificationWhenBannerOffButSoundOn() async {
         let notifs = SpyNotifications()
-        // 通知列關（即使聲音開）→ 背景不排通知，並清掉殘留
+        // 通知列關但聲音開 → 背景仍要排通知（帶聲音），否則背景什麼提醒都收不到
         let reminder = makeReminder(.init(popup: true, banner: false, sound: true, haptic: false), notifications: notifs)
+
+        await reminder.schedule(at: end)
+
+        #expect(await notifs.scheduled.count == 1)
+        #expect(await notifs.scheduled.first?.sound == true)
+    }
+
+    @Test func skipsNotificationAndClearsWhenBannerAndSoundOff() async {
+        let notifs = SpyNotifications()
+        // 通知列、聲音皆關 → 背景無可投遞，不排並清掉殘留
+        let reminder = makeReminder(.init(popup: true, banner: false, sound: false, haptic: true), notifications: notifs)
 
         await reminder.schedule(at: end)
 
