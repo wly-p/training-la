@@ -101,6 +101,40 @@ struct ActiveWorkoutRestTests {
         #expect(vm.restRemaining == nil)
     }
 
+    /// 訓練中調整休息時間，要套用到該動作後續各組（不是只影響當下這組）。
+    @Test func restAdjustmentAppliesToRemainingSets() async {
+        let vm = makeViewModel(plannedSets: 3) // 每組原定休息 60 秒
+        await vm.onAppear()
+
+        // 第 1 組完成 → 休息 60；調整 +15 → 75
+        await vm.completeCurrentSet()
+        #expect(vm.restRemaining == 60)
+        vm.adjustRest(15)
+        #expect(vm.restRemaining == 75)
+        vm.dismissRest()
+
+        // 第 2 組完成 → 休息應沿用調整後的 75，而非回到 60
+        await vm.completeCurrentSet()
+        #expect(vm.restRemaining == 75)
+        vm.dismissRest()
+    }
+
+    /// 多次調整會累加，並持續套用到後續組。
+    @Test func restAdjustmentsAccumulateAcrossSets() async {
+        let vm = makeViewModel(plannedSets: 3)
+        await vm.onAppear()
+
+        await vm.completeCurrentSet()      // 60
+        vm.adjustRest(-15)                 // 45
+        vm.adjustRest(-15)                 // 30
+        #expect(vm.restRemaining == 30)
+        vm.dismissRest()
+
+        await vm.completeCurrentSet()      // 沿用 30
+        #expect(vm.restRemaining == 30)
+        vm.dismissRest()
+    }
+
     /// 跳過此組的契約：只記一組、狀態 .skipped、且不觸發休息。
     /// （bug③ 的誤觸表現就是多記了 .skipped 組，這裡固定住「正常跳過」的預期行為。）
     @Test func skipRecordsSingleSkippedSetWithoutRest() async {

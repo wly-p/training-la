@@ -23,6 +23,12 @@ public final class ActiveWorkoutViewModel {
     private var restTask: Task<Void, Never>?
     /// 休息倒數的結束時間點；剩餘秒數一律由它與現在時間換算，背景期間也不失準。
     private var restEndDate: Date?
+    /// 目前這段休息的「完整秒數」（起始設定值，非剩餘）；供調整時換算並套用到後續組。
+    private var restSeconds: Int?
+    /// 目前這段休息屬於哪個動作；調整休息時據此把新值套用到該動作後續各組。
+    private var restExerciseId: UUID?
+    /// 訓練中手動調整過的休息秒數（按動作記）；有值就蓋過課表原定 restSec，套用到該動作後續各組。
+    private var adjustedRestByExercise: [UUID: Int] = [:]
     /// 排/取消通知的非同步工作（fire-and-forget，不擋 UI）；測試可 await 它確認已排。
     var pendingRestNotify: Task<Void, Never>?
 
@@ -166,12 +172,18 @@ public final class ActiveWorkoutViewModel {
     }
 
     public func completeCurrentSet() async {
-        let rest = currentTarget?.restSec // 完成這組後的休息（取自這組的目標）
+        let rest = restSecondsForCurrentExercise // 完成這組後的休息（手動調整過則用調整值）
         await appendSet(status: .done)
         // 只有「這個動作還有下一組」才倒數；做完該動作最後一組不休息（該換動作了）
         if let rest, rest > 0, hasNextPlannedSetForCurrentExercise {
             startRest(seconds: rest)
         }
+    }
+
+    /// 目前動作完成這組後的休息秒數：優先用訓練中手動調整過的值，否則用課表原定 restSec。
+    private var restSecondsForCurrentExercise: Int? {
+        guard let id = currentExerciseId else { return currentTarget?.restSec }
+        return adjustedRestByExercise[id] ?? currentTarget?.restSec
     }
 
     /// append 之後，目前動作是否還有下一組課表目標。
@@ -242,18 +254,29 @@ public final class ActiveWorkoutViewModel {
         let end = now().addingTimeInterval(TimeInterval(seconds))
         restEndDate = end
         restRemaining = seconds
+        restSeconds = seconds
+        restExerciseId = currentExerciseId
         restEnded = false
         scheduleRestNotification(at: end)
         startRestTicking()
     }
 
-    /// 訓練中調整休息剩餘秒數（+/- 15 秒）：移動結束時間並重排通知。
+    /// 訓練中調整休息剩餘秒數（+/- 15 秒）：移動結束時間並重排通知，
+    /// 並把調整後的休息長度套用到同一動作的後續各組。
     public func adjustRest(_ delta: Int) {
         guard let end = restEndDate else { return }
         let newEnd = max(now(), end.addingTimeInterval(TimeInterval(delta)))
         restEndDate = newEnd
         scheduleRestNotification(at: newEnd)
         _ = refreshRest()
+        // 同步更新該動作後續各組的休息時間（起始長度＋累計調整，不小於 0）
+        if let base = restSeconds {
+            let updated = max(0, base + delta)
+            restSeconds = updated
+            if let id = restExerciseId {
+                adjustedRestByExercise[id] = updated
+            }
+        }
     }
 
     /// 依結束時間重算剩餘秒數（切回前景時呼叫，補上背景經過的時間）。回傳 true＝已結束。
@@ -279,6 +302,8 @@ public final class ActiveWorkoutViewModel {
         restTask = nil
         restEndDate = nil
         restRemaining = nil
+        restSeconds = nil
+        restExerciseId = nil
         restEnded = false
         cancelRestNotification()
     }
