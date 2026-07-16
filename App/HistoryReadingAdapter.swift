@@ -4,9 +4,9 @@ import SharedKernel
 import SpecDomain
 import TrainingDomain
 
-/// 把 Training 的紀錄 ＋ Spec 的動作名稱組成 History 需要的顯示型別。
+/// 把 Training 的紀錄 ＋ Spec 的動作名稱組成 History 需要的顯示型別，並實作編輯／刪除。
 /// History / Training / Spec 三個 domain 互不相識，只在這裡（Composition Root）接線。
-struct HistoryReadingAdapter: WorkoutHistoryReading {
+struct HistoryReadingAdapter: WorkoutHistoryReading, WorkoutHistoryEditing {
     let workoutRepository: any WorkoutRepository
     let listExercises: ListExercises
 
@@ -60,6 +60,30 @@ struct HistoryReadingAdapter: WorkoutHistoryReading {
             let entry = grouped[id]!
             return HistoryExerciseSession(id: id, day: entry.day, sets: entry.sets)
         }
+    }
+
+    // MARK: - Editing
+
+    func deleteWorkout(id: UUID) async throws {
+        try await workoutRepository.delete(id: id)
+    }
+
+    /// 整包更新：讀回 aggregate、按 id 套用各組編輯、整棵樹重存。
+    /// 組數／動作／順序不變，因此不需重編 index。
+    func updateSets(workoutId: UUID, edits: [HistorySetEdit]) async throws {
+        guard var workout = try await workoutRepository.get(id: workoutId) else {
+            throw WorkoutRepositoryError.notFound(id: workoutId)
+        }
+        let editById = Dictionary(uniqueKeysWithValues: edits.map { ($0.id, $0) })
+        workout.sets = workout.sets.map { set in
+            guard let edit = editById[set.id] else { return set }
+            var updated = set
+            updated.weight = edit.weight
+            updated.reps = edit.reps
+            updated.status = edit.status
+            return updated
+        }
+        try await workoutRepository.save(workout)
     }
 
     // MARK: - Mapping

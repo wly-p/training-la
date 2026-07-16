@@ -60,7 +60,7 @@ struct AppDependencies {
     ) -> AppDependencies {
         // Training 的 ExerciseCatalog port ← Spec 的 use case
         let catalog = SpecCatalogAdapter(listExercises: ListExercises(repository: exerciseRepository))
-        // History 的讀取 port ← Training 紀錄 ＋ Spec 動作名稱
+        // History 的讀取／編輯 port ← Training 紀錄 ＋ Spec 動作名稱（同一個 adapter 兼兩職）
         let historyReading = HistoryReadingAdapter(
             workoutRepository: workoutRepository,
             listExercises: ListExercises(repository: exerciseRepository)
@@ -103,7 +103,7 @@ struct AppDependencies {
                 )
             },
             makeHistoryViewModel: {
-                HistoryViewModel(reading: historyReading)
+                HistoryViewModel(reading: historyReading, editing: historyReading)
             },
             makePlanScheduleViewModel: {
                 PlanScheduleViewModel(
