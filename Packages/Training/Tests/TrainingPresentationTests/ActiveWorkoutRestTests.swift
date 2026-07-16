@@ -135,6 +135,39 @@ struct ActiveWorkoutRestTests {
         vm.dismissRest()
     }
 
+    /// 自由訓練（無課表）：手動設定休息秒數後，該動作後續各組完成要自動沿用倒數。
+    /// （對應 ticket 實測情境：第 1 組設 30 秒，第 2 組完成卻沒進入倒數。）
+    @Test func freeTrainingManualRestAppliesToRemainingSets() async {
+        let repo = MockWorkoutRepo()
+        let exId = UUID()
+        // planWorkoutId 為 nil → 自由訓練，blueprint 保持 nil
+        let workout = Workout(id: UUID(), day: DayDate(year: 2026, month: 7, day: 10), startedAt: Date())
+        let vm = ActiveWorkoutViewModel(
+            workout: workout,
+            saveProgress: SaveWorkoutProgress(repository: repo),
+            finishWorkout: FinishWorkout(repository: repo),
+            discardWorkout: DiscardWorkout(repository: repo),
+            lastPerformance: LastPerformance(repository: repo),
+            exerciseCatalog: MockCatalog(items: [CatalogExercise(id: exId, name: "臥推", muscleGroup: .chest)])
+        )
+        await vm.onAppear()
+        await vm.select(exerciseId: exId)
+        #expect(vm.isFollowingPlan == false)
+
+        // 第 1 組完成 → 還沒設休息 → 不倒數
+        await vm.completeCurrentSet()
+        #expect(vm.restRemaining == nil)
+
+        // 手動設 30 秒
+        vm.startManualRest(seconds: 30)
+        #expect(vm.restRemaining == 30)
+        vm.dismissRest()
+
+        // 第 2 組完成 → 自動沿用 30 秒倒數
+        await vm.completeCurrentSet()
+        #expect(vm.restRemaining == 30)
+    }
+
     /// 跳過此組的契約：只記一組、狀態 .skipped、且不觸發休息。
     /// （bug③ 的誤觸表現就是多記了 .skipped 組，這裡固定住「正常跳過」的預期行為。）
     @Test func skipRecordsSingleSkippedSetWithoutRest() async {

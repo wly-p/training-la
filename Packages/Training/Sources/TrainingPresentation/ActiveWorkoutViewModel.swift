@@ -172,24 +172,41 @@ public final class ActiveWorkoutViewModel {
     }
 
     public func completeCurrentSet() async {
-        let rest = restSecondsForCurrentExercise // 完成這組後的休息（手動調整過則用調整值）
+        let rest = restSecondsForCurrentExercise // 完成這組後的休息（手動設過/調整過則用該值）
         await appendSet(status: .done)
-        // 只有「這個動作還有下一組」才倒數；做完該動作最後一組不休息（該換動作了）
-        if let rest, rest > 0, hasNextPlannedSetForCurrentExercise {
+        if let rest, rest > 0, shouldRestAfterCurrentSet {
             startRest(seconds: rest)
         }
     }
 
-    /// 目前動作完成這組後的休息秒數：優先用訓練中手動調整過的值，否則用課表原定 restSec。
+    /// 目前動作完成這組後的休息秒數：優先用訓練中手動設定/調整過的值，否則用課表原定 restSec。
+    /// 自由訓練沒有課表 restSec，只有手動設過才有值。
     private var restSecondsForCurrentExercise: Int? {
         guard let id = currentExerciseId else { return currentTarget?.restSec }
         return adjustedRestByExercise[id] ?? currentTarget?.restSec
+    }
+
+    /// 完成這組後是否該起休息倒數。
+    /// 照課表：只有「這個動作還有下一組」才休息（做完最後一組該換動作了）。
+    /// 自由訓練：沒有「最後一組」的概念，只要有休息秒數就起（沒設過則 rest 為 nil，不會走到這）。
+    private var shouldRestAfterCurrentSet: Bool {
+        guard isFollowingPlan else { return true }
+        return hasNextPlannedSetForCurrentExercise
     }
 
     /// append 之後，目前動作是否還有下一組課表目標。
     private var hasNextPlannedSetForCurrentExercise: Bool {
         guard let id = currentExerciseId else { return false }
         return blueprint?.target(exerciseId: id, position: currentBlockSets.count) != nil
+    }
+
+    /// 使用者手動設定休息秒數（計時器選單選預設值）：記為該動作的休息偏好並開始倒數，
+    /// 之後同動作各組完成時會自動沿用這個秒數。
+    public func startManualRest(seconds: Int) {
+        if let id = currentExerciseId {
+            adjustedRestByExercise[id] = seconds
+        }
+        startRest(seconds: seconds)
     }
 
     public func skipCurrentSet() async {
