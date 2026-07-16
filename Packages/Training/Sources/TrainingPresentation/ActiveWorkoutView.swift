@@ -340,7 +340,7 @@ public struct ActiveWorkoutView: View {
                 if viewModel.restRemaining == nil {
                     Menu {
                         ForEach(restPresets, id: \.self) { sec in
-                            Button(restClock(sec)) { viewModel.startRest(seconds: sec) }
+                            Button(restClock(sec)) { viewModel.startManualRest(seconds: sec) }
                         }
                     } label: {
                         Image(systemName: "timer") // 純圖示：跟「跳過此組」擺一起才不會擠爆這列
