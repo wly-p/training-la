@@ -1,3 +1,4 @@
+import RemindersDomain
 import Testing
 
 @testable import SettingsPresentation
@@ -132,5 +133,30 @@ struct SettingsViewModelTests {
         #expect(resetCount == 0)          // 失敗不重建畫面
         #expect(vm.isErasing == false)
         #expect(vm.eraseFailed == true)   // 綁 UI 錯誤 alert
+    }
+
+    @Test func loadsInitialRestReminderFromStore() {
+        let pref = RestReminderPreference(popup: false, sound: false, backgroundNotification: true)
+        let vm = SettingsViewModel(
+            store: InMemoryThemeStore(initial: .system),
+            iconSwitcher: MockIconSwitcher(),
+            restReminderStore: InMemoryRestReminderPreferenceStore(pref)
+        )
+        #expect(vm.restReminder == pref)
+    }
+
+    @Test func changingRestReminderPersists() {
+        let store = InMemoryRestReminderPreferenceStore(.default)
+        let vm = SettingsViewModel(
+            store: InMemoryThemeStore(initial: .system),
+            iconSwitcher: MockIconSwitcher(),
+            restReminderStore: store
+        )
+
+        vm.restReminder.sound = false
+        vm.restReminder.backgroundNotification = false
+
+        #expect(store.load().sound == false)
+        #expect(store.load().backgroundNotification == false)
     }
 }

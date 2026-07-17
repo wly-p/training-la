@@ -13,6 +13,15 @@ enum HistoryFormatting {
         return sets.map { "\($0.weight.displayString)×\($0.reps)" }.joined(separator: ", ")
     }
 
+    /// 組狀態的中文標籤（編輯用選單）。
+    static func statusLabel(_ status: WorkoutSetStatus) -> String {
+        switch status {
+        case .done: return "完成"
+        case .skipped: return "跳過"
+        case .interrupted: return "中斷"
+        }
+    }
+
     static let feelingEmojis = [1: "😫", 2: "😕", 3: "😐", 4: "🙂", 5: "💪"]
 
     static func feeling(_ value: Int?) -> String {

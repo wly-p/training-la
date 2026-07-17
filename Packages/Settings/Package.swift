@@ -7,8 +7,14 @@ let package = Package(
     products: [
         .library(name: "SettingsPresentation", targets: ["SettingsPresentation"])
     ],
+    dependencies: [
+        .package(path: "../Reminders")
+    ],
     targets: [
-        .target(name: "SettingsPresentation"),
+        .target(
+            name: "SettingsPresentation",
+            dependencies: [.product(name: "RemindersDomain", package: "Reminders")]
+        ),
         .testTarget(
             name: "SettingsPresentationTests",
             dependencies: ["SettingsPresentation"]

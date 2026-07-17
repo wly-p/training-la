@@ -3,6 +3,8 @@ import HistoryPresentation
 import PlanData
 import PlanDomain
 import PlanPresentation
+import RemindersDomain
+import RemindersKit
 import SettingsPresentation
 import SpecData
 import SpecDomain
@@ -40,14 +42,25 @@ struct AppDependencies {
             workoutRepository: workoutRepository,
             planRepository: planRepository
         )
+        // 休息提醒偏好：真實用 UserDefaults；UI 測試用記憶體。Settings 與 reminder 共用同一實例。
+        let reminderStore: any RestReminderPreferenceStoring =
+            inMemory ? InMemoryRestReminderPreferenceStore() : UserDefaultsRestReminderStore()
+        // UI 測試（in-memory）用 Noop channels，避免真實通知權限彈窗／發聲干擾測試。
+        let reminder: any RestEndReminding = inMemory
+            ? RestEndReminder(notifications: NoopRestNotificationScheduling(),
+                              sound: NoopReminderSoundPlaying(),
+                              store: reminderStore)
+            : RestEndReminder(notifications: UserNotificationRestScheduler(),
+                              sound: SystemSoundReminderPlayer(),
+                              store: reminderStore)
         return assemble(
             exerciseRepository: SpecDataFactory.makeExerciseRepository(
                 container: container, usageChecker: usageChecker
             ),
             workoutRepository: workoutRepository,
             planRepository: planRepository,
-            // UI 測試（in-memory）用 Noop，避免真實通知權限系統彈窗干擾測試。
-            restNotifications: inMemory ? NoopRestNotificationScheduler() : UserNotificationRestScheduler(),
+            reminder: reminder,
+            reminderStore: reminderStore,
             dataEraser: SwiftDataEraser(container: container, modelTypes: allModels)
         )
     }
@@ -57,12 +70,13 @@ struct AppDependencies {
         exerciseRepository: any ExerciseRepository,
         workoutRepository: any WorkoutRepository,
         planRepository: any PlanWorkoutRepository,
-        restNotifications: any RestNotificationScheduling = UserNotificationRestScheduler(),
+        reminder: any RestEndReminding,
+        reminderStore: any RestReminderPreferenceStoring,
         dataEraser: any DataErasing = NoopDataEraser()
     ) -> AppDependencies {
         // Training 的 ExerciseCatalog port ← Spec 的 use case
         let catalog = SpecCatalogAdapter(listExercises: ListExercises(repository: exerciseRepository))
-        // History 的讀取 port ← Training 紀錄 ＋ Spec 動作名稱
+        // History 的讀取／編輯 port ← Training 紀錄 ＋ Spec 動作名稱（同一個 adapter 兼兩職）
         let historyReading = HistoryReadingAdapter(
             workoutRepository: workoutRepository,
             listExercises: ListExercises(repository: exerciseRepository)
@@ -101,11 +115,11 @@ struct AppDependencies {
                     lastPerformance: LastPerformance(repository: workoutRepository),
                     exerciseCatalog: catalog,
                     plannedProvider: plannedProvider,
-                    notifications: restNotifications
+                    reminder: reminder
                 )
             },
             makeHistoryViewModel: {
-                HistoryViewModel(reading: historyReading)
+                HistoryViewModel(reading: historyReading, editing: historyReading)
             },
             makePlanScheduleViewModel: {
                 PlanScheduleViewModel(
@@ -120,6 +134,7 @@ struct AppDependencies {
                 SettingsViewModel(
                     store: UserDefaultsThemeStore(),
                     iconSwitcher: UIApplicationIconSwitcher(),
+                    restReminderStore: reminderStore,
                     dataEraser: dataEraser,
                     onErased: onErased
                 )

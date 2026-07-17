@@ -10,7 +10,8 @@ let package = Package(
         .library(name: "TrainingPresentation", targets: ["TrainingPresentation"]),
     ],
     dependencies: [
-        .package(path: "../SharedKernel")
+        .package(path: "../SharedKernel"),
+        .package(path: "../Reminders"),
     ],
     targets: [
         .target(
@@ -23,7 +24,7 @@ let package = Package(
         ),
         .target(
             name: "TrainingPresentation",
-            dependencies: ["TrainingDomain"]
+            dependencies: ["TrainingDomain", .product(name: "RemindersDomain", package: "Reminders")]
         ),
         .testTarget(
             name: "TrainingDomainTests",

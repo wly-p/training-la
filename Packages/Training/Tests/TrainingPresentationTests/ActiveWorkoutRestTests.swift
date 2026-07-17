@@ -1,4 +1,5 @@
 import Foundation
+import RemindersDomain
 import SharedKernel
 import Testing
 import TrainingDomain
@@ -276,21 +277,25 @@ private final class MutableClock: @unchecked Sendable {
     func advance(_ seconds: TimeInterval) { current += seconds }
 }
 
-/// 記錄通知排程互動的間諜。
-private actor SpyRestScheduler: RestNotificationScheduling {
-    private(set) var authRequested = 0
+/// 記錄提醒排程互動的間諜。
+private actor SpyReminder: RestEndReminding {
+    nonisolated let preference: RestReminderPreference
     private(set) var scheduledDates: [Date] = []
     private(set) var cancelCount = 0
-    func requestAuthorization() async { authRequested += 1 }
-    func scheduleRestEnd(at date: Date) async { scheduledDates.append(date) }
-    func cancelRestEnd() async { cancelCount += 1 }
+    private(set) var foregroundCount = 0
+
+    init(preference: RestReminderPreference = .default) { self.preference = preference }
+
+    func schedule(at endDate: Date) async { scheduledDates.append(endDate) }
+    func cancel() async { cancelCount += 1 }
+    func deliverForeground() async { foregroundCount += 1 }
 }
 
 @MainActor
 struct ActiveWorkoutBackgroundRestTests {
     private func makeViewModel(
         now: @escaping () -> Date,
-        notifications: any RestNotificationScheduling = NoopRestNotificationScheduler()
+        reminder: any RestEndReminding = NoopRestEndReminding()
     ) -> ActiveWorkoutViewModel {
         let repo = MockWorkoutRepo()
         let blueprint = PlannedWorkoutBlueprint(planWorkoutId: UUID(), name: "推日", targets: [])
@@ -303,7 +308,7 @@ struct ActiveWorkoutBackgroundRestTests {
             lastPerformance: LastPerformance(repository: repo),
             exerciseCatalog: MockCatalog(items: []),
             plannedProvider: MockPlanProvider(blueprint: blueprint),
-            notifications: notifications,
+            reminder: reminder,
             now: now
         )
     }
@@ -332,22 +337,21 @@ struct ActiveWorkoutBackgroundRestTests {
         #expect(vm.restRemaining == 0)
     }
 
-    @Test func startRestRequestsAuthAndSchedulesNotificationAtEndDate() async {
+    @Test func startRestSchedulesReminderAtEndDate() async {
         let clock = MutableClock(Date(timeIntervalSince1970: 1000))
-        let spy = SpyRestScheduler()
-        let vm = makeViewModel(now: { clock.current }, notifications: spy)
+        let spy = SpyReminder()
+        let vm = makeViewModel(now: { clock.current }, reminder: spy)
 
         vm.startRest(seconds: 60)
         await vm.pendingRestNotify?.value
 
-        #expect(await spy.authRequested == 1)
         #expect(await spy.scheduledDates == [Date(timeIntervalSince1970: 1060)])
     }
 
     @Test func adjustRestMovesEndAndReschedules() async {
         let clock = MutableClock(Date(timeIntervalSince1970: 1000))
-        let spy = SpyRestScheduler()
-        let vm = makeViewModel(now: { clock.current }, notifications: spy)
+        let spy = SpyReminder()
+        let vm = makeViewModel(now: { clock.current }, reminder: spy)
 
         vm.startRest(seconds: 60)
         await vm.pendingRestNotify?.value
@@ -358,10 +362,10 @@ struct ActiveWorkoutBackgroundRestTests {
         #expect(await spy.scheduledDates.last == Date(timeIntervalSince1970: 1075))
     }
 
-    @Test func dismissRestCancelsPendingNotification() async {
+    @Test func dismissRestCancelsReminder() async {
         let clock = MutableClock(Date(timeIntervalSince1970: 1000))
-        let spy = SpyRestScheduler()
-        let vm = makeViewModel(now: { clock.current }, notifications: spy)
+        let spy = SpyReminder()
+        let vm = makeViewModel(now: { clock.current }, reminder: spy)
 
         vm.startRest(seconds: 60)
         await vm.pendingRestNotify?.value
@@ -370,6 +374,19 @@ struct ActiveWorkoutBackgroundRestTests {
 
         #expect(await spy.cancelCount == 1)
         #expect(vm.restRemaining == nil)
+    }
+
+    @Test func popupGatedByPreference() {
+        let clock = MutableClock(Date(timeIntervalSince1970: 1000))
+        // 彈窗關 → 即使休息結束也不顯示彈窗
+        let spy = SpyReminder(preference: .init(popup: false, sound: true, backgroundNotification: true))
+        let vm = makeViewModel(now: { clock.current }, reminder: spy)
+
+        vm.startRest(seconds: 60)
+        clock.advance(65)
+        #expect(vm.refreshRest() == true)
+        #expect(vm.restEnded)
+        #expect(vm.showsRestEndedAlert == false)
     }
 }
 
