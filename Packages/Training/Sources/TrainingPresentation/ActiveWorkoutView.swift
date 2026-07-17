@@ -46,8 +46,13 @@ public struct ActiveWorkoutView: View {
                 if dismissed { dismiss() }
             }
             .onChange(of: scenePhase) { _, phase in
-                // 切回前景：用結束時間重算剩餘秒數，補上背景期間經過的時間。
-                if phase == .active { viewModel.refreshRest() }
+                // 切回前景：補算剩餘秒數並重啟 ticking；進背景：停掉 ticking，
+                // 避免回前景時補跑「到點前景提醒」與背景已投遞的通知重複。
+                if phase == .active {
+                    viewModel.enterForeground()
+                } else {
+                    viewModel.suspendRestTicking()
+                }
             }
             .safeAreaInset(edge: .bottom) {
                 if viewModel.restRemaining != nil, !viewModel.restEnded {
@@ -55,7 +60,7 @@ public struct ActiveWorkoutView: View {
                 }
             }
             .alert("休息結束", isPresented: Binding(
-                get: { viewModel.restEnded },
+                get: { viewModel.showsRestEndedAlert },
                 set: { if !$0 { viewModel.dismissRest() } }
             )) {
                 Button("開始下一組") { viewModel.dismissRest() }

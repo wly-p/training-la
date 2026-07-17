@@ -33,6 +33,8 @@ packages:
     path: Packages/Plan
   Settings:
     path: Packages/Settings
+  Reminders:
+    path: Packages/Reminders
 targets:
   TrainingLa:
     type: application
@@ -56,6 +58,8 @@ targets:
         products: [PlanDomain, PlanData, PlanPresentation]
       - package: Settings
         products: [SettingsPresentation]
+      - package: Reminders
+        products: [RemindersDomain, RemindersKit]
       - package: SharedKernel
     settings:
       base:

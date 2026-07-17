@@ -1,5 +1,6 @@
 import Foundation
 import Observation
+import RemindersDomain
 
 @MainActor
 @Observable
@@ -24,13 +25,25 @@ public final class SettingsViewModel {
         }
     }
 
+    /// 休息結束提醒偏好；改動即持久化。
+    public var restReminder: RestReminderPreference {
+        didSet { restReminderStore.save(restReminder) }
+    }
+
     private let store: any ThemeStoring
     private let iconSwitcher: any IconSwitching
+    private let restReminderStore: any RestReminderPreferenceStoring
 
-    public init(store: any ThemeStoring, iconSwitcher: any IconSwitching) {
+    public init(
+        store: any ThemeStoring,
+        iconSwitcher: any IconSwitching,
+        restReminderStore: any RestReminderPreferenceStoring = InMemoryRestReminderPreferenceStore()
+    ) {
         self.store = store
         self.iconSwitcher = iconSwitcher
+        self.restReminderStore = restReminderStore
         self.theme = store.load() // init 期間 didSet 不觸發，不會多存一次
         self.icon = AppIcon(assetName: iconSwitcher.currentIconName)
+        self.restReminder = restReminderStore.load()
     }
 }

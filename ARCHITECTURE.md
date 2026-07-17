@@ -77,10 +77,19 @@ Packages/
   Plan/       (同結構：PlanWorkout → PlanSet)
   Training/   (同結構：Workout → WorkoutSet)
   History/    (讀多，可只有 Domain + Presentation)
+  Settings/   (只有 Presentation：主題、App 圖示、提醒偏好)
+  Reminders/  ← 通知/提醒中樞（非 domain，是跨 domain 的共用能力）
+    Sources/
+      RemindersDomain/    ← 純邏輯：偏好、channel ports、dispatcher（可被任何 domain import）
+      RemindersKit/       ← 平台實作：UN 本地通知、系統音、UserDefaults（只有 App 接線時 import）
 ```
 
 相依方向：`SpecData → SpecDomain`、`SpecPresentation → SpecDomain`、`SpecDomain → SharedKernel`。
 **Domain 之間互不依賴**；只有 App 認得全部。
+
+例外是 `RemindersDomain`：它跟 SharedKernel 一樣是跨 domain 共用層（Training／Settings 都直接 import），
+但只含純 port 與偏好值型別；有副作用的實作全在 `RemindersKit`，僅 App 組裝時使用。
+未來要加新通知類型或 Apple Watch，是「換/加一組 channel 實作」，不動各 domain。
 
 ## 跨 domain 解耦（ports & adapters）
 
@@ -89,6 +98,20 @@ Packages/
 - 各自定義 port：Training 的 `ExerciseCatalog`、Plan 的 `PlanExerciseCatalog`（給我 exerciseId → 回動作清單）。
 - 由 **App（Composition Root）** 把它接到 Spec domain 的 UseCase。
 - → Training／Plan **從不 import Spec package**，仍能用到它的資料。
+
+### 休息結束提醒（Reminders 中樞）
+
+Training 的休息倒數不認識任何提醒手段，只呼叫 `RestEndReminding`（RemindersDomain 的 port）：
+`schedule(at:)`／`cancel()`／`deliverForeground()`。背景/前景分工是 iOS 本地通知的硬約束所決定：
+
+- **背景**在 `schedule` 當下就把計畫烤進一則本地通知（到點 App 不會被喚醒執行 code）。
+  背景只有兩個旋鈕：「排不排」＋「有無聲音」——做不到「只出聲不顯示橫幅」、震動跟隨系統無法獨立控制。
+- **前景**倒數歸零由 `deliverForeground()` 播聲音；彈窗由 View 依偏好顯示；App 進背景會停掉前景
+  ticking，避免回前景補跑提醒與背景通知重複發聲。
+
+偏好因此收斂成三個誠實的開關（`RestReminderPreference`，Settings 編輯、與 reminder 共用同一 store）：
+前景 `彈窗`／`聲音` ＋ 背景 `背景通知`（聲音跟隨「聲音」開關）。**不設震動開關**——有聲音必伴隨
+系統震動，拆不開，設定只會騙人。
 
 ## DI：建構子注入 + Composition Root
 
@@ -107,7 +130,7 @@ Packages/
 
 三類測試，各自獨立：
 
-1. **Unit test**：六個 package（SharedKernel/Spec/Training/Plan/History/Settings）各自的 `Tests/`，用 Swift Testing（`import Testing`）。
+1. **Unit test**：七個 package（SharedKernel/Spec/Training/Plan/History/Settings/Reminders）各自的 `Tests/`，用 Swift Testing（`import Testing`）。
    - `*DomainTests`：UseCase 注 mock repository，純邏輯測，秒級、免模擬器。
    - `*DataTests`：Repository 用 in-memory SwiftData 測。
    - `*PresentationTests`：ViewModel 注 mock repository/port 測。
