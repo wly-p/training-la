@@ -53,3 +53,6 @@ TrainingLa.xcodeproj/
 
 # xcodegen 產生的 Info.plist（由 project.yml 定義）
 App/Info.plist
+
+# xcode-build-server 產物（指向本機 DerivedData，供 VS Code SourceKit-LSP 用；跟 xcodeproj 一樣不進版控）
+buildServer.json
