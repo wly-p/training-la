@@ -11,21 +11,21 @@ final class RestReminderSettingsUITests: XCTestCase {
 
         app.tabBars.buttons["設定"].tap()
 
-        XCTAssertTrue(app.staticTexts["休息結束提醒"].waitForExistence(timeout: 5))
+        XCTAssertTrue(app.staticTexts["休息結束提醒（App 開著時）"].waitForExistence(timeout: 5))
 
         let popup = app.switches["彈窗"]
-        let banner = app.switches["通知列"]
         let sound = app.switches["聲音"]
         let haptic = app.switches["震動"]
+        let background = app.switches["背景通知"]
         XCTAssertTrue(popup.waitForExistence(timeout: 5))
-        XCTAssertTrue(banner.exists)
         XCTAssertTrue(sound.exists)
         XCTAssertTrue(haptic.exists)
+        XCTAssertTrue(background.exists)
 
-        // 預設：彈窗 / 通知列 / 聲音 開，震動 關
+        // 預設：彈窗 / 聲音 / 背景通知 開，震動 關
         XCTAssertEqual(popup.value as? String, "1")
-        XCTAssertEqual(banner.value as? String, "1")
         XCTAssertEqual(sound.value as? String, "1")
+        XCTAssertEqual(background.value as? String, "1")
         XCTAssertEqual(haptic.value as? String, "0")
 
         // 可切換：開啟震動（點 cell 尾端的開關控制，避免點到標籤無效）

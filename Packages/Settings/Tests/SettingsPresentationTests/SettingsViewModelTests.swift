@@ -92,7 +92,7 @@ struct SettingsViewModelTests {
     }
 
     @Test func loadsInitialRestReminderFromStore() {
-        let pref = RestReminderPreference(popup: false, banner: true, sound: false, haptic: true)
+        let pref = RestReminderPreference(popup: false, sound: false, haptic: true, backgroundNotification: true)
         let vm = SettingsViewModel(
             store: InMemoryThemeStore(initial: .system),
             iconSwitcher: MockIconSwitcher(),

@@ -15,17 +15,17 @@ public struct UserDefaultsRestReminderStore: RestReminderPreferenceStoring {
         let d = RestReminderPreference.default
         return RestReminderPreference(
             popup: bool("popup", default: d.popup),
-            banner: bool("banner", default: d.banner),
             sound: bool("sound", default: d.sound),
-            haptic: bool("haptic", default: d.haptic)
+            haptic: bool("haptic", default: d.haptic),
+            backgroundNotification: bool("backgroundNotification", default: d.backgroundNotification)
         )
     }
 
     public func save(_ preference: RestReminderPreference) {
         defaults.set(preference.popup, forKey: prefix + "popup")
-        defaults.set(preference.banner, forKey: prefix + "banner")
         defaults.set(preference.sound, forKey: prefix + "sound")
         defaults.set(preference.haptic, forKey: prefix + "haptic")
+        defaults.set(preference.backgroundNotification, forKey: prefix + "backgroundNotification")
     }
 
     private func bool(_ key: String, default fallback: Bool) -> Bool {
