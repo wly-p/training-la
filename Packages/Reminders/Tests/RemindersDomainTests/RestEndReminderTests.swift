@@ -12,7 +12,7 @@ private actor SpyNotifications: RestNotificationScheduling {
     func cancelRestEnd() async { cancelCount += 1 }
 }
 
-private actor SpyPlayer: ReminderSoundPlaying, ReminderHapticPlaying {
+private actor SpyPlayer: ReminderSoundPlaying {
     private(set) var playCount = 0
     func play() async { playCount += 1 }
 }
@@ -20,13 +20,11 @@ private actor SpyPlayer: ReminderSoundPlaying, ReminderHapticPlaying {
 private func makeReminder(
     _ pref: RestReminderPreference,
     notifications: SpyNotifications = SpyNotifications(),
-    sound: SpyPlayer = SpyPlayer(),
-    haptic: SpyPlayer = SpyPlayer()
+    sound: SpyPlayer = SpyPlayer()
 ) -> RestEndReminder {
     RestEndReminder(
         notifications: notifications,
         sound: sound,
-        haptic: haptic,
         store: InMemoryRestReminderPreferenceStore(pref)
     )
 }
@@ -37,7 +35,7 @@ struct RestEndReminderTests {
     @Test func schedulesNotificationWithSoundWhenBackgroundAndSoundOn() async {
         let notifs = SpyNotifications()
         let reminder = makeReminder(
-            .init(popup: true, sound: true, haptic: false, backgroundNotification: true),
+            .init(popup: true, sound: true, backgroundNotification: true),
             notifications: notifs
         )
 
@@ -54,7 +52,7 @@ struct RestEndReminderTests {
         let notifs = SpyNotifications()
         // 背景通知開、聲音關 → 排靜音通知（靜音通知也不會震）
         let reminder = makeReminder(
-            .init(popup: false, sound: false, haptic: false, backgroundNotification: true),
+            .init(popup: false, sound: false, backgroundNotification: true),
             notifications: notifs
         )
 
@@ -65,9 +63,9 @@ struct RestEndReminderTests {
 
     @Test func skipsNotificationAndClearsWhenBackgroundOff() async {
         let notifs = SpyNotifications()
-        // 背景通知關 → 即使聲音/震動開，背景完全不排並清掉殘留（聲音無法脫離通知在背景投遞）
+        // 背景通知關 → 即使聲音開，背景完全不排並清掉殘留（聲音無法脫離通知在背景投遞）
         let reminder = makeReminder(
-            .init(popup: true, sound: true, haptic: true, backgroundNotification: false),
+            .init(popup: true, sound: true, backgroundNotification: false),
             notifications: notifs
         )
 
@@ -87,33 +85,28 @@ struct RestEndReminderTests {
         #expect(await notifs.cancelCount == 1)
     }
 
-    @Test func foregroundPlaysSoundAndHapticPerPreference() async {
+    @Test func foregroundPlaysSoundWhenOn() async {
         let sound = SpyPlayer()
-        let haptic = SpyPlayer()
-        let reminder = makeReminder(.init(popup: true, sound: true, haptic: true, backgroundNotification: true),
-                                    sound: sound, haptic: haptic)
+        let reminder = makeReminder(.init(popup: true, sound: true, backgroundNotification: true),
+                                    sound: sound)
 
         await reminder.deliverForeground()
 
         #expect(await sound.playCount == 1)
-        #expect(await haptic.playCount == 1)
     }
 
-    @Test func foregroundSkipsDisabledChannels() async {
+    @Test func foregroundSkipsSoundWhenOff() async {
         let sound = SpyPlayer()
-        let haptic = SpyPlayer()
-        // 只開聲音
-        let reminder = makeReminder(.init(popup: true, sound: true, haptic: false, backgroundNotification: false),
-                                    sound: sound, haptic: haptic)
+        let reminder = makeReminder(.init(popup: true, sound: false, backgroundNotification: true),
+                                    sound: sound)
 
         await reminder.deliverForeground()
 
-        #expect(await sound.playCount == 1)
-        #expect(await haptic.playCount == 0)
+        #expect(await sound.playCount == 0)
     }
 
     @Test func preferenceReflectsStore() {
-        let pref = RestReminderPreference(popup: false, sound: false, haptic: true, backgroundNotification: true)
+        let pref = RestReminderPreference(popup: false, sound: false, backgroundNotification: true)
         let reminder = makeReminder(pref)
         #expect(reminder.preference == pref)
     }

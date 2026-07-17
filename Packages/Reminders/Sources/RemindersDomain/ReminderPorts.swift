@@ -4,15 +4,15 @@ import Foundation
 
 /// 「休息結束提醒」的對外介面：休息倒數只呼叫這個，不知道底下有哪些手段。
 /// 背景手段在 `schedule(at:)` 當下就烤進通知（背景到點 App 不會被喚醒執行）；
-/// 前景手段（聲音/震動）在倒數於前景歸零時由 `deliverForeground()` 觸發；
+/// 前景手段（聲音）在倒數於前景歸零時由 `deliverForeground()` 觸發；
 /// 彈窗屬前景 UI，由 View 讀 `preference.popup` 決定，不在此觸發。
 public protocol RestEndReminding: Sendable {
     var preference: RestReminderPreference { get }
-    /// 排定/重排背景通知計畫（依偏好；偏好無背景手段則清掉殘留）。
+    /// 排定/重排背景通知計畫（依偏好；背景通知關則清掉殘留）。
     func schedule(at endDate: Date) async
     /// 取消尚未觸發的背景通知。
     func cancel() async
-    /// 前景倒數歸零時觸發聲音/震動（依偏好）。
+    /// 前景倒數歸零時播聲音（依偏好；系統音自帶震動）。
     func deliverForeground() async
 }
 
@@ -30,11 +30,6 @@ public protocol RestNotificationScheduling: Sendable {
 
 /// 前景聲音。
 public protocol ReminderSoundPlaying: Sendable {
-    func play() async
-}
-
-/// 前景震動（haptic）。
-public protocol ReminderHapticPlaying: Sendable {
     func play() async
 }
 
@@ -63,11 +58,6 @@ public struct NoopRestEndReminding: RestEndReminding {
 }
 
 public struct NoopReminderSoundPlaying: ReminderSoundPlaying {
-    public init() {}
-    public func play() async {}
-}
-
-public struct NoopReminderHapticPlaying: ReminderHapticPlaying {
     public init() {}
     public func play() async {}
 }

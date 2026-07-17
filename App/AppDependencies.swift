@@ -49,11 +49,9 @@ struct AppDependencies {
         let reminder: any RestEndReminding = inMemory
             ? RestEndReminder(notifications: NoopRestNotificationScheduling(),
                               sound: NoopReminderSoundPlaying(),
-                              haptic: NoopReminderHapticPlaying(),
                               store: reminderStore)
             : RestEndReminder(notifications: UserNotificationRestScheduler(),
                               sound: SystemSoundReminderPlayer(),
-                              haptic: HapticReminderPlayer(),
                               store: reminderStore)
         return assemble(
             exerciseRepository: SpecDataFactory.makeExerciseRepository(

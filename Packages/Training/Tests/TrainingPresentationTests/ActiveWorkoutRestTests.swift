@@ -379,7 +379,7 @@ struct ActiveWorkoutBackgroundRestTests {
     @Test func popupGatedByPreference() {
         let clock = MutableClock(Date(timeIntervalSince1970: 1000))
         // 彈窗關 → 即使休息結束也不顯示彈窗
-        let spy = SpyReminder(preference: .init(popup: false, sound: true, haptic: false, backgroundNotification: true))
+        let spy = SpyReminder(preference: .init(popup: false, sound: true, backgroundNotification: true))
         let vm = makeViewModel(now: { clock.current }, reminder: spy)
 
         vm.startRest(seconds: 60)

@@ -5,23 +5,20 @@ import Foundation
 /// 分工（見設計討論）：
 /// - `schedule`：排程當下就把背景計畫烤進一則本地通知（背景到點 App 不會執行 code）。
 ///   「背景通知」開才排；那則通知是否帶聲音跟隨 sound 偏好。關 → 背景不排（清掉殘留）。
-/// - `deliverForeground`：前景倒數歸零時跑聲音／震動（依偏好）。前景時那則系統通知
-///   由 App 的通知 delegate 壓掉，避免「in-app 播一次＋通知又響一次」。
+/// - `deliverForeground`：前景倒數歸零時播聲音（依偏好；系統音自帶震動，不另設開關）。
+///   前景時那則系統通知由 App 的通知 delegate 壓掉，避免「in-app 播一次＋通知又響一次」。
 public struct RestEndReminder: RestEndReminding {
     private let notifications: any RestNotificationScheduling
     private let sound: any ReminderSoundPlaying
-    private let haptic: any ReminderHapticPlaying
     private let store: any RestReminderPreferenceStoring
 
     public init(
         notifications: any RestNotificationScheduling,
         sound: any ReminderSoundPlaying,
-        haptic: any ReminderHapticPlaying,
         store: any RestReminderPreferenceStoring
     ) {
         self.notifications = notifications
         self.sound = sound
-        self.haptic = haptic
         self.store = store
     }
 
@@ -45,6 +42,5 @@ public struct RestEndReminder: RestEndReminding {
     public func deliverForeground() async {
         let pref = store.load()
         if pref.sound { await sound.play() }
-        if pref.haptic { await haptic.play() }
     }
 }

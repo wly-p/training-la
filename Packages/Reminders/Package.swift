@@ -11,7 +11,7 @@ let package = Package(
     targets: [
         // 純邏輯：偏好、port、依「偏好 × App 狀態」fan-out 的 dispatcher。無任何 Apple 框架依賴，可測。
         .target(name: "RemindersDomain"),
-        // 平台實作：本地通知、聲音、震動、UserDefaults 偏好儲存。
+        // 平台實作：本地通知、聲音、UserDefaults 偏好儲存。
         .target(
             name: "RemindersKit",
             dependencies: ["RemindersDomain"]
