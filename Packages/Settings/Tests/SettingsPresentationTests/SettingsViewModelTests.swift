@@ -28,12 +28,29 @@ private final class MockIconSwitcher: IconSwitching, @unchecked Sendable {
 
 private enum StubError: Error { case failure }
 
+private final class MockDataEraser: DataErasing, @unchecked Sendable {
+    private(set) var eraseCallCount = 0
+    var shouldFail = false
+
+    func eraseAllData() async throws {
+        eraseCallCount += 1
+        if shouldFail { throw StubError.failure }
+    }
+}
+
 @MainActor
 private func makeViewModel(
     theme: AppTheme = .system,
-    iconSwitcher: MockIconSwitcher = MockIconSwitcher()
+    iconSwitcher: MockIconSwitcher = MockIconSwitcher(),
+    dataEraser: MockDataEraser = MockDataEraser(),
+    onErased: @escaping @MainActor () -> Void = {}
 ) -> SettingsViewModel {
-    SettingsViewModel(store: InMemoryThemeStore(initial: theme), iconSwitcher: iconSwitcher)
+    SettingsViewModel(
+        store: InMemoryThemeStore(initial: theme),
+        iconSwitcher: iconSwitcher,
+        dataEraser: dataEraser,
+        onErased: onErased
+    )
 }
 
 @MainActor
@@ -89,6 +106,33 @@ struct SettingsViewModelTests {
         try await Task.sleep(nanoseconds: 20_000_000)
 
         #expect(switcher.setCallCount == 0)
+    }
+
+    @Test func eraseAllDataWipesAndTriggersReset() async {
+        let eraser = MockDataEraser()
+        var resetCount = 0
+        let vm = makeViewModel(dataEraser: eraser, onErased: { resetCount += 1 })
+
+        await vm.eraseAllData()
+
+        #expect(eraser.eraseCallCount == 1)
+        #expect(resetCount == 1)
+        #expect(vm.isErasing == false)
+        #expect(vm.eraseFailed == false)
+    }
+
+    @Test func eraseAllDataFailureSurfacesErrorAndSkipsReset() async {
+        let eraser = MockDataEraser()
+        eraser.shouldFail = true
+        var resetCount = 0
+        let vm = makeViewModel(dataEraser: eraser, onErased: { resetCount += 1 })
+
+        await vm.eraseAllData()
+
+        #expect(eraser.eraseCallCount == 1)
+        #expect(resetCount == 0)          // 失敗不重建畫面
+        #expect(vm.isErasing == false)
+        #expect(vm.eraseFailed == true)   // 綁 UI 錯誤 alert
     }
 
     @Test func loadsInitialRestReminderFromStore() {
