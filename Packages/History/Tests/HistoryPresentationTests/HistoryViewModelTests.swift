@@ -28,6 +28,12 @@ private actor StubReading: WorkoutHistoryReading {
     }
 }
 
+/// 不做事的編輯 port（這些測試只驗讀取流程）。
+private struct NoopEditing: WorkoutHistoryEditing {
+    func deleteWorkout(id: UUID) async throws {}
+    func updateSets(workoutId: UUID, edits: [HistorySetEdit]) async throws {}
+}
+
 @MainActor
 struct HistoryViewModelTests {
     private func line(reps: Int) -> HistorySetLine {
@@ -45,7 +51,7 @@ struct HistoryViewModelTests {
             options: [HistoryExerciseOption(id: squatId, name: "深蹲", muscleGroup: .legs)],
             sessions: [squatId: [HistoryExerciseSession(id: UUID(), day: day, sets: [line(reps: 8)])]]
         )
-        let vm = HistoryViewModel(reading: stub)
+        let vm = HistoryViewModel(reading: stub, editing: NoopEditing())
 
         await vm.load()
 
@@ -75,7 +81,7 @@ struct HistoryViewModelTests {
                 ],
             ]
         )
-        let vm = HistoryViewModel(reading: stub)
+        let vm = HistoryViewModel(reading: stub, editing: NoopEditing())
         await vm.load()
         try await Task.sleep(nanoseconds: 50_000_000)
         #expect(vm.sessions.count == 1) // 深蹲

@@ -29,9 +29,21 @@ public final class HistoryViewModel {
     public private(set) var errorMessage: String?
 
     private let reading: any WorkoutHistoryReading
+    private let editing: any WorkoutHistoryEditing
 
-    public init(reading: any WorkoutHistoryReading) {
+    public init(reading: any WorkoutHistoryReading, editing: any WorkoutHistoryEditing) {
         self.reading = reading
+        self.editing = editing
+    }
+
+    /// 建立單場詳情頁的 view model。編輯／刪除成功後回呼 `load()`，讓兩種歷史查詢一致更新。
+    public func makeDetailViewModel(for id: UUID) -> WorkoutDetailViewModel {
+        WorkoutDetailViewModel(
+            workoutId: id,
+            loadDetail: { [reading] in try? await reading.workoutDetail(id: id) },
+            editing: editing,
+            onChange: { [weak self] in await self?.load() }
+        )
     }
 
     public var selectedExerciseSessionCount: Int { sessions.count }
