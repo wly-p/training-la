@@ -68,7 +68,9 @@ struct WorkoutDetailView: View {
                 }
             }
         }
-        .confirmationDialog("刪除這場訓練紀錄？", isPresented: $showsDeleteConfirm, titleVisibility: .visible) {
+        // 用 alert 不用 confirmationDialog：iOS 26 的 confirmationDialog 會以帶箭頭的 popover
+        // 呈現且錨點不在觸發按鈕上；alert 固定置中、無箭頭。
+        .alert("刪除這場訓練紀錄？", isPresented: $showsDeleteConfirm) {
             Button("刪除", role: .destructive) { Task { await viewModel.delete() } }
             Button("取消", role: .cancel) {}
         } message: {
