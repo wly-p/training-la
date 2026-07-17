@@ -23,8 +23,9 @@ final class DeleteAllDataUITests: XCTestCase {
         XCTAssertTrue(deleteButton.waitForExistence(timeout: 5))
         deleteButton.tap()
 
-        // confirmationDialog 的按鈕在階層裡可能有雙份表示，用 firstMatch 消歧義。
-        let confirm = app.buttons["confirmDeleteAllDataButton"].firstMatch
+        // alert 按鈕不一定帶 accessibilityIdentifier，改用 alert 範圍＋文字查詢；
+        // 也順便和設定列上同名的「刪除所有資料」按鈕消歧義。
+        let confirm = app.alerts.buttons["刪除所有資料"].firstMatch
         XCTAssertTrue(confirm.waitForExistence(timeout: 5))
         confirm.tap()
 

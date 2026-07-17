@@ -95,15 +95,15 @@ public struct SettingsView: View {
                 }
             }
             .navigationTitle("設定")
-            .confirmationDialog(
+            // 用 alert 不用 confirmationDialog：iOS 26 的 confirmationDialog 會以帶箭頭的 popover
+            // 呈現且錨點不在觸發按鈕上；alert 固定置中、無箭頭。
+            .alert(
                 "確定刪除所有資料？",
-                isPresented: $showEraseConfirm,
-                titleVisibility: .visible
+                isPresented: $showEraseConfirm
             ) {
                 Button("刪除所有資料", role: .destructive) {
                     Task { await viewModel.eraseAllData() }
                 }
-                .accessibilityIdentifier("confirmDeleteAllDataButton")
                 Button("取消", role: .cancel) {}
             } message: {
                 Text("所有動作、課表與訓練紀錄將被永久刪除，且無法復原。")

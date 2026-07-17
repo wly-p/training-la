@@ -29,7 +29,7 @@ final class EditDeleteWorkoutUITests: XCTestCase {
 
         // 刪除整場（含確認）
         app.buttons["workoutDetail.delete"].tap()
-        let confirm = app.buttons["刪除"].firstMatch
+        let confirm = app.alerts.buttons["刪除"].firstMatch
         XCTAssertTrue(confirm.waitForExistence(timeout: 5))
         confirm.tap()
 
