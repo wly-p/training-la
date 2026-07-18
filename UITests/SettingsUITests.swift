@@ -73,6 +73,20 @@ final class SettingsUITests: XCTestCase {
     }
 
     @MainActor
+    func testLanguageRowShowsCurrentLanguage() throws {
+        let app = XCUIApplication()
+        app.launchArguments = ["--uitest-inmemory"]
+        app.launch()
+
+        app.tabBars.buttons["設定"].tap()
+
+        // 語言列：navigationLink picker，值顯示目前語言的母語名（目前僅繁體中文）
+        let row = app.buttons["語言"]
+        XCTAssertTrue(row.waitForExistence(timeout: 5))
+        XCTAssertEqual(row.value as? String, "繁體中文")
+    }
+
+    @MainActor
     func testVersionRowShowsVersionAndBuild() throws {
         let app = XCUIApplication()
         app.launchArguments = ["--uitest-inmemory"]

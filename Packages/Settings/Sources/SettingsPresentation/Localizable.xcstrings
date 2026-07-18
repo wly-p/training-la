@@ -101,6 +101,11 @@
         "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "刪除失敗" } }
       }
     },
+    "settings.language.title" : {
+      "localizations" : {
+        "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "語言" } }
+      }
+    },
     "settings.restReminder.background.footer" : {
       "localizations" : {
         "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "App 不在前景時以系統通知提醒；是否有聲音跟隨上方「聲音」開關。關閉後背景將完全不提醒。" } }

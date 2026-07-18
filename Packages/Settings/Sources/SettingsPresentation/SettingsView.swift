@@ -1,3 +1,4 @@
+import SharedKernel
 import SwiftUI
 
 public struct SettingsView: View {
@@ -50,6 +51,23 @@ public struct SettingsView: View {
                     #endif
                 } header: {
                     localText("settings.appIcon.title")
+                }
+
+                Section {
+                    Picker(selection: $viewModel.language) {
+                        // 每個語言以「自己的母語名」呈現（nativeName 是固定字串、不本地化），
+                        // 這樣不論目前語言為何都認得。目前僅繁體中文，之後加語言會自動出現在清單。
+                        ForEach(AppLanguage.allCases) { language in
+                            Text(language.nativeName).tag(language)
+                        }
+                    } label: {
+                        localText("settings.language.title")
+                    }
+                    #if os(iOS)
+                    .pickerStyle(.navigationLink)
+                    #endif
+                } header: {
+                    localText("settings.language.title")
                 }
 
                 Section {
