@@ -154,6 +154,13 @@ struct SettingsViewModelTests {
         #expect(vm.language == .zhHant)
     }
 
+    @Test func firstLaunchPicksEnglishFromSystem() {
+        let store = InMemoryLanguageStore()
+        let vm = makeViewModel(languageStore: store, systemPreferredLanguages: ["en-US"])
+        #expect(vm.language == .en)
+        #expect(store.load() == .en)
+    }
+
     @Test func changingLanguagePersists() {
         let store = InMemoryLanguageStore(.zhHant)
         let vm = makeViewModel(languageStore: store)

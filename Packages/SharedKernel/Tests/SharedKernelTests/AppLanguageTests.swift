@@ -6,19 +6,29 @@ import Testing
 struct AppLanguageTests {
     // MARK: - resolve（分支接線）
 
-    @Test func storedPreferenceWins() {
-        // 設定有值 → 不看系統
+    @Test func storedPreferenceWinsOverSystem() {
+        // 設定有值 → 不看系統（存繁中、系統英文 → 繁中）
         #expect(LanguageResolver.resolve(stored: .zhHant, systemPreferred: ["en-US"]) == .zhHant)
+        // 反向：存英文、系統繁中 → 英文
+        #expect(LanguageResolver.resolve(stored: .en, systemPreferred: ["zh-Hant-TW"]) == .en)
     }
 
-    @Test func firstLaunchPicksSystemWhenSupported() {
-        // 沒存過、系統繁中 → 命中支援清單
+    @Test func firstLaunchPicksChineseSystem() {
         #expect(LanguageResolver.resolve(stored: nil, systemPreferred: ["zh-Hant-TW", "en-US"]) == .zhHant)
     }
 
+    @Test func firstLaunchPicksEnglishSystem() {
+        #expect(LanguageResolver.resolve(stored: nil, systemPreferred: ["en-US"]) == .en)
+    }
+
+    @Test func firstLaunchTakesFirstSupportedInSystemOrder() {
+        // 系統第一偏好英文、第二繁中 → 取英文
+        #expect(LanguageResolver.resolve(stored: nil, systemPreferred: ["en-GB", "zh-Hant-TW"]) == .en)
+    }
+
     @Test func firstLaunchFallsBackWhenSystemUnsupported() {
-        // 沒存過、系統語言都不支援 → fallback（目前 = 繁中）
-        #expect(LanguageResolver.resolve(stored: nil, systemPreferred: ["en-US", "fr-FR"]) == .fallback)
+        // 都不支援（法/德）→ fallback（繁中）
+        #expect(LanguageResolver.resolve(stored: nil, systemPreferred: ["fr-FR", "de-DE"]) == .fallback)
     }
 
     @Test func emptySystemFallsBack() {
