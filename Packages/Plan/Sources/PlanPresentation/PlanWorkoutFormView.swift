@@ -49,18 +49,20 @@ struct PlanWorkoutFormView: View {
         NavigationStack {
             Form {
                 Section {
-                    TextField("名稱（例：推日）", text: $name)
-                    Toggle("指定日期", isOn: $hasDate)
+                    TextField("", text: $name, prompt: localText("plan.name.placeholder"))
+                    Toggle(isOn: $hasDate) { localText("plan.specificDate") }
                     if hasDate {
-                        DatePicker("日期", selection: $date, displayedComponents: .date)
+                        DatePicker(selection: $date, displayedComponents: .date) {
+                            localText("plan.date")
+                        }
                     } else {
-                        Text("循環課表：依順序輪替，不綁定日期")
+                        localText("plan.recurring.hint")
                             .font(.caption)
                             .foregroundStyle(.secondary)
                     }
                 }
 
-                Section("動作") {
+                Section {
                     ForEach($drafts) { $draft in
                         draftRow($draft)
                     }
@@ -69,22 +71,26 @@ struct PlanWorkoutFormView: View {
                     Button {
                         showsPicker = true
                     } label: {
-                        Label("加入動作", systemImage: "plus")
+                        Label { localText("plan.addExercise") } icon: { Image(systemName: "plus") }
                     }
+                } header: {
+                    localText("plan.exercises")
                 }
             }
-            .navigationTitle(isCreating ? "新增排課" : "編輯排課")
+            .navigationTitle(isCreating ? localText("plan.new") : localText("plan.edit"))
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
-                    Button("取消") { dismiss() }
+                    Button { dismiss() } label: { localText("plan.cancel") }
                 }
                 ToolbarItem(placement: .confirmationAction) {
-                    Button("儲存") {
+                    Button {
                         Task {
                             let day = hasDate ? DayDate(date) : nil
                             await onSubmit(name.isEmpty ? nil : name, day, drafts)
                             dismiss()
                         }
+                    } label: {
+                        localText("plan.save")
                     }
                     .disabled(drafts.isEmpty)
                 }
@@ -104,14 +110,17 @@ struct PlanWorkoutFormView: View {
 
     private func draftRow(_ draft: Binding<ExerciseTargetDraft>) -> some View {
         VStack(alignment: .leading, spacing: 8) {
-            Text(name(for: draft.wrappedValue.exerciseId)).font(.headline)
-            Stepper("組數：\(draft.wrappedValue.setCount)", value: draft.setCount, in: 1...20)
+            // 動作名是 DB 資料（verbatim）
+            Text(verbatim: name(for: draft.wrappedValue.exerciseId)).font(.headline)
+            Stepper(value: draft.setCount, in: 1...20) {
+                localText("plan.setCount \(draft.wrappedValue.setCount)")
+            }
             HStack {
-                Text("目標")
-                TextField("重量", value: Binding(
+                localText("plan.target")
+                TextField("", value: Binding(
                     get: { draft.wrappedValue.targetWeight?.value ?? 0 },
                     set: { draft.wrappedValue.targetWeight = Weight(value: $0, unit: draft.wrappedValue.targetWeight?.unit ?? .kg) }
-                ), format: .number)
+                ), format: .number, prompt: localText("plan.weight"))
                 .frame(width: 60)
                 .multilineTextAlignment(.trailing)
                 #if os(iOS)
@@ -125,10 +134,10 @@ struct PlanWorkoutFormView: View {
                 }
                 .labelsHidden()
                 Text("×")
-                TextField("次數", value: Binding(
+                TextField("", value: Binding(
                     get: { draft.wrappedValue.targetReps ?? 0 },
                     set: { draft.wrappedValue.targetReps = $0 }
-                ), format: .number)
+                ), format: .number, prompt: localText("plan.reps"))
                 .frame(width: 44)
                 .multilineTextAlignment(.trailing)
                 #if os(iOS)
@@ -138,19 +147,19 @@ struct PlanWorkoutFormView: View {
             .font(.subheadline)
 
             HStack {
-                Text("休息")
-                TextField("秒（可留空）", text: Binding(
+                localText("plan.rest")
+                TextField("", text: Binding(
                     get: { draft.wrappedValue.restSec.map(String.init) ?? "" },
                     set: {
                         let n = Int($0.trimmingCharacters(in: .whitespaces))
                         draft.wrappedValue.restSec = (n ?? 0) > 0 ? n : nil
                     }
-                ))
+                ), prompt: localText("plan.sec.optional"))
                 .frame(width: 70)
                 #if os(iOS)
                 .keyboardType(.numberPad)
                 #endif
-                Text("秒")
+                localText("plan.sec")
                 Spacer()
             }
             .font(.subheadline)
@@ -189,24 +198,30 @@ private struct PlanExercisePickerView: View {
                     dismiss()
                 } label: {
                     HStack {
-                        Text(exercise.name)
+                        // 動作名與肌群都是 DB / enum 資料（verbatim）
+                        Text(verbatim: exercise.name)
                         Spacer()
-                        Text(exercise.muscleGroup.displayName)
+                        Text(verbatim: exercise.muscleGroup.displayName)
                             .font(.caption).foregroundStyle(.secondary)
                     }
                     .contentShape(Rectangle())
                 }
                 .buttonStyle(.plain)
             }
-            .searchable(text: $searchText, prompt: "搜尋動作")
-            .navigationTitle("加入動作")
+            .searchable(text: $searchText, prompt: localText("plan.searchExercises"))
+            .navigationTitle(localText("plan.addExercise"))
             .toolbar {
-                ToolbarItem(placement: .cancellationAction) { Button("取消") { dismiss() } }
+                ToolbarItem(placement: .cancellationAction) {
+                    Button { dismiss() } label: { localText("plan.cancel") }
+                }
             }
             .overlay {
                 if catalog.isEmpty {
-                    ContentUnavailableView("動作庫是空的", systemImage: "books.vertical",
-                                           description: Text("先到動作庫建立動作"))
+                    ContentUnavailableView {
+                        Label { localText("plan.emptyLibrary") } icon: { Image(systemName: "books.vertical") }
+                    } description: {
+                        localText("plan.emptyLibrary.hint")
+                    }
                 }
             }
         }

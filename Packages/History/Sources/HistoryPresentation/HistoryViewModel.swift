@@ -26,7 +26,8 @@ public final class HistoryViewModel {
     }
     public private(set) var sessions: [HistoryExerciseSession] = []
 
-    public private(set) var errorMessage: String?
+    /// 本地化錯誤字串（延後解析，由 View 依 Environment locale 顯示）。
+    public private(set) var errorMessage: LocalizedStringResource?
 
     private let reading: any WorkoutHistoryReading
     private let editing: any WorkoutHistoryEditing
@@ -60,7 +61,7 @@ public final class HistoryViewModel {
             }
             errorMessage = nil
         } catch {
-            errorMessage = "讀取歷史失敗：\(error.localizedDescription)"
+            errorMessage = .history("history.error.loadHistory \(error.localizedDescription)")
         }
     }
 
@@ -68,7 +69,7 @@ public final class HistoryViewModel {
         do {
             return try await reading.workoutDetail(id: id)
         } catch {
-            errorMessage = "讀取場次失敗：\(error.localizedDescription)"
+            errorMessage = .history("history.error.loadWorkout \(error.localizedDescription)")
             return nil
         }
     }
@@ -83,7 +84,7 @@ public final class HistoryViewModel {
         do {
             sessions = try await reading.sessions(exerciseId: id)
         } catch {
-            errorMessage = "讀取動作歷史失敗：\(error.localizedDescription)"
+            errorMessage = .history("history.error.loadExerciseHistory \(error.localizedDescription)")
         }
     }
 }

@@ -105,7 +105,7 @@ struct PlanScheduleViewModelTests {
 
         await vm.create(name: "空", date: nil, drafts: [])
 
-        #expect(vm.errorMessage == "排課至少要有一個動作")
+        #expect(vm.errorMessage?.key == "plan.error.needExercise")
         #expect(vm.planWorkouts.isEmpty)
     }
 

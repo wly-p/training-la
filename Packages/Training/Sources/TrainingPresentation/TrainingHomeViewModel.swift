@@ -11,7 +11,8 @@ public final class TrainingHomeViewModel {
     public private(set) var todaysPlan: PlannedWorkoutBlueprint?
     /// 非 nil → 呈現記錄畫面。
     public var recording: Workout?
-    public private(set) var errorMessage: String?
+    /// 本地化錯誤字串（延後解析，由 View 依 Environment locale 顯示）。
+    public private(set) var errorMessage: LocalizedStringResource?
 
     private let startWorkout: StartWorkout
     private let resumeWorkout: ResumeWorkout
@@ -33,7 +34,7 @@ public final class TrainingHomeViewModel {
             todaysPlan = try await plannedProvider?.todaysPlan()
             errorMessage = nil
         } catch {
-            errorMessage = "讀取狀態失敗：\(error.localizedDescription)"
+            errorMessage = .training("training.error.loadStatus \(error.localizedDescription)")
         }
     }
 
@@ -57,7 +58,7 @@ public final class TrainingHomeViewModel {
         do {
             recording = try await startWorkout(blueprint: blueprint)
         } catch {
-            errorMessage = "無法開始訓練：\(error.localizedDescription)"
+            errorMessage = .training("training.error.startFailed \(error.localizedDescription)")
         }
     }
 }

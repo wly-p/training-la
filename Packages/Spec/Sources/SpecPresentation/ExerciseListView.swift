@@ -21,20 +21,22 @@ public struct ExerciseListView: View {
                     }
                     .buttonStyle(.plain)
                     .swipeActions(edge: .trailing) {
-                        Button("刪除", role: .destructive) {
+                        Button(role: .destructive) {
                             Task { await viewModel.remove(id: exercise.id) }
+                        } label: {
+                            localText("spec.delete")
                         }
                     }
                 }
             }
-            .searchable(text: $viewModel.searchText, prompt: "搜尋動作")
-            .navigationTitle("動作庫")
+            .searchable(text: $viewModel.searchText, prompt: localText("spec.searchExercises"))
+            .navigationTitle(localText("spec.title"))
             .toolbar {
                 ToolbarItem(placement: .primaryAction) {
                     Button {
                         editingTarget = .create
                     } label: {
-                        Label("新增動作", systemImage: "plus")
+                        Label { localText("spec.new") } icon: { Image(systemName: "plus") }
                     }
                 }
             }
@@ -43,11 +45,11 @@ public struct ExerciseListView: View {
             }
             .overlay {
                 if viewModel.visibleExercises.isEmpty {
-                    ContentUnavailableView(
-                        "還沒有動作",
-                        systemImage: "dumbbell",
-                        description: Text("點右上角＋建立第一個動作")
-                    )
+                    ContentUnavailableView {
+                        Label { localText("spec.empty") } icon: { Image(systemName: "dumbbell") }
+                    } description: {
+                        localText("spec.empty.hint")
+                    }
                 }
             }
             .task {
@@ -64,13 +66,13 @@ public struct ExerciseListView: View {
                 }
             }
             .alert(
-                "出錯了",
+                localText("spec.error"),
                 isPresented: Binding(
                     get: { viewModel.errorMessage != nil },
                     set: { if !$0 { viewModel.dismissError() } }
                 )
             ) {
-                Button("好", role: .cancel) {}
+                Button(role: .cancel) {} label: { localText("spec.ok") }
             } message: {
                 Text(viewModel.errorMessage ?? "")
             }
@@ -80,19 +82,20 @@ public struct ExerciseListView: View {
     private func row(for exercise: Exercise) -> some View {
         HStack {
             VStack(alignment: .leading, spacing: 2) {
-                Text(exercise.name)
-                Text(exercise.equipment.displayName)
+                // 動作名、器材、備註都是 DB / enum 資料（verbatim）
+                Text(verbatim: exercise.name)
+                Text(verbatim: exercise.equipment.displayName)
                     .font(.footnote)
                     .foregroundStyle(.secondary)
                 if let description = exercise.description {
-                    Text(description)
+                    Text(verbatim: description)
                         .font(.footnote)
                         .foregroundStyle(.secondary)
                         .lineLimit(1)
                 }
             }
             Spacer()
-            Text(exercise.muscleGroup.displayName)
+            Text(verbatim: exercise.muscleGroup.displayName)
                 .font(.caption)
                 .padding(.horizontal, 8)
                 .padding(.vertical, 3)
@@ -104,11 +107,12 @@ public struct ExerciseListView: View {
     private var filterChips: some View {
         ScrollView(.horizontal, showsIndicators: false) {
             HStack(spacing: 8) {
-                chip(title: "全部", isSelected: viewModel.filter == nil) {
+                // 「全部」本地化；肌群是 enum 資料（verbatim，不做）
+                chip(title: localText("spec.all"), isSelected: viewModel.filter == nil) {
                     await viewModel.setFilter(nil)
                 }
                 ForEach(MuscleGroup.allCases, id: \.self) { group in
-                    chip(title: group.displayName, isSelected: viewModel.filter == group) {
+                    chip(title: Text(verbatim: group.displayName), isSelected: viewModel.filter == group) {
                         await viewModel.setFilter(group)
                     }
                 }
@@ -119,11 +123,11 @@ public struct ExerciseListView: View {
         .background(.bar)
     }
 
-    private func chip(title: String, isSelected: Bool, action: @escaping () async -> Void) -> some View {
+    private func chip(title: Text, isSelected: Bool, action: @escaping () async -> Void) -> some View {
         Button {
             Task { await action() }
         } label: {
-            Text(title)
+            title
                 .font(.subheadline)
                 .padding(.horizontal, 12)
                 .padding(.vertical, 6)

@@ -18,13 +18,21 @@ struct FinishWorkoutSheet: View {
             Form {
                 Section {
                     HStack {
-                        Label("\(durationMinutes) 分鐘", systemImage: "clock")
+                        Label {
+                            localText("training.minutes \(durationMinutes)")
+                        } icon: {
+                            Image(systemName: "clock")
+                        }
                         Spacer()
-                        Label("共 \(totalSets) 組", systemImage: "checklist")
+                        Label {
+                            localText("training.setsTotal \(totalSets)")
+                        } icon: {
+                            Image(systemName: "checklist")
+                        }
                     }
                     .foregroundStyle(.secondary)
                 }
-                Section("感受如何？") {
+                Section {
                     HStack(spacing: 0) {
                         ForEach(feelingOptions, id: \.value) { option in
                             Button {
@@ -39,22 +47,33 @@ struct FinishWorkoutSheet: View {
                         }
                     }
                     .padding(.vertical, 4)
+                } header: {
+                    localText("training.howFeel")
                 }
-                Section("備註") {
-                    TextField("今天狀態如何…", text: $note, axis: .vertical)
+                Section {
+                    TextField(
+                        "",
+                        text: $note,
+                        prompt: localText("training.notes.placeholder"),
+                        axis: .vertical
+                    )
+                } header: {
+                    localText("training.notes")
                 }
             }
-            .navigationTitle("本次訓練")
+            .navigationTitle(localText("training.thisWorkout"))
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
-                    Button("繼續訓練") { dismiss() }
+                    Button { dismiss() } label: { localText("training.keepGoing") }
                 }
                 ToolbarItem(placement: .confirmationAction) {
-                    Button("儲存並結束") {
+                    Button {
                         Task {
                             await onFinish(feeling, note)
                             dismiss()
                         }
+                    } label: {
+                        localText("training.saveFinish")
                     }
                 }
             }

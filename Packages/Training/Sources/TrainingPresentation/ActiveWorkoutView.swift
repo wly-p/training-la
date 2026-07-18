@@ -22,16 +22,22 @@ public struct ActiveWorkoutView: View {
                     emptyState
                 }
             }
-            .navigationTitle(viewModel.currentExerciseId.map { viewModel.name(for: $0) } ?? "訓練中")
+            // 標題是動作名（DB 資料，verbatim 不本地化）；沒有動作時用本地化的「訓練中」
+            .navigationTitle(viewModel.currentExerciseId
+                .map { Text(verbatim: viewModel.name(for: $0)) } ?? localText("training.active.title"))
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
-                    Button("離開") {
+                    Button {
                         Task { await viewModel.leave() }
+                    } label: {
+                        localText("training.leave")
                     }
                 }
                 ToolbarItem(placement: .confirmationAction) {
-                    Button("結束訓練") {
+                    Button {
                         showsFinishSheet = true
+                    } label: {
+                        localText("training.finish")
                     }
                     .disabled(viewModel.totalSetCount == 0)
                 }
@@ -59,13 +65,13 @@ public struct ActiveWorkoutView: View {
                     restBar
                 }
             }
-            .alert("休息結束", isPresented: Binding(
+            .alert(localText("training.restOver"), isPresented: Binding(
                 get: { viewModel.showsRestEndedAlert },
                 set: { if !$0 { viewModel.dismissRest() } }
             )) {
-                Button("開始下一組") { viewModel.dismissRest() }
+                Button { viewModel.dismissRest() } label: { localText("training.startNextSet") }
             } message: {
-                Text("休息時間到了，準備下一組。")
+                localText("training.restOver.message")
             }
             .sheet(isPresented: $showsExercisePicker) {
                 ExercisePickerView(catalog: viewModel.catalog) { exercise in
@@ -92,13 +98,13 @@ public struct ActiveWorkoutView: View {
         // 錯誤彈窗掛在 NavigationStack 外層：與「休息結束」彈窗分屬不同 view，
         // 避免同一 view 上兩個 .alert 互相壓制。
         .alert(
-            "出錯了",
+            localText("training.error"),
             isPresented: Binding(
                 get: { viewModel.errorMessage != nil },
                 set: { if !$0 { viewModel.dismissError() } }
             )
         ) {
-            Button("好", role: .cancel) {}
+            Button(role: .cancel) {} label: { localText("training.ok") }
         } message: {
             Text(viewModel.errorMessage ?? "")
         }
@@ -111,37 +117,45 @@ public struct ActiveWorkoutView: View {
             VStack(spacing: 14) {
                 Text(viewModel.isPlanFullyDone ? "🎉" : "💪")
                     .font(.system(size: 44))
-                Text(viewModel.isPlanFullyDone ? "課表完成" : "\(viewModel.completedExerciseName) 完成")
+                (viewModel.isPlanFullyDone
+                    ? localText("training.planComplete")
+                    : localText("training.exerciseDone \(viewModel.completedExerciseName)"))
                     .font(.title2.bold())
                 if viewModel.isPlanFullyDone {
-                    Text("所有課表動作都做完了")
+                    localText("training.planAllFinished")
                         .foregroundStyle(.secondary)
                     Button {
                         viewModel.dismissExerciseComplete()
                         showsFinishSheet = true
                     } label: {
-                        Text("結束訓練")
+                        localText("training.finish")
                             .font(.headline)
                             .frame(maxWidth: .infinity)
                             .padding(.vertical, 10)
                     }
                     .buttonStyle(.borderedProminent)
                 } else {
-                    Text("接下來：\(viewModel.nextPlannedName ?? "")")
+                    localText("training.upNext \(viewModel.nextPlannedName ?? "")")
                         .foregroundStyle(.secondary)
                     Button {
                         viewModel.dismissExerciseComplete()
                         Task { await viewModel.advanceToNextPlanned() }
                     } label: {
-                        Label("下一個動作", systemImage: "arrow.right")
-                            .font(.headline)
-                            .frame(maxWidth: .infinity)
-                            .padding(.vertical, 10)
+                        Label {
+                            localText("training.nextExercise")
+                        } icon: {
+                            Image(systemName: "arrow.right")
+                        }
+                        .font(.headline)
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 10)
                     }
                     .buttonStyle(.borderedProminent)
                 }
-                Button("再做一組") {
+                Button {
                     viewModel.continueSameExercise()
+                } label: {
+                    localText("training.oneMoreSet")
                 }
                 .font(.subheadline)
                 .foregroundStyle(.secondary)
@@ -149,8 +163,10 @@ public struct ActiveWorkoutView: View {
                 // 卡片蓋住整個畫面，記錄區的「復原上一組」在底下點不到；
                 // 誤按最後一組時這裡是唯一的出口，故卡片自己也要開一個。
                 if viewModel.canUndoLastSet {
-                    Button("按錯了，復原上一組") {
+                    Button {
                         Task { await viewModel.undoLastSet() }
+                    } label: {
+                        localText("training.undoFromCard")
                     }
                     .font(.subheadline)
                     .foregroundStyle(.secondary)
@@ -167,9 +183,13 @@ public struct ActiveWorkoutView: View {
 
     private var emptyState: some View {
         ContentUnavailableView {
-            Label("選一個動作開始", systemImage: "dumbbell")
+            Label {
+                localText("training.pickToStart")
+            } icon: {
+                Image(systemName: "dumbbell")
+            }
         } actions: {
-            Button("加入動作") { showsExercisePicker = true }
+            Button { showsExercisePicker = true } label: { localText("training.addExercise") }
                 .buttonStyle(.borderedProminent)
         }
     }
@@ -182,7 +202,7 @@ public struct ActiveWorkoutView: View {
                 Image(systemName: "minus.circle.fill").font(.title2)
             }
             VStack(spacing: 0) {
-                Text("休息中").font(.caption).foregroundStyle(.secondary)
+                localText("training.resting").font(.caption).foregroundStyle(.secondary)
                 Text(restClock(viewModel.restRemaining ?? 0))
                     .font(.title.bold().monospacedDigit())
             }
@@ -192,7 +212,7 @@ public struct ActiveWorkoutView: View {
             } label: {
                 Image(systemName: "plus.circle.fill").font(.title2)
             }
-            Button("跳過") { viewModel.dismissRest() }
+            Button { viewModel.dismissRest() } label: { localText("training.skipRest") }
                 .font(.subheadline)
         }
         .padding()
@@ -205,9 +225,9 @@ public struct ActiveWorkoutView: View {
 
     private func recordingContent(exerciseId: UUID) -> some View {
         List {
-            if let ghost = viewModel.ghostText(for: exerciseId) {
+            if let summary = viewModel.lastSummary(for: exerciseId) {
                 Section {
-                    Text(ghost)
+                    localText("training.lastTime \(summary)")
                         .font(.footnote)
                         .foregroundStyle(.secondary)
                 }
@@ -218,7 +238,7 @@ public struct ActiveWorkoutView: View {
                     HStack {
                         Image(systemName: set.status == .done ? "checkmark.circle.fill" : "arrow.right.circle")
                             .foregroundStyle(set.status == .done ? .green : .secondary)
-                        Text("第\(set.setIndex + 1)組")
+                        localText("training.setIndex \(set.setIndex + 1)")
                         Spacer()
                         Text("\(WeightDisplay.weight(set.weight)) × \(set.reps)")
                             .monospacedDigit()
@@ -234,14 +254,14 @@ public struct ActiveWorkoutView: View {
                             }
                             .buttonStyle(.borderless)
                             .padding(.leading, 4)
-                            .accessibilityLabel("復原上一組")
+                            .accessibilityLabel(localText("training.undoLastSet"))
                             .accessibilityIdentifier("activeWorkout.undoSet")
                         }
                     }
                 }
                 currentSetEditor
             } header: {
-                Text("第\(viewModel.currentBlockSets.count + 1)組")
+                localText("training.setIndex \(viewModel.currentBlockSets.count + 1)")
             }
 
             Section {
@@ -250,34 +270,50 @@ public struct ActiveWorkoutView: View {
                         Button {
                             Task { await viewModel.advanceToNextPlanned() }
                         } label: {
-                            Label("下一個動作：\(nextName)", systemImage: "arrow.right")
+                            Label {
+                                localText("training.nextNamed \(nextName)")
+                            } icon: {
+                                Image(systemName: "arrow.right")
+                            }
                         }
                     } else {
-                        Label("課表動作都做完了，可結束或加練", systemImage: "checkmark.circle")
-                            .foregroundStyle(.secondary)
+                        Label {
+                            localText("training.planAllDone")
+                        } icon: {
+                            Image(systemName: "checkmark.circle")
+                        }
+                        .foregroundStyle(.secondary)
                     }
                     Button {
                         showsExercisePicker = true
                     } label: {
-                        Label("加入其他動作", systemImage: "plus")
+                        Label {
+                            localText("training.addAnother")
+                        } icon: {
+                            Image(systemName: "plus")
+                        }
                     }
                 } else {
                     Button {
                         showsExercisePicker = true
                     } label: {
-                        Label("下一個動作", systemImage: "arrow.right")
+                        Label {
+                            localText("training.nextExercise")
+                        } icon: {
+                            Image(systemName: "arrow.right")
+                        }
                     }
                 }
             }
 
             if !viewModel.otherBlocks.isEmpty {
-                Section("本場其他動作") {
+                Section {
                     ForEach(viewModel.otherBlocks) { block in
                         Button {
                             Task { await viewModel.select(exerciseId: block.exerciseId) }
                         } label: {
                             HStack {
-                                Text(viewModel.name(for: block.exerciseId))
+                                Text(verbatim: viewModel.name(for: block.exerciseId))
                                 Spacer()
                                 Text(WeightDisplay.summary(of: block.sets))
                                     .font(.footnote)
@@ -286,6 +322,8 @@ public struct ActiveWorkoutView: View {
                         }
                         .buttonStyle(.plain)
                     }
+                } header: {
+                    localText("training.otherExercises")
                 }
             }
         }
@@ -294,30 +332,34 @@ public struct ActiveWorkoutView: View {
     private var currentSetEditor: some View {
         VStack(spacing: 16) {
             if let target = viewModel.currentTarget, let weight = target.targetWeight {
-                Text("目標：\(WeightDisplay.weight(weight))\(target.targetReps.map { " × \($0)" } ?? "")")
+                let detail = target.targetReps.map { " × \($0)" } ?? ""
+                let value = "\(WeightDisplay.weight(weight))\(detail)"
+                localText("training.target \(value)")
                     .font(.subheadline)
                     .foregroundStyle(.tint)
             }
             HStack(spacing: 24) {
                 stepper(
-                    label: "重量",
+                    label: "training.weight",
                     value: "\(WeightDisplay.value(viewModel.draftWeightValue)) \(viewModel.draftWeightUnit.rawValue)",
                     idPrefix: "activeWorkout.weight",
                     onMinus: { viewModel.bumpWeight(-1) },
                     onPlus: { viewModel.bumpWeight(1) }
                 )
                 stepper(
-                    label: "次數",
+                    label: "training.reps",
                     value: "\(viewModel.draftReps)",
                     idPrefix: "activeWorkout.reps",
                     onMinus: { viewModel.bumpReps(-1) },
                     onPlus: { viewModel.bumpReps(1) }
                 )
             }
-            Picker("單位", selection: $viewModel.draftWeightUnit) {
+            Picker(selection: $viewModel.draftWeightUnit) {
                 ForEach(WeightUnit.allCases, id: \.self) { unit in
                     Text(unit.rawValue).tag(unit)
                 }
+            } label: {
+                localText("training.unit")
             }
             .pickerStyle(.segmented)
             .frame(maxWidth: 160)
@@ -326,10 +368,14 @@ public struct ActiveWorkoutView: View {
             Button {
                 Task { await viewModel.completeCurrentSet() }
             } label: {
-                Label("完成此組", systemImage: "checkmark")
-                    .font(.title3.bold())
-                    .frame(maxWidth: .infinity)
-                    .padding(.vertical, 8)
+                Label {
+                    localText("training.completeSet")
+                } icon: {
+                    Image(systemName: "checkmark")
+                }
+                .font(.title3.bold())
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, 8)
             }
             .buttonStyle(.borderedProminent)
             .accessibilityIdentifier("activeWorkout.completeSet")
@@ -337,8 +383,10 @@ public struct ActiveWorkoutView: View {
             // .bordered（而非預設樣式）：這格是含多個控制項的 List cell，預設樣式的按鈕
             // 會讓整個 cell 空白處都轉發點擊給它，導致誤觸「跳過此組」多記一組。侷限點擊區才不誤觸。
             HStack(spacing: 10) {
-                Button("跳過此組") {
+                Button {
                     Task { await viewModel.skipCurrentSet() }
+                } label: {
+                    localText("training.skipSet")
                 }
                 .buttonStyle(.bordered)
                 .accessibilityIdentifier("activeWorkout.skipSet")
@@ -352,7 +400,7 @@ public struct ActiveWorkoutView: View {
                     }
                     .menuStyle(.button)
                     .buttonStyle(.bordered)
-                    .accessibilityLabel("休息計時")
+                    .accessibilityLabel(localText("training.restTimer"))
                     .accessibilityIdentifier("activeWorkout.restTimer")
                 }
             }
@@ -365,14 +413,14 @@ public struct ActiveWorkoutView: View {
     private let restPresets = [30, 60, 90, 120, 150, 180, 240, 300]
 
     private func stepper(
-        label: String,
+        label: LocalizedStringKey,
         value: String,
         idPrefix: String,
         onMinus: @escaping () -> Void,
         onPlus: @escaping () -> Void
     ) -> some View {
         VStack(spacing: 8) {
-            Text(label)
+            localText(label)
                 .font(.caption)
                 .foregroundStyle(.secondary)
             HStack(spacing: 12) {

@@ -3,6 +3,7 @@ import PackageDescription
 
 let package = Package(
     name: "History",
+    defaultLocalization: "zh-Hant",
     platforms: [.iOS(.v17), .macOS(.v14)],
     products: [
         .library(name: "HistoryDomain", targets: ["HistoryDomain"]),
@@ -18,7 +19,8 @@ let package = Package(
         ),
         .target(
             name: "HistoryPresentation",
-            dependencies: ["HistoryDomain"]
+            dependencies: ["HistoryDomain"],
+            resources: [.process("Localizable.xcstrings")]
         ),
         .testTarget(
             name: "HistoryPresentationTests",

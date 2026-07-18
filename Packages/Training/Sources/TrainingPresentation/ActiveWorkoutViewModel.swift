@@ -11,7 +11,8 @@ public final class ActiveWorkoutViewModel {
     public private(set) var catalog: [CatalogExercise] = []
     public private(set) var lastPerformances: [UUID: [WorkoutSet]] = [:]
     public private(set) var currentExerciseId: UUID?
-    public private(set) var errorMessage: String?
+    /// 本地化錯誤字串（延後解析，由 View 依 Environment locale 顯示）。
+    public private(set) var errorMessage: LocalizedStringResource?
     /// 照課表訓練時的目標藍圖（自由訓練為 nil）。
     public private(set) var blueprint: PlannedWorkoutBlueprint?
     /// 結束或放棄後設為 true，View 觀察到就關閉畫面。
@@ -107,10 +108,10 @@ public final class ActiveWorkoutViewModel {
         catalog.first { $0.id == exerciseId }?.name ?? "動作"
     }
 
-    /// 「上次：60kg × 8, 8, 6」；沒有歷史回 nil。
-    public func ghostText(for exerciseId: UUID) -> String? {
+    /// 上次同動作的組摘要「60kg × 8, 8, 6」；沒有歷史回 nil。「上次：」前綴由 View 本地化組。
+    public func lastSummary(for exerciseId: UUID) -> String? {
         guard let sets = lastPerformances[exerciseId], !sets.isEmpty else { return nil }
-        return "上次：\(WeightDisplay.summary(of: sets))"
+        return WeightDisplay.summary(of: sets)
     }
 
     /// 照課表時，當前這一組的目標；自由訓練回 nil。
@@ -142,7 +143,7 @@ public final class ActiveWorkoutViewModel {
         do {
             catalog = try await exerciseCatalog.exercises()
         } catch {
-            errorMessage = "載入動作庫失敗：\(error.localizedDescription)"
+            errorMessage = .training("training.error.loadExercises \(error.localizedDescription)")
         }
         // 照課表訓練：載入藍圖（含恢復進行中場次的情況）
         if let planWorkoutId = workout.planWorkoutId {
@@ -228,7 +229,7 @@ public final class ActiveWorkoutViewModel {
         do {
             try await saveProgress(workout)
         } catch {
-            errorMessage = "儲存失敗：\(error.localizedDescription)"
+            errorMessage = .training("training.error.saveFailed \(error.localizedDescription)")
         }
         prefillDraft()
     }
@@ -389,7 +390,7 @@ public final class ActiveWorkoutViewModel {
             try await finishWorkout(workout, overallFeeling: feeling, note: note)
             isDismissed = true
         } catch {
-            errorMessage = "儲存失敗：\(error.localizedDescription)"
+            errorMessage = .training("training.error.saveFailed \(error.localizedDescription)")
         }
     }
 
@@ -427,7 +428,7 @@ public final class ActiveWorkoutViewModel {
         do {
             try await saveProgress(workout) // 每組立即落地，中途被殺不掉資料
         } catch {
-            errorMessage = "儲存失敗：\(error.localizedDescription)"
+            errorMessage = .training("training.error.saveFailed \(error.localizedDescription)")
         }
         prefillDraft() // 記完一組後，替下一組預填（照課表會帶下一組目標）
         maybeTriggerExerciseComplete() // 剛做滿課表組數 → 完成卡片

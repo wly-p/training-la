@@ -23,9 +23,10 @@ struct ExercisePickerView: View {
                     dismiss()
                 } label: {
                     HStack {
-                        Text(exercise.name)
+                        // 動作名與肌群都是 DB / enum 資料，不本地化（verbatim）
+                        Text(verbatim: exercise.name)
                         Spacer()
-                        Text(exercise.muscleGroup.displayName)
+                        Text(verbatim: exercise.muscleGroup.displayName)
                             .font(.caption)
                             .foregroundStyle(.secondary)
                     }
@@ -33,20 +34,24 @@ struct ExercisePickerView: View {
                 }
                 .buttonStyle(.plain)
             }
-            .searchable(text: $searchText, prompt: "搜尋動作")
-            .navigationTitle("選擇動作")
+            .searchable(text: $searchText, prompt: localText("training.searchExercises"))
+            .navigationTitle(localText("training.chooseExercise"))
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
-                    Button("取消") { dismiss() }
+                    Button { dismiss() } label: { localText("training.cancel") }
                 }
             }
             .overlay {
                 if catalog.isEmpty {
-                    ContentUnavailableView(
-                        "動作庫是空的",
-                        systemImage: "books.vertical",
-                        description: Text("先到「動作庫」分頁建立動作")
-                    )
+                    ContentUnavailableView {
+                        Label {
+                            localText("training.emptyLibrary")
+                        } icon: {
+                            Image(systemName: "books.vertical")
+                        }
+                    } description: {
+                        localText("training.emptyLibrary.hint")
+                    }
                 }
             }
         }
