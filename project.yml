@@ -33,6 +33,8 @@ packages:
     path: Packages/Plan
   Settings:
     path: Packages/Settings
+  Reminders:
+    path: Packages/Reminders
 targets:
   TrainingLa:
     type: application
@@ -44,6 +46,8 @@ targets:
         # 由 per-config 的 build settings 注入、build 時展開；App 啟動讀成 AppEnvironment
         AppEnv: $(APP_ENV)
         CFBundleDisplayName: $(APP_DISPLAY_NAME)
+        CFBundleShortVersionString: $(MARKETING_VERSION)
+        CFBundleVersion: $(CURRENT_PROJECT_VERSION)
         UILaunchScreen: {}
     dependencies:
       - package: Spec
@@ -56,11 +60,17 @@ targets:
         products: [PlanDomain, PlanData, PlanPresentation]
       - package: Settings
         products: [SettingsPresentation]
+      - package: Reminders
+        products: [RemindersDomain, RemindersKit]
       - package: SharedKernel
     settings:
       base:
         SWIFT_VERSION: "6.0"
         CODE_SIGN_STYLE: Automatic
+        # 版號單一真實來源：改版動這兩行（marketing version 開發週期開頭 bump；
+        # build number 每次上傳 TestFlight 遞增）。Info.plist 只放 $() 引用。
+        MARKETING_VERSION: "1.0.0"
+        CURRENT_PROJECT_VERSION: "1"
         # App/Assets.xcassets：預設 app icon（AppIcon＝G_sand-arrow）＋ 7 個可切換的 alternate icon。
         # ALTERNATE_APPICON_NAMES 讓 actool 在 build 時自動把 CFBundleIcons 併進 Info.plist，
         # 不用手動維護 CFBundleAlternateIcons（見 SettingsPresentation 的 AppIcon/IconSwitching）。

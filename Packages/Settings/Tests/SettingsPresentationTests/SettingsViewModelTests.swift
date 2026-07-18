@@ -1,3 +1,5 @@
+import RemindersDomain
+import SharedKernel
 import Testing
 
 @testable import SettingsPresentation
@@ -27,12 +29,33 @@ private final class MockIconSwitcher: IconSwitching, @unchecked Sendable {
 
 private enum StubError: Error { case failure }
 
+private final class MockDataEraser: DataErasing, @unchecked Sendable {
+    private(set) var eraseCallCount = 0
+    var shouldFail = false
+
+    func eraseAllData() async throws {
+        eraseCallCount += 1
+        if shouldFail { throw StubError.failure }
+    }
+}
+
 @MainActor
 private func makeViewModel(
     theme: AppTheme = .system,
-    iconSwitcher: MockIconSwitcher = MockIconSwitcher()
+    iconSwitcher: MockIconSwitcher = MockIconSwitcher(),
+    languageStore: any LanguagePreferenceStoring = InMemoryLanguageStore(),
+    systemPreferredLanguages: [String] = [],
+    dataEraser: MockDataEraser = MockDataEraser(),
+    onErased: @escaping @MainActor () -> Void = {}
 ) -> SettingsViewModel {
-    SettingsViewModel(store: InMemoryThemeStore(initial: theme), iconSwitcher: iconSwitcher)
+    SettingsViewModel(
+        store: InMemoryThemeStore(initial: theme),
+        iconSwitcher: iconSwitcher,
+        languageStore: languageStore,
+        systemPreferredLanguages: systemPreferredLanguages,
+        dataEraser: dataEraser,
+        onErased: onErased
+    )
 }
 
 @MainActor
@@ -88,5 +111,85 @@ struct SettingsViewModelTests {
         try await Task.sleep(nanoseconds: 20_000_000)
 
         #expect(switcher.setCallCount == 0)
+    }
+
+    @Test func eraseAllDataWipesAndTriggersReset() async {
+        let eraser = MockDataEraser()
+        var resetCount = 0
+        let vm = makeViewModel(dataEraser: eraser, onErased: { resetCount += 1 })
+
+        await vm.eraseAllData()
+
+        #expect(eraser.eraseCallCount == 1)
+        #expect(resetCount == 1)
+        #expect(vm.isErasing == false)
+        #expect(vm.eraseFailed == false)
+    }
+
+    @Test func eraseAllDataFailureSurfacesErrorAndSkipsReset() async {
+        let eraser = MockDataEraser()
+        eraser.shouldFail = true
+        var resetCount = 0
+        let vm = makeViewModel(dataEraser: eraser, onErased: { resetCount += 1 })
+
+        await vm.eraseAllData()
+
+        #expect(eraser.eraseCallCount == 1)
+        #expect(resetCount == 0)          // 失敗不重建畫面
+        #expect(vm.isErasing == false)
+        #expect(vm.eraseFailed == true)   // 綁 UI 錯誤 alert
+    }
+
+    @Test func firstLaunchSeedsLanguageFromSystemAndPersists() {
+        // store 為空（第一次啟動）→ 由系統偏好決定，並 seed 回 store
+        let store = InMemoryLanguageStore()
+        let vm = makeViewModel(languageStore: store, systemPreferredLanguages: ["zh-Hant-TW", "en-US"])
+        #expect(vm.language == .zhHant)
+        #expect(store.load() == .zhHant) // 已 seed → 之後以設定為主
+    }
+
+    @Test func storedLanguageWinsOverSystem() {
+        let store = InMemoryLanguageStore(.zhHant)
+        let vm = makeViewModel(languageStore: store, systemPreferredLanguages: ["en-US"])
+        #expect(vm.language == .zhHant)
+    }
+
+    @Test func firstLaunchPicksEnglishFromSystem() {
+        let store = InMemoryLanguageStore()
+        let vm = makeViewModel(languageStore: store, systemPreferredLanguages: ["en-US"])
+        #expect(vm.language == .en)
+        #expect(store.load() == .en)
+    }
+
+    @Test func changingLanguagePersists() {
+        let store = InMemoryLanguageStore(.zhHant)
+        let vm = makeViewModel(languageStore: store)
+        vm.language = .zhHant
+        #expect(store.load() == .zhHant)
+    }
+
+    @Test func loadsInitialRestReminderFromStore() {
+        let pref = RestReminderPreference(popup: false, sound: false, backgroundNotification: true)
+        let vm = SettingsViewModel(
+            store: InMemoryThemeStore(initial: .system),
+            iconSwitcher: MockIconSwitcher(),
+            restReminderStore: InMemoryRestReminderPreferenceStore(pref)
+        )
+        #expect(vm.restReminder == pref)
+    }
+
+    @Test func changingRestReminderPersists() {
+        let store = InMemoryRestReminderPreferenceStore(.default)
+        let vm = SettingsViewModel(
+            store: InMemoryThemeStore(initial: .system),
+            iconSwitcher: MockIconSwitcher(),
+            restReminderStore: store
+        )
+
+        vm.restReminder.sound = false
+        vm.restReminder.backgroundNotification = false
+
+        #expect(store.load().sound == false)
+        #expect(store.load().backgroundNotification == false)
     }
 }

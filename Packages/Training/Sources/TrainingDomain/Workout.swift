@@ -138,4 +138,10 @@ extension Workout {
         ))
         sets.sort { ($0.exerciseIndex, $0.setIndex) < ($1.exerciseIndex, $1.setIndex) }
     }
+
+    /// 移除指定的一組（撤銷剛記錄的組用）。只用在移除某動作的「最後一組」，
+    /// 因此不會在 setIndex 中間留洞，其餘各組維持連續、不需重編號。
+    public mutating func removeSet(id: UUID) {
+        sets.removeAll { $0.id == id }
+    }
 }

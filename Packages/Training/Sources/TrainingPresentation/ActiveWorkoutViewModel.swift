@@ -1,5 +1,6 @@
 import Foundation
 import Observation
+import RemindersDomain
 import SharedKernel
 import TrainingDomain
 
@@ -21,11 +22,29 @@ public final class ActiveWorkoutViewModel {
     /// 倒數歸零 → View 彈窗提示「休息結束」。
     public private(set) var restEnded = false
     private var restTask: Task<Void, Never>?
+    /// 休息倒數的結束時間點；剩餘秒數一律由它與現在時間換算，背景期間也不失準。
+    private var restEndDate: Date?
+    /// 目前這段休息的「完整秒數」（起始設定值，非剩餘）；供調整時換算並套用到後續組。
+    private var restSeconds: Int?
+    /// 目前這段休息屬於哪個動作；調整休息時據此把新值套用到該動作後續各組。
+    private var restExerciseId: UUID?
+    /// 訓練中手動調整過的休息秒數（按動作記）；有值就蓋過課表原定 restSec，套用到該動作後續各組。
+    private var adjustedRestByExercise: [UUID: Int] = [:]
+    /// 排/取消通知的非同步工作（fire-and-forget，不擋 UI）；測試可 await 它確認已排。
+    var pendingRestNotify: Task<Void, Never>?
 
     /// 剛做滿某動作的課表組數 → View 顯示完成卡片。
     public private(set) var showExerciseComplete = false
     /// 每個動作只跳一次完成卡片（選「再做一組」後不再重複跳）。
     private var completionShownFor: Set<UUID> = []
+
+    /// 剛記錄（完成/跳過）的那一組 id，供「復原上一組」撤銷用。
+    /// 切換動作即清空 → 單層 undo，只撤銷「當下這格剛按的」那組。
+    private var lastRecordedSetId: UUID?
+    /// 是否有可撤銷的上一組（driving 完成卡片上的復原入口）。
+    public var canUndoLastSet: Bool { lastRecordedSetId != nil }
+    /// 這一組是不是「剛記錄、可撤銷」的那組（記錄列上的復原鍵只掛在它身上）。
+    public func isUndoable(setId: UUID) -> Bool { lastRecordedSetId == setId }
 
     public var draftWeightValue: Double = 20
     public var draftWeightUnit: WeightUnit = .kg
@@ -37,6 +56,10 @@ public final class ActiveWorkoutViewModel {
     private let lastPerformance: LastPerformance
     private let exerciseCatalog: any ExerciseCatalog
     private let plannedProvider: (any PlannedWorkoutProvider)?
+    /// 目前時間來源（可注入以測試背景經過時間）。
+    private let now: () -> Date
+    /// 休息結束提醒（背景通知＋前景聲音/震動；彈窗依偏好由 View 決定）。
+    private let reminder: any RestEndReminding
 
     public init(
         workout: Workout,
@@ -45,7 +68,9 @@ public final class ActiveWorkoutViewModel {
         discardWorkout: DiscardWorkout,
         lastPerformance: LastPerformance,
         exerciseCatalog: any ExerciseCatalog,
-        plannedProvider: (any PlannedWorkoutProvider)? = nil
+        plannedProvider: (any PlannedWorkoutProvider)? = nil,
+        reminder: any RestEndReminding = NoopRestEndReminding(),
+        now: @escaping () -> Date = { Date() }
     ) {
         self.workout = workout
         self.saveProgress = saveProgress
@@ -54,6 +79,8 @@ public final class ActiveWorkoutViewModel {
         self.lastPerformance = lastPerformance
         self.exerciseCatalog = exerciseCatalog
         self.plannedProvider = plannedProvider
+        self.reminder = reminder
+        self.now = now
     }
 
     // MARK: - 衍生狀態
@@ -130,6 +157,7 @@ public final class ActiveWorkoutViewModel {
     }
 
     public func select(exerciseId: UUID) async {
+        lastRecordedSetId = nil // 換動作 → 先前那組不再可撤銷
         currentExerciseId = exerciseId
         if lastPerformances[exerciseId] == nil {
             let sets = (try? await lastPerformance(exerciseId: exerciseId, excludingWorkout: workout.id)) ?? []
@@ -145,12 +173,26 @@ public final class ActiveWorkoutViewModel {
     }
 
     public func completeCurrentSet() async {
-        let rest = currentTarget?.restSec // 完成這組後的休息（取自這組的目標）
+        let rest = restSecondsForCurrentExercise // 完成這組後的休息（手動設過/調整過則用該值）
         await appendSet(status: .done)
-        // 只有「這個動作還有下一組」才倒數；做完該動作最後一組不休息（該換動作了）
-        if let rest, rest > 0, hasNextPlannedSetForCurrentExercise {
+        if let rest, rest > 0, shouldRestAfterCurrentSet {
             startRest(seconds: rest)
         }
+    }
+
+    /// 目前動作完成這組後的休息秒數：優先用訓練中手動設定/調整過的值，否則用課表原定 restSec。
+    /// 自由訓練沒有課表 restSec，只有手動設過才有值。
+    private var restSecondsForCurrentExercise: Int? {
+        guard let id = currentExerciseId else { return currentTarget?.restSec }
+        return adjustedRestByExercise[id] ?? currentTarget?.restSec
+    }
+
+    /// 完成這組後是否該起休息倒數。
+    /// 照課表：只有「這個動作還有下一組」才休息（做完最後一組該換動作了）。
+    /// 自由訓練：沒有「最後一組」的概念，只要有休息秒數就起（沒設過則 rest 為 nil，不會走到這）。
+    private var shouldRestAfterCurrentSet: Bool {
+        guard isFollowingPlan else { return true }
+        return hasNextPlannedSetForCurrentExercise
     }
 
     /// append 之後，目前動作是否還有下一組課表目標。
@@ -159,8 +201,36 @@ public final class ActiveWorkoutViewModel {
         return blueprint?.target(exerciseId: id, position: currentBlockSets.count) != nil
     }
 
+    /// 使用者手動設定休息秒數（計時器選單選預設值）：記為該動作的休息偏好並開始倒數，
+    /// 之後同動作各組完成時會自動沿用這個秒數。
+    public func startManualRest(seconds: Int) {
+        if let id = currentExerciseId {
+            adjustedRestByExercise[id] = seconds
+        }
+        startRest(seconds: seconds)
+    }
+
     public func skipCurrentSet() async {
         await appendSet(status: .skipped)
+    }
+
+    /// 復原剛記錄的那一組（撤銷誤按的「完成此組」/「跳過此組」）。
+    /// 連帶取消因完成而起的休息倒數與完成卡片，並允許該動作的完成卡片之後重新觸發。
+    public func undoLastSet() async {
+        guard let id = lastRecordedSetId else { return }
+        dismissRest()
+        showExerciseComplete = false
+        if let exerciseId = currentExerciseId {
+            completionShownFor.remove(exerciseId)
+        }
+        workout.removeSet(id: id)
+        lastRecordedSetId = nil
+        do {
+            try await saveProgress(workout)
+        } catch {
+            errorMessage = "儲存失敗：\(error.localizedDescription)"
+        }
+        prefillDraft()
     }
 
     // MARK: - 動作完成卡片
@@ -195,46 +265,113 @@ public final class ActiveWorkoutViewModel {
 
     // MARK: - 休息倒數
 
-    /// 開始休息倒數。
+    /// 開始休息倒數。剩餘秒數以「結束時間」為準（背景不失準），並排一則本地通知，
+    /// 讓 App 進背景／被切走時，時間到照樣提醒。
     public func startRest(seconds: Int) {
         restTask?.cancel()
+        let end = now().addingTimeInterval(TimeInterval(seconds))
+        restEndDate = end
         restRemaining = seconds
+        restSeconds = seconds
+        restExerciseId = currentExerciseId
         restEnded = false
-        restTask = Task { [weak self] in
-            while true {
-                try? await Task.sleep(for: .seconds(1))
-                if Task.isCancelled { return }
-                guard let self else { return }
-                let done = self.tickRest()
-                if done { return }
+        scheduleReminder(at: end)
+        startRestTicking()
+    }
+
+    /// 訓練中調整休息剩餘秒數（+/- 15 秒）：移動結束時間並重排通知，
+    /// 並把調整後的休息長度套用到同一動作的後續各組。
+    public func adjustRest(_ delta: Int) {
+        guard let end = restEndDate else { return }
+        let newEnd = max(now(), end.addingTimeInterval(TimeInterval(delta)))
+        restEndDate = newEnd
+        scheduleReminder(at: newEnd)
+        _ = refreshRest()
+        // 同步更新該動作後續各組的休息時間（起始長度＋累計調整，不小於 0）
+        if let base = restSeconds {
+            let updated = max(0, base + delta)
+            restSeconds = updated
+            if let id = restExerciseId {
+                adjustedRestByExercise[id] = updated
             }
         }
     }
 
-    /// 訓練中調整休息剩餘秒數（+/- 15 秒）。
-    public func adjustRest(_ delta: Int) {
-        guard let remaining = restRemaining else { return }
-        restRemaining = max(0, remaining + delta)
+    /// 依結束時間重算剩餘秒數（切回前景時呼叫，補上背景經過的時間）。回傳 true＝已結束。
+    @discardableResult
+    public func refreshRest() -> Bool {
+        guard let end = restEndDate else { return true }
+        let remaining = Int(ceil(end.timeIntervalSince(now())))
+        if remaining <= 0 {
+            restRemaining = 0
+            restEnded = true
+            restEndDate = nil
+            restTask?.cancel()
+            restTask = nil
+            return true
+        }
+        restRemaining = remaining
+        return false
     }
 
     /// 跳過休息 / 關掉彈窗開始下一組。
     public func dismissRest() {
         restTask?.cancel()
         restTask = nil
+        restEndDate = nil
         restRemaining = nil
+        restSeconds = nil
+        restExerciseId = nil
         restEnded = false
+        cancelReminder()
     }
 
-    /// 回傳 true＝倒數結束（呼叫端該停止 loop）。
-    private func tickRest() -> Bool {
-        guard let remaining = restRemaining else { return true }
-        if remaining <= 1 {
-            restRemaining = 0
-            restEnded = true
-            return true
+    /// 前景是否顯示「休息結束」彈窗（依使用者提醒偏好）。
+    public var showsRestEndedAlert: Bool { restEnded && reminder.preference.popup }
+
+    /// App 進背景：停掉前景 ticking（保留結束時間）。避免回前景時補跑「到點前景提醒」，
+    /// 與背景已投遞的通知重複發聲。
+    public func suspendRestTicking() {
+        restTask?.cancel()
+        restTask = nil
+    }
+
+    /// App 回前景：補算剩餘秒數；若還在休息就重啟 ticking。
+    public func enterForeground() {
+        guard restEndDate != nil else { return }
+        if !refreshRest() { startRestTicking() }
+    }
+
+    /// 每秒重算一次剩餘秒數（僅前景；背景由 suspendRestTicking 停掉）。
+    /// 於前景到點歸零時觸發前景提醒（聲音/震動）。
+    private func startRestTicking() {
+        restTask = Task { [weak self] in
+            while true {
+                try? await Task.sleep(for: .seconds(1))
+                if Task.isCancelled { return }
+                guard let self else { return }
+                if self.refreshRest() {
+                    self.deliverForegroundReminder()
+                    return
+                }
+            }
         }
-        restRemaining = remaining - 1
-        return false
+    }
+
+    private func scheduleReminder(at end: Date) {
+        pendingRestNotify = Task { [reminder] in
+            await reminder.schedule(at: end)
+        }
+    }
+
+    private func cancelReminder() {
+        pendingRestNotify = Task { [reminder] in
+            await reminder.cancel()
+        }
+    }
+
+    private func deliverForegroundReminder() {
+        Task { [reminder] in await reminder.deliverForeground() }
     }
 
     /// 離開（未結束）。回傳 true＝可關閉畫面；空場次直接放棄刪掉。
@@ -275,7 +412,9 @@ public final class ActiveWorkoutViewModel {
         guard let exerciseId = currentExerciseId else { return }
         // 照課表：把當下的目標當快照存入（fromPlanSetId + target_*），脫稿加練則為 nil
         let target = currentTarget
+        let newSetId = UUID()
         workout.appendSet(
+            id: newSetId,
             exerciseId: exerciseId,
             weight: Weight(value: draftWeightValue, unit: draftWeightUnit),
             reps: draftReps,
@@ -284,6 +423,7 @@ public final class ActiveWorkoutViewModel {
             targetWeight: target?.targetWeight,
             targetReps: target?.targetReps
         )
+        lastRecordedSetId = newSetId
         do {
             try await saveProgress(workout) // 每組立即落地，中途被殺不掉資料
         } catch {

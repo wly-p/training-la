@@ -5,6 +5,7 @@ import TrainingDomain
 public struct ActiveWorkoutView: View {
     @Bindable private var viewModel: ActiveWorkoutViewModel
     @Environment(\.dismiss) private var dismiss
+    @Environment(\.scenePhase) private var scenePhase
     @State private var showsExercisePicker = false
     @State private var showsFinishSheet = false
 
@@ -44,13 +45,22 @@ public struct ActiveWorkoutView: View {
             .onChange(of: viewModel.isDismissed) { _, dismissed in
                 if dismissed { dismiss() }
             }
+            .onChange(of: scenePhase) { _, phase in
+                // 切回前景：補算剩餘秒數並重啟 ticking；進背景：停掉 ticking，
+                // 避免回前景時補跑「到點前景提醒」與背景已投遞的通知重複。
+                if phase == .active {
+                    viewModel.enterForeground()
+                } else {
+                    viewModel.suspendRestTicking()
+                }
+            }
             .safeAreaInset(edge: .bottom) {
                 if viewModel.restRemaining != nil, !viewModel.restEnded {
                     restBar
                 }
             }
             .alert("休息結束", isPresented: Binding(
-                get: { viewModel.restEnded },
+                get: { viewModel.showsRestEndedAlert },
                 set: { if !$0 { viewModel.dismissRest() } }
             )) {
                 Button("開始下一組") { viewModel.dismissRest() }
@@ -136,6 +146,16 @@ public struct ActiveWorkoutView: View {
                 .font(.subheadline)
                 .foregroundStyle(.secondary)
                 .padding(.top, 2)
+                // 卡片蓋住整個畫面，記錄區的「復原上一組」在底下點不到；
+                // 誤按最後一組時這裡是唯一的出口，故卡片自己也要開一個。
+                if viewModel.canUndoLastSet {
+                    Button("按錯了，復原上一組") {
+                        Task { await viewModel.undoLastSet() }
+                    }
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
+                    .accessibilityIdentifier("activeWorkout.undoSetFromCard")
+                }
             }
             .padding(24)
             .frame(maxWidth: .infinity)
@@ -203,6 +223,20 @@ public struct ActiveWorkoutView: View {
                         Text("\(WeightDisplay.weight(set.weight)) × \(set.reps)")
                             .monospacedDigit()
                             .foregroundStyle(set.status == .skipped ? .secondary : .primary)
+                        // 復原鍵貼著它要撤銷的那一組，且只有剛記錄的那組有。
+                        // .borderless（而非預設樣式）：預設樣式會讓整列空白處都轉發點擊，
+                        // 一碰列就誤撤銷——同 bug③ 的教訓。
+                        if viewModel.isUndoable(setId: set.id) {
+                            Button {
+                                Task { await viewModel.undoLastSet() }
+                            } label: {
+                                Image(systemName: "arrow.uturn.backward")
+                            }
+                            .buttonStyle(.borderless)
+                            .padding(.leading, 4)
+                            .accessibilityLabel("復原上一組")
+                            .accessibilityIdentifier("activeWorkout.undoSet")
+                        }
                     }
                 }
                 currentSetEditor
@@ -268,12 +302,14 @@ public struct ActiveWorkoutView: View {
                 stepper(
                     label: "重量",
                     value: "\(WeightDisplay.value(viewModel.draftWeightValue)) \(viewModel.draftWeightUnit.rawValue)",
+                    idPrefix: "activeWorkout.weight",
                     onMinus: { viewModel.bumpWeight(-1) },
                     onPlus: { viewModel.bumpWeight(1) }
                 )
                 stepper(
                     label: "次數",
                     value: "\(viewModel.draftReps)",
+                    idPrefix: "activeWorkout.reps",
                     onMinus: { viewModel.bumpReps(-1) },
                     onPlus: { viewModel.bumpReps(1) }
                 )
@@ -285,6 +321,7 @@ public struct ActiveWorkoutView: View {
             }
             .pickerStyle(.segmented)
             .frame(maxWidth: 160)
+            .accessibilityIdentifier("activeWorkout.unitPicker")
 
             Button {
                 Task { await viewModel.completeCurrentSet() }
@@ -295,23 +332,32 @@ public struct ActiveWorkoutView: View {
                     .padding(.vertical, 8)
             }
             .buttonStyle(.borderedProminent)
+            .accessibilityIdentifier("activeWorkout.completeSet")
 
-            HStack(spacing: 20) {
+            // .bordered（而非預設樣式）：這格是含多個控制項的 List cell，預設樣式的按鈕
+            // 會讓整個 cell 空白處都轉發點擊給它，導致誤觸「跳過此組」多記一組。侷限點擊區才不誤觸。
+            HStack(spacing: 10) {
                 Button("跳過此組") {
                     Task { await viewModel.skipCurrentSet() }
                 }
+                .buttonStyle(.bordered)
+                .accessibilityIdentifier("activeWorkout.skipSet")
                 if viewModel.restRemaining == nil {
                     Menu {
                         ForEach(restPresets, id: \.self) { sec in
-                            Button(restClock(sec)) { viewModel.startRest(seconds: sec) }
+                            Button(restClock(sec)) { viewModel.startManualRest(seconds: sec) }
                         }
                     } label: {
-                        Label("休息計時", systemImage: "timer")
+                        Image(systemName: "timer") // 純圖示：跟「跳過此組」擺一起才不會擠爆這列
                     }
+                    .menuStyle(.button)
+                    .buttonStyle(.bordered)
+                    .accessibilityLabel("休息計時")
+                    .accessibilityIdentifier("activeWorkout.restTimer")
                 }
             }
-            .font(.footnote)
-            .foregroundStyle(.secondary)
+            .font(.subheadline)
+            .controlSize(.small)
         }
         .padding(.vertical, 8)
     }
@@ -321,6 +367,7 @@ public struct ActiveWorkoutView: View {
     private func stepper(
         label: String,
         value: String,
+        idPrefix: String,
         onMinus: @escaping () -> Void,
         onPlus: @escaping () -> Void
     ) -> some View {
@@ -334,6 +381,7 @@ public struct ActiveWorkoutView: View {
                         .font(.title)
                 }
                 .buttonStyle(.plain)
+                .accessibilityIdentifier("\(idPrefix).minus")
                 Text(value)
                     .font(.title2.bold())
                     .monospacedDigit()
@@ -343,6 +391,7 @@ public struct ActiveWorkoutView: View {
                         .font(.title)
                 }
                 .buttonStyle(.plain)
+                .accessibilityIdentifier("\(idPrefix).plus")
             }
         }
     }

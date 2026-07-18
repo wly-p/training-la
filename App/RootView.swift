@@ -8,21 +8,19 @@ import TrainingPresentation
 
 struct RootView: View {
     private let dependencies: AppDependencies
-    private let environment: AppEnvironment
     @State private var exerciseListViewModel: ExerciseListViewModel
     @State private var trainingHomeViewModel: TrainingHomeViewModel
     @State private var historyViewModel: HistoryViewModel
     @State private var planScheduleViewModel: PlanScheduleViewModel
     @State private var settingsViewModel: SettingsViewModel
 
-    init(dependencies: AppDependencies, environment: AppEnvironment) {
+    init(dependencies: AppDependencies, onEraseAll: @escaping @MainActor () -> Void) {
         self.dependencies = dependencies
-        self.environment = environment
         _exerciseListViewModel = State(initialValue: dependencies.makeExerciseListViewModel())
         _trainingHomeViewModel = State(initialValue: dependencies.makeTrainingHomeViewModel())
         _historyViewModel = State(initialValue: dependencies.makeHistoryViewModel())
         _planScheduleViewModel = State(initialValue: dependencies.makePlanScheduleViewModel())
-        _settingsViewModel = State(initialValue: dependencies.makeSettingsViewModel())
+        _settingsViewModel = State(initialValue: dependencies.makeSettingsViewModel(onEraseAll))
     }
 
     var body: some View {
@@ -38,10 +36,15 @@ struct RootView: View {
                 .tabItem { Label("課表", systemImage: "calendar") }
             HistoryView(viewModel: historyViewModel)
                 .tabItem { Label("歷史", systemImage: "chart.line.uptrend.xyaxis") }
-            SettingsView(viewModel: settingsViewModel, environmentBadge: environment.badge)
-                .tabItem { Label("設定", systemImage: "gearshape") }
+            SettingsView(
+                viewModel: settingsViewModel,
+                appVersion: AppVersion.displayString(infoDictionary: Bundle.main.infoDictionary ?? [:])
+            )
+            .tabItem { Label("設定", systemImage: "gearshape") }
         }
         // 主題套在根部：設定 tab 一改，整個 App 立即換色
         .preferredColorScheme(settingsViewModel.theme.colorScheme)
+        // 語言同樣套在根部：注入 \.locale 讓所有 Text(key, bundle:) 依此語言查表，切換即時重繪
+        .environment(\.locale, settingsViewModel.language.locale)
     }
 }

@@ -24,7 +24,4 @@ public struct AppEnvironment: Sendable, Equatable {
             .flatMap(AppEnvironmentName.init(rawValue:)) ?? .unknown
         return AppEnvironment(name: name)
     }
-
-    /// 設定頁的環境小標（例："dev"）。
-    public var badge: String { name.rawValue }
 }

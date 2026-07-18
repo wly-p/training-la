@@ -45,8 +45,14 @@ fastlane/screenshots/**/*.png
 # ── 其他 ──
 *.log
 
+# 本機開發筆記（Notion 流程等內部資訊，不進 repo）
+*.local.md
+
 # xcodegen 產物（用 xcodegen generate 重生）
 TrainingLa.xcodeproj/
 
 # xcodegen 產生的 Info.plist（由 project.yml 定義）
 App/Info.plist
+
+# xcode-build-server 產物（指向本機 DerivedData，供 VS Code SourceKit-LSP 用；跟 xcodeproj 一樣不進版控）
+buildServer.json

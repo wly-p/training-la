@@ -50,7 +50,7 @@ public struct HistoryView: View {
         } else {
             List(viewModel.workouts) { summary in
                 NavigationLink {
-                    WorkoutDetailView(summary: summary, load: { await viewModel.workoutDetail(id: summary.id) })
+                    WorkoutDetailView(summary: summary, makeViewModel: viewModel.makeDetailViewModel(for: summary.id))
                 } label: {
                     VStack(alignment: .leading, spacing: 4) {
                         Text(HistoryFormatting.dayLabel(summary.day)).font(.headline)

@@ -73,16 +73,68 @@ final class SettingsUITests: XCTestCase {
     }
 
     @MainActor
-    func testEnvironmentBadgeReflectsBuildConfig() throws {
-        // scheme-agnostic：dev/prod scheme 下都該顯示對應環境的小標。
-        // 哪個 config 對到哪組值，已由 build 端的 Info.plist 檢查釘死。
+    func testLanguageRowShowsCurrentLanguage() throws {
         let app = XCUIApplication()
         app.launchArguments = ["--uitest-inmemory"]
         app.launch()
 
         app.tabBars.buttons["設定"].tap()
-        let badge = app.staticTexts["environmentBadge"]
-        XCTAssertTrue(badge.waitForExistence(timeout: 5))
-        XCTAssertTrue(["dev", "prod"].contains(badge.label), "unexpected badge: \(badge.label)")
+
+        // 語言列：navigationLink picker，值顯示目前語言的母語名（UI 測試固定 seed 繁中）
+        let row = app.buttons["語言"]
+        XCTAssertTrue(row.waitForExistence(timeout: 5))
+        XCTAssertEqual(row.value as? String, "繁體中文")
+    }
+
+    @MainActor
+    func testSwitchingLanguageToEnglishLocalizesSettings() throws {
+        let app = XCUIApplication()
+        app.launchArguments = ["--uitest-inmemory"]
+        app.launch()
+
+        app.tabBars.buttons["設定"].tap()
+
+        // 進語言列 → 選 English（選項以母語名呈現，切換前後都叫 "English"）
+        let langRow = app.buttons["語言"]
+        XCTAssertTrue(langRow.waitForExistence(timeout: 5))
+        langRow.tap()
+        let english = app.buttons["English"]
+        XCTAssertTrue(english.waitForExistence(timeout: 5))
+        english.tap()
+
+        // 回設定根頁（此時標題已英文化為 "Settings"，不能再用「設定」定位）
+        let settingsRoot = app.navigationBars["Settings"]
+        if !settingsRoot.waitForExistence(timeout: 2) {
+            app.navigationBars.buttons.firstMatch.tap()
+            XCTAssertTrue(settingsRoot.waitForExistence(timeout: 5))
+        }
+
+        // Settings 內容已英文化：section header 與語言列標籤/值
+        XCTAssertTrue(app.staticTexts["Appearance"].waitForExistence(timeout: 5))
+        let langRowEN = app.buttons["Language"]
+        XCTAssertTrue(langRowEN.waitForExistence(timeout: 5))
+        XCTAssertEqual(langRowEN.value as? String, "English")
+    }
+
+    @MainActor
+    func testVersionRowShowsVersionAndBuild() throws {
+        let app = XCUIApplication()
+        app.launchArguments = ["--uitest-inmemory"]
+        app.launch()
+
+        app.tabBars.buttons["設定"].tap()
+
+        // 「關於」在清單最底，List 是 lazy 的，可能要捲到底元素才會進 hierarchy
+        let version = app.staticTexts["appVersion"]
+        if !version.waitForExistence(timeout: 3) {
+            app.swipeUp()
+            XCTAssertTrue(version.waitForExistence(timeout: 5))
+        }
+        // scheme-agnostic：dev 帶 build number「x.y.z (n)」、prod 只有「x.y.z」，
+        // 分流邏輯由 SharedKernel 的 AppVersionTests 釘死，這裡只驗格式。
+        XCTAssertNotNil(
+            version.label.range(of: #"^\d+\.\d+\.\d+( \(\d+\))?$"#, options: .regularExpression),
+            "版號格式應為「x.y.z」或「x.y.z (build)」，實際：\(version.label)"
+        )
     }
 }

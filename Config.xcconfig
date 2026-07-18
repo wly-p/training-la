@@ -12,3 +12,10 @@ TEST_DEVICE = iPhone 17
 // false ＝ Makefile 會先 `open -a Simulator` 讓你能看著 UITests 跑。
 // 不管哪個值，xcodebuild 都還是會啟動模擬器 process，這個開關只影響「要不要順便開視窗給人看」。
 TEST_HEADLESS = true
+
+// 本機簽章設定（gitignored，開源 repo 不放任何人的 Team ID）。
+// 實機建置前自己建一份 Signing.secrets.xcconfig，內容一行：
+//   DEVELOPMENT_TEAM = <你的 Team ID>
+// 沒有這個檔也能過（optional include），只是要在 Xcode GUI 手選 team，
+// 且每次 `xcodegen generate` 後得重選；有這個檔就能在重生後存活。
+#include? "Signing.secrets.xcconfig"
