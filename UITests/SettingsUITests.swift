@@ -86,9 +86,11 @@ final class SettingsUITests: XCTestCase {
             app.swipeUp()
             XCTAssertTrue(version.waitForExistence(timeout: 5))
         }
+        // scheme-agnostic：dev 帶 build number「x.y.z (n)」、prod 只有「x.y.z」，
+        // 分流邏輯由 SharedKernel 的 AppVersionTests 釘死，這裡只驗格式。
         XCTAssertNotNil(
-            version.label.range(of: #"^\d+\.\d+\.\d+ \(\d+\)$"#, options: .regularExpression),
-            "版號格式應為「x.y.z (build)」，實際：\(version.label)"
+            version.label.range(of: #"^\d+\.\d+\.\d+( \(\d+\))?$"#, options: .regularExpression),
+            "版號格式應為「x.y.z」或「x.y.z (build)」，實際：\(version.label)"
         )
     }
 }
