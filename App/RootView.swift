@@ -44,5 +44,7 @@ struct RootView: View {
         }
         // 主題套在根部：設定 tab 一改，整個 App 立即換色
         .preferredColorScheme(settingsViewModel.theme.colorScheme)
+        // 語言同樣套在根部：注入 \.locale 讓所有 Text(key, bundle:) 依此語言查表，切換即時重繪
+        .environment(\.locale, settingsViewModel.language.locale)
     }
 }

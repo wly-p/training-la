@@ -1,3 +1,5 @@
+import SwiftUI
+
 /// App icon 選項。`assetName == nil` 代表預設 icon（asset catalog 裡的主要 `AppIcon`）。
 public enum AppIcon: String, CaseIterable, Identifiable, Sendable {
     case sandArrow
@@ -28,16 +30,17 @@ public enum AppIcon: String, CaseIterable, Identifiable, Sendable {
         }
     }
 
-    public var displayName: String {
+    /// String Catalog 的 key（繁中值見 `Localizable.xcstrings`）；View 用 `localText(_:)` 套 `bundle: .module`。
+    public var displayName: LocalizedStringKey {
         switch self {
-        case .sandArrow: "預設"
-        case .stepWave: "階梯波"
-        case .progressCurve: "進度曲線"
-        case .rhythmBars: "節奏長條"
-        case .barbellPlate: "槓片"
-        case .checkmark: "打勾"
-        case .pulseLine: "心率線"
-        case .concentricCircles: "同心圓"
+        case .sandArrow: "settings.appIcon.sandArrow"
+        case .stepWave: "settings.appIcon.stepWave"
+        case .progressCurve: "settings.appIcon.progressCurve"
+        case .rhythmBars: "settings.appIcon.rhythmBars"
+        case .barbellPlate: "settings.appIcon.barbellPlate"
+        case .checkmark: "settings.appIcon.checkmark"
+        case .pulseLine: "settings.appIcon.pulseLine"
+        case .concentricCircles: "settings.appIcon.concentricCircles"
         }
     }
 

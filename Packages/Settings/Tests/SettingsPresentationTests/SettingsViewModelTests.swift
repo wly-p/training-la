@@ -1,4 +1,5 @@
 import RemindersDomain
+import SharedKernel
 import Testing
 
 @testable import SettingsPresentation
@@ -42,12 +43,16 @@ private final class MockDataEraser: DataErasing, @unchecked Sendable {
 private func makeViewModel(
     theme: AppTheme = .system,
     iconSwitcher: MockIconSwitcher = MockIconSwitcher(),
+    languageStore: any LanguagePreferenceStoring = InMemoryLanguageStore(),
+    systemPreferredLanguages: [String] = [],
     dataEraser: MockDataEraser = MockDataEraser(),
     onErased: @escaping @MainActor () -> Void = {}
 ) -> SettingsViewModel {
     SettingsViewModel(
         store: InMemoryThemeStore(initial: theme),
         iconSwitcher: iconSwitcher,
+        languageStore: languageStore,
+        systemPreferredLanguages: systemPreferredLanguages,
         dataEraser: dataEraser,
         onErased: onErased
     )
@@ -133,6 +138,27 @@ struct SettingsViewModelTests {
         #expect(resetCount == 0)          // 失敗不重建畫面
         #expect(vm.isErasing == false)
         #expect(vm.eraseFailed == true)   // 綁 UI 錯誤 alert
+    }
+
+    @Test func firstLaunchSeedsLanguageFromSystemAndPersists() {
+        // store 為空（第一次啟動）→ 由系統偏好決定，並 seed 回 store
+        let store = InMemoryLanguageStore()
+        let vm = makeViewModel(languageStore: store, systemPreferredLanguages: ["zh-Hant-TW", "en-US"])
+        #expect(vm.language == .zhHant)
+        #expect(store.load() == .zhHant) // 已 seed → 之後以設定為主
+    }
+
+    @Test func storedLanguageWinsOverSystem() {
+        let store = InMemoryLanguageStore(.zhHant)
+        let vm = makeViewModel(languageStore: store, systemPreferredLanguages: ["en-US"])
+        #expect(vm.language == .zhHant)
+    }
+
+    @Test func changingLanguagePersists() {
+        let store = InMemoryLanguageStore(.zhHant)
+        let vm = makeViewModel(languageStore: store)
+        vm.language = .zhHant
+        #expect(store.load() == .zhHant)
     }
 
     @Test func loadsInitialRestReminderFromStore() {

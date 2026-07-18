@@ -14,11 +14,17 @@ struct AppIconTests {
         }
     }
 
-    @Test func everyCaseHasANonEmptyDisplayNameAndPreviewImageName() {
+    @Test func everyCaseHasAPreviewImageName() {
         for icon in AppIcon.allCases {
-            #expect(!icon.displayName.isEmpty)
             #expect(icon.previewImageName == "IconPreview-\(icon.rawValue)")
         }
+    }
+
+    @Test func displayNameMapsToCatalogKeys() {
+        // displayName 回傳 String Catalog 的 key；繁中值見 Localizable.xcstrings
+        #expect(AppIcon.sandArrow.displayName == "settings.appIcon.sandArrow")
+        #expect(AppIcon.barbellPlate.displayName == "settings.appIcon.barbellPlate")
+        #expect(AppIcon.concentricCircles.displayName == "settings.appIcon.concentricCircles")
     }
 
     @Test func initFromAssetNameRoundTrips() {

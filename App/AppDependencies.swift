@@ -6,6 +6,7 @@ import PlanPresentation
 import RemindersDomain
 import RemindersKit
 import SettingsPresentation
+import SharedKernel
 import SpecData
 import SpecDomain
 import SpecPresentation
@@ -45,6 +46,9 @@ struct AppDependencies {
         // 休息提醒偏好：真實用 UserDefaults；UI 測試用記憶體。Settings 與 reminder 共用同一實例。
         let reminderStore: any RestReminderPreferenceStoring =
             inMemory ? InMemoryRestReminderPreferenceStore() : UserDefaultsRestReminderStore()
+        // 語言偏好：真實落 UserDefaults；UI 測試用記憶體（每次啟動乾淨、不污染設定）。
+        let languageStore: any LanguagePreferenceStoring =
+            inMemory ? InMemoryLanguageStore() : UserDefaultsLanguageStore()
         // UI 測試（in-memory）用 Noop channels，避免真實通知權限彈窗／發聲干擾測試。
         let reminder: any RestEndReminding = inMemory
             ? RestEndReminder(notifications: NoopRestNotificationScheduling(),
@@ -61,6 +65,7 @@ struct AppDependencies {
             planRepository: planRepository,
             reminder: reminder,
             reminderStore: reminderStore,
+            languageStore: languageStore,
             dataEraser: SwiftDataEraser(container: container, modelTypes: allModels)
         )
     }
@@ -72,6 +77,7 @@ struct AppDependencies {
         planRepository: any PlanWorkoutRepository,
         reminder: any RestEndReminding,
         reminderStore: any RestReminderPreferenceStoring,
+        languageStore: any LanguagePreferenceStoring = InMemoryLanguageStore(),
         dataEraser: any DataErasing = NoopDataEraser()
     ) -> AppDependencies {
         // Training 的 ExerciseCatalog port ← Spec 的 use case
@@ -135,6 +141,7 @@ struct AppDependencies {
                     store: UserDefaultsThemeStore(),
                     iconSwitcher: UIApplicationIconSwitcher(),
                     restReminderStore: reminderStore,
+                    languageStore: languageStore,
                     dataEraser: dataEraser,
                     onErased: onErased
                 )
