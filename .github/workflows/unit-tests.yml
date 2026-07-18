@@ -9,13 +9,15 @@ name: Unit Tests
 
 jobs:
   test-unit:
-    name: swift test (6 packages)
+    # 穩定名稱：這是 protect-main ruleset 要求的必要檢查 context，不要放 package 數量等會變動的字眼，
+    # 否則加減 package 就會改到 check 名、ruleset 又對不上、PR 卡 BLOCKED。
+    name: Unit Tests
     runs-on: macos-15
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
-      # 六個 package 都是本地 path dependency、無遠端相依，unit test target platform 是
+      # 各 package 都是本地 path dependency、無遠端相依，unit test target platform 是
       # macOS，`swift test` 不用開模擬器，只要選對 Xcode 版本即可（Swift Testing 需要 Xcode
       # 本體，不是單獨的 Command Line Tools）。
       - name: Select Xcode
