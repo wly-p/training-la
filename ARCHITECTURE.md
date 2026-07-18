@@ -153,6 +153,16 @@ Training 的休息倒數不認識任何提醒手段，只呼叫 `RestEndRemindin
 - Makefile 用 `awk` 讀這個檔案當預設值，可指令列覆蓋：`make test-uitest DEVICE="iPhone 16 Pro" HEADLESS=false`。
 - `project.yml` 用 `configFiles` 把它掛進全部 build configuration，`xcodebuild -showBuildSettings` 可看到同樣的值——但 Xcode GUI 工具列的模擬器下拉選單是互動式狀態，不會被這兩個值動態帶動，這是 Xcode 本身的限制。
 
+## 簽章（實機建置）：Team ID 不進版控
+
+開源 repo 不放任何人的 `DEVELOPMENT_TEAM`（`project.yml` 不寫、生成的 xcodeproj 又不進版控）。實機建置的簽章設定走本機檔案：
+
+1. 在 repo 根目錄建 `Signing.secrets.xcconfig`（已被 `.gitignore` 的 `*.secrets.xcconfig` 排除），內容一行：`DEVELOPMENT_TEAM = <你的 Team ID>`（Xcode → Settings → Accounts 可查）。
+2. `Config.xcconfig` 末尾以 `#include?`（optional include）載入它：檔案存在就生效、且能在 `xcodegen generate` 後存活；不存在也不會 build 失敗。
+3. 不建這個檔的替代做法：generate 後在 Xcode 的 Signing & Capabilities 手選 team——但每次重生專案都會被洗掉，要重選。
+
+模擬器建置不需要簽章，CI／沒有實機需求的人完全不用理這一段。
+
 ## 環境需求
 
 本機 `xcode-select` 必須指向完整的 `Xcode.app`（而非單獨安裝的 Command Line Tools），否則 `swift test` 找不到 `Testing` framework、`xcodebuild`／模擬器也跑不了：
