@@ -29,18 +29,20 @@ struct RootView: View {
                 viewModel: trainingHomeViewModel,
                 makeActiveWorkoutViewModel: dependencies.makeActiveWorkoutViewModel
             )
-            .tabItem { Label("訓練", systemImage: "figure.strengthtraining.traditional") }
+            // tab 文字走 App target 自帶的 Localizable.xcstrings（在 main bundle，Label 預設查 main，
+            // 不需 bundle: 參數）；隨根部注入的 \.locale 即時切換。
+            .tabItem { Label("tab.training", systemImage: "figure.strengthtraining.traditional") }
             ExerciseListView(viewModel: exerciseListViewModel)
-                .tabItem { Label("動作庫", systemImage: "books.vertical") }
+                .tabItem { Label("tab.exercises", systemImage: "books.vertical") }
             PlanScheduleView(viewModel: planScheduleViewModel)
-                .tabItem { Label("課表", systemImage: "calendar") }
+                .tabItem { Label("tab.plan", systemImage: "calendar") }
             HistoryView(viewModel: historyViewModel)
-                .tabItem { Label("歷史", systemImage: "chart.line.uptrend.xyaxis") }
+                .tabItem { Label("tab.history", systemImage: "chart.line.uptrend.xyaxis") }
             SettingsView(
                 viewModel: settingsViewModel,
                 appVersion: AppVersion.displayString(infoDictionary: Bundle.main.infoDictionary ?? [:])
             )
-            .tabItem { Label("設定", systemImage: "gearshape") }
+            .tabItem { Label("tab.settings", systemImage: "gearshape") }
         }
         // 主題套在根部：設定 tab 一改，整個 App 立即換色
         .preferredColorScheme(settingsViewModel.theme.colorScheme)

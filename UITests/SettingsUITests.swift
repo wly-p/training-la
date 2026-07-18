@@ -114,6 +114,10 @@ final class SettingsUITests: XCTestCase {
         let langRowEN = app.buttons["Language"]
         XCTAssertTrue(langRowEN.waitForExistence(timeout: 5))
         XCTAssertEqual(langRowEN.value as? String, "English")
+
+        // App target 的 tab bar 也英文化（驗證 app-target String Catalog 生效）
+        XCTAssertTrue(app.tabBars.buttons["Settings"].waitForExistence(timeout: 5))
+        XCTAssertTrue(app.tabBars.buttons["Training"].exists)
     }
 
     @MainActor

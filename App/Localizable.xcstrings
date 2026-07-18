@@ -1,0 +1,36 @@
+{
+  "sourceLanguage" : "zh-Hant",
+  "strings" : {
+    "tab.exercises" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Exercises" } },
+        "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "動作庫" } }
+      }
+    },
+    "tab.history" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "History" } },
+        "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "歷史" } }
+      }
+    },
+    "tab.plan" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Plans" } },
+        "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "課表" } }
+      }
+    },
+    "tab.settings" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Settings" } },
+        "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "設定" } }
+      }
+    },
+    "tab.training" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Training" } },
+        "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "訓練" } }
+      }
+    }
+  },
+  "version" : "1.0"
+}
