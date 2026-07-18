@@ -73,16 +73,24 @@ final class SettingsUITests: XCTestCase {
     }
 
     @MainActor
-    func testEnvironmentBadgeReflectsBuildConfig() throws {
-        // scheme-agnostic：dev/prod scheme 下都該顯示對應環境的小標。
-        // 哪個 config 對到哪組值，已由 build 端的 Info.plist 檢查釘死。
+    func testVersionRowShowsVersionAndBuild() throws {
         let app = XCUIApplication()
         app.launchArguments = ["--uitest-inmemory"]
         app.launch()
 
         app.tabBars.buttons["設定"].tap()
-        let badge = app.staticTexts["environmentBadge"]
-        XCTAssertTrue(badge.waitForExistence(timeout: 5))
-        XCTAssertTrue(["dev", "prod"].contains(badge.label), "unexpected badge: \(badge.label)")
+
+        // 「關於」在清單最底，List 是 lazy 的，可能要捲到底元素才會進 hierarchy
+        let version = app.staticTexts["appVersion"]
+        if !version.waitForExistence(timeout: 3) {
+            app.swipeUp()
+            XCTAssertTrue(version.waitForExistence(timeout: 5))
+        }
+        // scheme-agnostic：dev 帶 build number「x.y.z (n)」、prod 只有「x.y.z」，
+        // 分流邏輯由 SharedKernel 的 AppVersionTests 釘死，這裡只驗格式。
+        XCTAssertNotNil(
+            version.label.range(of: #"^\d+\.\d+\.\d+( \(\d+\))?$"#, options: .regularExpression),
+            "版號格式應為「x.y.z」或「x.y.z (build)」，實際：\(version.label)"
+        )
     }
 }

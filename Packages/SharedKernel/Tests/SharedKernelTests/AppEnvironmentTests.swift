@@ -4,15 +4,11 @@ import Testing
 
 struct AppEnvironmentTests {
     @Test func resolvesDevFromInfoDictionary() {
-        let env = AppEnvironment.resolve(infoDictionary: ["AppEnv": "dev"])
-        #expect(env.name == .dev)
-        #expect(env.badge == "dev")
+        #expect(AppEnvironment.resolve(infoDictionary: ["AppEnv": "dev"]).name == .dev)
     }
 
     @Test func resolvesProd() {
-        let env = AppEnvironment.resolve(infoDictionary: ["AppEnv": "prod"])
-        #expect(env.name == .prod)
-        #expect(env.badge == "prod")
+        #expect(AppEnvironment.resolve(infoDictionary: ["AppEnv": "prod"]).name == .prod)
     }
 
     @Test func fallsBackToUnknownWhenMissing() {
