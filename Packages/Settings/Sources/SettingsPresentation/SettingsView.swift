@@ -1,3 +1,4 @@
+import SharedKernel
 import SwiftUI
 
 public struct SettingsView: View {
@@ -14,22 +15,26 @@ public struct SettingsView: View {
     public var body: some View {
         NavigationStack {
             List {
-                Section("外觀") {
-                    Picker("主題", selection: $viewModel.theme) {
+                Section {
+                    Picker(selection: $viewModel.theme) {
                         ForEach(AppTheme.allCases) { theme in
-                            Text(theme.displayName).tag(theme)
+                            localText(theme.displayName).tag(theme)
                         }
+                    } label: {
+                        localText("settings.theme.title")
                     }
                     #if os(iOS)
                     .pickerStyle(.navigationLink)
                     #endif
+                } header: {
+                    localText("settings.appearance.section")
                 }
 
-                Section("App 圖示") {
-                    Picker("App 圖示", selection: $viewModel.icon) {
+                Section {
+                    Picker(selection: $viewModel.icon) {
                         ForEach(AppIcon.allCases) { icon in
                             Label {
-                                Text(icon.displayName)
+                                localText(icon.displayName)
                             } icon: {
                                 Image(icon.previewImageName)
                                     .resizable()
@@ -38,27 +43,54 @@ public struct SettingsView: View {
                             }
                             .tag(icon)
                         }
+                    } label: {
+                        localText("settings.appIcon.title")
                     }
                     #if os(iOS)
                     .pickerStyle(.navigationLink)
                     #endif
+                } header: {
+                    localText("settings.appIcon.title")
                 }
 
                 Section {
-                    Toggle("彈窗", isOn: $viewModel.restReminder.popup)
-                    Toggle("聲音", isOn: $viewModel.restReminder.sound)
+                    Picker(selection: $viewModel.language) {
+                        // 每個語言以「自己的母語名」呈現（nativeName 是固定字串、不本地化），
+                        // 這樣不論目前語言為何都認得。目前僅繁體中文，之後加語言會自動出現在清單。
+                        ForEach(AppLanguage.allCases) { language in
+                            Text(language.nativeName).tag(language)
+                        }
+                    } label: {
+                        localText("settings.language.title")
+                    }
+                    #if os(iOS)
+                    .pickerStyle(.navigationLink)
+                    #endif
                 } header: {
-                    Text("休息結束提醒（App 開著時）")
-                } footer: {
-                    Text("有聲音時系統會伴隨震動，無法分開設定。")
+                    localText("settings.language.title")
                 }
 
                 Section {
-                    Toggle("背景通知", isOn: $viewModel.restReminder.backgroundNotification)
+                    Toggle(isOn: $viewModel.restReminder.popup) {
+                        localText("settings.restReminder.popup")
+                    }
+                    Toggle(isOn: $viewModel.restReminder.sound) {
+                        localText("settings.restReminder.sound")
+                    }
                 } header: {
-                    Text("休息結束提醒（背景／鎖屏）")
+                    localText("settings.restReminder.foreground.header")
                 } footer: {
-                    Text("App 不在前景時以系統通知提醒；是否有聲音跟隨上方「聲音」開關。關閉後背景將完全不提醒。")
+                    localText("settings.restReminder.foreground.footer")
+                }
+
+                Section {
+                    Toggle(isOn: $viewModel.restReminder.backgroundNotification) {
+                        localText("settings.restReminder.background.toggle")
+                    }
+                } header: {
+                    localText("settings.restReminder.background.header")
+                } footer: {
+                    localText("settings.restReminder.background.footer")
                 }
 
                 Section {
@@ -66,7 +98,7 @@ public struct SettingsView: View {
                         showEraseConfirm = true
                     } label: {
                         HStack {
-                            Text("刪除所有資料")
+                            localText("settings.eraseAll.button")
                             if viewModel.isErasing {
                                 Spacer()
                                 ProgressView()
@@ -76,42 +108,53 @@ public struct SettingsView: View {
                     .disabled(viewModel.isErasing)
                     .accessibilityIdentifier("deleteAllDataButton")
                 } header: {
-                    Text("資料")
+                    localText("settings.data.header")
                 } footer: {
-                    Text("清除所有動作、課表與訓練紀錄，App 回到初始狀態。外觀設定（主題、App 圖示）會保留。此動作無法復原。")
+                    localText("settings.data.footer")
                 }
 
                 if let appVersion {
-                    Section("關於") {
+                    Section {
                         HStack {
-                            Text("版本")
+                            localText("settings.version.title")
                             Spacer()
                             Text(appVersion)
                                 .foregroundStyle(.secondary)
                                 .monospacedDigit()
                                 .accessibilityIdentifier("appVersion")
                         }
+                    } header: {
+                        localText("settings.about.section")
                     }
                 }
             }
-            .navigationTitle("設定")
+            .navigationTitle(localText("settings.title"))
             // 用 alert 不用 confirmationDialog：iOS 26 的 confirmationDialog 會以帶箭頭的 popover
             // 呈現且錨點不在觸發按鈕上；alert 固定置中、無箭頭。
             .alert(
-                "確定刪除所有資料？",
+                localText("settings.eraseAll.confirm.title"),
                 isPresented: $showEraseConfirm
             ) {
-                Button("刪除所有資料", role: .destructive) {
+                Button(role: .destructive) {
                     Task { await viewModel.eraseAllData() }
+                } label: {
+                    localText("settings.eraseAll.button")
                 }
-                Button("取消", role: .cancel) {}
+                Button(role: .cancel) {} label: {
+                    localText("settings.common.cancel")
+                }
             } message: {
-                Text("所有動作、課表與訓練紀錄將被永久刪除，且無法復原。")
+                localText("settings.eraseAll.confirm.message")
             }
-            .alert("刪除失敗", isPresented: $viewModel.eraseFailed) {
-                Button("好", role: .cancel) {}
+            .alert(
+                localText("settings.eraseFailed.title"),
+                isPresented: $viewModel.eraseFailed
+            ) {
+                Button(role: .cancel) {} label: {
+                    localText("settings.common.ok")
+                }
             } message: {
-                Text("刪除資料時發生錯誤，請再試一次。")
+                localText("settings.eraseFailed.message")
             }
         }
     }

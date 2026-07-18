@@ -73,6 +73,50 @@ final class SettingsUITests: XCTestCase {
     }
 
     @MainActor
+    func testLanguageRowShowsCurrentLanguage() throws {
+        let app = XCUIApplication()
+        app.launchArguments = ["--uitest-inmemory"]
+        app.launch()
+
+        app.tabBars.buttons["設定"].tap()
+
+        // 語言列：navigationLink picker，值顯示目前語言的母語名（UI 測試固定 seed 繁中）
+        let row = app.buttons["語言"]
+        XCTAssertTrue(row.waitForExistence(timeout: 5))
+        XCTAssertEqual(row.value as? String, "繁體中文")
+    }
+
+    @MainActor
+    func testSwitchingLanguageToEnglishLocalizesSettings() throws {
+        let app = XCUIApplication()
+        app.launchArguments = ["--uitest-inmemory"]
+        app.launch()
+
+        app.tabBars.buttons["設定"].tap()
+
+        // 進語言列 → 選 English（選項以母語名呈現，切換前後都叫 "English"）
+        let langRow = app.buttons["語言"]
+        XCTAssertTrue(langRow.waitForExistence(timeout: 5))
+        langRow.tap()
+        let english = app.buttons["English"]
+        XCTAssertTrue(english.waitForExistence(timeout: 5))
+        english.tap()
+
+        // 回設定根頁（此時標題已英文化為 "Settings"，不能再用「設定」定位）
+        let settingsRoot = app.navigationBars["Settings"]
+        if !settingsRoot.waitForExistence(timeout: 2) {
+            app.navigationBars.buttons.firstMatch.tap()
+            XCTAssertTrue(settingsRoot.waitForExistence(timeout: 5))
+        }
+
+        // Settings 內容已英文化：section header 與語言列標籤/值
+        XCTAssertTrue(app.staticTexts["Appearance"].waitForExistence(timeout: 5))
+        let langRowEN = app.buttons["Language"]
+        XCTAssertTrue(langRowEN.waitForExistence(timeout: 5))
+        XCTAssertEqual(langRowEN.value as? String, "English")
+    }
+
+    @MainActor
     func testVersionRowShowsVersionAndBuild() throws {
         let app = XCUIApplication()
         app.launchArguments = ["--uitest-inmemory"]

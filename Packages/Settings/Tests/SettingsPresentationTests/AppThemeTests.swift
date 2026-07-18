@@ -9,10 +9,11 @@ struct AppThemeTests {
         }
     }
 
-    @Test func displayNameMapsCorrectly() {
-        #expect(AppTheme.system.displayName == "跟隨系統")
-        #expect(AppTheme.light.displayName == "淺色")
-        #expect(AppTheme.dark.displayName == "深色")
+    @Test func displayNameMapsToCatalogKeys() {
+        // displayName 現在回傳 String Catalog 的 key（繁中值見 Localizable.xcstrings）
+        #expect(AppTheme.system.displayName == "settings.theme.system")
+        #expect(AppTheme.light.displayName == "settings.theme.light")
+        #expect(AppTheme.dark.displayName == "settings.theme.dark")
     }
 
     @Test func allCasesCoversThreeThemes() {

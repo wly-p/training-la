@@ -8,11 +8,12 @@ public enum AppTheme: String, CaseIterable, Identifiable, Sendable {
 
     public var id: String { rawValue }
 
-    public var displayName: String {
+    /// String Catalog 的 key（繁中值見 `Localizable.xcstrings`）；View 用 `localText(_:)` 套 `bundle: .module`。
+    public var displayName: LocalizedStringKey {
         switch self {
-        case .system: "跟隨系統"
-        case .light: "淺色"
-        case .dark: "深色"
+        case .system: "settings.theme.system"
+        case .light: "settings.theme.light"
+        case .dark: "settings.theme.dark"
         }
     }
 

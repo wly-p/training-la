@@ -3,8 +3,10 @@ import Foundation
 /// App 支援的語言。數量刻意少：新增語言＝加一個 case（rawValue 用 BCP-47 語言代碼）
 /// ＋補該語言的 String Catalog 翻譯，其餘（resolver / store / Environment 注入）都不用動。
 public enum AppLanguage: String, CaseIterable, Sendable, Identifiable {
-    /// 繁體中文（目前唯一，也是 default）。
+    /// 繁體中文（default）。
     case zhHant = "zh-Hant"
+    /// English。
+    case en = "en"
 
     public var id: String { rawValue }
 
@@ -14,10 +16,12 @@ public enum AppLanguage: String, CaseIterable, Sendable, Identifiable {
     /// 對應的 `Locale`，注入 SwiftUI Environment（`\.locale`）用。
     public var locale: Locale { Locale(identifier: rawValue) }
 
-    /// 語言選單顯示用的母語名稱（例："繁體中文"）；之後做語言 Picker 時用。
+    /// 語言選單顯示用的母語名稱（例："繁體中文"、"English"）：固定字串、**不本地化**，
+    /// 這樣不論目前介面語言為何，使用者都認得每個選項。
     public var nativeName: String {
         switch self {
         case .zhHant: "繁體中文"
+        case .en: "English"
         }
     }
 }
