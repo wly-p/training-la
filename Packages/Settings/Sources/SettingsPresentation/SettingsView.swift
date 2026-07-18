@@ -2,13 +2,13 @@ import SwiftUI
 
 public struct SettingsView: View {
     @Bindable private var viewModel: SettingsViewModel
-    /// 目前建置環境（"dev" / "prod"）；nil＝不顯示。
-    private let environmentBadge: String?
+    /// App 版號顯示字串（例："1.0.0 (1)"）；nil＝不顯示。
+    private let appVersion: String?
     @State private var showEraseConfirm = false
 
-    public init(viewModel: SettingsViewModel, environmentBadge: String? = nil) {
+    public init(viewModel: SettingsViewModel, appVersion: String? = nil) {
         self.viewModel = viewModel
-        self.environmentBadge = environmentBadge
+        self.appVersion = appVersion
     }
 
     public var body: some View {
@@ -61,19 +61,6 @@ public struct SettingsView: View {
                     Text("App 不在前景時以系統通知提醒；是否有聲音跟隨上方「聲音」開關。關閉後背景將完全不提醒。")
                 }
 
-                if let environmentBadge {
-                    Section("環境") {
-                        HStack {
-                            Text("建置環境")
-                            Spacer()
-                            Text(environmentBadge)
-                                .font(.footnote)
-                                .foregroundStyle(.secondary)
-                                .accessibilityIdentifier("environmentBadge")
-                        }
-                    }
-                }
-
                 Section {
                     Button(role: .destructive) {
                         showEraseConfirm = true
@@ -92,6 +79,19 @@ public struct SettingsView: View {
                     Text("資料")
                 } footer: {
                     Text("清除所有動作、課表與訓練紀錄，App 回到初始狀態。外觀設定（主題、App 圖示）會保留。此動作無法復原。")
+                }
+
+                if let appVersion {
+                    Section("關於") {
+                        HStack {
+                            Text("版本")
+                            Spacer()
+                            Text(appVersion)
+                                .foregroundStyle(.secondary)
+                                .monospacedDigit()
+                                .accessibilityIdentifier("appVersion")
+                        }
+                    }
                 }
             }
             .navigationTitle("設定")
