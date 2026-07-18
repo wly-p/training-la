@@ -3,6 +3,7 @@ import TrainingDomain
 
 public struct TrainingHomeView: View {
     @Bindable private var viewModel: TrainingHomeViewModel
+    @Environment(\.locale) private var locale
     private let makeActiveWorkoutViewModel: @MainActor (Workout) -> ActiveWorkoutViewModel
 
     public init(
@@ -97,12 +98,21 @@ public struct TrainingHomeView: View {
                 Image(systemName: "list.clipboard")
             }
             .font(.headline)
-            Text(plan.summary)
+            Text(planSummary(plan))
                 .font(.subheadline)
                 .foregroundStyle(.secondary)
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .padding()
         .background(.quaternary, in: RoundedRectangle(cornerRadius: 12))
+    }
+
+    /// 「臥推 3組 · 肩推 3組」／「Bench 3 sets · …」。動作名是 DB 資料；「組/sets」依 locale 本地化。
+    private func planSummary(_ plan: PlannedWorkoutBlueprint) -> String {
+        plan.exercises.map { ex in
+            let count = String(localized: "training.setCountUnit \(ex.setCount)", bundle: .module, locale: locale)
+            return "\(ex.name) \(count)"
+        }
+        .joined(separator: " · ")
     }
 }

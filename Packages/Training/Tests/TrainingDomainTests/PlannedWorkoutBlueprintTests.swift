@@ -39,14 +39,15 @@ struct PlannedWorkoutBlueprintTests {
         #expect(blueprint.exercises.map(\.exerciseId) == [benchId, squatId])
     }
 
-    @Test func summaryJoinsExerciseNamesWithSetCounts() {
+    @Test func exercisesExposeNameAndSetCount() {
         let blueprint = PlannedWorkoutBlueprint(planWorkoutId: UUID(), name: "推日", targets: [
             target(benchId, "臥推", 0, 0),
             target(benchId, "臥推", 0, 1),
             target(squatId, "深蹲", 1, 0),
         ])
 
-        #expect(blueprint.summary == "臥推 2組 · 深蹲 1組")
+        // 顯示字串（含「組/sets」）由 presentation 端 locale-aware 組出，Domain 只提供 name + setCount
+        #expect(blueprint.exercises.map { "\($0.name):\($0.setCount)" } == ["臥推:2", "深蹲:1"])
     }
 
     @Test func targetReturnsNthSetForExercise() {

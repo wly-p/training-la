@@ -673,6 +673,22 @@
         }
       }
     },
+    "training.setCountUnit %lld": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld sets"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld組"
+          }
+        }
+      }
+    },
     "training.setIndex %lld": {
       "localizations": {
         "en": {
