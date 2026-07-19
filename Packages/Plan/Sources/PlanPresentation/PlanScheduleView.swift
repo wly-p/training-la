@@ -94,7 +94,7 @@ public struct PlanScheduleView: View {
                         Image(systemName: "checkmark.circle.fill").foregroundStyle(.green)
                     }
                 }
-                Text(PlanFormatting.summary(plan, name: viewModel.name(for:), locale: locale))
+                Text(PlanFormatting.summary(plan, name: viewModel.name(for:), language: AppLanguage(locale: locale)))
                     .font(.footnote)
                     .foregroundStyle(.secondary)
             }

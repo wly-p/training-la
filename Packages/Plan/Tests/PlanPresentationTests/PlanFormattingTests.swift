@@ -16,9 +16,10 @@ struct PlanFormattingTests {
         ])
         let names: [UUID: String] = [benchId: "臥推", squatId: "深蹲"]
 
-        // 註：swift test（SwiftPM CLI）不編譯 String Catalog，這裡不驗「組/sets」本地化字（那由 app 端 UITest 驗），
-        // 只驗組合邏輯：兩個動作名、依序、以 " · " 相連。
-        let summary = PlanFormatting.summary(plan, name: { names[$0] ?? "?" }, locale: Locale(identifier: "zh-Hant"))
+        // 註：swift test（SwiftPM CLI）不編譯 String Catalog，這裡不驗「組/sets」本地化字（那由 app 端
+        // PlanScheduleUITests 驗，見 testPlanRowLocalizesSetCountUnit），只驗組合邏輯：兩個動作名、
+        // 依序、以 " · " 相連。
+        let summary = PlanFormatting.summary(plan, name: { names[$0] ?? "?" }, language: .zhHant)
         #expect(summary.contains("臥推"))
         #expect(summary.contains("深蹲"))
         #expect(summary.hasPrefix("臥推 "))

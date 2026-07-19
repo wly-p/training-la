@@ -25,7 +25,10 @@ let package = Package(
         ),
         .target(
             name: "TrainingPresentation",
-            dependencies: ["TrainingDomain", .product(name: "RemindersDomain", package: "Reminders")],
+            dependencies: [
+                "TrainingDomain", "SharedKernel",
+                .product(name: "RemindersDomain", package: "Reminders"),
+            ],
             resources: [.process("Localizable.xcstrings")]
         ),
         .testTarget(

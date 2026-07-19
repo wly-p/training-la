@@ -75,4 +75,23 @@ struct AppLanguageTests {
         #expect(locale.language.languageCode?.identifier == "zh")
         #expect(locale.language.script?.identifier == "Hant")
     }
+
+    @Test func initFromLocaleRoundTrips() {
+        // 這正是根部注入的 locale（AppLanguage.locale）反解回來，要能還原成同一個 case
+        #expect(AppLanguage(locale: AppLanguage.zhHant.locale) == .zhHant)
+        #expect(AppLanguage(locale: AppLanguage.en.locale) == .en)
+    }
+
+    @Test func initFromUnsupportedLocaleFallsBack() {
+        #expect(AppLanguage(locale: Locale(identifier: "fr-FR")) == .fallback)
+    }
+
+    // MARK: - localizedString（機制驗證見對應 package 的 xcodebuild UITest；這裡只驗
+    // 找不到 lproj／key 時的保底行為，不需要真的編出 String Catalog）
+
+    @Test func localizedStringFallsBackToKeyWhenBundleHasNoTranslation() {
+        // Bundle.main 沒有 "not.a.real.key" 這個 table，Foundation 的慣例是原樣回傳 key
+        let result = AppLanguage.en.localizedString("not.a.real.key", bundle: .main)
+        #expect(result == "not.a.real.key")
+    }
 }

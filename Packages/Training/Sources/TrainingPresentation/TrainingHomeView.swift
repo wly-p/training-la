@@ -1,3 +1,4 @@
+import SharedKernel
 import SwiftUI
 import TrainingDomain
 
@@ -107,10 +108,13 @@ public struct TrainingHomeView: View {
         .background(.quaternary, in: RoundedRectangle(cornerRadius: 12))
     }
 
-    /// 「臥推 3組 · 肩推 3組」／「Bench 3 sets · …」。動作名是 DB 資料；「組/sets」依 locale 本地化。
+    /// 「臥推 3組 · 肩推 3組」／「Bench 3 sets · …」。動作名是 DB 資料；「組/sets」用
+    /// `AppLanguage.localizedString` 明確解析（`String(localized:locale:)` 不會依 locale 選語言，不能用）。
     private func planSummary(_ plan: PlannedWorkoutBlueprint) -> String {
-        plan.exercises.map { ex in
-            let count = String(localized: "training.setCountUnit \(ex.setCount)", bundle: .module, locale: locale)
+        let language = AppLanguage(locale: locale)
+        return plan.exercises.map { ex in
+            let format = language.localizedString("training.setCountUnit %lld", bundle: .module)
+            let count = String(format: format, ex.setCount)
             return "\(ex.name) \(count)"
         }
         .joined(separator: " · ")

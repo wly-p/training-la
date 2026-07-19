@@ -4,11 +4,13 @@ import SharedKernel
 
 enum PlanFormatting {
     /// 繁中「臥推 4組 · 肩推 3組」、英文「Bench 4 sets · …」。動作名是 DB 資料；「組/sets」數量單位
-    /// 依 `locale` 本地化（String(localized:) 帶顯式 locale＝吃 app 覆寫的語言，非系統）。
-    static func summary(_ planWorkout: PlanWorkout, name: (UUID) -> String, locale: Locale) -> String {
+    /// 依 `language` 本地化，用 `AppLanguage.localizedString` 明確解析（見該方法註解：
+    /// `String(localized:locale:)` 不會依 locale 選語言，這裡不能用）。
+    static func summary(_ planWorkout: PlanWorkout, name: (UUID) -> String, language: AppLanguage) -> String {
         planWorkout.blocks
             .map { block in
-                let count = String(localized: "plan.setCountUnit \(block.sets.count)", bundle: .module, locale: locale)
+                let format = language.localizedString("plan.setCountUnit %lld", bundle: .module)
+                let count = String(format: format, block.sets.count)
                 return "\(name(block.exerciseId)) \(count)"
             }
             .joined(separator: " · ")
