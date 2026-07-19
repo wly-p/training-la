@@ -133,7 +133,8 @@ struct PlanWorkoutFormView: View {
                     ForEach(WeightUnit.allCases, id: \.self) { Text($0.rawValue).tag($0) }
                 }
                 .labelsHidden()
-                Text("×")
+                // 「×」無需翻譯（verbatim），避免被隱式當 LocalizedStringKey 抽進 String Catalog。
+                Text(verbatim: "×")
                 TextField("", value: Binding(
                     get: { draft.wrappedValue.targetReps ?? 0 },
                     set: { draft.wrappedValue.targetReps = $0 }
