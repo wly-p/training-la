@@ -240,7 +240,9 @@ public struct ActiveWorkoutView: View {
                             .foregroundStyle(set.status == .done ? .green : .secondary)
                         localText("training.setIndex \(set.setIndex + 1)")
                         Spacer()
-                        Text("\(WeightDisplay.weight(set.weight)) × \(set.reps)")
+                        // 重量／次數是數值資料（verbatim）；「×」不用翻譯，寫死字面量會被 SwiftUI 當
+                        // LocalizedStringKey 隱式抽進 String Catalog，故明確 verbatim（見 History 同類註解）。
+                        Text(verbatim: "\(WeightDisplay.weight(set.weight)) × \(set.reps)")
                             .monospacedDigit()
                             .foregroundStyle(set.status == .skipped ? .secondary : .primary)
                         // 復原鍵貼著它要撤銷的那一組，且只有剛記錄的那組有。

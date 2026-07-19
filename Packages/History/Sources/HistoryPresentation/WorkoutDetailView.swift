@@ -145,7 +145,9 @@ struct WorkoutDetailView: View {
                     .font(.caption)
                     .foregroundStyle(.tertiary)
             }
-            Text("\(set.weight.displayString) × \(set.reps)")
+            // 重量／次數是數值資料（verbatim）；「×」不用翻譯，寫死字面量會被 SwiftUI 當
+            // LocalizedStringKey 隱式抽進 String Catalog（自動長出一個 "%@ × %lld" key），故明確 verbatim。
+            Text(verbatim: "\(set.weight.displayString) × \(set.reps)")
                 .monospacedDigit()
         }
     }
