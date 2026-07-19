@@ -102,15 +102,10 @@ final class SettingsUITests: XCTestCase {
         XCTAssertTrue(english.waitForExistence(timeout: 5))
         english.tap()
 
-        // 回設定根頁（此時標題已英文化為 "Settings"，不能再用「設定」定位）
-        let settingsRoot = app.navigationBars["Settings"]
-        if !settingsRoot.waitForExistence(timeout: 2) {
-            app.navigationBars.buttons.firstMatch.tap()
-            XCTAssertTrue(settingsRoot.waitForExistence(timeout: 5))
-        }
-
-        // Settings 內容已英文化：section header 與語言列標籤/值
+        // 切語言觸發 .id(language) 重建：nav 堆疊重置回設定根頁、留在設定分頁。
+        // Settings 內容與大標題已英文化。
         XCTAssertTrue(app.staticTexts["Appearance"].waitForExistence(timeout: 5))
+        XCTAssertTrue(app.navigationBars["Settings"].waitForExistence(timeout: 5), "設定大標題應為 Settings")
         let langRowEN = app.buttons["Language"]
         XCTAssertTrue(langRowEN.waitForExistence(timeout: 5))
         XCTAssertEqual(langRowEN.value as? String, "English")
@@ -118,6 +113,12 @@ final class SettingsUITests: XCTestCase {
         // App target 的 tab bar 也英文化（驗證 app-target String Catalog 生效）
         XCTAssertTrue(app.tabBars.buttons["Settings"].waitForExistence(timeout: 5))
         XCTAssertTrue(app.tabBars.buttons["Training"].exists)
+
+        // 回歸（bug2）：其他分頁的 navigationTitle 也要更新——navigationTitle 橋接 UIKit 被快取、
+        // 不隨 \.locale 重解析，靠 .id(language) 重建整個 TabView 才會以新語言重產。
+        app.tabBars.buttons["History"].tap()
+        XCTAssertTrue(app.navigationBars["History"].waitForExistence(timeout: 5), "切英文後歷史大標題應為 History")
+        XCTAssertFalse(app.navigationBars["歷史"].exists, "切英文後歷史大標題不該還是中文")
     }
 
     @MainActor
