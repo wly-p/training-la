@@ -13,20 +13,28 @@ public struct ExerciseListView: View {
     public var body: some View {
         NavigationStack {
             List {
-                ForEach(viewModel.visibleExercises) { exercise in
-                    Button {
-                        editingTarget = .edit(exercise)
-                    } label: {
-                        row(for: exercise)
-                    }
-                    .buttonStyle(.plain)
-                    .swipeActions(edge: .trailing) {
-                        Button(role: .destructive) {
-                            Task { await viewModel.remove(id: exercise.id) }
+                // chips 放進 List 當 Section header（不是 .safeAreaInset）：List 的 section header
+                // 本來就有「捲動時釘在頂端」的原生行為，效果跟 safeAreaInset 一樣；差別在於它現在是
+                // List 自己 scroll view 的一部分，不是另一個跟 List 競爭的獨立 ScrollView——
+                // 後者會干擾 NavigationStack 大標題的捲動偵測，導致大標題視覺上空白（見對應 bug ticket）。
+                Section {
+                    ForEach(viewModel.visibleExercises) { exercise in
+                        Button {
+                            editingTarget = .edit(exercise)
                         } label: {
-                            localText("spec.delete")
+                            row(for: exercise)
+                        }
+                        .buttonStyle(.plain)
+                        .swipeActions(edge: .trailing) {
+                            Button(role: .destructive) {
+                                Task { await viewModel.remove(id: exercise.id) }
+                            } label: {
+                                localText("spec.delete")
+                            }
                         }
                     }
+                } header: {
+                    filterChips
                 }
             }
             .searchable(text: $viewModel.searchText, prompt: localText("spec.searchExercises"))
@@ -39,9 +47,6 @@ public struct ExerciseListView: View {
                         Label { localText("spec.new") } icon: { Image(systemName: "plus") }
                     }
                 }
-            }
-            .safeAreaInset(edge: .top, spacing: 0) {
-                filterChips
             }
             .overlay {
                 if viewModel.visibleExercises.isEmpty {
