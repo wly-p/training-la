@@ -16,14 +16,22 @@ struct PlanFormattingTests {
         ])
         let names: [UUID: String] = [benchId: "臥推", squatId: "深蹲"]
 
-        let summary = PlanFormatting.summary(plan) { names[$0] ?? "?" }
-
-        #expect(summary == "臥推 2組 · 深蹲 1組")
+        // 註：swift test（SwiftPM CLI）不編譯 String Catalog，這裡不驗「組/sets」本地化字（那由 app 端
+        // PlanScheduleUITests 驗，見 testPlanRowLocalizesSetCountUnit），只驗組合邏輯：兩個動作名、
+        // 依序、以 " · " 相連。
+        let summary = PlanFormatting.summary(plan, name: { names[$0] ?? "?" }, language: .zhHant)
+        #expect(summary.contains("臥推"))
+        #expect(summary.contains("深蹲"))
+        #expect(summary.hasPrefix("臥推 "))
+        #expect(summary.contains(" · 深蹲 "))
     }
 
-    @Test func dayLabelIncludesMonthDayAndWeekday() {
-        #expect(PlanFormatting.dayLabel(DayDate(year: 2026, month: 1, day: 1)) == "1/1 (四)")
-        #expect(PlanFormatting.dayLabel(DayDate(year: 2026, month: 7, day: 12)) == "7/12 (日)")
+    @Test func dayLabelIncludesMonthDayAndLocalizedWeekday() {
+        let zh = PlanFormatting.dayLabel(DayDate(year: 2026, month: 1, day: 1), locale: Locale(identifier: "zh-Hant"))
+        #expect(zh.hasPrefix("1/1 ("))
+        #expect(zh.hasSuffix(")"))
+        let en = PlanFormatting.dayLabel(DayDate(year: 2026, month: 1, day: 1), locale: Locale(identifier: "en"))
+        #expect(en.contains("Thu"))
     }
 
     @Test func dayDateAsDateRoundTripsThroughGregorianCalendar() {

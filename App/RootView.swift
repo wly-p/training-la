@@ -13,6 +13,8 @@ struct RootView: View {
     @State private var historyViewModel: HistoryViewModel
     @State private var planScheduleViewModel: PlanScheduleViewModel
     @State private var settingsViewModel: SettingsViewModel
+    /// 目前分頁；放在被 `.id(language)` 重建的 TabView 外層，切語言重建後才能留在原分頁。
+    @State private var selection = 0
 
     init(dependencies: AppDependencies, onEraseAll: @escaping @MainActor () -> Void) {
         self.dependencies = dependencies
@@ -24,27 +26,38 @@ struct RootView: View {
     }
 
     var body: some View {
-        TabView {
+        TabView(selection: $selection) {
             TrainingHomeView(
                 viewModel: trainingHomeViewModel,
                 makeActiveWorkoutViewModel: dependencies.makeActiveWorkoutViewModel
             )
-            .tabItem { Label("訓練", systemImage: "figure.strengthtraining.traditional") }
+            // tab 文字走 App target 自帶的 Localizable.xcstrings（在 main bundle，Label 預設查 main，
+            // 不需 bundle: 參數）；隨根部注入的 \.locale 即時切換。
+            .tabItem { Label("tab.training", systemImage: "figure.strengthtraining.traditional") }
+            .tag(0)
             ExerciseListView(viewModel: exerciseListViewModel)
-                .tabItem { Label("動作庫", systemImage: "books.vertical") }
+                .tabItem { Label("tab.exercises", systemImage: "books.vertical") }
+                .tag(1)
             PlanScheduleView(viewModel: planScheduleViewModel)
-                .tabItem { Label("課表", systemImage: "calendar") }
+                .tabItem { Label("tab.plan", systemImage: "calendar") }
+                .tag(2)
             HistoryView(viewModel: historyViewModel)
-                .tabItem { Label("歷史", systemImage: "chart.line.uptrend.xyaxis") }
+                .tabItem { Label("tab.history", systemImage: "chart.line.uptrend.xyaxis") }
+                .tag(3)
             SettingsView(
                 viewModel: settingsViewModel,
                 appVersion: AppVersion.displayString(infoDictionary: Bundle.main.infoDictionary ?? [:])
             )
-            .tabItem { Label("設定", systemImage: "gearshape") }
+            .tabItem { Label("tab.settings", systemImage: "gearshape") }
+            .tag(4)
         }
         // 主題套在根部：設定 tab 一改，整個 App 立即換色
         .preferredColorScheme(settingsViewModel.theme.colorScheme)
-        // 語言同樣套在根部：注入 \.locale 讓所有 Text(key, bundle:) 依此語言查表，切換即時重繪
+        // 語言套在根部：注入 \.locale 讓所有 Text(key, bundle:) 依此語言查表，body 內文字即時重繪。
         .environment(\.locale, settingsViewModel.language.locale)
+        // navigationTitle 橋接 UIKit navigationItem、建立時解析一次就快取，不隨 \.locale 重解析；
+        // 切語言時用 .id 強制整個 TabView 子樹重建，標題以新語言重產（同「刪除所有資料」的 resetToken 手法）。
+        // selection 綁在外層 @State，重建後留在原分頁。
+        .id(settingsViewModel.language)
     }
 }

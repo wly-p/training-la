@@ -1,6 +1,7 @@
 import Foundation
 import HistoryDomain
 import SharedKernel
+import SwiftUI
 
 enum HistoryFormatting {
     /// 一場某動作的摘要："60kg × 8, 8, 6"（同重量）或逐組列出（混重量）。
@@ -13,12 +14,12 @@ enum HistoryFormatting {
         return sets.map { "\($0.weight.displayString)×\($0.reps)" }.joined(separator: ", ")
     }
 
-    /// 組狀態的中文標籤（編輯用選單）。
-    static func statusLabel(_ status: WorkoutSetStatus) -> String {
+    /// 組狀態標籤的 String Catalog key（View 用 `localText(_:)` 映射多語；繁中值見 Localizable.xcstrings）。
+    static func statusLabel(_ status: WorkoutSetStatus) -> LocalizedStringKey {
         switch status {
-        case .done: return "完成"
-        case .skipped: return "跳過"
-        case .interrupted: return "中斷"
+        case .done: "history.status.done"
+        case .skipped: "history.status.skipped"
+        case .interrupted: "history.status.interrupted"
         }
     }
 
@@ -29,17 +30,21 @@ enum HistoryFormatting {
         return feelingEmojis[value] ?? ""
     }
 
-    /// 2026-07-09 → "7/9 (三)"
-    static func dayLabel(_ day: DayDate) -> String {
+    /// 2026-07-09 → 繁中「7/9 (週三)」、英文「7/9 (Wed)」。星期依傳入的 `locale` 取當地縮寫，
+    /// 由 View 傳 `@Environment(\.locale)`，切語言即時更新。
+    static func dayLabel(_ day: DayDate, locale: Locale) -> String {
         var components = DateComponents()
         components.year = day.year
         components.month = day.month
         components.day = day.day
-        let weekdaySymbols = ["日", "一", "二", "三", "四", "五", "六"]
+        var cal = Calendar(identifier: .gregorian)
+        cal.locale = locale
         var suffix = ""
-        if let date = Calendar(identifier: .gregorian).date(from: components) {
-            let weekday = Calendar(identifier: .gregorian).component(.weekday, from: date)
-            suffix = " (\(weekdaySymbols[(weekday - 1) % 7]))"
+        if let date = cal.date(from: components) {
+            let formatter = DateFormatter()
+            formatter.locale = locale
+            let weekday = cal.component(.weekday, from: date) // 1=Sunday
+            suffix = " (\(formatter.shortWeekdaySymbols[(weekday - 1) % 7]))"
         }
         return "\(day.month)/\(day.day)\(suffix)"
     }

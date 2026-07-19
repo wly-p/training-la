@@ -29,11 +29,6 @@ public struct PlannedWorkoutBlueprint: Equatable, Sendable {
         return order.map { grouped[$0]! }
     }
 
-    /// "臥推 3組 · 肩推 3組"
-    public var summary: String {
-        exercises.map { "\($0.name) \($0.setCount)組" }.joined(separator: " · ")
-    }
-
     /// 某動作在此藍圖裡、第 `position` 組（0-based）的目標。
     public func target(exerciseId: UUID, position: Int) -> PlannedTargetSet? {
         targets

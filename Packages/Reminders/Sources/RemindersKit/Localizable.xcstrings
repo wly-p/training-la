@@ -1,0 +1,18 @@
+{
+  "sourceLanguage" : "zh-Hant",
+  "strings" : {
+    "reminders.restOver.title" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Rest Over" } },
+        "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "休息結束" } }
+      }
+    },
+    "reminders.restOver.body" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Time's up — get ready for your next set." } },
+        "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "休息時間到了，準備下一組。" } }
+      }
+    }
+  },
+  "version" : "1.0"
+}

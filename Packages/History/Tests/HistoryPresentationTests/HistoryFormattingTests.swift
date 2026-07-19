@@ -41,8 +41,13 @@ struct HistoryFormattingTests {
         #expect(HistoryFormatting.feeling(99) == "")
     }
 
-    @Test func dayLabelIncludesMonthDayAndWeekday() {
-        #expect(HistoryFormatting.dayLabel(DayDate(year: 2026, month: 1, day: 1)) == "1/1 (四)")
-        #expect(HistoryFormatting.dayLabel(DayDate(year: 2026, month: 7, day: 12)) == "7/12 (日)")
+    @Test func dayLabelIncludesMonthDayAndLocalizedWeekday() {
+        // 月/日固定；星期依 locale 取當地縮寫（不硬比字串，避免 OS 版本差異）
+        let zh = HistoryFormatting.dayLabel(DayDate(year: 2026, month: 1, day: 1), locale: Locale(identifier: "zh-Hant"))
+        #expect(zh.hasPrefix("1/1 ("))
+        #expect(zh.hasSuffix(")"))
+        // 英文 locale → 英文星期縮寫（2026-01-01 是週四）
+        let en = HistoryFormatting.dayLabel(DayDate(year: 2026, month: 1, day: 1), locale: Locale(identifier: "en"))
+        #expect(en.contains("Thu"))
     }
 }

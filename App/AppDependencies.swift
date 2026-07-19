@@ -55,7 +55,7 @@ struct AppDependencies {
             ? RestEndReminder(notifications: NoopRestNotificationScheduling(),
                               sound: NoopReminderSoundPlaying(),
                               store: reminderStore)
-            : RestEndReminder(notifications: UserNotificationRestScheduler(),
+            : RestEndReminder(notifications: UserNotificationRestScheduler(languageStore: languageStore),
                               sound: SystemSoundReminderPlayer(),
                               store: reminderStore)
         return assemble(

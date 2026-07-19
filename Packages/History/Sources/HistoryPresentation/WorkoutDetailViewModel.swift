@@ -13,7 +13,8 @@ public final class WorkoutDetailViewModel {
     /// 刪除完成 → View 觀察到就關閉詳情頁。
     public private(set) var isDeleted = false
     public private(set) var isSaving = false
-    public private(set) var errorMessage: String?
+    /// 本地化錯誤字串（延後解析，由 View 依 Environment locale 顯示）。
+    public private(set) var errorMessage: LocalizedStringResource?
 
     /// 編輯中的各組草稿（key = set id）；進入編輯時由 detail 快照而來。
     public private(set) var drafts: [UUID: SetDraft] = [:]
@@ -103,7 +104,7 @@ public final class WorkoutDetailViewModel {
             detail = await loadDetail() // 重讀本頁
             await onChange()            // 刷新母清單（按日期／按動作）
         } catch {
-            errorMessage = "儲存失敗：\(error.localizedDescription)"
+            errorMessage = .history("history.error.saveFailed \(error.localizedDescription)")
         }
     }
 
@@ -115,7 +116,7 @@ public final class WorkoutDetailViewModel {
             isDeleted = true
             await onChange()
         } catch {
-            errorMessage = "刪除失敗：\(error.localizedDescription)"
+            errorMessage = .history("history.error.deleteFailed \(error.localizedDescription)")
         }
     }
 

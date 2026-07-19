@@ -7,7 +7,8 @@ import SpecDomain
 @Observable
 public final class ExerciseListViewModel {
     public private(set) var exercises: [Exercise] = []
-    public private(set) var errorMessage: String?
+    /// 本地化錯誤字串（延後解析，由 View 依 Environment locale 顯示）。
+    public private(set) var errorMessage: LocalizedStringResource?
     public var filter: MuscleGroup?
     public var searchText: String = ""
 
@@ -78,18 +79,18 @@ public final class ExerciseListViewModel {
         errorMessage = nil
     }
 
-    private static func message(for error: Error) -> String {
+    private static func message(for error: Error) -> LocalizedStringResource {
         switch error {
         case ExerciseValidationError.emptyName:
-            "動作名稱不能是空白"
+            .spec("spec.error.nameBlank")
         case ExerciseValidationError.nameTooLong(let max):
-            "動作名稱最長 \(max) 字"
+            .spec("spec.error.nameTooLong \(max)")
         case ExerciseRepositoryError.notFound:
-            "找不到這個動作，可能已被刪除"
+            .spec("spec.error.notFound")
         case ExerciseRepositoryError.inUse:
-            "此動作已被課表或訓練紀錄使用，無法刪除"
+            .spec("spec.error.inUse")
         default:
-            "發生錯誤：\(error.localizedDescription)"
+            .spec("spec.error.generic \(error.localizedDescription)")
         }
     }
 }

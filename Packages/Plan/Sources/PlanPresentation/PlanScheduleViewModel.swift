@@ -8,7 +8,8 @@ import SharedKernel
 public final class PlanScheduleViewModel {
     public private(set) var planWorkouts: [PlanWorkout] = []
     public private(set) var catalog: [PlanCatalogExercise] = []
-    public private(set) var errorMessage: String?
+    /// 本地化錯誤字串（延後解析，由 View 依 Environment locale 顯示）。
+    public private(set) var errorMessage: LocalizedStringResource?
 
     private let listPlanWorkouts: ListPlanWorkouts
     private let createPlanWorkout: CreatePlanWorkout
@@ -48,7 +49,7 @@ public final class PlanScheduleViewModel {
             catalog = try await exerciseCatalog.exercises()
             errorMessage = nil
         } catch {
-            errorMessage = "讀取課表失敗：\(error.localizedDescription)"
+            errorMessage = .plan("plan.error.loadFailed \(error.localizedDescription)")
         }
     }
 
@@ -71,9 +72,9 @@ public final class PlanScheduleViewModel {
             try await operation()
             await load()
         } catch PlanWorkoutValidationError.empty {
-            errorMessage = "排課至少要有一個動作"
+            errorMessage = .plan("plan.error.needExercise")
         } catch {
-            errorMessage = "操作失敗：\(error.localizedDescription)"
+            errorMessage = .plan("plan.error.actionFailed \(error.localizedDescription)")
         }
     }
 }
