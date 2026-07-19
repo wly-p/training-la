@@ -2,33 +2,88 @@
   "sourceLanguage" : "zh-Hant",
   "strings" : {
     "tab.exercises" : {
+      "extractionState" : "stale",
       "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "Exercises" } },
-        "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "動作庫" } }
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Exercises"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "動作庫"
+          }
+        }
       }
     },
     "tab.history" : {
+      "extractionState" : "stale",
       "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "History" } },
-        "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "歷史" } }
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "History"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "歷史"
+          }
+        }
       }
     },
     "tab.plan" : {
+      "extractionState" : "stale",
       "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "Plans" } },
-        "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "課表" } }
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Plans"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "課表"
+          }
+        }
       }
     },
     "tab.settings" : {
+      "extractionState" : "stale",
       "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "Settings" } },
-        "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "設定" } }
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Settings"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "設定"
+          }
+        }
       }
     },
     "tab.training" : {
+      "extractionState" : "stale",
       "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "Training" } },
-        "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "訓練" } }
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Training"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "訓練"
+          }
+        }
       }
     }
   },
