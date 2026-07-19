@@ -115,7 +115,8 @@ public struct ActiveWorkoutView: View {
             Color.black.opacity(0.35)
                 .ignoresSafeArea()
             VStack(spacing: 14) {
-                Text(viewModel.isPlanFullyDone ? "🎉" : "💪")
+                // 表情符號無需翻譯（verbatim），避免被隱式當 LocalizedStringKey 抽進 String Catalog。
+                Text(verbatim: viewModel.isPlanFullyDone ? "🎉" : "💪")
                     .font(.system(size: 44))
                 (viewModel.isPlanFullyDone
                     ? localText("training.planComplete")
