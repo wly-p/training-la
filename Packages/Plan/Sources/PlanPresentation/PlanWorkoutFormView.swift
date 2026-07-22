@@ -55,7 +55,7 @@ struct PlanWorkoutFormView: View {
 
                 ExerciseDraftsEditor(drafts: $drafts, catalog: catalog, readOnly: readOnly)
             }
-            .navigationTitle(navTitle)
+            .navigationTitle(localText(navTitle))
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button { dismiss() } label: { localText(readOnly ? "plan.close" : "plan.cancel") }

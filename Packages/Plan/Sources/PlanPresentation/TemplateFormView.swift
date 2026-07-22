@@ -43,7 +43,7 @@ struct TemplateFormView: View {
                 }
                 ExerciseDraftsEditor(drafts: $drafts, catalog: catalog)
             }
-            .navigationTitle(isCreating ? "template.new" : "template.edit")
+            .navigationTitle(localText(isCreating ? "template.new" : "template.edit"))
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button { dismiss() } label: { localText("plan.cancel") }
