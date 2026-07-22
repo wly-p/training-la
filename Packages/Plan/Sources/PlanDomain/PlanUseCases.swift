@@ -111,6 +111,18 @@ public struct MarkPlanWorkoutDone: Sendable {
     }
 }
 
+/// 還原排課為未開始（刪除對應訓練場次、該排課已無完成紀錄時觸發）。
+public struct RevertPlanWorkoutDone: Sendable {
+    private let repository: any PlanWorkoutRepository
+    public init(repository: any PlanWorkoutRepository) { self.repository = repository }
+
+    public func callAsFunction(id: UUID) async throws {
+        guard var planWorkout = try await repository.get(id: id) else { return }
+        planWorkout.status = .notStarted
+        try await repository.save(planWorkout)
+    }
+}
+
 /// 決定「今天要做的排課」：今天指定日、還沒完成的第一張（依 orderIndex）。
 /// 循環／排程規律留待 Phase 2 由排程層驅動。
 public struct TodaysWorkout: Sendable {

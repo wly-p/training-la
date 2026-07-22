@@ -92,7 +92,8 @@ struct AppDependencies {
         // History 的讀取／編輯 port ← Training 紀錄 ＋ Spec 動作名稱（同一個 adapter 兼兩職）
         let historyReading = HistoryReadingAdapter(
             workoutRepository: workoutRepository,
-            listExercises: ListExercises(repository: exerciseRepository)
+            listExercises: ListExercises(repository: exerciseRepository),
+            revertPlanWorkout: RevertPlanWorkoutDone(repository: planRepository)
         )
         // Training ↔ Plan 的兩條 port（今天排課、標記完成）
         let plannedProvider = PlanProviderAdapter(

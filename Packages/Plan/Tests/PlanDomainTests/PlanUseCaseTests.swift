@@ -137,3 +137,19 @@ struct MarkPlanDoneTests {
         try await MarkPlanWorkoutDone(repository: repo)(id: UUID())
     }
 }
+
+struct RevertPlanDoneTests {
+    @Test func revertsDoneToNotStarted() async throws {
+        let repo = MockPlanWorkoutRepository()
+        let plan = PlanWorkout(id: UUID(), name: "推", date: sampleDate, status: .done, orderIndex: 0)
+        await repo.seed([plan])
+
+        try await RevertPlanWorkoutDone(repository: repo)(id: plan.id)
+
+        #expect(try await repo.get(id: plan.id)?.status == .notStarted)
+    }
+
+    @Test func missingIdIsNoop() async throws {
+        try await RevertPlanWorkoutDone(repository: MockPlanWorkoutRepository())(id: UUID())
+    }
+}
