@@ -9,6 +9,7 @@ import TrainingPresentation
 struct RootView: View {
     private let dependencies: AppDependencies
     @State private var exerciseListViewModel: ExerciseListViewModel
+    @State private var templateListViewModel: TemplateListViewModel
     @State private var trainingHomeViewModel: TrainingHomeViewModel
     @State private var historyViewModel: HistoryViewModel
     @State private var planScheduleViewModel: PlanScheduleViewModel
@@ -19,6 +20,7 @@ struct RootView: View {
     init(dependencies: AppDependencies, onEraseAll: @escaping @MainActor () -> Void) {
         self.dependencies = dependencies
         _exerciseListViewModel = State(initialValue: dependencies.makeExerciseListViewModel())
+        _templateListViewModel = State(initialValue: dependencies.makeTemplateListViewModel())
         _trainingHomeViewModel = State(initialValue: dependencies.makeTrainingHomeViewModel())
         _historyViewModel = State(initialValue: dependencies.makeHistoryViewModel())
         _planScheduleViewModel = State(initialValue: dependencies.makePlanScheduleViewModel())
@@ -35,9 +37,12 @@ struct RootView: View {
             // 不需 bundle: 參數）；隨根部注入的 \.locale 即時切換。
             .tabItem { Label("tab.training", systemImage: "figure.strengthtraining.traditional") }
             .tag(0)
-            ExerciseListView(viewModel: exerciseListViewModel)
-                .tabItem { Label("tab.exercises", systemImage: "books.vertical") }
-                .tag(1)
+            LibraryTabView(
+                exerciseViewModel: exerciseListViewModel,
+                templateViewModel: templateListViewModel
+            )
+            .tabItem { Label("tab.exercises", systemImage: "books.vertical") }
+            .tag(1)
             PlanScheduleView(viewModel: planScheduleViewModel)
                 .tabItem { Label("tab.plan", systemImage: "calendar") }
                 .tag(2)
@@ -59,5 +64,31 @@ struct RootView: View {
         // 切語言時用 .id 強制整個 TabView 子樹重建，標題以新語言重產（同「刪除所有資料」的 resetToken 手法）。
         // selection 綁在外層 @State，重建後留在原分頁。
         .id(settingsViewModel.language)
+    }
+}
+
+/// 動作庫 tab：以分段切換「動作」與「課表範本」兩種可重複使用的訓練素材。
+private struct LibraryTabView: View {
+    let exerciseViewModel: ExerciseListViewModel
+    let templateViewModel: TemplateListViewModel
+    @State private var mode = 0
+
+    var body: some View {
+        VStack(spacing: 0) {
+            Picker("", selection: $mode) {
+                Text("library.exercises").tag(0)
+                Text("library.templates").tag(1)
+            }
+            .pickerStyle(.segmented)
+            .labelsHidden()
+            .padding(.horizontal)
+            .padding(.top, 8)
+
+            if mode == 0 {
+                ExerciseListView(viewModel: exerciseViewModel)
+            } else {
+                TemplateListView(viewModel: templateViewModel)
+            }
+        }
     }
 }

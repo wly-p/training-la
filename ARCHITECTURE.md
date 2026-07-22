@@ -179,10 +179,14 @@ sudo xcode-select -s /Applications/Xcode.app/Contents/Developer
 
 ```
 Exercise 動作庫 ─ 可重複使用的動作定義（Spec 模組）
-  id, name, muscleGroup(enum), equipment(enum), description
+  id, name, muscleGroup(enum), equipment(enum), description, source(user/official)
 
-PlanWorkout 一次排課（aggregate root，Plan 模組）
-  id, name?, date?(nil=循環/有值=指定日), status, orderIndex
+WorkoutTemplate 課表範本（aggregate root，Plan 模組）─ 可重複使用、無日期無狀態
+  id, name, source(user/official), orderIndex
+   └─ sets: PlanSet（與排課共用），實例化時 copy 快照成 PlanWorkout
+
+PlanWorkout 一次排課（aggregate root，Plan 模組）─ 一定綁定某天
+  id, name?, date, status, templateId?(來源範本/nil=手建), orderIndex
    └─ PlanSet 一組目標
         id, exerciseId, exerciseIndex, setIndex,
         targetWeight?: {value, unit}, targetReps?, restSec?

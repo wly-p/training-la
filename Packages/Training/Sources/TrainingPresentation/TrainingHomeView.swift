@@ -48,6 +48,9 @@ public struct TrainingHomeView: View {
                             Task { await viewModel.startFree() }
                         }
                     }
+                    if !viewModel.templates.isEmpty {
+                        templateMenu
+                    }
                 }
                 Spacer()
             }
@@ -73,6 +76,22 @@ public struct TrainingHomeView: View {
             } message: {
                 Text(viewModel.errorMessage ?? "")
             }
+        }
+    }
+
+    private var templateMenu: some View {
+        Menu {
+            ForEach(viewModel.templates) { template in
+                Button {
+                    Task { await viewModel.startFromTemplate(id: template.id) }
+                } label: {
+                    // 範本名是使用者資料（verbatim）
+                    Text(verbatim: template.name)
+                }
+            }
+        } label: {
+            Label { localText("training.startFromTemplate") } icon: { Image(systemName: "square.stack.3d.up") }
+                .font(.subheadline)
         }
     }
 

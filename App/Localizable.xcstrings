@@ -1,6 +1,38 @@
 {
   "sourceLanguage" : "zh-Hant",
   "strings" : {
+    "library.exercises" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Exercises"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "動作"
+          }
+        }
+      }
+    },
+    "library.templates" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Templates"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "課表範本"
+          }
+        }
+      }
+    },
     "tab.exercises" : {
       "extractionState" : "stale",
       "localizations" : {

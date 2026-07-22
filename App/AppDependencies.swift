@@ -1,3 +1,4 @@
+import Foundation
 import HistoryDomain
 import HistoryPresentation
 import PlanData
@@ -24,6 +25,7 @@ struct AppDependencies {
     let makeActiveWorkoutViewModel: @MainActor (Workout) -> ActiveWorkoutViewModel
     let makeHistoryViewModel: @MainActor () -> HistoryViewModel
     let makePlanScheduleViewModel: @MainActor () -> PlanScheduleViewModel
+    let makeTemplateListViewModel: @MainActor () -> TemplateListViewModel
     /// `onErased`：清除成功後由 App 層觸發整個畫面重建（回到全新初始狀態）。
     let makeSettingsViewModel: @MainActor (_ onErased: @escaping @MainActor () -> Void) -> SettingsViewModel
 
@@ -38,10 +40,12 @@ struct AppDependencies {
         )
         let workoutRepository = TrainingDataFactory.makeWorkoutRepository(container: container)
         let planRepository = PlanDataFactory.makePlanWorkoutRepository(container: container)
-        // 本地落實 in_use：刪動作前查 Training / Plan 有沒有引用
+        let templateRepository = PlanDataFactory.makeWorkoutTemplateRepository(container: container)
+        // 本地落實 in_use：刪動作前查 Training / Plan / 範本 有沒有引用
         let usageChecker = ExerciseUsageChecker(
             workoutRepository: workoutRepository,
-            planRepository: planRepository
+            planRepository: planRepository,
+            templateRepository: templateRepository
         )
         // 休息提醒偏好：真實用 UserDefaults；UI 測試用記憶體。Settings 與 reminder 共用同一實例。
         let reminderStore: any RestReminderPreferenceStoring =
@@ -64,6 +68,7 @@ struct AppDependencies {
             ),
             workoutRepository: workoutRepository,
             planRepository: planRepository,
+            templateRepository: templateRepository,
             reminder: reminder,
             reminderStore: reminderStore,
             languageStore: languageStore,
@@ -76,6 +81,7 @@ struct AppDependencies {
         exerciseRepository: any ExerciseRepository,
         workoutRepository: any WorkoutRepository,
         planRepository: any PlanWorkoutRepository,
+        templateRepository: any WorkoutTemplateRepository,
         reminder: any RestEndReminding,
         reminderStore: any RestReminderPreferenceStoring,
         languageStore: any LanguagePreferenceStoring = InMemoryLanguageStore(),
@@ -92,6 +98,9 @@ struct AppDependencies {
         let plannedProvider = PlanProviderAdapter(
             todaysWorkout: TodaysWorkout(repository: planRepository),
             getPlanWorkout: { try await planRepository.get(id: $0) },
+            listTemplates: ListTemplates(repository: templateRepository),
+            instantiateTemplate: InstantiateTemplate(templateRepository: templateRepository, planRepository: planRepository),
+            today: { DayDate(Date()) },
             listExercises: ListExercises(repository: exerciseRepository)
         )
         let planProgress = PlanProgressAdapter(markDone: MarkPlanWorkoutDone(repository: planRepository))
@@ -134,6 +143,15 @@ struct AppDependencies {
                     createPlanWorkout: CreatePlanWorkout(repository: planRepository),
                     updatePlanWorkout: UpdatePlanWorkout(repository: planRepository),
                     deletePlanWorkout: DeletePlanWorkout(repository: planRepository),
+                    exerciseCatalog: planCatalog
+                )
+            },
+            makeTemplateListViewModel: {
+                TemplateListViewModel(
+                    listTemplates: ListTemplates(repository: templateRepository),
+                    createTemplate: CreateTemplate(repository: templateRepository),
+                    updateTemplate: UpdateTemplate(repository: templateRepository),
+                    deleteTemplate: DeleteTemplate(repository: templateRepository),
                     exerciseCatalog: planCatalog
                 )
             },

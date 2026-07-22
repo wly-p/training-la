@@ -41,14 +41,6 @@ public actor SwiftDataPlanWorkoutRepository: PlanWorkoutRepository {
         return try modelContext.fetch(descriptor).map { $0.toDomain() }
     }
 
-    public func cycle() async throws -> [PlanWorkout] {
-        let descriptor = FetchDescriptor<PlanWorkoutModel>(
-            predicate: #Predicate { $0.date == nil },
-            sortBy: [SortDescriptor(\.orderIndex)]
-        )
-        return try modelContext.fetch(descriptor).map { $0.toDomain() }
-    }
-
     public func usesExercise(_ exerciseId: UUID) async throws -> Bool {
         var descriptor = FetchDescriptor<PlanSetModel>(
             predicate: #Predicate { $0.exerciseId == exerciseId }

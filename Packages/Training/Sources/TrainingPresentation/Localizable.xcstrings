@@ -794,6 +794,22 @@
         }
       }
     },
+    "training.startFromTemplate" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Start from Template"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "從課表範本開始"
+          }
+        }
+      }
+    },
     "training.startNextSet" : {
       "localizations" : {
         "en" : {

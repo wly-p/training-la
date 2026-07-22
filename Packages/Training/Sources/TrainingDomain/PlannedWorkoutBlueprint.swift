@@ -72,10 +72,26 @@ public struct PlannedTargetSet: Identifiable, Equatable, Sendable {
     }
 }
 
-/// port：今天的排課（給訓練首頁的排課卡）＋ 依 id 找回藍圖（恢復進行中場次用）。
+/// 課表範本的精簡摘要（給訓練首頁「選範本開始」的清單）。
+public struct PlannedTemplateSummary: Identifiable, Equatable, Sendable {
+    public let id: UUID
+    public let name: String
+
+    public init(id: UUID, name: String) {
+        self.id = id
+        self.name = name
+    }
+}
+
+/// port：今天的排課（給訓練首頁的排課卡）＋ 依 id 找回藍圖（恢復進行中場次用）
+/// ＋ 課表範本清單／依範本實例化成當日排課藍圖（「選範本開始」用）。
 public protocol PlannedWorkoutProvider: Sendable {
     func todaysPlan() async throws -> PlannedWorkoutBlueprint?
     func blueprint(planWorkoutId: UUID) async throws -> PlannedWorkoutBlueprint?
+    /// 可套用的課表範本清單。
+    func templates() async throws -> [PlannedTemplateSummary]
+    /// 依範本建立當日排課，回傳其藍圖（供直接開始訓練）。
+    func instantiate(templateId: UUID) async throws -> PlannedWorkoutBlueprint?
 }
 
 /// port：訓練結束時回報排課進度（App 接到 Plan domain 的標記完成）。
