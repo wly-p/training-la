@@ -13,6 +13,7 @@ final class ExerciseCompletionUITests: XCTestCase {
         // 課表：臥推 + 深蹲（各預設 3 組、不設休息，避免倒數拖慢測試）
         app.tabBars.buttons["課表"].tap()
         app.buttons["新增排課"].tap()
+        app.buttons["空白建立"].tap()  // 「+」選單 → 空白建立
         let planName = app.textFields["名稱（例：推日）"]
         XCTAssertTrue(planName.waitForExistence(timeout: 5))
         planName.tap()

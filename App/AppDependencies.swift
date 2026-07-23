@@ -144,6 +144,8 @@ struct AppDependencies {
                     createPlanWorkout: CreatePlanWorkout(repository: planRepository),
                     updatePlanWorkout: UpdatePlanWorkout(repository: planRepository),
                     deletePlanWorkout: DeletePlanWorkout(repository: planRepository),
+                    listTemplates: ListTemplates(repository: templateRepository),
+                    instantiateTemplate: InstantiateTemplate(templateRepository: templateRepository, planRepository: planRepository),
                     exerciseCatalog: planCatalog
                 )
             },

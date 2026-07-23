@@ -20,6 +20,7 @@ final class RestTimerUITests: XCTestCase {
         // 課表：新增排課，休息設 2 秒
         app.tabBars.buttons["課表"].tap()
         app.buttons["新增排課"].tap()
+        app.buttons["空白建立"].tap()  // 「+」選單 → 空白建立
         let planName = app.textFields["名稱（例：推日）"]
         XCTAssertTrue(planName.waitForExistence(timeout: 5))
         planName.tap()
