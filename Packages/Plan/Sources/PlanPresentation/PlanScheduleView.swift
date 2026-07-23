@@ -14,20 +14,7 @@ public struct PlanScheduleView: View {
     public var body: some View {
         NavigationStack {
             List {
-                if !viewModel.datedWorkouts.isEmpty {
-                    Section {
-                        ForEach(viewModel.datedWorkouts) { row($0) }
-                    } header: {
-                        localText("plan.datedSection")
-                    }
-                }
-                if !viewModel.cycleWorkouts.isEmpty {
-                    Section {
-                        ForEach(viewModel.cycleWorkouts) { row($0) }
-                    } header: {
-                        localText("plan.cycleSection")
-                    }
-                }
+                ForEach(viewModel.datedWorkouts) { row($0) }
             }
             .navigationTitle(localText("plan.title"))
             .toolbar {
@@ -52,7 +39,8 @@ public struct PlanScheduleView: View {
             .sheet(item: $editing) { target in
                 PlanWorkoutFormView(
                     target: target,
-                    catalog: viewModel.catalog
+                    catalog: viewModel.catalog,
+                    readOnly: target.isDone
                 ) { name, date, drafts in
                     switch target {
                     case .create:
@@ -85,11 +73,9 @@ public struct PlanScheduleView: View {
                     // 課表名是 DB 資料（verbatim）；沒命名時用本地化的「未命名」
                     (plan.name.map { Text(verbatim: $0) } ?? localText("plan.untitled")).font(.headline)
                     Spacer()
-                    if let date = plan.date {
-                        Text(PlanFormatting.dayLabel(date, locale: locale))
-                            .font(.caption)
-                            .foregroundStyle(.secondary)
-                    }
+                    Text(PlanFormatting.dayLabel(plan.date, locale: locale))
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
                     if plan.status == .done {
                         Image(systemName: "checkmark.circle.fill").foregroundStyle(.green)
                     }
@@ -120,5 +106,11 @@ enum PlanFormTarget: Identifiable {
         case .create: "create"
         case .edit(let plan): plan.id.uuidString
         }
+    }
+
+    /// 已完成的排課 → 表單以唯讀開啟。
+    var isDone: Bool {
+        if case .edit(let plan) = self { return plan.status == .done }
+        return false
     }
 }

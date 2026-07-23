@@ -9,7 +9,7 @@ struct PlanFormattingTests {
     @Test func summaryJoinsExerciseNamesWithSetCounts() {
         let benchId = UUID()
         let squatId = UUID()
-        let plan = PlanWorkout(id: UUID(), name: "推日", date: nil, orderIndex: 0, sets: [
+        let plan = PlanWorkout(id: UUID(), name: "推日", date: DayDate(year: 2026, month: 7, day: 9), orderIndex: 0, sets: [
             PlanSet(id: UUID(), exerciseId: benchId, exerciseIndex: 0, setIndex: 0, targetWeight: nil, targetReps: nil),
             PlanSet(id: UUID(), exerciseId: benchId, exerciseIndex: 0, setIndex: 1, targetWeight: nil, targetReps: nil),
             PlanSet(id: UUID(), exerciseId: squatId, exerciseIndex: 1, setIndex: 0, targetWeight: nil, targetReps: nil),

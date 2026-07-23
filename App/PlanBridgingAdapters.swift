@@ -11,6 +11,9 @@ import TrainingDomain
 struct PlanProviderAdapter: PlannedWorkoutProvider {
     let todaysWorkout: TodaysWorkout
     let getPlanWorkout: @Sendable (UUID) async throws -> PlanWorkout?
+    let listTemplates: ListTemplates
+    let instantiateTemplate: InstantiateTemplate
+    let today: @Sendable () -> DayDate
     let listExercises: ListExercises
 
     func todaysPlan() async throws -> PlannedWorkoutBlueprint? {
@@ -20,6 +23,15 @@ struct PlanProviderAdapter: PlannedWorkoutProvider {
 
     func blueprint(planWorkoutId: UUID) async throws -> PlannedWorkoutBlueprint? {
         guard let plan = try await getPlanWorkout(planWorkoutId) else { return nil }
+        return try await blueprint(from: plan)
+    }
+
+    func templates() async throws -> [PlannedTemplateSummary] {
+        try await listTemplates().map { PlannedTemplateSummary(id: $0.id, name: $0.name) }
+    }
+
+    func instantiate(templateId: UUID) async throws -> PlannedWorkoutBlueprint? {
+        let plan = try await instantiateTemplate(templateId: templateId, date: today())
         return try await blueprint(from: plan)
     }
 
@@ -67,9 +79,11 @@ struct PlanCatalogAdapter: PlanExerciseCatalog {
 struct ExerciseUsageChecker: ExerciseUsageChecking {
     let workoutRepository: any WorkoutRepository
     let planRepository: any PlanWorkoutRepository
+    let templateRepository: any WorkoutTemplateRepository
 
     func isUsed(exerciseId: UUID) async throws -> Bool {
         if try await workoutRepository.usesExercise(exerciseId) { return true }
-        return try await planRepository.usesExercise(exerciseId)
+        if try await planRepository.usesExercise(exerciseId) { return true }
+        return try await templateRepository.usesExercise(exerciseId)
     }
 }

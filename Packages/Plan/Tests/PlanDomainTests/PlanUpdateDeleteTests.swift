@@ -6,7 +6,7 @@ import Testing
 struct ListPlanWorkoutsTests {
     @Test func listReturnsAllFromRepository() async throws {
         let repo = MockPlanWorkoutRepository()
-        let plan = PlanWorkout(id: UUID(), name: "推日", date: nil, orderIndex: 0)
+        let plan = PlanWorkout(id: UUID(), name: "推日", date: DayDate(year: 2026, month: 7, day: 9), orderIndex: 0)
         await repo.seed([plan])
 
         let workouts = try await ListPlanWorkouts(repository: repo)()
@@ -22,7 +22,7 @@ struct UpdatePlanWorkoutTests {
 
     @Test func updateReplacesNameDateAndSetsButKeepsOrderIndexAndStatus() async throws {
         let repo = MockPlanWorkoutRepository()
-        let original = PlanWorkout(id: UUID(), name: "推日", date: nil, status: .done, orderIndex: 3)
+        let original = PlanWorkout(id: UUID(), name: "推日", date: DayDate(year: 2026, month: 7, day: 9), status: .done, orderIndex: 3)
         await repo.seed([original])
         let update = UpdatePlanWorkout(repository: repo)
 
@@ -38,12 +38,12 @@ struct UpdatePlanWorkoutTests {
 
     @Test func updateRejectsEmptyDrafts() async throws {
         let repo = MockPlanWorkoutRepository()
-        let original = PlanWorkout(id: UUID(), name: "推日", date: nil, orderIndex: 0)
+        let original = PlanWorkout(id: UUID(), name: "推日", date: DayDate(year: 2026, month: 7, day: 9), orderIndex: 0)
         await repo.seed([original])
         let update = UpdatePlanWorkout(repository: repo)
 
         await #expect(throws: PlanWorkoutValidationError.empty) {
-            try await update(id: original.id, name: "推日", date: nil, drafts: [])
+            try await update(id: original.id, name: "推日", date: DayDate(year: 2026, month: 7, day: 9), drafts: [])
         }
     }
 
@@ -53,7 +53,7 @@ struct UpdatePlanWorkoutTests {
         let ghost = UUID()
 
         await #expect(throws: PlanWorkoutRepositoryError.notFound(id: ghost)) {
-            try await update(id: ghost, name: "推日", date: nil, drafts: [draft()])
+            try await update(id: ghost, name: "推日", date: DayDate(year: 2026, month: 7, day: 9), drafts: [draft()])
         }
     }
 }
@@ -61,7 +61,7 @@ struct UpdatePlanWorkoutTests {
 struct DeletePlanWorkoutTests {
     @Test func deleteRemovesFromRepository() async throws {
         let repo = MockPlanWorkoutRepository()
-        let plan = PlanWorkout(id: UUID(), name: "推日", date: nil, orderIndex: 0)
+        let plan = PlanWorkout(id: UUID(), name: "推日", date: DayDate(year: 2026, month: 7, day: 9), orderIndex: 0)
         await repo.seed([plan])
         let delete = DeletePlanWorkout(repository: repo)
 

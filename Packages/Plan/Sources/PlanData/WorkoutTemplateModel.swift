@@ -4,30 +4,37 @@ import SharedKernel
 import SwiftData
 
 @Model
-final class PlanWorkoutModel {
+final class WorkoutTemplateModel {
     @Attribute(.unique) var id: UUID
-    var name: String?
-    var date: String           // "yyyy-MM-dd"，一定綁定某天
-    var statusRaw: String
-    /// 來源課表範本；nil＝手動一次性排課。
-    var templateId: UUID?
+    var name: String
+    var sourceRaw: String
     var orderIndex: Int
-    @Relationship(deleteRule: .cascade, inverse: \PlanSetModel.planWorkout)
-    var sets: [PlanSetModel]
+    var createdAt: Date
+    var updatedAt: Date
+    @Relationship(deleteRule: .cascade, inverse: \TemplateSetModel.template)
+    var sets: [TemplateSetModel]
 
-    init(id: UUID, name: String?, date: String, statusRaw: String, templateId: UUID?, orderIndex: Int, sets: [PlanSetModel] = []) {
+    init(
+        id: UUID,
+        name: String,
+        sourceRaw: String,
+        orderIndex: Int,
+        createdAt: Date,
+        updatedAt: Date,
+        sets: [TemplateSetModel] = []
+    ) {
         self.id = id
         self.name = name
-        self.date = date
-        self.statusRaw = statusRaw
-        self.templateId = templateId
+        self.sourceRaw = sourceRaw
         self.orderIndex = orderIndex
+        self.createdAt = createdAt
+        self.updatedAt = updatedAt
         self.sets = sets
     }
 }
 
 @Model
-final class PlanSetModel {
+final class TemplateSetModel {
     @Attribute(.unique) var id: UUID
     var exerciseId: UUID
     var exerciseIndex: Int
@@ -36,7 +43,7 @@ final class PlanSetModel {
     var targetWeightUnitRaw: String?
     var targetReps: Int?
     var restSec: Int?
-    var planWorkout: PlanWorkoutModel?
+    var template: WorkoutTemplateModel?
 
     init(
         id: UUID,
@@ -61,35 +68,35 @@ final class PlanSetModel {
 
 // MARK: - Mapper
 
-extension PlanWorkoutModel {
-    convenience init(from planWorkout: PlanWorkout) {
+extension WorkoutTemplateModel {
+    convenience init(from template: WorkoutTemplate) {
         self.init(
-            id: planWorkout.id,
-            name: planWorkout.name,
-            date: planWorkout.date.isoString,
-            statusRaw: planWorkout.status.rawValue,
-            templateId: planWorkout.templateId,
-            orderIndex: planWorkout.orderIndex,
-            sets: planWorkout.sets.map { PlanSetModel(from: $0) }
+            id: template.id,
+            name: template.name,
+            sourceRaw: template.source.rawValue,
+            orderIndex: template.orderIndex,
+            createdAt: template.createdAt,
+            updatedAt: template.updatedAt,
+            sets: template.sets.map { TemplateSetModel(from: $0) }
         )
     }
 
-    func toDomain() -> PlanWorkout {
-        PlanWorkout(
+    func toDomain() -> WorkoutTemplate {
+        WorkoutTemplate(
             id: id,
             name: name,
-            date: DayDate(isoString: date) ?? DayDate(year: 1970, month: 1, day: 1),
-            status: PlanWorkoutStatus(rawValue: statusRaw) ?? .notStarted,
-            templateId: templateId,
+            source: ContentSource(rawValue: sourceRaw) ?? .user,
             orderIndex: orderIndex,
             sets: sets
                 .map { $0.toDomain() }
-                .sorted { ($0.exerciseIndex, $0.setIndex) < ($1.exerciseIndex, $1.setIndex) }
+                .sorted { ($0.exerciseIndex, $0.setIndex) < ($1.exerciseIndex, $1.setIndex) },
+            createdAt: createdAt,
+            updatedAt: updatedAt
         )
     }
 }
 
-extension PlanSetModel {
+extension TemplateSetModel {
     convenience init(from set: PlanSet) {
         self.init(
             id: set.id,

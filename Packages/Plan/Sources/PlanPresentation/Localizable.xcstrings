@@ -36,18 +36,18 @@
         }
       }
     },
-    "plan.cycleSection" : {
+    "plan.close" : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Recurring"
+            "value" : "Close"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "循環課表"
+            "value" : "關閉"
           }
         }
       }
@@ -64,22 +64,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "日期"
-          }
-        }
-      }
-    },
-    "plan.datedSection" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Scheduled"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "指定日期"
           }
         }
       }
@@ -308,18 +292,18 @@
         }
       }
     },
-    "plan.recurring.hint" : {
+    "plan.readOnly.hint" : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Recurring: cycles in order, not tied to a date"
+            "value" : "Completed — view only, not editable"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "循環課表：依順序輪替，不綁定日期"
+            "value" : "已完成，僅供檢視、不可編輯"
           }
         }
       }
@@ -452,22 +436,6 @@
         }
       }
     },
-    "plan.specificDate" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Specific date"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "指定日期"
-          }
-        }
-      }
-    },
     "plan.target" : {
       "localizations" : {
         "en" : {
@@ -516,6 +484,22 @@
         }
       }
     },
+    "plan.view" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "View Plan"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "檢視排課"
+          }
+        }
+      }
+    },
     "plan.weight" : {
       "localizations" : {
         "en" : {
@@ -528,6 +512,118 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "重量"
+          }
+        }
+      }
+    },
+    "template.edit" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Edit Template"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "編輯範本"
+          }
+        }
+      }
+    },
+    "template.empty" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No Templates Yet"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "還沒有課表範本"
+          }
+        }
+      }
+    },
+    "template.empty.hint" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Create reusable templates to apply when you start a workout"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "建立可重複使用的課表範本，開始訓練時直接套用"
+          }
+        }
+      }
+    },
+    "template.error.needName" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Please give the template a name"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "請幫範本取個名稱"
+          }
+        }
+      }
+    },
+    "template.name.placeholder" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Template name"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "範本名稱"
+          }
+        }
+      }
+    },
+    "template.new" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "New Template"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "新增範本"
+          }
+        }
+      }
+    },
+    "template.title" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Templates"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "課表範本"
           }
         }
       }

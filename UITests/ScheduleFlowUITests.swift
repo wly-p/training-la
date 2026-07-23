@@ -10,7 +10,7 @@ final class ScheduleFlowUITests: XCTestCase {
         addExercise(app, name: "臥推")
         addExercise(app, name: "深蹲")
 
-        // 課表：新增一個含兩個動作的循環排課
+        // 課表：新增一個含兩個動作、當日（預設今天）的排課
         app.tabBars.buttons["課表"].tap()
         app.buttons["新增排課"].tap()
         let planName = app.textFields["名稱（例：推日）"]

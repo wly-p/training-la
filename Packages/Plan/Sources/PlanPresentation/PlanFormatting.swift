@@ -7,7 +7,15 @@ enum PlanFormatting {
     /// 依 `language` 本地化，用 `AppLanguage.localizedString` 明確解析（見該方法註解：
     /// `String(localized:locale:)` 不會依 locale 選語言，這裡不能用）。
     static func summary(_ planWorkout: PlanWorkout, name: (UUID) -> String, language: AppLanguage) -> String {
-        planWorkout.blocks
+        summary(blocks: planWorkout.blocks, name: name, language: language)
+    }
+
+    static func templateSummary(_ template: WorkoutTemplate, name: (UUID) -> String, language: AppLanguage) -> String {
+        summary(blocks: template.blocks, name: name, language: language)
+    }
+
+    private static func summary(blocks: [PlanBlock], name: (UUID) -> String, language: AppLanguage) -> String {
+        blocks
             .map { block in
                 let format = language.localizedString("plan.setCountUnit %lld", bundle: .module)
                 let count = String(format: format, block.sets.count)

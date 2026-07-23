@@ -17,10 +17,11 @@ progressed over time — no account, no backend, no network required. All data l
 
 ## Features
 
-- **Exercise library** — build your own catalog of movements (name, muscle group, equipment), and
-  reuse them across schedules and sessions.
-- **Scheduling** — plan workouts for a specific date, or as a repeating cycle (e.g. push/pull/legs)
-  that advances automatically as you complete each one.
+- **Exercise library** — build your own catalog of movements (name, muscle group, equipment) and
+  reusable workout templates, and apply them across schedules and sessions.
+- **Templates** — save reusable workout blueprints (no date, always editable); apply one when you
+  start training to spin up that day's plan. (Recurring schedules — e.g. push/pull/legs — are planned.)
+- **Scheduling** — plan a workout for a specific date, from a template or by hand.
 - **Workout tracking** — log weight and reps set-by-set, with a built-in rest timer and an
   exercise-complete prompt when a planned exercise is done. Works equally well for a scheduled
   workout or an unplanned one.

@@ -5,34 +5,30 @@ import SharedKernel
 
 @MainActor
 @Observable
-public final class PlanScheduleViewModel {
-    public private(set) var planWorkouts: [PlanWorkout] = []
+public final class TemplateListViewModel {
+    public private(set) var templates: [WorkoutTemplate] = []
     public private(set) var catalog: [PlanCatalogExercise] = []
     /// 本地化錯誤字串（延後解析，由 View 依 Environment locale 顯示）。
     public private(set) var errorMessage: LocalizedStringResource?
 
-    private let listPlanWorkouts: ListPlanWorkouts
-    private let createPlanWorkout: CreatePlanWorkout
-    private let updatePlanWorkout: UpdatePlanWorkout
-    private let deletePlanWorkout: DeletePlanWorkout
+    private let listTemplates: ListTemplates
+    private let createTemplate: CreateTemplate
+    private let updateTemplate: UpdateTemplate
+    private let deleteTemplate: DeleteTemplate
     private let exerciseCatalog: any PlanExerciseCatalog
 
     public init(
-        listPlanWorkouts: ListPlanWorkouts,
-        createPlanWorkout: CreatePlanWorkout,
-        updatePlanWorkout: UpdatePlanWorkout,
-        deletePlanWorkout: DeletePlanWorkout,
+        listTemplates: ListTemplates,
+        createTemplate: CreateTemplate,
+        updateTemplate: UpdateTemplate,
+        deleteTemplate: DeleteTemplate,
         exerciseCatalog: any PlanExerciseCatalog
     ) {
-        self.listPlanWorkouts = listPlanWorkouts
-        self.createPlanWorkout = createPlanWorkout
-        self.updatePlanWorkout = updatePlanWorkout
-        self.deletePlanWorkout = deletePlanWorkout
+        self.listTemplates = listTemplates
+        self.createTemplate = createTemplate
+        self.updateTemplate = updateTemplate
+        self.deleteTemplate = deleteTemplate
         self.exerciseCatalog = exerciseCatalog
-    }
-
-    public var datedWorkouts: [PlanWorkout] {
-        planWorkouts.sorted { ($0.date, $0.orderIndex) < ($1.date, $1.orderIndex) }
     }
 
     public func name(for exerciseId: UUID) -> String {
@@ -41,7 +37,7 @@ public final class PlanScheduleViewModel {
 
     public func load() async {
         do {
-            planWorkouts = try await listPlanWorkouts()
+            templates = try await listTemplates()
             catalog = try await exerciseCatalog.exercises()
             errorMessage = nil
         } catch {
@@ -49,16 +45,16 @@ public final class PlanScheduleViewModel {
         }
     }
 
-    public func create(name: String?, date: DayDate, drafts: [ExerciseTargetDraft]) async {
-        await run { try await self.createPlanWorkout(name: name, date: date, drafts: drafts) }
+    public func create(name: String, drafts: [ExerciseTargetDraft]) async {
+        await run { try await self.createTemplate(name: name, drafts: drafts) }
     }
 
-    public func update(id: UUID, name: String?, date: DayDate, drafts: [ExerciseTargetDraft]) async {
-        await run { try await self.updatePlanWorkout(id: id, name: name, date: date, drafts: drafts) }
+    public func update(id: UUID, name: String, drafts: [ExerciseTargetDraft]) async {
+        await run { try await self.updateTemplate(id: id, name: name, drafts: drafts) }
     }
 
     public func delete(id: UUID) async {
-        await run { try await self.deletePlanWorkout(id: id) }
+        await run { try await self.deleteTemplate(id: id) }
     }
 
     public func dismissError() { errorMessage = nil }
@@ -69,6 +65,8 @@ public final class PlanScheduleViewModel {
             await load()
         } catch PlanWorkoutValidationError.empty {
             errorMessage = .plan("plan.error.needExercise")
+        } catch PlanWorkoutValidationError.emptyName {
+            errorMessage = .plan("template.error.needName")
         } catch {
             errorMessage = .plan("plan.error.actionFailed \(error.localizedDescription)")
         }
