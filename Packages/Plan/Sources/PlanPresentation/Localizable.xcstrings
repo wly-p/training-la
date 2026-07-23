@@ -133,6 +133,7 @@
       }
     },
     "plan.done" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -679,6 +680,7 @@
       }
     },
     "rotation.title" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -807,6 +809,7 @@
       }
     },
     "template.title" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {

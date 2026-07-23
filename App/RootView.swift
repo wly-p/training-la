@@ -10,6 +10,7 @@ struct RootView: View {
     private let dependencies: AppDependencies
     @State private var exerciseListViewModel: ExerciseListViewModel
     @State private var templateListViewModel: TemplateListViewModel
+    @State private var rotationEditorViewModel: RotationEditorViewModel
     @State private var trainingHomeViewModel: TrainingHomeViewModel
     @State private var historyViewModel: HistoryViewModel
     @State private var planScheduleViewModel: PlanScheduleViewModel
@@ -21,6 +22,7 @@ struct RootView: View {
         self.dependencies = dependencies
         _exerciseListViewModel = State(initialValue: dependencies.makeExerciseListViewModel())
         _templateListViewModel = State(initialValue: dependencies.makeTemplateListViewModel())
+        _rotationEditorViewModel = State(initialValue: dependencies.makeRotationEditorViewModel())
         _trainingHomeViewModel = State(initialValue: dependencies.makeTrainingHomeViewModel())
         _historyViewModel = State(initialValue: dependencies.makeHistoryViewModel())
         _planScheduleViewModel = State(initialValue: dependencies.makePlanScheduleViewModel())
@@ -39,16 +41,14 @@ struct RootView: View {
             .tag(0)
             LibraryTabView(
                 exerciseViewModel: exerciseListViewModel,
-                templateViewModel: templateListViewModel
+                templateViewModel: templateListViewModel,
+                rotationViewModel: rotationEditorViewModel
             )
             .tabItem { Label("tab.exercises", systemImage: "books.vertical") }
             .tag(1)
-            PlanScheduleView(
-                viewModel: planScheduleViewModel,
-                makeRotationEditor: dependencies.makeRotationEditorViewModel
-            )
-            .tabItem { Label("tab.plan", systemImage: "calendar") }
-            .tag(2)
+            PlanScheduleView(viewModel: planScheduleViewModel)
+                .tabItem { Label("tab.plan", systemImage: "calendar") }
+                .tag(2)
             HistoryView(viewModel: historyViewModel)
                 .tabItem { Label("tab.history", systemImage: "chart.line.uptrend.xyaxis") }
                 .tag(3)
@@ -70,28 +70,35 @@ struct RootView: View {
     }
 }
 
-/// 動作庫 tab：以分段切換「動作」與「課表範本」兩種可重複使用的訓練素材。
+/// 動作庫 tab：共用單一 NavigationStack，頂部分段切換「動作／課表範本／循環課表」三種訓練素材。
+/// 子頁不各自帶 NavigationStack，它們的 toolbar（＋／編輯）會掛到這層共用的 nav bar（情境化）。
 private struct LibraryTabView: View {
     let exerciseViewModel: ExerciseListViewModel
     let templateViewModel: TemplateListViewModel
+    let rotationViewModel: RotationEditorViewModel
     @State private var mode = 0
 
     var body: some View {
-        VStack(spacing: 0) {
-            Picker("", selection: $mode) {
-                Text("library.exercises").tag(0)
-                Text("library.templates").tag(1)
-            }
-            .pickerStyle(.segmented)
-            .labelsHidden()
-            .padding(.horizontal)
-            .padding(.top, 8)
+        NavigationStack {
+            VStack(spacing: 0) {
+                Picker("", selection: $mode) {
+                    Text("library.exercises").tag(0)
+                    Text("library.templates").tag(1)
+                    Text("library.rotation").tag(2)
+                }
+                .pickerStyle(.segmented)
+                .labelsHidden()
+                .padding(.horizontal)
+                .padding(.vertical, 8)
 
-            if mode == 0 {
-                ExerciseListView(viewModel: exerciseViewModel)
-            } else {
-                TemplateListView(viewModel: templateViewModel)
+                switch mode {
+                case 0: ExerciseListView(viewModel: exerciseViewModel)
+                case 1: TemplateListView(viewModel: templateViewModel)
+                default: RotationEditorView(viewModel: rotationViewModel)
+                }
             }
+            .navigationTitle("tab.exercises")
+            .navigationBarTitleDisplayMode(.inline)
         }
     }
 }

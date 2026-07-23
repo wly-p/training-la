@@ -6,16 +6,10 @@ public struct PlanScheduleView: View {
     @Bindable private var viewModel: PlanScheduleViewModel
     @State private var editing: PlanFormTarget?
     @State private var pickingTemplate = false
-    @State private var showingRotation = false
     @Environment(\.locale) private var locale
-    private let makeRotationEditor: () -> RotationEditorViewModel
 
-    public init(
-        viewModel: PlanScheduleViewModel,
-        makeRotationEditor: @escaping () -> RotationEditorViewModel
-    ) {
+    public init(viewModel: PlanScheduleViewModel) {
         self.viewModel = viewModel
-        self.makeRotationEditor = makeRotationEditor
     }
 
     public var body: some View {
@@ -37,16 +31,10 @@ public struct PlanScheduleView: View {
                 }
             }
             .navigationTitle(localText("plan.title"))
+            #if os(iOS)
+            .navigationBarTitleDisplayMode(.inline)
+            #endif
             .toolbar {
-                #if os(iOS)
-                ToolbarItem(placement: .topBarLeading) {
-                    Button {
-                        showingRotation = true
-                    } label: {
-                        Label { localText("rotation.title") } icon: { Image(systemName: "arrow.triangle.2.circlepath") }
-                    }
-                }
-                #endif
                 ToolbarItem(placement: .primaryAction) {
                     Menu {
                         Button {
@@ -82,9 +70,6 @@ public struct PlanScheduleView: View {
                 TemplatePickerView(templates: viewModel.templates) { template in
                     Task { await viewModel.addFromTemplate(templateId: template.id, on: viewModel.selectedDate) }
                 }
-            }
-            .sheet(isPresented: $showingRotation, onDismiss: { Task { await viewModel.load() } }) {
-                RotationEditorView(viewModel: makeRotationEditor())
             }
             .alert(
                 localText("plan.error"),

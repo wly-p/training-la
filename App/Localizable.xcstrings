@@ -17,6 +17,22 @@
         }
       }
     },
+    "library.rotation" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Rotation"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "循環課表"
+          }
+        }
+      }
+    },
     "library.templates" : {
       "localizations" : {
         "en" : {
