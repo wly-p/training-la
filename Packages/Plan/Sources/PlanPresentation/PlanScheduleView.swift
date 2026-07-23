@@ -23,7 +23,8 @@ public struct PlanScheduleView: View {
                         markedDates: viewModel.markedDates,
                         mark: viewModel.mark(on:)
                     )
-                    .frame(maxWidth: wide ? 360 : .infinity, maxHeight: wide ? .infinity : 400)
+                    // 高度交給 sizeThatFits 依當月週數決定（narrow）；wide 時月曆佔左側固定寬、撐滿高。
+                    .frame(maxWidth: wide ? 360 : .infinity, maxHeight: wide ? .infinity : nil)
                     Divider()
                     dayDetail
                         .frame(maxWidth: .infinity, maxHeight: .infinity)

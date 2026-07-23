@@ -43,6 +43,17 @@ struct MonthCalendarView: UIViewRepresentable {
         }
     }
 
+    /// 依當月實際週數（4～6 列，隨天數與起始星期不同）回傳自然高度，避免固定高把最後一週截掉。
+    func sizeThatFits(_ proposal: ProposedViewSize, uiView: UICalendarView, context: Context) -> CGSize? {
+        let width = proposal.width ?? uiView.intrinsicContentSize.width
+        let fitting = uiView.systemLayoutSizeFitting(
+            CGSize(width: width, height: 0),
+            withHorizontalFittingPriority: .required,
+            verticalFittingPriority: .fittingSizeLevel
+        )
+        return CGSize(width: width, height: fitting.height)
+    }
+
     func makeCoordinator() -> Coordinator { Coordinator(self) }
 
     final class Coordinator: NSObject, UICalendarViewDelegate, UICalendarSelectionSingleDateDelegate {
@@ -54,6 +65,11 @@ struct MonthCalendarView: UIViewRepresentable {
             guard let day = dateComponents.dayDate, let mark = parent.mark(day) else { return nil }
             let color: UIColor = mark == .done ? .systemGreen : .systemGray
             return .default(color: color, size: .small)
+        }
+
+        // 翻月後週數可能改變（例如 5 列→6 列），重算內在尺寸讓 SwiftUI 重新配置高度。
+        func calendarView(_ calendarView: UICalendarView, didChangeVisibleDateComponentsFrom previousDateComponents: DateComponents) {
+            calendarView.invalidateIntrinsicContentSize()
         }
 
         func dateSelection(_ selection: UICalendarSelectionSingleDate, didSelectDate dateComponents: DateComponents?) {
