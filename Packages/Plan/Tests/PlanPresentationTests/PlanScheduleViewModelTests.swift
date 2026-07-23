@@ -29,14 +29,31 @@ private struct MockCatalog: PlanExerciseCatalog {
     func exercises() async throws -> [PlanCatalogExercise] { items }
 }
 
+private actor MockTemplateRepo: WorkoutTemplateRepository {
+    var storage: [UUID: WorkoutTemplate] = [:]
+    func seed(_ items: [WorkoutTemplate]) { for i in items { storage[i.id] = i } }
+    func all() async throws -> [WorkoutTemplate] { storage.values.sorted { $0.orderIndex < $1.orderIndex } }
+    func get(id: UUID) async throws -> WorkoutTemplate? { storage[id] }
+    func save(_ t: WorkoutTemplate) async throws { storage[t.id] = t }
+    func delete(id: UUID) async throws { storage[id] = nil }
+    func usesExercise(_ exerciseId: UUID) async throws -> Bool { false }
+}
+
 @MainActor
-private func makeViewModel(repo: MockScheduleRepo, catalog: [PlanCatalogExercise] = []) -> PlanScheduleViewModel {
+private func makeViewModel(
+    repo: MockScheduleRepo,
+    templateRepo: MockTemplateRepo = MockTemplateRepo(),
+    catalog: [PlanCatalogExercise] = []
+) -> PlanScheduleViewModel {
     PlanScheduleViewModel(
         listPlanWorkouts: ListPlanWorkouts(repository: repo),
         createPlanWorkout: CreatePlanWorkout(repository: repo),
         updatePlanWorkout: UpdatePlanWorkout(repository: repo),
         deletePlanWorkout: DeletePlanWorkout(repository: repo),
-        exerciseCatalog: MockCatalog(items: catalog)
+        listTemplates: ListTemplates(repository: templateRepo),
+        instantiateTemplate: InstantiateTemplate(templateRepository: templateRepo, planRepository: repo),
+        exerciseCatalog: MockCatalog(items: catalog),
+        today: { day1 }
     )
 }
 
@@ -64,16 +81,39 @@ struct PlanScheduleViewModelTests {
         #expect(vm.name(for: UUID()) == "動作")
     }
 
-    @Test func datedWorkoutsSortsByDateThenOrder() async {
+    @Test func workoutsMarksReflectDatesAndStatus() async {
         let repo = MockScheduleRepo()
         await repo.seed([
-            PlanWorkout(id: UUID(), name: "晚一點", date: day2, orderIndex: 0),
-            PlanWorkout(id: UUID(), name: "早一點", date: day1, orderIndex: 0),
+            PlanWorkout(id: UUID(), name: "d1a", date: day1, status: .done, orderIndex: 0),
+            PlanWorkout(id: UUID(), name: "d1b", date: day1, status: .notStarted, orderIndex: 1),
+            PlanWorkout(id: UUID(), name: "d2", date: day2, status: .done, orderIndex: 0),
         ])
         let vm = makeViewModel(repo: repo)
         await vm.load()
 
-        #expect(vm.datedWorkouts.map(\.name) == ["早一點", "晚一點"])
+        #expect(vm.workouts(on: day1).map(\.name) == ["d1a", "d1b"])
+        #expect(vm.markedDates == [day1, day2])
+        #expect(vm.mark(on: day1) == .scheduled)   // 有一個未完成
+        #expect(vm.mark(on: day2) == .done)         // 全部完成
+        #expect(vm.mark(on: DayDate(year: 2026, month: 7, day: 12)) == nil)
+    }
+
+    @Test func addFromTemplateCreatesDatedPlanFromSnapshot() async {
+        let repo = MockScheduleRepo()
+        let trepo = MockTemplateRepo()
+        let tpl = WorkoutTemplate(
+            id: UUID(), name: "推", source: .user, orderIndex: 0,
+            sets: [PlanSet(id: UUID(), exerciseId: UUID(), exerciseIndex: 0, setIndex: 0, targetWeight: nil, targetReps: nil)],
+            createdAt: Date(), updatedAt: Date()
+        )
+        await trepo.seed([tpl])
+        let vm = makeViewModel(repo: repo, templateRepo: trepo)
+        await vm.load()
+
+        await vm.addFromTemplate(templateId: tpl.id, on: day2)
+
+        #expect(vm.workouts(on: day2).count == 1)
+        #expect(vm.workouts(on: day2).first?.templateId == tpl.id)
     }
 
     @Test func createAddsPlanWorkoutAndReloads() async {

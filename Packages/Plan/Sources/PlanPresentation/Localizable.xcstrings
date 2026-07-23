@@ -4,6 +4,22 @@
     "" : {
 
     },
+    "plan.addBlank" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Blank"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "空白建立"
+          }
+        }
+      }
+    },
     "plan.addExercise" : {
       "localizations" : {
         "en" : {
@@ -16,6 +32,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "加入動作"
+          }
+        }
+      }
+    },
+    "plan.addFromTemplate" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "From Template"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "從範本加入"
           }
         }
       }
@@ -64,6 +96,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "日期"
+          }
+        }
+      }
+    },
+    "plan.day.empty" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No plan on this day"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "這天沒有排課"
           }
         }
       }

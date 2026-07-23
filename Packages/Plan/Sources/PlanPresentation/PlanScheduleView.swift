@@ -5,6 +5,7 @@ import SwiftUI
 public struct PlanScheduleView: View {
     @Bindable private var viewModel: PlanScheduleViewModel
     @State private var editing: PlanFormTarget?
+    @State private var pickingTemplate = false
     @Environment(\.locale) private var locale
 
     public init(viewModel: PlanScheduleViewModel) {
@@ -13,25 +14,37 @@ public struct PlanScheduleView: View {
 
     public var body: some View {
         NavigationStack {
-            List {
-                ForEach(viewModel.datedWorkouts) { row($0) }
+            GeometryReader { geo in
+                let wide = geo.size.width > 700
+                let layout = wide ? AnyLayout(HStackLayout(spacing: 0)) : AnyLayout(VStackLayout(spacing: 0))
+                layout {
+                    MonthCalendarView(
+                        selectedDate: $viewModel.selectedDate,
+                        markedDates: viewModel.markedDates,
+                        mark: viewModel.mark(on:)
+                    )
+                    .frame(maxWidth: wide ? 360 : .infinity, maxHeight: wide ? .infinity : 400)
+                    Divider()
+                    dayDetail
+                        .frame(maxWidth: .infinity, maxHeight: .infinity)
+                }
             }
             .navigationTitle(localText("plan.title"))
             .toolbar {
                 ToolbarItem(placement: .primaryAction) {
-                    Button {
-                        editing = .create
+                    Menu {
+                        Button {
+                            editing = .create(viewModel.selectedDate)
+                        } label: {
+                            Label { localText("plan.addBlank") } icon: { Image(systemName: "square.and.pencil") }
+                        }
+                        Button {
+                            pickingTemplate = true
+                        } label: {
+                            Label { localText("plan.addFromTemplate") } icon: { Image(systemName: "square.stack.3d.up") }
+                        }
                     } label: {
                         Label { localText("plan.new") } icon: { Image(systemName: "plus") }
-                    }
-                }
-            }
-            .overlay {
-                if viewModel.planWorkouts.isEmpty {
-                    ContentUnavailableView {
-                        Label { localText("plan.empty") } icon: { Image(systemName: "calendar") }
-                    } description: {
-                        localText("plan.empty.hint")
                     }
                 }
             }
@@ -42,12 +55,16 @@ public struct PlanScheduleView: View {
                     catalog: viewModel.catalog,
                     readOnly: target.isDone
                 ) { name, date, drafts in
-                    switch target {
-                    case .create:
-                        await viewModel.create(name: name, date: date, drafts: drafts)
-                    case .edit(let plan):
+                    if case .edit(let plan) = target {
                         await viewModel.update(id: plan.id, name: name, date: date, drafts: drafts)
+                    } else {
+                        await viewModel.create(name: name, date: date, drafts: drafts)
                     }
+                }
+            }
+            .sheet(isPresented: $pickingTemplate) {
+                TemplatePickerView(templates: viewModel.templates) { template in
+                    Task { await viewModel.addFromTemplate(templateId: template.id, on: viewModel.selectedDate) }
                 }
             }
             .alert(
@@ -64,6 +81,22 @@ public struct PlanScheduleView: View {
         }
     }
 
+    private var dayDetail: some View {
+        List {
+            Section {
+                let items = viewModel.workouts(on: viewModel.selectedDate)
+                if items.isEmpty {
+                    localText("plan.day.empty")
+                        .foregroundStyle(.secondary)
+                } else {
+                    ForEach(items) { row($0) }
+                }
+            } header: {
+                Text(PlanFormatting.dayLabel(viewModel.selectedDate, locale: locale))
+            }
+        }
+    }
+
     private func row(_ plan: PlanWorkout) -> some View {
         Button {
             editing = .edit(plan)
@@ -73,9 +106,6 @@ public struct PlanScheduleView: View {
                     // 課表名是 DB 資料（verbatim）；沒命名時用本地化的「未命名」
                     (plan.name.map { Text(verbatim: $0) } ?? localText("plan.untitled")).font(.headline)
                     Spacer()
-                    Text(PlanFormatting.dayLabel(plan.date, locale: locale))
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
                     if plan.status == .done {
                         Image(systemName: "checkmark.circle.fill").foregroundStyle(.green)
                     }
@@ -97,8 +127,46 @@ public struct PlanScheduleView: View {
     }
 }
 
+/// 選課表範本加到某天。
+private struct TemplatePickerView: View {
+    let templates: [WorkoutTemplate]
+    let onSelect: (WorkoutTemplate) -> Void
+
+    @Environment(\.dismiss) private var dismiss
+
+    var body: some View {
+        NavigationStack {
+            List(templates) { template in
+                Button {
+                    onSelect(template)
+                    dismiss()
+                } label: {
+                    Text(verbatim: template.name)
+                        .contentShape(Rectangle())
+                }
+                .buttonStyle(.plain)
+            }
+            .navigationTitle(localText("plan.addFromTemplate"))
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button { dismiss() } label: { localText("plan.cancel") }
+                }
+            }
+            .overlay {
+                if templates.isEmpty {
+                    ContentUnavailableView {
+                        Label { localText("template.empty") } icon: { Image(systemName: "square.stack.3d.up") }
+                    } description: {
+                        localText("template.empty.hint")
+                    }
+                }
+            }
+        }
+    }
+}
+
 enum PlanFormTarget: Identifiable {
-    case create
+    case create(DayDate)
     case edit(PlanWorkout)
 
     var id: String {
