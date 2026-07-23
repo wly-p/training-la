@@ -26,6 +26,7 @@ struct AppDependencies {
     let makeHistoryViewModel: @MainActor () -> HistoryViewModel
     let makePlanScheduleViewModel: @MainActor () -> PlanScheduleViewModel
     let makeTemplateListViewModel: @MainActor () -> TemplateListViewModel
+    let makeRotationEditorViewModel: @MainActor () -> RotationEditorViewModel
     /// `onErased`：清除成功後由 App 層觸發整個畫面重建（回到全新初始狀態）。
     let makeSettingsViewModel: @MainActor (_ onErased: @escaping @MainActor () -> Void) -> SettingsViewModel
 
@@ -41,11 +42,13 @@ struct AppDependencies {
         let workoutRepository = TrainingDataFactory.makeWorkoutRepository(container: container)
         let planRepository = PlanDataFactory.makePlanWorkoutRepository(container: container)
         let templateRepository = PlanDataFactory.makeWorkoutTemplateRepository(container: container)
-        // 本地落實 in_use：刪動作前查 Training / Plan / 範本 有沒有引用
+        let rotationRepository = PlanDataFactory.makeRotationRepository(container: container)
+        // 本地落實 in_use：刪動作前查 Training / Plan / 範本 / 環尋 有沒有引用
         let usageChecker = ExerciseUsageChecker(
             workoutRepository: workoutRepository,
             planRepository: planRepository,
-            templateRepository: templateRepository
+            templateRepository: templateRepository,
+            rotationRepository: rotationRepository
         )
         // 休息提醒偏好：真實用 UserDefaults；UI 測試用記憶體。Settings 與 reminder 共用同一實例。
         let reminderStore: any RestReminderPreferenceStoring =
@@ -69,6 +72,7 @@ struct AppDependencies {
             workoutRepository: workoutRepository,
             planRepository: planRepository,
             templateRepository: templateRepository,
+            rotationRepository: rotationRepository,
             reminder: reminder,
             reminderStore: reminderStore,
             languageStore: languageStore,
@@ -82,6 +86,7 @@ struct AppDependencies {
         workoutRepository: any WorkoutRepository,
         planRepository: any PlanWorkoutRepository,
         templateRepository: any WorkoutTemplateRepository,
+        rotationRepository: any RotationRepository,
         reminder: any RestEndReminding,
         reminderStore: any RestReminderPreferenceStoring,
         languageStore: any LanguagePreferenceStoring = InMemoryLanguageStore(),
@@ -101,6 +106,8 @@ struct AppDependencies {
             getPlanWorkout: { try await planRepository.get(id: $0) },
             listTemplates: ListTemplates(repository: templateRepository),
             instantiateTemplate: InstantiateTemplate(templateRepository: templateRepository, planRepository: planRepository),
+            loadRotation: LoadRotation(repository: rotationRepository),
+            startRotationUseCase: StartRotation(rotationRepository: rotationRepository, planRepository: planRepository),
             today: { DayDate(Date()) },
             listExercises: ListExercises(repository: exerciseRepository)
         )
@@ -155,6 +162,13 @@ struct AppDependencies {
                     createTemplate: CreateTemplate(repository: templateRepository),
                     updateTemplate: UpdateTemplate(repository: templateRepository),
                     deleteTemplate: DeleteTemplate(repository: templateRepository),
+                    exerciseCatalog: planCatalog
+                )
+            },
+            makeRotationEditorViewModel: {
+                RotationEditorViewModel(
+                    loadRotation: LoadRotation(repository: rotationRepository),
+                    saveRotationWorkouts: SaveRotationWorkouts(repository: rotationRepository),
                     exerciseCatalog: planCatalog
                 )
             },

@@ -14,6 +14,10 @@ enum PlanFormatting {
         summary(blocks: template.blocks, name: name, language: language)
     }
 
+    static func summary(_ spec: WorkoutSpec, name: (UUID) -> String, language: AppLanguage) -> String {
+        summary(blocks: spec.blocks, name: name, language: language)
+    }
+
     private static func summary(blocks: [PlanBlock], name: (UUID) -> String, language: AppLanguage) -> String {
         blocks
             .map { block in

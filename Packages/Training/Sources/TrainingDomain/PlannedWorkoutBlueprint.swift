@@ -92,6 +92,10 @@ public protocol PlannedWorkoutProvider: Sendable {
     func templates() async throws -> [PlannedTemplateSummary]
     /// 依範本建立當日排課，回傳其藍圖（供直接開始訓練）。
     func instantiate(templateId: UUID) async throws -> PlannedWorkoutBlueprint?
+    /// 環尋循環今天輪到的 workout 名稱；空循環＝nil。
+    func todaysRotationName() async throws -> String?
+    /// 開始環尋今天的 workout：建立當日排課、游標往下一張，回傳其藍圖。
+    func startRotation() async throws -> PlannedWorkoutBlueprint?
 }
 
 /// port：訓練結束時回報排課進度（App 接到 Plan domain 的標記完成）。

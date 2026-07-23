@@ -43,9 +43,12 @@ struct RootView: View {
             )
             .tabItem { Label("tab.exercises", systemImage: "books.vertical") }
             .tag(1)
-            PlanScheduleView(viewModel: planScheduleViewModel)
-                .tabItem { Label("tab.plan", systemImage: "calendar") }
-                .tag(2)
+            PlanScheduleView(
+                viewModel: planScheduleViewModel,
+                makeRotationEditor: dependencies.makeRotationEditorViewModel
+            )
+            .tabItem { Label("tab.plan", systemImage: "calendar") }
+            .tag(2)
             HistoryView(viewModel: historyViewModel)
                 .tabItem { Label("tab.history", systemImage: "chart.line.uptrend.xyaxis") }
                 .tag(3)

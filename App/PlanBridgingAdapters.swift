@@ -13,6 +13,8 @@ struct PlanProviderAdapter: PlannedWorkoutProvider {
     let getPlanWorkout: @Sendable (UUID) async throws -> PlanWorkout?
     let listTemplates: ListTemplates
     let instantiateTemplate: InstantiateTemplate
+    let loadRotation: LoadRotation
+    let startRotationUseCase: StartRotation
     let today: @Sendable () -> DayDate
     let listExercises: ListExercises
 
@@ -32,6 +34,15 @@ struct PlanProviderAdapter: PlannedWorkoutProvider {
 
     func instantiate(templateId: UUID) async throws -> PlannedWorkoutBlueprint? {
         let plan = try await instantiateTemplate(templateId: templateId, date: today())
+        return try await blueprint(from: plan)
+    }
+
+    func todaysRotationName() async throws -> String? {
+        try await loadRotation().current?.name
+    }
+
+    func startRotation() async throws -> PlannedWorkoutBlueprint? {
+        guard let plan = try await startRotationUseCase(date: today()) else { return nil }
         return try await blueprint(from: plan)
     }
 
@@ -80,10 +91,12 @@ struct ExerciseUsageChecker: ExerciseUsageChecking {
     let workoutRepository: any WorkoutRepository
     let planRepository: any PlanWorkoutRepository
     let templateRepository: any WorkoutTemplateRepository
+    let rotationRepository: any RotationRepository
 
     func isUsed(exerciseId: UUID) async throws -> Bool {
         if try await workoutRepository.usesExercise(exerciseId) { return true }
         if try await planRepository.usesExercise(exerciseId) { return true }
-        return try await templateRepository.usesExercise(exerciseId)
+        if try await templateRepository.usesExercise(exerciseId) { return true }
+        return try await rotationRepository.usesExercise(exerciseId)
     }
 }
