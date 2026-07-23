@@ -4,6 +4,9 @@ options:
   bundleIdPrefix: com.wly-p
   deploymentTarget:
     iOS: "17.0"
+  # 多語系：App target 的開發語言＝繁中（與各 String Catalog 的 sourceLanguage 一致），
+  # 讓 xcodegen 把 zh-Hant 設為 base、並依 App/Localizable.xcstrings 內的語言建 .lproj。
+  developmentLanguage: zh-Hant
 # 兩個軸獨立：debug/release ＝ 建置型別；dev/prod ＝ 環境（APP_ENV / bundle id / 顯示名稱）
 # v0 單機版不含任何 API host；之後接同步再以注入變數餵入 base URL。
 configs:

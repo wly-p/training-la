@@ -1,15 +1,17 @@
 import Foundation
 import SharedKernel
 
-/// 一次排課（個人層 plan_workout）。v0 App 只做單獨排課（不掛在菜單 plan 底下）。
+/// 一次排課（個人層 plan_workout）：一定綁定某一天，由課表範本實例化或手動建立。
 /// aggregate root：連同 sets 整包寫入/取代，對齊 API。
 public struct PlanWorkout: Identifiable, Equatable, Sendable {
     public var id: UUID
     public var name: String?
-    /// nil＝循環（依 orderIndex 輪替）；有值＝指定某天做。
-    public var date: DayDate?
+    /// 指定哪一天做。
+    public var date: DayDate
     public var status: PlanWorkoutStatus
-    /// 循環模式下的輪替順序。
+    /// 來源課表範本；nil＝手動建立的一次性排課。
+    public var templateId: UUID?
+    /// 同一天多張排課的排序。
     public var orderIndex: Int
     /// 依 (exerciseIndex, setIndex) 排序的目標。
     public var sets: [PlanSet]
@@ -17,8 +19,9 @@ public struct PlanWorkout: Identifiable, Equatable, Sendable {
     public init(
         id: UUID,
         name: String?,
-        date: DayDate?,
+        date: DayDate,
         status: PlanWorkoutStatus = .notStarted,
+        templateId: UUID? = nil,
         orderIndex: Int,
         sets: [PlanSet] = []
     ) {
@@ -26,24 +29,13 @@ public struct PlanWorkout: Identifiable, Equatable, Sendable {
         self.name = name
         self.date = date
         self.status = status
+        self.templateId = templateId
         self.orderIndex = orderIndex
         self.sets = sets
     }
 
-    public var isCycle: Bool { date == nil }
-
     /// 依 exerciseIndex 分組、組內依 setIndex 排序。
-    public var blocks: [PlanBlock] {
-        Dictionary(grouping: sets, by: \.exerciseIndex)
-            .sorted { $0.key < $1.key }
-            .map { index, sets in
-                PlanBlock(
-                    exerciseIndex: index,
-                    exerciseId: sets[0].exerciseId,
-                    sets: sets.sorted { $0.setIndex < $1.setIndex }
-                )
-            }
-    }
+    public var blocks: [PlanBlock] { sets.planBlocks }
 }
 
 /// 一組目標（plan_set）。
@@ -82,10 +74,25 @@ public struct PlanBlock: Identifiable, Equatable, Sendable {
     public var id: Int { exerciseIndex }
 }
 
-extension PlanWorkout {
+extension Array where Element == PlanSet {
+    /// 依 exerciseIndex 分組、組內依 setIndex 排序。PlanWorkout 與課表範本共用。
+    public var planBlocks: [PlanBlock] {
+        Dictionary(grouping: self, by: \.exerciseIndex)
+            .sorted { $0.key < $1.key }
+            .map { index, sets in
+                PlanBlock(
+                    exerciseIndex: index,
+                    exerciseId: sets[0].exerciseId,
+                    sets: sets.sorted { $0.setIndex < $1.setIndex }
+                )
+            }
+    }
+}
+
+extension PlanSet {
     /// 從「動作 → 每個動作幾組、目標」的編輯輸入，指派一致的 0-based index 建立 sets。
-    /// 每個 draft 是一個動作區塊，sets 數量＝該動作要做的組數，每組同目標。
-    public static func makeSets(from drafts: [ExerciseTargetDraft], makeID: () -> UUID = { UUID() }) -> [PlanSet] {
+    /// 每個 draft 是一個動作區塊，sets 數量＝該動作要做的組數，每組同目標。PlanWorkout 與範本共用。
+    public static func make(from drafts: [ExerciseTargetDraft], makeID: () -> UUID = { UUID() }) -> [PlanSet] {
         var result: [PlanSet] = []
         for (exerciseIndex, draft) in drafts.enumerated() {
             for setIndex in 0..<max(1, draft.setCount) {

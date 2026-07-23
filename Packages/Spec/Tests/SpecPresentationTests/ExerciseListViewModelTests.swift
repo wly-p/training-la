@@ -74,7 +74,7 @@ struct ExerciseListViewModelTests {
 
         await viewModel.add(name: "   ", muscleGroup: .back, equipment: .barbell, description: nil)
 
-        #expect(viewModel.errorMessage == "動作名稱不能是空白")
+        #expect(viewModel.errorMessage?.key == "spec.error.nameBlank")
         #expect(viewModel.exercises.isEmpty)
     }
 
@@ -89,7 +89,7 @@ struct ExerciseListViewModelTests {
             description: nil
         )
 
-        #expect(viewModel.errorMessage == "動作名稱最長 100 字")
+        #expect(viewModel.errorMessage?.key == "spec.error.nameTooLong %lld")
     }
 
     @Test func editUpdatesExerciseAndReloadsList() async {
@@ -111,7 +111,7 @@ struct ExerciseListViewModelTests {
 
         await viewModel.edit(id: UUID(), name: "硬舉", muscleGroup: .back, equipment: .barbell, description: nil)
 
-        #expect(viewModel.errorMessage == "找不到這個動作，可能已被刪除")
+        #expect(viewModel.errorMessage?.key == "spec.error.notFound")
     }
 
     @Test func removeDeletesExerciseAndReloadsList() async {

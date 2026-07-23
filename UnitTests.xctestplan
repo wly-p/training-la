@@ -28,6 +28,13 @@
     },
     {
       "target" : {
+        "containerPath" : "container:Packages/Reminders",
+        "identifier" : "RemindersKitTests",
+        "name" : "RemindersKitTests"
+      }
+    },
+    {
+      "target" : {
         "containerPath" : "container:Packages/Spec",
         "identifier" : "SpecDomainTests",
         "name" : "SpecDomainTests"

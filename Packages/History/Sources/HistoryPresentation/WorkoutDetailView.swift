@@ -7,6 +7,7 @@ struct WorkoutDetailView: View {
     @State private var viewModel: WorkoutDetailViewModel
     @State private var showsDeleteConfirm = false
     @Environment(\.dismiss) private var dismiss
+    @Environment(\.locale) private var locale
 
     /// `makeViewModel` 以 autoclosure 存入 @State，確保每個詳情頁只建一次 view model。
     init(summary: HistoryWorkoutSummary, makeViewModel: @autoclosure @escaping () -> WorkoutDetailViewModel) {
@@ -34,8 +35,12 @@ struct WorkoutDetailView: View {
                         Button(role: .destructive) {
                             showsDeleteConfirm = true
                         } label: {
-                            Label("刪除整場紀錄", systemImage: "trash")
-                                .frame(maxWidth: .infinity)
+                            Label {
+                                localText("history.deleteWorkout")
+                            } icon: {
+                                Image(systemName: "trash")
+                            }
+                            .frame(maxWidth: .infinity)
                         }
                         .accessibilityIdentifier("workoutDetail.delete")
                     }
@@ -44,7 +49,7 @@ struct WorkoutDetailView: View {
                 ProgressView()
             }
         }
-        .navigationTitle(HistoryFormatting.dayLabel(summary.day))
+        .navigationTitle(HistoryFormatting.dayLabel(summary.day, locale: locale))
         #if os(iOS)
         .navigationBarTitleDisplayMode(.inline)
         #endif
@@ -52,17 +57,17 @@ struct WorkoutDetailView: View {
             if viewModel.detail != nil {
                 if viewModel.isEditing {
                     ToolbarItem(placement: .cancellationAction) {
-                        Button("取消") { viewModel.cancelEditing() }
+                        Button { viewModel.cancelEditing() } label: { localText("history.cancel") }
                             .accessibilityIdentifier("workoutDetail.cancelEdit")
                     }
                     ToolbarItem(placement: .confirmationAction) {
-                        Button("完成") { Task { await viewModel.save() } }
+                        Button { Task { await viewModel.save() } } label: { localText("history.done") }
                             .disabled(!viewModel.hasChanges || viewModel.isSaving)
                             .accessibilityIdentifier("workoutDetail.saveEdit")
                     }
                 } else {
                     ToolbarItem(placement: .primaryAction) {
-                        Button("編輯") { viewModel.beginEditing() }
+                        Button { viewModel.beginEditing() } label: { localText("history.edit") }
                             .accessibilityIdentifier("workoutDetail.edit")
                     }
                 }
@@ -70,20 +75,20 @@ struct WorkoutDetailView: View {
         }
         // 用 alert 不用 confirmationDialog：iOS 26 的 confirmationDialog 會以帶箭頭的 popover
         // 呈現且錨點不在觸發按鈕上；alert 固定置中、無箭頭。
-        .alert("刪除這場訓練紀錄？", isPresented: $showsDeleteConfirm) {
-            Button("刪除", role: .destructive) { Task { await viewModel.delete() } }
-            Button("取消", role: .cancel) {}
+        .alert(localText("history.deleteConfirm.title"), isPresented: $showsDeleteConfirm) {
+            Button(role: .destructive) { Task { await viewModel.delete() } } label: { localText("history.delete") }
+            Button(role: .cancel) {} label: { localText("history.cancel") }
         } message: {
-            Text("刪除後無法復原，這場的所有組都會一併移除。")
+            localText("history.deleteConfirm.message")
         }
         .alert(
-            "出錯了",
+            localText("history.error"),
             isPresented: Binding(
                 get: { viewModel.errorMessage != nil },
                 set: { if !$0 { viewModel.dismissError() } }
             )
         ) {
-            Button("好", role: .cancel) {}
+            Button(role: .cancel) {} label: { localText("history.ok") }
         } message: {
             Text(viewModel.errorMessage ?? "")
         }
@@ -99,9 +104,17 @@ struct WorkoutDetailView: View {
         Section {
             HStack(spacing: 12) {
                 if let minutes = detail.summary.durationMinutes {
-                    Label("\(minutes) 分鐘", systemImage: "clock")
+                    Label {
+                        localText("history.minutes \(minutes)")
+                    } icon: {
+                        Image(systemName: "clock")
+                    }
                 }
-                Label("\(detail.summary.totalSets) 組", systemImage: "checklist")
+                Label {
+                    localText("history.setsSpaced \(detail.summary.totalSets)")
+                } icon: {
+                    Image(systemName: "checklist")
+                }
                 if !HistoryFormatting.feeling(detail.summary.overallFeeling).isEmpty {
                     Text(HistoryFormatting.feeling(detail.summary.overallFeeling))
                 }
@@ -109,7 +122,8 @@ struct WorkoutDetailView: View {
             .font(.footnote)
             .foregroundStyle(.secondary)
             if let note = detail.note {
-                Text(note)
+                // 使用者備註是 DB 資料（verbatim）
+                Text(verbatim: note)
             }
         }
     }
@@ -118,20 +132,22 @@ struct WorkoutDetailView: View {
 
     private func displayRow(_ set: HistorySetLine) -> some View {
         HStack {
-            Text("第\(set.setIndex + 1)組")
+            localText("history.setIndex \(set.setIndex + 1)")
                 .foregroundStyle(set.status == .skipped ? .secondary : .primary)
             if set.status != .done {
-                Text(HistoryFormatting.statusLabel(set.status))
+                localText(HistoryFormatting.statusLabel(set.status))
                     .font(.caption2)
                     .foregroundStyle(.secondary)
             }
             Spacer()
             if let targetWeight = set.targetWeight, let targetReps = set.targetReps {
-                Text("目標 \(targetWeight.displayString)×\(targetReps)")
+                localText("history.target \(targetWeight.displayString) \(targetReps)")
                     .font(.caption)
                     .foregroundStyle(.tertiary)
             }
-            Text("\(set.weight.displayString) × \(set.reps)")
+            // 重量／次數是數值資料（verbatim）；「×」不用翻譯，寫死字面量會被 SwiftUI 當
+            // LocalizedStringKey 隱式抽進 String Catalog（自動長出一個 "%@ × %lld" key），故明確 verbatim。
+            Text(verbatim: "\(set.weight.displayString) × \(set.reps)")
                 .monospacedDigit()
         }
     }
@@ -140,28 +156,30 @@ struct WorkoutDetailView: View {
     private func editRow(_ set: HistorySetLine) -> some View {
         if let draft = viewModel.draft(for: set.id) {
             VStack(alignment: .leading, spacing: 10) {
-                Text("第\(set.setIndex + 1)組").font(.subheadline.bold())
+                localText("history.setIndex \(set.setIndex + 1)").font(.subheadline.bold())
                 HStack(spacing: 20) {
                     stepper(
-                        label: "重量",
+                        label: "history.weight",
                         value: draft.weight.displayString,
                         onMinus: { viewModel.bumpWeight(setId: set.id, -1) },
                         onPlus: { viewModel.bumpWeight(setId: set.id, 1) }
                     )
                     stepper(
-                        label: "次數",
+                        label: "history.reps",
                         value: "\(draft.reps)",
                         onMinus: { viewModel.bumpReps(setId: set.id, -1) },
                         onPlus: { viewModel.bumpReps(setId: set.id, 1) }
                     )
                 }
-                Picker("狀態", selection: Binding(
+                Picker(selection: Binding(
                     get: { draft.status },
                     set: { viewModel.setStatus(setId: set.id, $0) }
                 )) {
                     ForEach(WorkoutSetStatus.allCases, id: \.self) { status in
-                        Text(HistoryFormatting.statusLabel(status)).tag(status)
+                        localText(HistoryFormatting.statusLabel(status)).tag(status)
                     }
+                } label: {
+                    localText("history.status")
                 }
                 .pickerStyle(.segmented)
             }
@@ -169,9 +187,9 @@ struct WorkoutDetailView: View {
         }
     }
 
-    private func stepper(label: String, value: String, onMinus: @escaping () -> Void, onPlus: @escaping () -> Void) -> some View {
+    private func stepper(label: LocalizedStringKey, value: String, onMinus: @escaping () -> Void, onPlus: @escaping () -> Void) -> some View {
         VStack(spacing: 4) {
-            Text(label).font(.caption).foregroundStyle(.secondary)
+            localText(label).font(.caption).foregroundStyle(.secondary)
             HStack(spacing: 12) {
                 Button(action: onMinus) { Image(systemName: "minus.circle") }
                 Text(value).monospacedDigit().frame(minWidth: 64)

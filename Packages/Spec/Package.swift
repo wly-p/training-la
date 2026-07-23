@@ -3,6 +3,7 @@ import PackageDescription
 
 let package = Package(
     name: "Spec",
+    defaultLocalization: "zh-Hant",
     platforms: [.iOS(.v17), .macOS(.v14)],
     products: [
         .library(name: "SpecDomain", targets: ["SpecDomain"]),
@@ -23,7 +24,8 @@ let package = Package(
         ),
         .target(
             name: "SpecPresentation",
-            dependencies: ["SpecDomain"]
+            dependencies: ["SpecDomain"],
+            resources: [.process("Localizable.xcstrings")]
         ),
         .testTarget(
             name: "SpecDomainTests",

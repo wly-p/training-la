@@ -15,7 +15,7 @@ struct SwiftDataPlanWorkoutRepositoryTests {
         return PlanDataFactory.makePlanWorkoutRepository(container: container)
     }
 
-    private func planWorkout(date: DayDate?, order: Int, sets: Int = 2) -> PlanWorkout {
+    private func planWorkout(date: DayDate, order: Int, sets: Int = 2) -> PlanWorkout {
         PlanWorkout(
             id: UUID(), name: "推日", date: date, status: .notStarted, orderIndex: order,
             sets: (0..<sets).map {
@@ -40,18 +40,15 @@ struct SwiftDataPlanWorkoutRepositoryTests {
         let day = DayDate(year: 2026, month: 7, day: 9)
         try await repo.save(planWorkout(date: day, order: 0))
         try await repo.save(planWorkout(date: DayDate(year: 2026, month: 7, day: 10), order: 1))
-        try await repo.save(planWorkout(date: nil, order: 2))
 
         let onDay = try await repo.onDate(day)
-        let cycle = try await repo.cycle()
 
         #expect(onDay.count == 1)
-        #expect(cycle.count == 1)
     }
 
     @Test func saveReplacesAggregate() async throws {
         let repo = try makeRepository()
-        var plan = planWorkout(date: nil, order: 0, sets: 3)
+        var plan = planWorkout(date: DayDate(year: 2026, month: 7, day: 9), order: 0, sets: 3)
         try await repo.save(plan)
 
         plan.sets.removeLast()
@@ -65,7 +62,7 @@ struct SwiftDataPlanWorkoutRepositoryTests {
 
     @Test func usesExerciseReflectsPlanSets() async throws {
         let repo = try makeRepository()
-        let plan = planWorkout(date: nil, order: 0, sets: 2)
+        let plan = planWorkout(date: DayDate(year: 2026, month: 7, day: 9), order: 0, sets: 2)
         let usedExerciseId = plan.sets[0].exerciseId
         try await repo.save(plan)
 
@@ -75,7 +72,7 @@ struct SwiftDataPlanWorkoutRepositoryTests {
 
     @Test func deleteRemoves() async throws {
         let repo = try makeRepository()
-        let plan = planWorkout(date: nil, order: 0)
+        let plan = planWorkout(date: DayDate(year: 2026, month: 7, day: 9), order: 0)
         try await repo.save(plan)
 
         try await repo.delete(id: plan.id)

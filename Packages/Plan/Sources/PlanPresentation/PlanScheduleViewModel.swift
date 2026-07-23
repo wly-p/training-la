@@ -8,7 +8,8 @@ import SharedKernel
 public final class PlanScheduleViewModel {
     public private(set) var planWorkouts: [PlanWorkout] = []
     public private(set) var catalog: [PlanCatalogExercise] = []
-    public private(set) var errorMessage: String?
+    /// 本地化錯誤字串（延後解析，由 View 依 Environment locale 顯示）。
+    public private(set) var errorMessage: LocalizedStringResource?
 
     private let listPlanWorkouts: ListPlanWorkouts
     private let createPlanWorkout: CreatePlanWorkout
@@ -31,11 +32,7 @@ public final class PlanScheduleViewModel {
     }
 
     public var datedWorkouts: [PlanWorkout] {
-        planWorkouts.filter { !$0.isCycle }.sorted { ($0.date!, $0.orderIndex) < ($1.date!, $1.orderIndex) }
-    }
-
-    public var cycleWorkouts: [PlanWorkout] {
-        planWorkouts.filter { $0.isCycle }.sorted { $0.orderIndex < $1.orderIndex }
+        planWorkouts.sorted { ($0.date, $0.orderIndex) < ($1.date, $1.orderIndex) }
     }
 
     public func name(for exerciseId: UUID) -> String {
@@ -48,15 +45,15 @@ public final class PlanScheduleViewModel {
             catalog = try await exerciseCatalog.exercises()
             errorMessage = nil
         } catch {
-            errorMessage = "讀取課表失敗：\(error.localizedDescription)"
+            errorMessage = .plan("plan.error.loadFailed \(error.localizedDescription)")
         }
     }
 
-    public func create(name: String?, date: DayDate?, drafts: [ExerciseTargetDraft]) async {
+    public func create(name: String?, date: DayDate, drafts: [ExerciseTargetDraft]) async {
         await run { try await self.createPlanWorkout(name: name, date: date, drafts: drafts) }
     }
 
-    public func update(id: UUID, name: String?, date: DayDate?, drafts: [ExerciseTargetDraft]) async {
+    public func update(id: UUID, name: String?, date: DayDate, drafts: [ExerciseTargetDraft]) async {
         await run { try await self.updatePlanWorkout(id: id, name: name, date: date, drafts: drafts) }
     }
 
@@ -71,9 +68,9 @@ public final class PlanScheduleViewModel {
             try await operation()
             await load()
         } catch PlanWorkoutValidationError.empty {
-            errorMessage = "排課至少要有一個動作"
+            errorMessage = .plan("plan.error.needExercise")
         } catch {
-            errorMessage = "操作失敗：\(error.localizedDescription)"
+            errorMessage = .plan("plan.error.actionFailed \(error.localizedDescription)")
         }
     }
 }

@@ -26,6 +26,31 @@ public enum AppLanguage: String, CaseIterable, Sendable, Identifiable {
     }
 }
 
+extension AppLanguage {
+    /// 從 `Locale`（例如 `@Environment(\.locale)`，其值就是根部注入的 `AppLanguage.locale`）反解回
+    /// `AppLanguage`。給只能拿到 `Locale` 的呼叫端，要用 ``localizedString(_:bundle:)`` 時換算用。
+    /// 查無支援清單 → fallback。
+    public init(locale: Locale) {
+        self = AppLanguage(rawValue: locale.identifier) ?? .fallback
+    }
+
+    /// 明確指定語言解析 String Catalog 字串；不依賴 SwiftUI Environment，給背景通知內容、
+    /// 純 Swift 格式化邏輯這類沒有 View 情境的地方用。
+    ///
+    /// `String(localized:bundle:locale:)` 的 `locale:` 參數**不會**依它選語言（已用 xcodebuild 驗證：
+    /// en / zh-Hant 都回 sourceLanguage）。String Catalog 編譯後每個語言仍落在傳統
+    /// `xx.lproj/Localizable.strings`，故改用明確開該語言的 lproj 子 bundle 查表，是唯一驗證有效的作法。
+    ///
+    /// - Parameters:
+    ///   - key: String Catalog 的 key；含格式符（如 `"plan.setCountUnit %lld"`）時呼叫端自行
+    ///     `String(format:)` 套參數。
+    ///   - bundle: 該 package 的資源 bundle（呼叫端傳 `.module`）。
+    public func localizedString(_ key: String, bundle: Bundle) -> String {
+        let languageBundle = bundle.path(forResource: rawValue, ofType: "lproj").flatMap(Bundle.init(path:)) ?? bundle
+        return languageBundle.localizedString(forKey: key, value: nil, table: "Localizable")
+    }
+}
+
 /// 決定 App 當前語言的純函式邏輯：不碰 Bundle / UserDefaults，方便測試。
 /// 對齊 ``AppEnvironment/resolve(infoDictionary:)`` 的「pure resolve」風格。
 public enum LanguageResolver {

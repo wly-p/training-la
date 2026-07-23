@@ -13,41 +13,48 @@ public struct ExerciseListView: View {
     public var body: some View {
         NavigationStack {
             List {
-                ForEach(viewModel.visibleExercises) { exercise in
-                    Button {
-                        editingTarget = .edit(exercise)
-                    } label: {
-                        row(for: exercise)
-                    }
-                    .buttonStyle(.plain)
-                    .swipeActions(edge: .trailing) {
-                        Button("刪除", role: .destructive) {
-                            Task { await viewModel.remove(id: exercise.id) }
+                // chips 放進 List 當 Section header（不是 .safeAreaInset）：List 的 section header
+                // 本來就有「捲動時釘在頂端」的原生行為，效果跟 safeAreaInset 一樣；差別在於它現在是
+                // List 自己 scroll view 的一部分，不是另一個跟 List 競爭的獨立 ScrollView——
+                // 後者會干擾 NavigationStack 大標題的捲動偵測，導致大標題視覺上空白（見對應 bug ticket）。
+                Section {
+                    ForEach(viewModel.visibleExercises) { exercise in
+                        Button {
+                            editingTarget = .edit(exercise)
+                        } label: {
+                            row(for: exercise)
+                        }
+                        .buttonStyle(.plain)
+                        .swipeActions(edge: .trailing) {
+                            Button(role: .destructive) {
+                                Task { await viewModel.remove(id: exercise.id) }
+                            } label: {
+                                localText("spec.delete")
+                            }
                         }
                     }
+                } header: {
+                    filterChips
                 }
             }
-            .searchable(text: $viewModel.searchText, prompt: "搜尋動作")
-            .navigationTitle("動作庫")
+            .searchable(text: $viewModel.searchText, prompt: localText("spec.searchExercises"))
+            .navigationTitle(localText("spec.title"))
             .toolbar {
                 ToolbarItem(placement: .primaryAction) {
                     Button {
                         editingTarget = .create
                     } label: {
-                        Label("新增動作", systemImage: "plus")
+                        Label { localText("spec.new") } icon: { Image(systemName: "plus") }
                     }
                 }
             }
-            .safeAreaInset(edge: .top, spacing: 0) {
-                filterChips
-            }
             .overlay {
                 if viewModel.visibleExercises.isEmpty {
-                    ContentUnavailableView(
-                        "還沒有動作",
-                        systemImage: "dumbbell",
-                        description: Text("點右上角＋建立第一個動作")
-                    )
+                    ContentUnavailableView {
+                        Label { localText("spec.empty") } icon: { Image(systemName: "dumbbell") }
+                    } description: {
+                        localText("spec.empty.hint")
+                    }
                 }
             }
             .task {
@@ -64,13 +71,13 @@ public struct ExerciseListView: View {
                 }
             }
             .alert(
-                "出錯了",
+                localText("spec.error"),
                 isPresented: Binding(
                     get: { viewModel.errorMessage != nil },
                     set: { if !$0 { viewModel.dismissError() } }
                 )
             ) {
-                Button("好", role: .cancel) {}
+                Button(role: .cancel) {} label: { localText("spec.ok") }
             } message: {
                 Text(viewModel.errorMessage ?? "")
             }
@@ -80,19 +87,20 @@ public struct ExerciseListView: View {
     private func row(for exercise: Exercise) -> some View {
         HStack {
             VStack(alignment: .leading, spacing: 2) {
-                Text(exercise.name)
-                Text(exercise.equipment.displayName)
+                // 動作名、器材、備註都是 DB / enum 資料（verbatim）
+                Text(verbatim: exercise.name)
+                Text(verbatim: exercise.equipment.displayName)
                     .font(.footnote)
                     .foregroundStyle(.secondary)
                 if let description = exercise.description {
-                    Text(description)
+                    Text(verbatim: description)
                         .font(.footnote)
                         .foregroundStyle(.secondary)
                         .lineLimit(1)
                 }
             }
             Spacer()
-            Text(exercise.muscleGroup.displayName)
+            Text(verbatim: exercise.muscleGroup.displayName)
                 .font(.caption)
                 .padding(.horizontal, 8)
                 .padding(.vertical, 3)
@@ -104,11 +112,12 @@ public struct ExerciseListView: View {
     private var filterChips: some View {
         ScrollView(.horizontal, showsIndicators: false) {
             HStack(spacing: 8) {
-                chip(title: "全部", isSelected: viewModel.filter == nil) {
+                // 「全部」本地化；肌群是 enum 資料（verbatim，不做）
+                chip(title: localText("spec.all"), isSelected: viewModel.filter == nil) {
                     await viewModel.setFilter(nil)
                 }
                 ForEach(MuscleGroup.allCases, id: \.self) { group in
-                    chip(title: group.displayName, isSelected: viewModel.filter == group) {
+                    chip(title: Text(verbatim: group.displayName), isSelected: viewModel.filter == group) {
                         await viewModel.setFilter(group)
                     }
                 }
@@ -119,11 +128,11 @@ public struct ExerciseListView: View {
         .background(.bar)
     }
 
-    private func chip(title: String, isSelected: Bool, action: @escaping () async -> Void) -> some View {
+    private func chip(title: Text, isSelected: Bool, action: @escaping () async -> Void) -> some View {
         Button {
             Task { await action() }
         } label: {
-            Text(title)
+            title
                 .font(.subheadline)
                 .padding(.horizontal, 12)
                 .padding(.vertical, 6)

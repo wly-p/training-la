@@ -32,30 +32,37 @@ struct ExerciseFormView: View {
     var body: some View {
         NavigationStack {
             Form {
-                TextField("名稱（例：臥推）", text: $name)
-                Picker("肌群", selection: $muscleGroup) {
+                TextField("", text: $name, prompt: localText("spec.name.placeholder"))
+                Picker(selection: $muscleGroup) {
+                    // 肌群 / 器材選項是 enum 資料（verbatim，不做）
                     ForEach(MuscleGroup.allCases, id: \.self) { group in
-                        Text(group.displayName).tag(group)
+                        Text(verbatim: group.displayName).tag(group)
                     }
+                } label: {
+                    localText("spec.muscleGroup")
                 }
-                Picker("器材", selection: $equipment) {
+                Picker(selection: $equipment) {
                     ForEach(Equipment.allCases, id: \.self) { item in
-                        Text(item.displayName).tag(item)
+                        Text(verbatim: item.displayName).tag(item)
                     }
+                } label: {
+                    localText("spec.equipment")
                 }
-                TextField("備註（可留空）", text: $descriptionText, axis: .vertical)
+                TextField("", text: $descriptionText, prompt: localText("spec.notes.optional"), axis: .vertical)
             }
-            .navigationTitle(isCreating ? "新增動作" : "編輯動作")
+            .navigationTitle(isCreating ? localText("spec.new") : localText("spec.edit"))
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
-                    Button("取消") { dismiss() }
+                    Button { dismiss() } label: { localText("spec.cancel") }
                 }
                 ToolbarItem(placement: .confirmationAction) {
-                    Button("儲存") {
+                    Button {
                         Task {
                             await onSubmit(name, muscleGroup, equipment, descriptionText.isEmpty ? nil : descriptionText)
                             dismiss()
                         }
+                    } label: {
+                        localText("spec.save")
                     }
                     .disabled(name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
                 }

@@ -5,6 +5,7 @@ import SwiftUI
 public struct PlanScheduleView: View {
     @Bindable private var viewModel: PlanScheduleViewModel
     @State private var editing: PlanFormTarget?
+    @Environment(\.locale) private var locale
 
     public init(viewModel: PlanScheduleViewModel) {
         self.viewModel = viewModel
@@ -13,41 +14,33 @@ public struct PlanScheduleView: View {
     public var body: some View {
         NavigationStack {
             List {
-                if !viewModel.datedWorkouts.isEmpty {
-                    Section("指定日期") {
-                        ForEach(viewModel.datedWorkouts) { row($0) }
-                    }
-                }
-                if !viewModel.cycleWorkouts.isEmpty {
-                    Section("循環課表") {
-                        ForEach(viewModel.cycleWorkouts) { row($0) }
-                    }
-                }
+                ForEach(viewModel.datedWorkouts) { row($0) }
             }
-            .navigationTitle("課表")
+            .navigationTitle(localText("plan.title"))
             .toolbar {
                 ToolbarItem(placement: .primaryAction) {
                     Button {
                         editing = .create
                     } label: {
-                        Label("新增排課", systemImage: "plus")
+                        Label { localText("plan.new") } icon: { Image(systemName: "plus") }
                     }
                 }
             }
             .overlay {
                 if viewModel.planWorkouts.isEmpty {
-                    ContentUnavailableView(
-                        "還沒有排課",
-                        systemImage: "calendar",
-                        description: Text("排課只是預填來源，不排課也能直接記錄訓練")
-                    )
+                    ContentUnavailableView {
+                        Label { localText("plan.empty") } icon: { Image(systemName: "calendar") }
+                    } description: {
+                        localText("plan.empty.hint")
+                    }
                 }
             }
             .task { await viewModel.load() }
             .sheet(item: $editing) { target in
                 PlanWorkoutFormView(
                     target: target,
-                    catalog: viewModel.catalog
+                    catalog: viewModel.catalog,
+                    readOnly: target.isDone
                 ) { name, date, drafts in
                     switch target {
                     case .create:
@@ -58,13 +51,13 @@ public struct PlanScheduleView: View {
                 }
             }
             .alert(
-                "出錯了",
+                localText("plan.error"),
                 isPresented: Binding(
                     get: { viewModel.errorMessage != nil },
                     set: { if !$0 { viewModel.dismissError() } }
                 )
             ) {
-                Button("好", role: .cancel) {}
+                Button(role: .cancel) {} label: { localText("plan.ok") }
             } message: {
                 Text(viewModel.errorMessage ?? "")
             }
@@ -77,18 +70,17 @@ public struct PlanScheduleView: View {
         } label: {
             VStack(alignment: .leading, spacing: 4) {
                 HStack {
-                    Text(plan.name ?? "未命名").font(.headline)
+                    // 課表名是 DB 資料（verbatim）；沒命名時用本地化的「未命名」
+                    (plan.name.map { Text(verbatim: $0) } ?? localText("plan.untitled")).font(.headline)
                     Spacer()
-                    if let date = plan.date {
-                        Text(PlanFormatting.dayLabel(date))
-                            .font(.caption)
-                            .foregroundStyle(.secondary)
-                    }
+                    Text(PlanFormatting.dayLabel(plan.date, locale: locale))
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
                     if plan.status == .done {
                         Image(systemName: "checkmark.circle.fill").foregroundStyle(.green)
                     }
                 }
-                Text(PlanFormatting.summary(plan, name: viewModel.name(for:)))
+                Text(PlanFormatting.summary(plan, name: viewModel.name(for:), language: AppLanguage(locale: locale)))
                     .font(.footnote)
                     .foregroundStyle(.secondary)
             }
@@ -96,8 +88,10 @@ public struct PlanScheduleView: View {
         }
         .buttonStyle(.plain)
         .swipeActions(edge: .trailing) {
-            Button("刪除", role: .destructive) {
+            Button(role: .destructive) {
                 Task { await viewModel.delete(id: plan.id) }
+            } label: {
+                localText("plan.delete")
             }
         }
     }
@@ -112,5 +106,11 @@ enum PlanFormTarget: Identifiable {
         case .create: "create"
         case .edit(let plan): plan.id.uuidString
         }
+    }
+
+    /// 已完成的排課 → 表單以唯讀開啟。
+    var isDone: Bool {
+        if case .edit(let plan) = self { return plan.status == .done }
+        return false
     }
 }

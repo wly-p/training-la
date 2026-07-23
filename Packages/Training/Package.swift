@@ -3,6 +3,7 @@ import PackageDescription
 
 let package = Package(
     name: "Training",
+    defaultLocalization: "zh-Hant",
     platforms: [.iOS(.v17), .macOS(.v14)],
     products: [
         .library(name: "TrainingDomain", targets: ["TrainingDomain"]),
@@ -24,7 +25,11 @@ let package = Package(
         ),
         .target(
             name: "TrainingPresentation",
-            dependencies: ["TrainingDomain", .product(name: "RemindersDomain", package: "Reminders")]
+            dependencies: [
+                "TrainingDomain", "SharedKernel",
+                .product(name: "RemindersDomain", package: "Reminders"),
+            ],
+            resources: [.process("Localizable.xcstrings")]
         ),
         .testTarget(
             name: "TrainingDomainTests",

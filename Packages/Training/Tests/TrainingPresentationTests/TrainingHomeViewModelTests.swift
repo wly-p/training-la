@@ -25,14 +25,19 @@ private actor MockHomeWorkoutRepo: WorkoutRepository {
 
 private struct MockPlannedProvider: PlannedWorkoutProvider {
     let plan: PlannedWorkoutBlueprint?
+    var templateList: [PlannedTemplateSummary] = []
     func todaysPlan() async throws -> PlannedWorkoutBlueprint? { plan }
     func blueprint(planWorkoutId: UUID) async throws -> PlannedWorkoutBlueprint? { plan }
+    func templates() async throws -> [PlannedTemplateSummary] { templateList }
+    func instantiate(templateId: UUID) async throws -> PlannedWorkoutBlueprint? { plan }
 }
 
 private struct ThrowingPlannedProvider: PlannedWorkoutProvider {
     struct Failure: Error {}
     func todaysPlan() async throws -> PlannedWorkoutBlueprint? { throw Failure() }
     func blueprint(planWorkoutId: UUID) async throws -> PlannedWorkoutBlueprint? { throw Failure() }
+    func templates() async throws -> [PlannedTemplateSummary] { throw Failure() }
+    func instantiate(templateId: UUID) async throws -> PlannedWorkoutBlueprint? { throw Failure() }
 }
 
 @MainActor

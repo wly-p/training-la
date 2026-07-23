@@ -1,5 +1,6 @@
 import Foundation
 import HistoryDomain
+import PlanDomain
 import SharedKernel
 import SpecDomain
 import TrainingDomain
@@ -9,6 +10,8 @@ import TrainingDomain
 struct HistoryReadingAdapter: WorkoutHistoryReading, WorkoutHistoryEditing {
     let workoutRepository: any WorkoutRepository
     let listExercises: ListExercises
+    /// 刪除場次後，若對應排課已無完成紀錄，用它把排課還原成未開始。
+    let revertPlanWorkout: RevertPlanWorkoutDone
 
     private func exerciseIndex() async throws -> [UUID: Exercise] {
         let all = try await listExercises(muscleGroup: nil)
@@ -65,7 +68,16 @@ struct HistoryReadingAdapter: WorkoutHistoryReading, WorkoutHistoryEditing {
     // MARK: - Editing
 
     func deleteWorkout(id: UUID) async throws {
+        // 先取回場次以拿到來源排課；刪除後若該排課已無其他完成場次，把它還原成未開始，
+        // 否則排課會停在「已完成」（見 Bug：刪除歷史場次後排課仍顯示完成）。
+        let planWorkoutId = try await workoutRepository.get(id: id)?.planWorkoutId
         try await workoutRepository.delete(id: id)
+        guard let planWorkoutId else { return }
+        let stillCompleted = try await workoutRepository.finishedWorkouts()
+            .contains { $0.planWorkoutId == planWorkoutId }
+        if !stillCompleted {
+            try? await revertPlanWorkout(id: planWorkoutId)
+        }
     }
 
     /// 整包更新：讀回 aggregate、按 id 套用各組編輯、整棵樹重存。

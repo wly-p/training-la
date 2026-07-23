@@ -29,6 +29,8 @@ private struct MockPlanProvider: PlannedWorkoutProvider {
     let blueprint: PlannedWorkoutBlueprint
     func todaysPlan() async throws -> PlannedWorkoutBlueprint? { blueprint }
     func blueprint(planWorkoutId: UUID) async throws -> PlannedWorkoutBlueprint? { blueprint }
+    func templates() async throws -> [PlannedTemplateSummary] { [] }
+    func instantiate(templateId: UUID) async throws -> PlannedWorkoutBlueprint? { blueprint }
 }
 
 @MainActor

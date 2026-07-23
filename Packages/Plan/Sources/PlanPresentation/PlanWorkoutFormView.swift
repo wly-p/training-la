@@ -2,213 +2,84 @@ import PlanDomain
 import SharedKernel
 import SwiftUI
 
+/// 當日排課表單。`readOnly`（已完成排課）時全欄位鎖住、僅供檢視。
 struct PlanWorkoutFormView: View {
     let target: PlanFormTarget
     let catalog: [PlanCatalogExercise]
-    let onSubmit: (String?, DayDate?, [ExerciseTargetDraft]) async -> Void
+    let readOnly: Bool
+    let onSubmit: (String?, DayDate, [ExerciseTargetDraft]) async -> Void
 
     @Environment(\.dismiss) private var dismiss
     @State private var name: String
-    @State private var hasDate: Bool
     @State private var date: Date
     @State private var drafts: [ExerciseTargetDraft]
-    @State private var showsPicker = false
 
     init(
         target: PlanFormTarget,
         catalog: [PlanCatalogExercise],
-        onSubmit: @escaping (String?, DayDate?, [ExerciseTargetDraft]) async -> Void
+        readOnly: Bool = false,
+        onSubmit: @escaping (String?, DayDate, [ExerciseTargetDraft]) async -> Void
     ) {
         self.target = target
         self.catalog = catalog
+        self.readOnly = readOnly
         self.onSubmit = onSubmit
         switch target {
         case .create:
             _name = State(initialValue: "")
-            _hasDate = State(initialValue: false)
             _date = State(initialValue: Date())
             _drafts = State(initialValue: [])
         case .edit(let plan):
             _name = State(initialValue: plan.name ?? "")
-            _hasDate = State(initialValue: plan.date != nil)
-            _date = State(initialValue: plan.date?.asDate ?? Date())
-            _drafts = State(initialValue: plan.blocks.map { block in
-                let first = block.sets[0]
-                return ExerciseTargetDraft(
-                    exerciseId: block.exerciseId,
-                    setCount: block.sets.count,
-                    targetWeight: first.targetWeight,
-                    targetReps: first.targetReps,
-                    restSec: first.restSec
-                )
-            })
+            _date = State(initialValue: plan.date.asDate)
+            _drafts = State(initialValue: draftsFromBlocks(plan.blocks))
         }
     }
 
     var body: some View {
         NavigationStack {
             Form {
-                Section {
-                    TextField("名稱（例：推日）", text: $name)
-                    Toggle("指定日期", isOn: $hasDate)
-                    if hasDate {
-                        DatePicker("日期", selection: $date, displayedComponents: .date)
-                    } else {
-                        Text("循環課表：依順序輪替，不綁定日期")
-                            .font(.caption)
+                if readOnly {
+                    Section {
+                        Label { localText("plan.readOnly.hint") } icon: { Image(systemName: "checkmark.circle.fill") }
                             .foregroundStyle(.secondary)
                     }
                 }
-
-                Section("動作") {
-                    ForEach($drafts) { $draft in
-                        draftRow($draft)
-                    }
-                    .onDelete { drafts.remove(atOffsets: $0) }
-
-                    Button {
-                        showsPicker = true
-                    } label: {
-                        Label("加入動作", systemImage: "plus")
+                Section {
+                    TextField("", text: $name, prompt: localText("plan.name.placeholder"))
+                    DatePicker(selection: $date, displayedComponents: .date) {
+                        localText("plan.date")
                     }
                 }
+                .disabled(readOnly)
+
+                ExerciseDraftsEditor(drafts: $drafts, catalog: catalog, readOnly: readOnly)
             }
-            .navigationTitle(isCreating ? "新增排課" : "編輯排課")
+            .navigationTitle(localText(navTitle))
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
-                    Button("取消") { dismiss() }
+                    Button { dismiss() } label: { localText(readOnly ? "plan.close" : "plan.cancel") }
                 }
-                ToolbarItem(placement: .confirmationAction) {
-                    Button("儲存") {
-                        Task {
-                            let day = hasDate ? DayDate(date) : nil
-                            await onSubmit(name.isEmpty ? nil : name, day, drafts)
-                            dismiss()
+                if !readOnly {
+                    ToolbarItem(placement: .confirmationAction) {
+                        Button {
+                            Task {
+                                await onSubmit(name.isEmpty ? nil : name, DayDate(date), drafts)
+                                dismiss()
+                            }
+                        } label: {
+                            localText("plan.save")
                         }
+                        .disabled(drafts.isEmpty)
                     }
-                    .disabled(drafts.isEmpty)
-                }
-            }
-            .sheet(isPresented: $showsPicker) {
-                PlanExercisePickerView(catalog: catalog) { exercise in
-                    drafts.append(ExerciseTargetDraft(
-                        exerciseId: exercise.id,
-                        setCount: 3,
-                        targetWeight: Weight(value: 20, unit: .kg),
-                        targetReps: 8
-                    ))
                 }
             }
         }
     }
 
-    private func draftRow(_ draft: Binding<ExerciseTargetDraft>) -> some View {
-        VStack(alignment: .leading, spacing: 8) {
-            Text(name(for: draft.wrappedValue.exerciseId)).font(.headline)
-            Stepper("組數：\(draft.wrappedValue.setCount)", value: draft.setCount, in: 1...20)
-            HStack {
-                Text("目標")
-                TextField("重量", value: Binding(
-                    get: { draft.wrappedValue.targetWeight?.value ?? 0 },
-                    set: { draft.wrappedValue.targetWeight = Weight(value: $0, unit: draft.wrappedValue.targetWeight?.unit ?? .kg) }
-                ), format: .number)
-                .frame(width: 60)
-                .multilineTextAlignment(.trailing)
-                #if os(iOS)
-                .keyboardType(.decimalPad)
-                #endif
-                Picker("", selection: Binding(
-                    get: { draft.wrappedValue.targetWeight?.unit ?? .kg },
-                    set: { draft.wrappedValue.targetWeight = Weight(value: draft.wrappedValue.targetWeight?.value ?? 0, unit: $0) }
-                )) {
-                    ForEach(WeightUnit.allCases, id: \.self) { Text($0.rawValue).tag($0) }
-                }
-                .labelsHidden()
-                Text("×")
-                TextField("次數", value: Binding(
-                    get: { draft.wrappedValue.targetReps ?? 0 },
-                    set: { draft.wrappedValue.targetReps = $0 }
-                ), format: .number)
-                .frame(width: 44)
-                .multilineTextAlignment(.trailing)
-                #if os(iOS)
-                .keyboardType(.numberPad)
-                #endif
-            }
-            .font(.subheadline)
-
-            HStack {
-                Text("休息")
-                TextField("秒（可留空）", text: Binding(
-                    get: { draft.wrappedValue.restSec.map(String.init) ?? "" },
-                    set: {
-                        let n = Int($0.trimmingCharacters(in: .whitespaces))
-                        draft.wrappedValue.restSec = (n ?? 0) > 0 ? n : nil
-                    }
-                ))
-                .frame(width: 70)
-                #if os(iOS)
-                .keyboardType(.numberPad)
-                #endif
-                Text("秒")
-                Spacer()
-            }
-            .font(.subheadline)
-            .foregroundStyle(.secondary)
-        }
-        .padding(.vertical, 4)
-    }
-
-    private func name(for id: UUID) -> String {
-        catalog.first { $0.id == id }?.name ?? "動作"
-    }
-
-    private var isCreating: Bool {
-        if case .create = target { return true }
-        return false
-    }
-}
-
-private struct PlanExercisePickerView: View {
-    let catalog: [PlanCatalogExercise]
-    let onSelect: (PlanCatalogExercise) -> Void
-
-    @Environment(\.dismiss) private var dismiss
-    @State private var searchText = ""
-
-    private var visible: [PlanCatalogExercise] {
-        guard !searchText.isEmpty else { return catalog }
-        return catalog.filter { $0.name.localizedStandardContains(searchText) }
-    }
-
-    var body: some View {
-        NavigationStack {
-            List(visible) { exercise in
-                Button {
-                    onSelect(exercise)
-                    dismiss()
-                } label: {
-                    HStack {
-                        Text(exercise.name)
-                        Spacer()
-                        Text(exercise.muscleGroup.displayName)
-                            .font(.caption).foregroundStyle(.secondary)
-                    }
-                    .contentShape(Rectangle())
-                }
-                .buttonStyle(.plain)
-            }
-            .searchable(text: $searchText, prompt: "搜尋動作")
-            .navigationTitle("加入動作")
-            .toolbar {
-                ToolbarItem(placement: .cancellationAction) { Button("取消") { dismiss() } }
-            }
-            .overlay {
-                if catalog.isEmpty {
-                    ContentUnavailableView("動作庫是空的", systemImage: "books.vertical",
-                                           description: Text("先到動作庫建立動作"))
-                }
-            }
-        }
+    private var navTitle: LocalizedStringKey {
+        if readOnly { return "plan.view" }
+        if case .create = target { return "plan.new" }
+        return "plan.edit"
     }
 }

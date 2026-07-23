@@ -7,17 +7,20 @@ import SwiftData
 final class PlanWorkoutModel {
     @Attribute(.unique) var id: UUID
     var name: String?
-    var date: String?          // "yyyy-MM-dd"，nil＝循環
+    var date: String           // "yyyy-MM-dd"，一定綁定某天
     var statusRaw: String
+    /// 來源課表範本；nil＝手動一次性排課。
+    var templateId: UUID?
     var orderIndex: Int
     @Relationship(deleteRule: .cascade, inverse: \PlanSetModel.planWorkout)
     var sets: [PlanSetModel]
 
-    init(id: UUID, name: String?, date: String?, statusRaw: String, orderIndex: Int, sets: [PlanSetModel] = []) {
+    init(id: UUID, name: String?, date: String, statusRaw: String, templateId: UUID?, orderIndex: Int, sets: [PlanSetModel] = []) {
         self.id = id
         self.name = name
         self.date = date
         self.statusRaw = statusRaw
+        self.templateId = templateId
         self.orderIndex = orderIndex
         self.sets = sets
     }
@@ -63,8 +66,9 @@ extension PlanWorkoutModel {
         self.init(
             id: planWorkout.id,
             name: planWorkout.name,
-            date: planWorkout.date?.isoString,
+            date: planWorkout.date.isoString,
             statusRaw: planWorkout.status.rawValue,
+            templateId: planWorkout.templateId,
             orderIndex: planWorkout.orderIndex,
             sets: planWorkout.sets.map { PlanSetModel(from: $0) }
         )
@@ -74,8 +78,9 @@ extension PlanWorkoutModel {
         PlanWorkout(
             id: id,
             name: name,
-            date: date.flatMap { DayDate(isoString: $0) },
+            date: DayDate(isoString: date) ?? DayDate(year: 1970, month: 1, day: 1),
             status: PlanWorkoutStatus(rawValue: statusRaw) ?? .notStarted,
+            templateId: templateId,
             orderIndex: orderIndex,
             sets: sets
                 .map { $0.toDomain() }
