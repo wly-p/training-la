@@ -625,7 +625,7 @@
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "還沒有環尋循環"
+            "value" : "還沒有循環課表"
           }
         }
       }
@@ -689,7 +689,7 @@
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "環尋循環"
+            "value" : "循環課表"
           }
         }
       }

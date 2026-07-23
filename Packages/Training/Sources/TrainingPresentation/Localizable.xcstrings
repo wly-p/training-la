@@ -655,7 +655,7 @@
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "環尋今天輪到"
+            "value" : "循環課表今天輪到"
           }
         }
       }
