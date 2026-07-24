@@ -295,6 +295,28 @@ private actor SpyReminder: RestEndReminding {
     func deliverForeground() async { foregroundCount += 1 }
 }
 
+/// 模擬「單一 pending 槽」的通知中心，且第一次排程故意變慢：
+/// 若排程未序列化，兩個並行 Task 中「慢的舊排程」會晚於「快的新排程」完成，
+/// 用舊值覆蓋新值 → 最終停在過期排程（bug③ 的重複/殘留通知根因）。
+private actor OrderSensitiveReminder: RestEndReminding {
+    nonisolated let preference: RestReminderPreference
+    private(set) var lastScheduled: Date?
+    private(set) var completed = 0
+    private var callCount = 0
+
+    init(preference: RestReminderPreference = .default) { self.preference = preference }
+
+    func schedule(at endDate: Date) async {
+        let index = callCount
+        callCount += 1
+        if index == 0 { try? await Task.sleep(for: .milliseconds(80)) } // 第一次排程刻意變慢
+        lastScheduled = endDate
+        completed += 1
+    }
+    func cancel() async { lastScheduled = nil; completed += 1 }
+    func deliverForeground() async {}
+}
+
 @MainActor
 struct ActiveWorkoutBackgroundRestTests {
     private func makeViewModel(
@@ -378,6 +400,28 @@ struct ActiveWorkoutBackgroundRestTests {
 
         #expect(await spy.cancelCount == 1)
         #expect(vm.restRemaining == nil)
+    }
+
+    /// bug③：休息中快速連續重排（如休息未結束就完成下一組），排程必須序列化，
+    /// 最終只停在「最後一次」排程；未序列化時舊排程會殘留/覆蓋，造成重複通知。
+    @Test func rapidRestReschedulesLeaveOnlyLatestReminder() async {
+        let clock = MutableClock(Date(timeIntervalSince1970: 1000))
+        let spy = OrderSensitiveReminder()
+        let vm = makeViewModel(now: { clock.current }, reminder: spy)
+
+        // 兩次 startRest 之間不 await → 兩個排程 Task 並行競爭
+        vm.startRest(seconds: 60)   // 排程 1060（慢）
+        vm.startRest(seconds: 90)   // 排程 1090（快）
+
+        // 等兩個排程都跑完（要推進真實時間，第一次排程會 sleep 80ms）
+        var waited = 0
+        while await spy.completed < 2, waited < 50 {
+            try? await Task.sleep(for: .milliseconds(20))
+            waited += 1
+        }
+
+        #expect(await spy.lastScheduled == Date(timeIntervalSince1970: 1090))
+        #expect(vm.restRemaining == 90)
     }
 
     @Test func popupGatedByPreference() {
