@@ -31,6 +31,9 @@ public struct PlanScheduleView: View {
                 }
             }
             .navigationTitle(localText("plan.title"))
+            #if os(iOS)
+            .navigationBarTitleDisplayMode(.inline)
+            #endif
             .toolbar {
                 ToolbarItem(placement: .primaryAction) {
                     Menu {

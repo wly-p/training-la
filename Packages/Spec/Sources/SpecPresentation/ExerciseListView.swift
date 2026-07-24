@@ -10,77 +10,75 @@ public struct ExerciseListView: View {
         self.viewModel = viewModel
     }
 
+    // 不自帶 NavigationStack：嵌在動作庫 tab 共用的 NavigationStack 內（見 App/RootView 的 LibraryTabView）。
     public var body: some View {
-        NavigationStack {
-            List {
-                // chips 放進 List 當 Section header（不是 .safeAreaInset）：List 的 section header
-                // 本來就有「捲動時釘在頂端」的原生行為，效果跟 safeAreaInset 一樣；差別在於它現在是
-                // List 自己 scroll view 的一部分，不是另一個跟 List 競爭的獨立 ScrollView——
-                // 後者會干擾 NavigationStack 大標題的捲動偵測，導致大標題視覺上空白（見對應 bug ticket）。
-                Section {
-                    ForEach(viewModel.visibleExercises) { exercise in
-                        Button {
-                            editingTarget = .edit(exercise)
-                        } label: {
-                            row(for: exercise)
-                        }
-                        .buttonStyle(.plain)
-                        .swipeActions(edge: .trailing) {
-                            Button(role: .destructive) {
-                                Task { await viewModel.remove(id: exercise.id) }
-                            } label: {
-                                localText("spec.delete")
-                            }
-                        }
-                    }
-                } header: {
-                    filterChips
-                }
-            }
-            .searchable(text: $viewModel.searchText, prompt: localText("spec.searchExercises"))
-            .navigationTitle(localText("spec.title"))
-            .toolbar {
-                ToolbarItem(placement: .primaryAction) {
+        List {
+            // chips 放進 List 當 Section header（不是 .safeAreaInset）：List 的 section header
+            // 本來就有「捲動時釘在頂端」的原生行為，效果跟 safeAreaInset 一樣；差別在於它現在是
+            // List 自己 scroll view 的一部分，不是另一個跟 List 競爭的獨立 ScrollView——
+            // 後者會干擾 NavigationStack 大標題的捲動偵測，導致大標題視覺上空白（見對應 bug ticket）。
+            Section {
+                ForEach(viewModel.visibleExercises) { exercise in
                     Button {
-                        editingTarget = .create
+                        editingTarget = .edit(exercise)
                     } label: {
-                        Label { localText("spec.new") } icon: { Image(systemName: "plus") }
+                        row(for: exercise)
+                    }
+                    .buttonStyle(.plain)
+                    .swipeActions(edge: .trailing) {
+                        Button(role: .destructive) {
+                            Task { await viewModel.remove(id: exercise.id) }
+                        } label: {
+                            localText("spec.delete")
+                        }
                     }
                 }
+            } header: {
+                filterChips
             }
-            .overlay {
-                if viewModel.visibleExercises.isEmpty {
-                    ContentUnavailableView {
-                        Label { localText("spec.empty") } icon: { Image(systemName: "dumbbell") }
-                    } description: {
-                        localText("spec.empty.hint")
-                    }
+        }
+        .searchable(text: $viewModel.searchText, prompt: localText("spec.searchExercises"))
+        .toolbar {
+            ToolbarItem(placement: .primaryAction) {
+                Button {
+                    editingTarget = .create
+                } label: {
+                    Label { localText("spec.new") } icon: { Image(systemName: "plus") }
                 }
             }
-            .task {
-                await viewModel.load()
-            }
-            .sheet(item: $editingTarget) { target in
-                ExerciseFormView(target: target) { name, muscleGroup, equipment, description in
-                    switch target {
-                    case .create:
-                        await viewModel.add(name: name, muscleGroup: muscleGroup, equipment: equipment, description: description)
-                    case .edit(let exercise):
-                        await viewModel.edit(id: exercise.id, name: name, muscleGroup: muscleGroup, equipment: equipment, description: description)
-                    }
+        }
+        .overlay {
+            if viewModel.visibleExercises.isEmpty {
+                ContentUnavailableView {
+                    Label { localText("spec.empty") } icon: { Image(systemName: "dumbbell") }
+                } description: {
+                    localText("spec.empty.hint")
                 }
             }
-            .alert(
-                localText("spec.error"),
-                isPresented: Binding(
-                    get: { viewModel.errorMessage != nil },
-                    set: { if !$0 { viewModel.dismissError() } }
-                )
-            ) {
-                Button(role: .cancel) {} label: { localText("spec.ok") }
-            } message: {
-                Text(viewModel.errorMessage ?? "")
+        }
+        .task {
+            await viewModel.load()
+        }
+        .sheet(item: $editingTarget) { target in
+            ExerciseFormView(target: target) { name, muscleGroup, equipment, description in
+                switch target {
+                case .create:
+                    await viewModel.add(name: name, muscleGroup: muscleGroup, equipment: equipment, description: description)
+                case .edit(let exercise):
+                    await viewModel.edit(id: exercise.id, name: name, muscleGroup: muscleGroup, equipment: equipment, description: description)
+                }
             }
+        }
+        .alert(
+            localText("spec.error"),
+            isPresented: Binding(
+                get: { viewModel.errorMessage != nil },
+                set: { if !$0 { viewModel.dismissError() } }
+            )
+        ) {
+            Button(role: .cancel) {} label: { localText("spec.ok") }
+        } message: {
+            Text(viewModel.errorMessage ?? "")
         }
     }
 
