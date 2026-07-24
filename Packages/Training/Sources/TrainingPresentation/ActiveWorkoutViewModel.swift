@@ -359,14 +359,21 @@ public final class ActiveWorkoutViewModel {
         }
     }
 
+    // 排程／取消一律串接在前一個動作之後，保證依呼叫順序、彼此不重疊執行。
+    // 否則快速連續動作（休息中又完成一組、早結束又換組、連點 +/-）會 spawn 多個並行 Task，
+    // 底層通知中心的 remove/add 交錯，舊排程沒被蓋掉 → 重複投遞（bug③）。
     private func scheduleReminder(at end: Date) {
+        let previous = pendingRestNotify
         pendingRestNotify = Task { [reminder] in
+            _ = await previous?.value
             await reminder.schedule(at: end)
         }
     }
 
     private func cancelReminder() {
+        let previous = pendingRestNotify
         pendingRestNotify = Task { [reminder] in
+            _ = await previous?.value
             await reminder.cancel()
         }
     }
