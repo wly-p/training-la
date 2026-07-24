@@ -13,7 +13,7 @@ struct PlanProviderAdapter: PlannedWorkoutProvider {
     let getPlanWorkout: @Sendable (UUID) async throws -> PlanWorkout?
     let listTemplates: ListTemplates
     let instantiateTemplate: InstantiateTemplate
-    let loadRotation: LoadRotation
+    let listRotations: ListRotations
     let startRotationUseCase: StartRotation
     let today: @Sendable () -> DayDate
     let listExercises: ListExercises
@@ -37,12 +37,17 @@ struct PlanProviderAdapter: PlannedWorkoutProvider {
         return try await blueprint(from: plan)
     }
 
-    func todaysRotationName() async throws -> String? {
-        try await loadRotation().current?.name
+    func activeRotations() async throws -> [PlannedRotationSummary] {
+        try await listRotations()
+            .filter(\.isActive)
+            .compactMap { rotation in
+                guard let current = rotation.current else { return nil }
+                return PlannedRotationSummary(id: rotation.id, rotationName: rotation.name, currentName: current.name)
+            }
     }
 
-    func startRotation() async throws -> PlannedWorkoutBlueprint? {
-        guard let plan = try await startRotationUseCase(date: today()) else { return nil }
+    func startRotation(id: UUID) async throws -> PlannedWorkoutBlueprint? {
+        guard let plan = try await startRotationUseCase(id: id, date: today()) else { return nil }
         return try await blueprint(from: plan)
     }
 

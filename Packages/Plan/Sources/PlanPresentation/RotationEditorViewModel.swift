@@ -3,23 +3,28 @@ import Observation
 import PlanDomain
 import SharedKernel
 
+/// 單一循環課表的內容編輯器：載入某組循環的名稱與 workouts，增刪改順序。
 @MainActor
 @Observable
 public final class RotationEditorViewModel {
+    public let rotationId: UUID
+    public private(set) var name: String = ""
     public private(set) var workouts: [WorkoutSpec] = []
     public private(set) var catalog: [PlanCatalogExercise] = []
     public private(set) var errorMessage: LocalizedStringResource?
 
-    private let loadRotation: LoadRotation
+    private let getRotation: GetRotation
     private let saveRotationWorkouts: SaveRotationWorkouts
     private let exerciseCatalog: any PlanExerciseCatalog
 
     public init(
-        loadRotation: LoadRotation,
+        rotationId: UUID,
+        getRotation: GetRotation,
         saveRotationWorkouts: SaveRotationWorkouts,
         exerciseCatalog: any PlanExerciseCatalog
     ) {
-        self.loadRotation = loadRotation
+        self.rotationId = rotationId
+        self.getRotation = getRotation
         self.saveRotationWorkouts = saveRotationWorkouts
         self.exerciseCatalog = exerciseCatalog
     }
@@ -30,7 +35,9 @@ public final class RotationEditorViewModel {
 
     public func load() async {
         do {
-            workouts = try await loadRotation().workouts
+            let rotation = try await getRotation(id: rotationId)
+            name = rotation?.name ?? ""
+            workouts = rotation?.workouts ?? []
             catalog = try await exerciseCatalog.exercises()
             errorMessage = nil
         } catch {
@@ -67,8 +74,8 @@ public final class RotationEditorViewModel {
 
     private func persist(_ next: [WorkoutSpec]) async {
         do {
-            try await saveRotationWorkouts(next)
-            workouts = try await loadRotation().workouts
+            try await saveRotationWorkouts(id: rotationId, workouts: next)
+            workouts = try await getRotation(id: rotationId)?.workouts ?? next
             errorMessage = nil
         } catch {
             errorMessage = .plan("plan.error.actionFailed \(error.localizedDescription)")

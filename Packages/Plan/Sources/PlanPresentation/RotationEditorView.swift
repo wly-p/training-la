@@ -11,7 +11,7 @@ public struct RotationEditorView: View {
         self.viewModel = viewModel
     }
 
-    // 不自帶 NavigationStack：嵌在動作庫 tab 共用的 NavigationStack 內。
+    // 不自帶 NavigationStack：由動作庫 tab 共用的 NavigationStack push 進來。
     public var body: some View {
         List {
             Section {
@@ -27,7 +27,10 @@ public struct RotationEditorView: View {
                 localText("rotation.hint")
             }
         }
+        // 循環課表名是使用者資料（verbatim）
+        .navigationTitle(Text(verbatim: viewModel.name))
         #if os(iOS)
+        .navigationBarTitleDisplayMode(.inline)
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) { EditButton() }
         }
@@ -35,7 +38,7 @@ public struct RotationEditorView: View {
         .overlay {
             if viewModel.workouts.isEmpty {
                 ContentUnavailableView {
-                    Label { localText("rotation.empty") } icon: { Image(systemName: "arrow.triangle.2.circlepath") }
+                    Label { localText("rotation.workout.empty") } icon: { Image(systemName: "arrow.triangle.2.circlepath") }
                 } description: {
                     localText("rotation.empty.hint")
                 }

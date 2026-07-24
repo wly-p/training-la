@@ -26,7 +26,8 @@ struct AppDependencies {
     let makeHistoryViewModel: @MainActor () -> HistoryViewModel
     let makePlanScheduleViewModel: @MainActor () -> PlanScheduleViewModel
     let makeTemplateListViewModel: @MainActor () -> TemplateListViewModel
-    let makeRotationEditorViewModel: @MainActor () -> RotationEditorViewModel
+    let makeRotationListViewModel: @MainActor () -> RotationListViewModel
+    let makeRotationEditorViewModel: @MainActor (_ rotationId: UUID) -> RotationEditorViewModel
     /// `onErased`：清除成功後由 App 層觸發整個畫面重建（回到全新初始狀態）。
     let makeSettingsViewModel: @MainActor (_ onErased: @escaping @MainActor () -> Void) -> SettingsViewModel
 
@@ -106,7 +107,7 @@ struct AppDependencies {
             getPlanWorkout: { try await planRepository.get(id: $0) },
             listTemplates: ListTemplates(repository: templateRepository),
             instantiateTemplate: InstantiateTemplate(templateRepository: templateRepository, planRepository: planRepository),
-            loadRotation: LoadRotation(repository: rotationRepository),
+            listRotations: ListRotations(repository: rotationRepository),
             startRotationUseCase: StartRotation(rotationRepository: rotationRepository, planRepository: planRepository),
             today: { DayDate(Date()) },
             listExercises: ListExercises(repository: exerciseRepository)
@@ -165,9 +166,19 @@ struct AppDependencies {
                     exerciseCatalog: planCatalog
                 )
             },
-            makeRotationEditorViewModel: {
+            makeRotationListViewModel: {
+                RotationListViewModel(
+                    listRotations: ListRotations(repository: rotationRepository),
+                    createRotation: CreateRotation(repository: rotationRepository),
+                    renameRotation: RenameRotation(repository: rotationRepository),
+                    setRotationActive: SetRotationActive(repository: rotationRepository),
+                    deleteRotation: DeleteRotation(repository: rotationRepository)
+                )
+            },
+            makeRotationEditorViewModel: { rotationId in
                 RotationEditorViewModel(
-                    loadRotation: LoadRotation(repository: rotationRepository),
+                    rotationId: rotationId,
+                    getRotation: GetRotation(repository: rotationRepository),
                     saveRotationWorkouts: SaveRotationWorkouts(repository: rotationRepository),
                     exerciseCatalog: planCatalog
                 )

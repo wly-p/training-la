@@ -4,22 +4,30 @@ import SwiftData
 
 @ModelActor
 public actor SwiftDataRotationRepository: RotationRepository {
-    /// 單一 active 循環：固定 id 的 singleton row。
-    private static let singletonID = UUID(uuidString: "00000000-0000-0000-0000-000000000001")!
+    public func all() async throws -> [Rotation] {
+        let descriptor = FetchDescriptor<RotationModel>(
+            sortBy: [SortDescriptor(\.orderIndex)]
+        )
+        return try modelContext.fetch(descriptor).map { $0.toDomain() }
+    }
 
-    public func load() async throws -> Rotation {
-        try fetchModel()?.toDomain() ?? Rotation()
+    public func get(id: UUID) async throws -> Rotation? {
+        try fetchModel(id: id)?.toDomain()
     }
 
     public func save(_ rotation: Rotation) async throws {
-        if let existing = try fetchModel() {
+        if let existing = try fetchModel(id: rotation.id) {
             modelContext.delete(existing)
         }
-        let model = RotationModel(id: Self.singletonID, cursor: rotation.cursor)
-        model.workouts = rotation.workouts.enumerated().map { index, spec in
-            RotationWorkoutModel(from: spec, orderIndex: index)
+        modelContext.insert(RotationModel(from: rotation))
+        try modelContext.save()
+    }
+
+    public func delete(id: UUID) async throws {
+        guard let model = try fetchModel(id: id) else {
+            throw RotationRepositoryError.notFound(id: id)
         }
-        modelContext.insert(model)
+        modelContext.delete(model)
         try modelContext.save()
     }
 
@@ -31,8 +39,8 @@ public actor SwiftDataRotationRepository: RotationRepository {
         return try modelContext.fetch(descriptor).first != nil
     }
 
-    private func fetchModel() throws -> RotationModel? {
-        var descriptor = FetchDescriptor<RotationModel>()
+    private func fetchModel(id: UUID) throws -> RotationModel? {
+        var descriptor = FetchDescriptor<RotationModel>(predicate: #Predicate { $0.id == id })
         descriptor.fetchLimit = 1
         return try modelContext.fetch(descriptor).first
     }

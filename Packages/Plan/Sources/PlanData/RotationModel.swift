@@ -6,13 +6,19 @@ import SwiftData
 @Model
 final class RotationModel {
     @Attribute(.unique) var id: UUID
+    var name: String
     var cursor: Int
+    var isActive: Bool
+    var orderIndex: Int
     @Relationship(deleteRule: .cascade, inverse: \RotationWorkoutModel.rotation)
     var workouts: [RotationWorkoutModel]
 
-    init(id: UUID, cursor: Int, workouts: [RotationWorkoutModel] = []) {
+    init(id: UUID, name: String, cursor: Int, isActive: Bool, orderIndex: Int, workouts: [RotationWorkoutModel] = []) {
         self.id = id
+        self.name = name
         self.cursor = cursor
+        self.isActive = isActive
+        self.orderIndex = orderIndex
         self.workouts = workouts
     }
 }
@@ -70,11 +76,24 @@ final class RotationSetModel {
 // MARK: - Mapper
 
 extension RotationModel {
+    convenience init(from rotation: Rotation) {
+        self.init(
+            id: rotation.id,
+            name: rotation.name,
+            cursor: rotation.cursor,
+            isActive: rotation.isActive,
+            orderIndex: rotation.orderIndex,
+            workouts: rotation.workouts.enumerated().map { index, spec in
+                RotationWorkoutModel(from: spec, orderIndex: index)
+            }
+        )
+    }
+
     func toDomain() -> Rotation {
         let specs = workouts
             .sorted { $0.orderIndex < $1.orderIndex }
             .map { $0.toDomain() }
-        return Rotation(workouts: specs, cursor: cursor)
+        return Rotation(id: id, name: name, workouts: specs, cursor: cursor, isActive: isActive, orderIndex: orderIndex)
     }
 }
 

@@ -649,13 +649,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Rotation — up today"
+            "value" : "Up next:"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "循環課表今天輪到"
+            "value" : "今天輪到"
           }
         }
       }
