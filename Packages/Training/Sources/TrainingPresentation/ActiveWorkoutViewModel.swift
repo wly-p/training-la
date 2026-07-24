@@ -4,6 +4,12 @@ import RemindersDomain
 import SharedKernel
 import TrainingDomain
 
+/// 訓練中「接下來」清單的一列（尚未做的課表動作）。
+public struct UpcomingExercise: Identifiable, Equatable, Sendable {
+    public let id: UUID
+    public let name: String
+}
+
 @MainActor
 @Observable
 public final class ActiveWorkoutViewModel {
@@ -123,18 +129,52 @@ public final class ActiveWorkoutViewModel {
     /// 是否照課表訓練。
     public var isFollowingPlan: Bool { blueprint != nil }
 
-    /// 照課表的下一個動作：課表順序中還沒記過、且非當前動作的第一個。全部做過回 nil。
+    /// 本場課表動作順序：訓練中可拖拉調整（session 內有效，不落地回課表範本/排課）。
+    /// nil＝沿用課表原順序。
+    private var reorderedPlan: [UUID]?
+    private var plannedOrderIds: [UUID] {
+        reorderedPlan ?? blueprint?.exercises.map(\.exerciseId) ?? []
+    }
+
+    /// 照課表的下一個動作：（可調整後）順序中還沒記過、且非當前動作的第一個。全部做過回 nil。
     public var nextPlannedExerciseId: UUID? {
-        guard let blueprint else { return nil }
+        guard blueprint != nil else { return nil }
         let recorded = Set(workout.sets.map(\.exerciseId))
-        return blueprint.exercises.first {
-            $0.exerciseId != currentExerciseId && !recorded.contains($0.exerciseId)
-        }?.exerciseId
+        return plannedOrderIds.first { $0 != currentExerciseId && !recorded.contains($0) }
     }
 
     /// 下一個課表動作的名稱（給按鈕標題）。
     public var nextPlannedName: String? {
         nextPlannedExerciseId.map { name(for: $0) }
+    }
+
+    /// 「接下來」：尚未做、且非當前動作的課表動作，照（可拖拉調整後的）順序。
+    public var upcomingExercises: [UpcomingExercise] {
+        guard blueprint != nil else { return [] }
+        let recorded = Set(workout.sets.map(\.exerciseId))
+        return plannedOrderIds
+            .filter { $0 != currentExerciseId && !recorded.contains($0) }
+            .map { UpcomingExercise(id: $0, name: name(for: $0)) }
+    }
+
+    /// 訓練中拖拉調整「接下來」的順序：只重排未做動作彼此的相對位置，
+    /// 已做／當前動作在序列中的位置不動。session 內有效。
+    public func moveUpcoming(fromOffsets source: IndexSet, toOffset destination: Int) {
+        let recorded = Set(workout.sets.map(\.exerciseId))
+        var order = plannedOrderIds
+        let slots = order.indices.filter { order[$0] != currentExerciseId && !recorded.contains(order[$0]) }
+        var ids = slots.map { order[$0] }
+        Self.moveElements(&ids, fromOffsets: source, toOffset: destination)
+        for (i, slot) in slots.enumerated() { order[slot] = ids[i] }
+        reorderedPlan = order
+    }
+
+    /// 複製 SwiftUI Array.move(fromOffsets:toOffset:) 語意（VM 不引 SwiftUI）。
+    private static func moveElements<T>(_ array: inout [T], fromOffsets source: IndexSet, toOffset destination: Int) {
+        let moving = source.sorted().map { array[$0] }
+        for index in source.sorted(by: >) { array.remove(at: index) }
+        let adjusted = destination - source.filter { $0 < destination }.count
+        array.insert(contentsOf: moving, at: adjusted)
     }
 
     // MARK: - 動作
