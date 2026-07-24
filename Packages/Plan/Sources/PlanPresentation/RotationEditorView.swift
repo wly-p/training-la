@@ -48,7 +48,11 @@ public struct RotationEditorView: View {
         .sheet(item: $editing) { edit in
             switch edit {
             case .add:
-                WorkoutSpecFormView(titleKey: "rotation.new", catalog: viewModel.catalog) { name, drafts in
+                WorkoutSpecFormView(
+                    titleKey: "rotation.new",
+                    catalog: viewModel.catalog,
+                    templates: viewModel.templates
+                ) { name, drafts in
                     Task { await viewModel.add(name: name, drafts: drafts) }
                 }
             case .edit(let spec):
@@ -56,7 +60,8 @@ public struct RotationEditorView: View {
                     titleKey: "rotation.edit",
                     name: spec.name,
                     drafts: draftsFromBlocks(spec.blocks),
-                    catalog: viewModel.catalog
+                    catalog: viewModel.catalog,
+                    templates: viewModel.templates
                 ) { name, drafts in
                     Task { await viewModel.update(id: spec.id, name: name, drafts: drafts) }
                 }

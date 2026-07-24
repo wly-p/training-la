@@ -12,21 +12,26 @@ public final class ProgramEditorViewModel {
     public private(set) var cycleLength: Int = 7
     public private(set) var days: [Int: WorkoutSpec] = [:]
     public private(set) var catalog: [PlanCatalogExercise] = []
+    /// 可帶入的課表範本（「從範本帶入」用）。
+    public private(set) var templates: [WorkoutTemplate] = []
     public private(set) var errorMessage: LocalizedStringResource?
 
     private let getProgram: GetProgram
     private let updateProgram: UpdateProgram
+    private let listTemplates: ListTemplates
     private let exerciseCatalog: any PlanExerciseCatalog
 
     public init(
         programId: UUID,
         getProgram: GetProgram,
         updateProgram: UpdateProgram,
+        listTemplates: ListTemplates,
         exerciseCatalog: any PlanExerciseCatalog
     ) {
         self.programId = programId
         self.getProgram = getProgram
         self.updateProgram = updateProgram
+        self.listTemplates = listTemplates
         self.exerciseCatalog = exerciseCatalog
     }
 
@@ -44,6 +49,7 @@ public final class ProgramEditorViewModel {
             cycleLength = program?.cycleLength ?? 7
             days = program?.days ?? [:]
             catalog = try await exerciseCatalog.exercises()
+            templates = try await listTemplates()
             errorMessage = nil
         } catch {
             errorMessage = .plan("plan.error.loadFailed \(error.localizedDescription)")

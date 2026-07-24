@@ -1384,6 +1384,22 @@
           }
         }
       }
+    },
+    "workoutSpec.fromTemplate" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "From Template"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "從範本帶入"
+          }
+        }
+      }
     }
   },
   "version" : "1.0"

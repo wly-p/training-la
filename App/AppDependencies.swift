@@ -204,6 +204,7 @@ struct AppDependencies {
                     rotationId: rotationId,
                     getRotation: GetRotation(repository: rotationRepository),
                     saveRotationWorkouts: SaveRotationWorkouts(repository: rotationRepository),
+                    listTemplates: ListTemplates(repository: templateRepository),
                     exerciseCatalog: planCatalog
                 )
             },
@@ -222,6 +223,7 @@ struct AppDependencies {
                     programId: programId,
                     getProgram: GetProgram(repository: programRepository),
                     updateProgram: UpdateProgram(repository: programRepository),
+                    listTemplates: ListTemplates(repository: templateRepository),
                     exerciseCatalog: planCatalog
                 )
             },

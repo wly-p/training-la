@@ -54,7 +54,8 @@ public struct ProgramEditorView: View {
                 titleKey: "program.dayEdit",
                 name: existing?.name ?? "",
                 drafts: existing.map { draftsFromBlocks($0.blocks) } ?? [],
-                catalog: viewModel.catalog
+                catalog: viewModel.catalog,
+                templates: viewModel.templates
             ) { name, drafts in
                 Task { await viewModel.setDay(index, name: name, drafts: drafts) }
             }
