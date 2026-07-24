@@ -7,6 +7,8 @@ public enum PlanDataFactory {
             PlanWorkoutModel.self, PlanSetModel.self,
             WorkoutTemplateModel.self, TemplateSetModel.self,
             RotationModel.self, RotationWorkoutModel.self, RotationSetModel.self,
+            ProgramModel.self, ProgramSlotModel.self, ProgramSlotSetModel.self,
+            ProgramAssignmentModel.self,
         ]
     }
 
@@ -20,5 +22,13 @@ public enum PlanDataFactory {
 
     public static func makeRotationRepository(container: ModelContainer) -> any RotationRepository {
         SwiftDataRotationRepository(modelContainer: container)
+    }
+
+    public static func makeProgramRepository(container: ModelContainer) -> any ProgramRepository {
+        SwiftDataProgramRepository(modelContainer: container)
+    }
+
+    public static func makeProgramAssignmentRepository(container: ModelContainer) -> any ProgramAssignmentRepository {
+        SwiftDataProgramAssignmentRepository(modelContainer: container)
     }
 }

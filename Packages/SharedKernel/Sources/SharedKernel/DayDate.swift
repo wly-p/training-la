@@ -36,3 +36,23 @@ public struct DayDate: Equatable, Hashable, Comparable, Codable, Sendable {
         (lhs.year, lhs.month, lhs.day) < (rhs.year, rhs.month, rhs.day)
     }
 }
+
+// MARK: - 日曆算術（多週長期課表投影／補登用；固定 Gregorian，只算「日」不涉時區偏移）
+
+extension DayDate {
+    private static let gregorian = Calendar(identifier: .gregorian)
+
+    private var gregorianDate: Date {
+        Self.gregorian.date(from: DateComponents(year: year, month: month, day: day))!
+    }
+
+    /// 往後（負值往前）第 n 天。
+    public func adding(days: Int) -> DayDate {
+        DayDate(Self.gregorian.date(byAdding: .day, value: days, to: gregorianDate)!, calendar: Self.gregorian)
+    }
+
+    /// 從 self 到 other 相差幾天（other 較晚為正）。
+    public func days(to other: DayDate) -> Int {
+        Self.gregorian.dateComponents([.day], from: gregorianDate, to: other.gregorianDate).day!
+    }
+}

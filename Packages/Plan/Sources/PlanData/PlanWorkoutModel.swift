@@ -11,16 +11,32 @@ final class PlanWorkoutModel {
     var statusRaw: String
     /// 來源課表範本；nil＝手動一次性排課。
     var templateId: UUID?
+    /// 排課來源（manual/template/program/rotation）。舊資料預設 manual。
+    var originRaw: String = PlanOrigin.manual.rawValue
+    /// 來自長期課表投影落地時，指向 ProgramAssignment；補登去重用。
+    var assignmentId: UUID?
     var orderIndex: Int
     @Relationship(deleteRule: .cascade, inverse: \PlanSetModel.planWorkout)
     var sets: [PlanSetModel]
 
-    init(id: UUID, name: String?, date: String, statusRaw: String, templateId: UUID?, orderIndex: Int, sets: [PlanSetModel] = []) {
+    init(
+        id: UUID,
+        name: String?,
+        date: String,
+        statusRaw: String,
+        templateId: UUID?,
+        originRaw: String = PlanOrigin.manual.rawValue,
+        assignmentId: UUID? = nil,
+        orderIndex: Int,
+        sets: [PlanSetModel] = []
+    ) {
         self.id = id
         self.name = name
         self.date = date
         self.statusRaw = statusRaw
         self.templateId = templateId
+        self.originRaw = originRaw
+        self.assignmentId = assignmentId
         self.orderIndex = orderIndex
         self.sets = sets
     }
@@ -69,6 +85,8 @@ extension PlanWorkoutModel {
             date: planWorkout.date.isoString,
             statusRaw: planWorkout.status.rawValue,
             templateId: planWorkout.templateId,
+            originRaw: planWorkout.origin.rawValue,
+            assignmentId: planWorkout.assignmentId,
             orderIndex: planWorkout.orderIndex,
             sets: planWorkout.sets.map { PlanSetModel(from: $0) }
         )
@@ -81,6 +99,8 @@ extension PlanWorkoutModel {
             date: DayDate(isoString: date) ?? DayDate(year: 1970, month: 1, day: 1),
             status: PlanWorkoutStatus(rawValue: statusRaw) ?? .notStarted,
             templateId: templateId,
+            origin: PlanOrigin(rawValue: originRaw) ?? .manual,
+            assignmentId: assignmentId,
             orderIndex: orderIndex,
             sets: sets
                 .map { $0.toDomain() }

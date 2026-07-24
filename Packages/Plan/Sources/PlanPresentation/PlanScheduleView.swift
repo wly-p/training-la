@@ -6,6 +6,7 @@ public struct PlanScheduleView: View {
     @Bindable private var viewModel: PlanScheduleViewModel
     @State private var editing: PlanFormTarget?
     @State private var pickingTemplate = false
+    @State private var applyingProgram = false
     @Environment(\.locale) private var locale
 
     public init(viewModel: PlanScheduleViewModel) {
@@ -47,6 +48,11 @@ public struct PlanScheduleView: View {
                         } label: {
                             Label { localText("plan.addFromTemplate") } icon: { Image(systemName: "square.stack.3d.up") }
                         }
+                        Button {
+                            applyingProgram = true
+                        } label: {
+                            Label { localText("plan.applyProgram") } icon: { Image(systemName: "calendar.badge.clock") }
+                        }
                     } label: {
                         Label { localText("plan.new") } icon: { Image(systemName: "plus") }
                     }
@@ -71,6 +77,20 @@ public struct PlanScheduleView: View {
                     Task { await viewModel.addFromTemplate(templateId: template.id, on: viewModel.selectedDate) }
                 }
             }
+            .sheet(isPresented: $applyingProgram) {
+                ProgramApplyView(
+                    programs: viewModel.programs,
+                    assignments: viewModel.assignments,
+                    defaultStartDate: viewModel.selectedDate,
+                    programName: viewModel.programName(for:),
+                    onApply: { programId, startDate, mode in
+                        await viewModel.applyProgram(programId: programId, startDate: startDate, mode: mode)
+                    },
+                    onStop: { assignmentId in
+                        await viewModel.stopAssignment(id: assignmentId)
+                    }
+                )
+            }
             .alert(
                 localText("plan.error"),
                 isPresented: Binding(
@@ -87,18 +107,50 @@ public struct PlanScheduleView: View {
 
     private var dayDetail: some View {
         List {
+            let items = viewModel.workouts(on: viewModel.selectedDate)
+            let projected = viewModel.projections(on: viewModel.selectedDate)
             Section {
-                let items = viewModel.workouts(on: viewModel.selectedDate)
-                if items.isEmpty {
+                if items.isEmpty && projected.isEmpty {
                     localText("plan.day.empty")
                         .foregroundStyle(.secondary)
                 } else {
                     ForEach(items) { row($0) }
+                    ForEach(projected) { projectedRow($0) }
                 }
             } header: {
                 Text(PlanFormatting.dayLabel(viewModel.selectedDate, locale: locale))
             }
         }
+    }
+
+    /// 長期課表投影建議（尚未落地）：顯示「排定：X」＋「加入這天」把它變成真實排課。
+    private func projectedRow(_ projected: ProjectedWorkout) -> some View {
+        VStack(alignment: .leading, spacing: 6) {
+            HStack {
+                Label { localText("plan.projected") } icon: { Image(systemName: "calendar.badge.clock") }
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                Spacer()
+                // 課表名是使用者資料（verbatim）
+                Text(verbatim: projected.programName)
+                    .font(.caption2)
+                    .foregroundStyle(.tertiary)
+            }
+            // workout 名是使用者資料（verbatim）
+            Text(verbatim: projected.spec.name).font(.headline)
+            Text(PlanFormatting.summary(projected.spec, name: viewModel.name(for:), language: AppLanguage(locale: locale)))
+                .font(.footnote)
+                .foregroundStyle(.secondary)
+            Button {
+                Task { await viewModel.materialize(projected) }
+            } label: {
+                Label { localText("plan.addThisDay") } icon: { Image(systemName: "plus.circle") }
+                    .font(.subheadline)
+            }
+            .buttonStyle(.borderless)
+            .padding(.top, 2)
+        }
+        .padding(.vertical, 2)
     }
 
     private func row(_ plan: PlanWorkout) -> some View {

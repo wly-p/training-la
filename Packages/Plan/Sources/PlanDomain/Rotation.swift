@@ -1,22 +1,6 @@
 import Foundation
 import SharedKernel
 
-/// 循環課表裡的一個 workout（可攜複本 copy：自帶名稱與目標，不引用範本）。
-public struct WorkoutSpec: Identifiable, Equatable, Sendable {
-    public var id: UUID
-    public var name: String
-    public var sets: [PlanSet]
-
-    public init(id: UUID = UUID(), name: String, sets: [PlanSet] = []) {
-        self.id = id
-        self.name = name
-        self.sets = sets
-    }
-
-    /// 依 exerciseIndex 分組、組內依 setIndex 排序。
-    public var blocks: [PlanBlock] { sets.planBlocks }
-}
-
 /// 循環課表（進度制、不綁日期）：有序 workout + 目前輪到的游標。
 /// 可有多組並行；每組各自啟用（isActive）與進度（cursor）。停用時游標歸零（見 SetRotationActive）。
 public struct Rotation: Identifiable, Equatable, Sendable {

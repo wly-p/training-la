@@ -97,11 +97,13 @@ struct ExerciseUsageChecker: ExerciseUsageChecking {
     let planRepository: any PlanWorkoutRepository
     let templateRepository: any WorkoutTemplateRepository
     let rotationRepository: any RotationRepository
+    let programRepository: any ProgramRepository
 
     func isUsed(exerciseId: UUID) async throws -> Bool {
         if try await workoutRepository.usesExercise(exerciseId) { return true }
         if try await planRepository.usesExercise(exerciseId) { return true }
         if try await templateRepository.usesExercise(exerciseId) { return true }
-        return try await rotationRepository.usesExercise(exerciseId)
+        if try await rotationRepository.usesExercise(exerciseId) { return true }
+        return try await programRepository.usesExercise(exerciseId)
     }
 }

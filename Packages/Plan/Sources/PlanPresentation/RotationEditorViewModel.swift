@@ -11,21 +11,26 @@ public final class RotationEditorViewModel {
     public private(set) var name: String = ""
     public private(set) var workouts: [WorkoutSpec] = []
     public private(set) var catalog: [PlanCatalogExercise] = []
+    /// 可帶入的課表範本（「從範本帶入」用）。
+    public private(set) var templates: [WorkoutTemplate] = []
     public private(set) var errorMessage: LocalizedStringResource?
 
     private let getRotation: GetRotation
     private let saveRotationWorkouts: SaveRotationWorkouts
+    private let listTemplates: ListTemplates
     private let exerciseCatalog: any PlanExerciseCatalog
 
     public init(
         rotationId: UUID,
         getRotation: GetRotation,
         saveRotationWorkouts: SaveRotationWorkouts,
+        listTemplates: ListTemplates,
         exerciseCatalog: any PlanExerciseCatalog
     ) {
         self.rotationId = rotationId
         self.getRotation = getRotation
         self.saveRotationWorkouts = saveRotationWorkouts
+        self.listTemplates = listTemplates
         self.exerciseCatalog = exerciseCatalog
     }
 
@@ -39,6 +44,7 @@ public final class RotationEditorViewModel {
             name = rotation?.name ?? ""
             workouts = rotation?.workouts ?? []
             catalog = try await exerciseCatalog.exercises()
+            templates = try await listTemplates()
             errorMessage = nil
         } catch {
             errorMessage = .plan("plan.error.loadFailed \(error.localizedDescription)")
