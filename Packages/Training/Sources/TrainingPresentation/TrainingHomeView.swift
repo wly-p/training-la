@@ -48,6 +48,12 @@ public struct TrainingHomeView: View {
                             Task { await viewModel.startFree() }
                         }
                     }
+                    ForEach(viewModel.rotations) { rotation in
+                        rotationCard(rotation)
+                        primaryButton("training.startRotation", systemImage: "arrow.triangle.2.circlepath") {
+                            Task { await viewModel.startFromRotation(id: rotation.id) }
+                        }
+                    }
                     if !viewModel.templates.isEmpty {
                         templateMenu
                     }
@@ -77,6 +83,28 @@ public struct TrainingHomeView: View {
                 Text(viewModel.errorMessage ?? "")
             }
         }
+    }
+
+    private func rotationCard(_ rotation: PlannedRotationSummary) -> some View {
+        VStack(alignment: .leading, spacing: 6) {
+            Label {
+                // 循環課表名是使用者資料（verbatim）
+                Text(verbatim: rotation.rotationName)
+            } icon: {
+                Image(systemName: "arrow.triangle.2.circlepath")
+            }
+            .font(.headline)
+            HStack(spacing: 4) {
+                localText("training.rotationNext")
+                // workout 名是使用者資料（verbatim）
+                Text(verbatim: rotation.currentName).fontWeight(.semibold)
+            }
+            .font(.subheadline)
+            .foregroundStyle(.secondary)
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding()
+        .background(.quaternary, in: RoundedRectangle(cornerRadius: 12))
     }
 
     private var templateMenu: some View {

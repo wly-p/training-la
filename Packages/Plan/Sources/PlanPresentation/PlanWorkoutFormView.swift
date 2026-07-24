@@ -25,9 +25,9 @@ struct PlanWorkoutFormView: View {
         self.readOnly = readOnly
         self.onSubmit = onSubmit
         switch target {
-        case .create:
+        case .create(let day):
             _name = State(initialValue: "")
-            _date = State(initialValue: Date())
+            _date = State(initialValue: day.asDate)
             _drafts = State(initialValue: [])
         case .edit(let plan):
             _name = State(initialValue: plan.name ?? "")

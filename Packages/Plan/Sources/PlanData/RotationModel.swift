@@ -4,46 +4,44 @@ import SharedKernel
 import SwiftData
 
 @Model
-final class PlanWorkoutModel {
+final class RotationModel {
     @Attribute(.unique) var id: UUID
-    var name: String?
-    var date: String           // "yyyy-MM-dd"，一定綁定某天
-    var statusRaw: String
-    /// 來源課表範本；nil＝手動一次性排課。
-    var templateId: UUID?
-    /// 排課來源（manual/template/program/rotation）。舊資料預設 manual。
-    var originRaw: String = PlanOrigin.manual.rawValue
-    /// 來自長期課表投影落地時，指向 ProgramAssignment；補登去重用。
-    var assignmentId: UUID?
+    var name: String
+    var cursor: Int
+    var isActive: Bool
     var orderIndex: Int
-    @Relationship(deleteRule: .cascade, inverse: \PlanSetModel.planWorkout)
-    var sets: [PlanSetModel]
+    @Relationship(deleteRule: .cascade, inverse: \RotationWorkoutModel.rotation)
+    var workouts: [RotationWorkoutModel]
 
-    init(
-        id: UUID,
-        name: String?,
-        date: String,
-        statusRaw: String,
-        templateId: UUID?,
-        originRaw: String = PlanOrigin.manual.rawValue,
-        assignmentId: UUID? = nil,
-        orderIndex: Int,
-        sets: [PlanSetModel] = []
-    ) {
+    init(id: UUID, name: String, cursor: Int, isActive: Bool, orderIndex: Int, workouts: [RotationWorkoutModel] = []) {
         self.id = id
         self.name = name
-        self.date = date
-        self.statusRaw = statusRaw
-        self.templateId = templateId
-        self.originRaw = originRaw
-        self.assignmentId = assignmentId
+        self.cursor = cursor
+        self.isActive = isActive
+        self.orderIndex = orderIndex
+        self.workouts = workouts
+    }
+}
+
+@Model
+final class RotationWorkoutModel {
+    @Attribute(.unique) var id: UUID
+    var name: String
+    var orderIndex: Int
+    var rotation: RotationModel?
+    @Relationship(deleteRule: .cascade, inverse: \RotationSetModel.workout)
+    var sets: [RotationSetModel]
+
+    init(id: UUID, name: String, orderIndex: Int, sets: [RotationSetModel] = []) {
+        self.id = id
+        self.name = name
         self.orderIndex = orderIndex
         self.sets = sets
     }
 }
 
 @Model
-final class PlanSetModel {
+final class RotationSetModel {
     @Attribute(.unique) var id: UUID
     var exerciseId: UUID
     var exerciseIndex: Int
@@ -52,7 +50,7 @@ final class PlanSetModel {
     var targetWeightUnitRaw: String?
     var targetReps: Int?
     var restSec: Int?
-    var planWorkout: PlanWorkoutModel?
+    var workout: RotationWorkoutModel?
 
     init(
         id: UUID,
@@ -77,31 +75,42 @@ final class PlanSetModel {
 
 // MARK: - Mapper
 
-extension PlanWorkoutModel {
-    convenience init(from planWorkout: PlanWorkout) {
+extension RotationModel {
+    convenience init(from rotation: Rotation) {
         self.init(
-            id: planWorkout.id,
-            name: planWorkout.name,
-            date: planWorkout.date.isoString,
-            statusRaw: planWorkout.status.rawValue,
-            templateId: planWorkout.templateId,
-            originRaw: planWorkout.origin.rawValue,
-            assignmentId: planWorkout.assignmentId,
-            orderIndex: planWorkout.orderIndex,
-            sets: planWorkout.sets.map { PlanSetModel(from: $0) }
+            id: rotation.id,
+            name: rotation.name,
+            cursor: rotation.cursor,
+            isActive: rotation.isActive,
+            orderIndex: rotation.orderIndex,
+            workouts: rotation.workouts.enumerated().map { index, spec in
+                RotationWorkoutModel(from: spec, orderIndex: index)
+            }
         )
     }
 
-    func toDomain() -> PlanWorkout {
-        PlanWorkout(
+    func toDomain() -> Rotation {
+        let specs = workouts
+            .sorted { $0.orderIndex < $1.orderIndex }
+            .map { $0.toDomain() }
+        return Rotation(id: id, name: name, workouts: specs, cursor: cursor, isActive: isActive, orderIndex: orderIndex)
+    }
+}
+
+extension RotationWorkoutModel {
+    convenience init(from spec: WorkoutSpec, orderIndex: Int) {
+        self.init(
+            id: spec.id,
+            name: spec.name,
+            orderIndex: orderIndex,
+            sets: spec.sets.map { RotationSetModel(from: $0) }
+        )
+    }
+
+    func toDomain() -> WorkoutSpec {
+        WorkoutSpec(
             id: id,
             name: name,
-            date: DayDate(isoString: date) ?? DayDate(year: 1970, month: 1, day: 1),
-            status: PlanWorkoutStatus(rawValue: statusRaw) ?? .notStarted,
-            templateId: templateId,
-            origin: PlanOrigin(rawValue: originRaw) ?? .manual,
-            assignmentId: assignmentId,
-            orderIndex: orderIndex,
             sets: sets
                 .map { $0.toDomain() }
                 .sorted { ($0.exerciseIndex, $0.setIndex) < ($1.exerciseIndex, $1.setIndex) }
@@ -109,7 +118,7 @@ extension PlanWorkoutModel {
     }
 }
 
-extension PlanSetModel {
+extension RotationSetModel {
     convenience init(from set: PlanSet) {
         self.init(
             id: set.id,

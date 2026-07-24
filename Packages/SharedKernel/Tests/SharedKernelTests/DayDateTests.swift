@@ -11,6 +11,13 @@ struct DayDateTests {
         #expect(day.day == 9)
     }
 
+    @Test func weekdayMapsMondayFirst() {
+        // 2026-07-23 是週四；週一 2026-07-20、週日 2026-07-26
+        #expect(DayDate(year: 2026, month: 7, day: 20).weekday == .monday)
+        #expect(DayDate(year: 2026, month: 7, day: 23).weekday == .thursday)
+        #expect(DayDate(year: 2026, month: 7, day: 26).weekday == .sunday)
+    }
+
     @Test func initFromDateExtractsCalendarComponents() {
         var calendar = Calendar(identifier: .gregorian)
         calendar.timeZone = TimeZone(identifier: "UTC")!

@@ -26,6 +26,10 @@ struct AppDependencies {
     let makeHistoryViewModel: @MainActor () -> HistoryViewModel
     let makePlanScheduleViewModel: @MainActor () -> PlanScheduleViewModel
     let makeTemplateListViewModel: @MainActor () -> TemplateListViewModel
+    let makeRotationListViewModel: @MainActor () -> RotationListViewModel
+    let makeRotationEditorViewModel: @MainActor (_ rotationId: UUID) -> RotationEditorViewModel
+    let makeProgramListViewModel: @MainActor () -> ProgramListViewModel
+    let makeProgramEditorViewModel: @MainActor (_ programId: UUID) -> ProgramEditorViewModel
     /// `onErased`：清除成功後由 App 層觸發整個畫面重建（回到全新初始狀態）。
     let makeSettingsViewModel: @MainActor (_ onErased: @escaping @MainActor () -> Void) -> SettingsViewModel
 
@@ -41,11 +45,16 @@ struct AppDependencies {
         let workoutRepository = TrainingDataFactory.makeWorkoutRepository(container: container)
         let planRepository = PlanDataFactory.makePlanWorkoutRepository(container: container)
         let templateRepository = PlanDataFactory.makeWorkoutTemplateRepository(container: container)
-        // 本地落實 in_use：刪動作前查 Training / Plan / 範本 有沒有引用
+        let rotationRepository = PlanDataFactory.makeRotationRepository(container: container)
+        let programRepository = PlanDataFactory.makeProgramRepository(container: container)
+        let programAssignmentRepository = PlanDataFactory.makeProgramAssignmentRepository(container: container)
+        // 本地落實 in_use：刪動作前查 Training / Plan / 範本 / 循環 / 長期 有沒有引用
         let usageChecker = ExerciseUsageChecker(
             workoutRepository: workoutRepository,
             planRepository: planRepository,
-            templateRepository: templateRepository
+            templateRepository: templateRepository,
+            rotationRepository: rotationRepository,
+            programRepository: programRepository
         )
         // 休息提醒偏好：真實用 UserDefaults；UI 測試用記憶體。Settings 與 reminder 共用同一實例。
         let reminderStore: any RestReminderPreferenceStoring =
@@ -69,6 +78,9 @@ struct AppDependencies {
             workoutRepository: workoutRepository,
             planRepository: planRepository,
             templateRepository: templateRepository,
+            rotationRepository: rotationRepository,
+            programRepository: programRepository,
+            programAssignmentRepository: programAssignmentRepository,
             reminder: reminder,
             reminderStore: reminderStore,
             languageStore: languageStore,
@@ -82,6 +94,9 @@ struct AppDependencies {
         workoutRepository: any WorkoutRepository,
         planRepository: any PlanWorkoutRepository,
         templateRepository: any WorkoutTemplateRepository,
+        rotationRepository: any RotationRepository,
+        programRepository: any ProgramRepository,
+        programAssignmentRepository: any ProgramAssignmentRepository,
         reminder: any RestEndReminding,
         reminderStore: any RestReminderPreferenceStoring,
         languageStore: any LanguagePreferenceStoring = InMemoryLanguageStore(),
@@ -101,6 +116,8 @@ struct AppDependencies {
             getPlanWorkout: { try await planRepository.get(id: $0) },
             listTemplates: ListTemplates(repository: templateRepository),
             instantiateTemplate: InstantiateTemplate(templateRepository: templateRepository, planRepository: planRepository),
+            listRotations: ListRotations(repository: rotationRepository),
+            startRotationUseCase: StartRotation(rotationRepository: rotationRepository, planRepository: planRepository),
             today: { DayDate(Date()) },
             listExercises: ListExercises(repository: exerciseRepository)
         )
@@ -144,6 +161,23 @@ struct AppDependencies {
                     createPlanWorkout: CreatePlanWorkout(repository: planRepository),
                     updatePlanWorkout: UpdatePlanWorkout(repository: planRepository),
                     deletePlanWorkout: DeletePlanWorkout(repository: planRepository),
+                    listTemplates: ListTemplates(repository: templateRepository),
+                    instantiateTemplate: InstantiateTemplate(templateRepository: templateRepository, planRepository: planRepository),
+                    listPrograms: ListPrograms(repository: programRepository),
+                    listAssignments: ListProgramAssignments(repository: programAssignmentRepository),
+                    applyProgram: ApplyProgram(repository: programAssignmentRepository),
+                    deleteAssignment: DeleteProgramAssignment(repository: programAssignmentRepository),
+                    reconcile: ReconcileProgramAssignments(
+                        programRepository: programRepository,
+                        assignmentRepository: programAssignmentRepository,
+                        planRepository: planRepository
+                    ),
+                    projectSchedule: ProjectSchedule(
+                        programRepository: programRepository,
+                        assignmentRepository: programAssignmentRepository,
+                        planRepository: planRepository
+                    ),
+                    materializeProjection: MaterializeProjectedWorkout(planRepository: planRepository),
                     exerciseCatalog: planCatalog
                 )
             },
@@ -153,6 +187,43 @@ struct AppDependencies {
                     createTemplate: CreateTemplate(repository: templateRepository),
                     updateTemplate: UpdateTemplate(repository: templateRepository),
                     deleteTemplate: DeleteTemplate(repository: templateRepository),
+                    exerciseCatalog: planCatalog
+                )
+            },
+            makeRotationListViewModel: {
+                RotationListViewModel(
+                    listRotations: ListRotations(repository: rotationRepository),
+                    createRotation: CreateRotation(repository: rotationRepository),
+                    renameRotation: RenameRotation(repository: rotationRepository),
+                    setRotationActive: SetRotationActive(repository: rotationRepository),
+                    deleteRotation: DeleteRotation(repository: rotationRepository)
+                )
+            },
+            makeRotationEditorViewModel: { rotationId in
+                RotationEditorViewModel(
+                    rotationId: rotationId,
+                    getRotation: GetRotation(repository: rotationRepository),
+                    saveRotationWorkouts: SaveRotationWorkouts(repository: rotationRepository),
+                    listTemplates: ListTemplates(repository: templateRepository),
+                    exerciseCatalog: planCatalog
+                )
+            },
+            makeProgramListViewModel: {
+                ProgramListViewModel(
+                    listPrograms: ListPrograms(repository: programRepository),
+                    createProgram: CreateProgram(repository: programRepository),
+                    deleteProgram: DeleteProgram(
+                        programRepository: programRepository,
+                        assignmentRepository: programAssignmentRepository
+                    )
+                )
+            },
+            makeProgramEditorViewModel: { programId in
+                ProgramEditorViewModel(
+                    programId: programId,
+                    getProgram: GetProgram(repository: programRepository),
+                    updateProgram: UpdateProgram(repository: programRepository),
+                    listTemplates: ListTemplates(repository: templateRepository),
                     exerciseCatalog: planCatalog
                 )
             },

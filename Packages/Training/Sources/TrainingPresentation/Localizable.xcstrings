@@ -4,12 +4,6 @@
     "" : {
 
     },
-    "🎉" : {
-
-    },
-    "💪" : {
-
-    },
     "training.active.title" : {
       "localizations" : {
         "en" : {
@@ -570,22 +564,6 @@
         }
       }
     },
-    "training.resting" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Resting"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "休息中"
-          }
-        }
-      }
-    },
     "training.restOver" : {
       "localizations" : {
         "en" : {
@@ -634,6 +612,22 @@
         }
       }
     },
+    "training.resting" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Resting"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "休息中"
+          }
+        }
+      }
+    },
     "training.resume" : {
       "localizations" : {
         "en" : {
@@ -646,6 +640,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "繼續上次訓練"
+          }
+        }
+      }
+    },
+    "training.rotationNext" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Up next:"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "今天輪到"
           }
         }
       }
@@ -826,6 +836,22 @@
         }
       }
     },
+    "training.startRotation" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Start Rotation"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "開始今天的循環"
+          }
+        }
+      }
+    },
     "training.target %@" : {
       "localizations" : {
         "en" : {
@@ -969,6 +995,12 @@
           }
         }
       }
+    },
+    "🎉" : {
+
+    },
+    "💪" : {
+
     }
   },
   "version" : "1.0"

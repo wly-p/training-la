@@ -11,28 +11,26 @@ public struct TemplateListView: View {
         self.viewModel = viewModel
     }
 
+    // 不自帶 NavigationStack：嵌在動作庫 tab 共用的 NavigationStack 內。
     public var body: some View {
-        NavigationStack {
-            List {
-                ForEach(viewModel.templates) { row($0) }
-            }
-            .navigationTitle(localText("template.title"))
-            .toolbar {
-                ToolbarItem(placement: .primaryAction) {
-                    Button {
-                        editing = .create
-                    } label: {
-                        Label { localText("template.new") } icon: { Image(systemName: "plus") }
-                    }
+        List {
+            ForEach(viewModel.templates) { row($0) }
+        }
+        .toolbar {
+            ToolbarItem(placement: .primaryAction) {
+                Button {
+                    editing = .create
+                } label: {
+                    Label { localText("template.new") } icon: { Image(systemName: "plus") }
                 }
             }
-            .overlay {
-                if viewModel.templates.isEmpty {
-                    ContentUnavailableView {
-                        Label { localText("template.empty") } icon: { Image(systemName: "square.stack.3d.up") }
-                    } description: {
-                        localText("template.empty.hint")
-                    }
+        }
+        .overlay {
+            if viewModel.templates.isEmpty {
+                ContentUnavailableView {
+                    Label { localText("template.empty") } icon: { Image(systemName: "square.stack.3d.up") }
+                } description: {
+                    localText("template.empty.hint")
                 }
             }
         }

@@ -26,10 +26,13 @@ private actor MockHomeWorkoutRepo: WorkoutRepository {
 private struct MockPlannedProvider: PlannedWorkoutProvider {
     let plan: PlannedWorkoutBlueprint?
     var templateList: [PlannedTemplateSummary] = []
+    var rotationList: [PlannedRotationSummary] = []
     func todaysPlan() async throws -> PlannedWorkoutBlueprint? { plan }
     func blueprint(planWorkoutId: UUID) async throws -> PlannedWorkoutBlueprint? { plan }
     func templates() async throws -> [PlannedTemplateSummary] { templateList }
     func instantiate(templateId: UUID) async throws -> PlannedWorkoutBlueprint? { plan }
+    func activeRotations() async throws -> [PlannedRotationSummary] { rotationList }
+    func startRotation(id: UUID) async throws -> PlannedWorkoutBlueprint? { plan }
 }
 
 private struct ThrowingPlannedProvider: PlannedWorkoutProvider {
@@ -38,6 +41,8 @@ private struct ThrowingPlannedProvider: PlannedWorkoutProvider {
     func blueprint(planWorkoutId: UUID) async throws -> PlannedWorkoutBlueprint? { throw Failure() }
     func templates() async throws -> [PlannedTemplateSummary] { throw Failure() }
     func instantiate(templateId: UUID) async throws -> PlannedWorkoutBlueprint? { throw Failure() }
+    func activeRotations() async throws -> [PlannedRotationSummary] { throw Failure() }
+    func startRotation(id: UUID) async throws -> PlannedWorkoutBlueprint? { throw Failure() }
 }
 
 @MainActor
@@ -99,6 +104,36 @@ struct TrainingHomeViewModelTests {
         await vm.startFromPlan()
 
         #expect(vm.recording?.planWorkoutId == plan.planWorkoutId)
+    }
+
+    @Test func refreshPopulatesActiveRotations() async {
+        let repo = MockHomeWorkoutRepo()
+        let rotation = PlannedRotationSummary(id: UUID(), rotationName: "推拉腿", currentName: "推日")
+        let vm = TrainingHomeViewModel(
+            startWorkout: StartWorkout(repository: repo),
+            resumeWorkout: ResumeWorkout(repository: repo),
+            plannedProvider: MockPlannedProvider(plan: nil, rotationList: [rotation])
+        )
+
+        await vm.refresh()
+
+        #expect(vm.rotations.map(\.currentName) == ["推日"])
+    }
+
+    @Test func startFromRotationCarriesPlanWorkoutId() async {
+        let repo = MockHomeWorkoutRepo()
+        let plan = PlannedWorkoutBlueprint(planWorkoutId: UUID(), name: "推日", targets: [])
+        let rotation = PlannedRotationSummary(id: UUID(), rotationName: "推拉腿", currentName: "推日")
+        let vm = TrainingHomeViewModel(
+            startWorkout: StartWorkout(repository: repo),
+            resumeWorkout: ResumeWorkout(repository: repo),
+            plannedProvider: MockPlannedProvider(plan: plan, rotationList: [rotation])
+        )
+
+        await vm.startFromRotation(id: rotation.id)
+
+        #expect(vm.recording?.planWorkoutId == plan.planWorkoutId)
+        #expect(vm.errorMessage == nil)
     }
 
     @Test func resumeAssignsResumableToRecording() async {

@@ -83,6 +83,21 @@ public struct PlannedTemplateSummary: Identifiable, Equatable, Sendable {
     }
 }
 
+/// 啟用中循環課表的精簡摘要（給訓練首頁每組「今天輪到 X」的卡片）。
+public struct PlannedRotationSummary: Identifiable, Equatable, Sendable {
+    public let id: UUID
+    /// 循環課表本身的名稱（區分多組並行）。
+    public let rotationName: String
+    /// 今天輪到的 workout 名稱。
+    public let currentName: String
+
+    public init(id: UUID, rotationName: String, currentName: String) {
+        self.id = id
+        self.rotationName = rotationName
+        self.currentName = currentName
+    }
+}
+
 /// port：今天的排課（給訓練首頁的排課卡）＋ 依 id 找回藍圖（恢復進行中場次用）
 /// ＋ 課表範本清單／依範本實例化成當日排課藍圖（「選範本開始」用）。
 public protocol PlannedWorkoutProvider: Sendable {
@@ -92,6 +107,10 @@ public protocol PlannedWorkoutProvider: Sendable {
     func templates() async throws -> [PlannedTemplateSummary]
     /// 依範本建立當日排課，回傳其藍圖（供直接開始訓練）。
     func instantiate(templateId: UUID) async throws -> PlannedWorkoutBlueprint?
+    /// 目前啟用中、且有內容的循環課表（每組今天輪到哪張）；可多組並行。
+    func activeRotations() async throws -> [PlannedRotationSummary]
+    /// 開始某組循環今天的 workout：建立當日排課、游標往下一張，回傳其藍圖。
+    func startRotation(id: UUID) async throws -> PlannedWorkoutBlueprint?
 }
 
 /// port：訓練結束時回報排課進度（App 接到 Plan domain 的標記完成）。
