@@ -27,6 +27,23 @@ struct PlanCreateTests {
         #expect(plan.blocks[1].sets[0].setIndex == 0)
     }
 
+    @Test func reorderedDraftsRenumberExerciseIndexByNewOrder() async throws {
+        // 對應「編輯排課時拖拉排序」：drafts 陣列被 move 後，儲存時 exerciseIndex 依新順序重編。
+        let repo = MockPlanWorkoutRepository()
+        let create = CreatePlanWorkout(repository: repo)
+        let a = ExerciseTargetDraft(exerciseId: UUID(), setCount: 1, targetWeight: nil, targetReps: nil)
+        let b = ExerciseTargetDraft(exerciseId: UUID(), setCount: 1, targetWeight: nil, targetReps: nil)
+        let c = ExerciseTargetDraft(exerciseId: UUID(), setCount: 1, targetWeight: nil, targetReps: nil)
+
+        // 模擬把 c 拖到最前：[a, b, c] → [c, a, b]（UI 端由 onMove/Array.move 完成）
+        let reordered = [c, a, b]
+
+        let plan = try await create(name: "推日", date: sampleDate, drafts: reordered)
+
+        #expect(plan.blocks.map(\.exerciseIndex) == [0, 1, 2])
+        #expect(plan.blocks.map(\.exerciseId) == [c.exerciseId, a.exerciseId, b.exerciseId])
+    }
+
     @Test func createRejectsEmptyDrafts() async throws {
         let create = CreatePlanWorkout(repository: MockPlanWorkoutRepository())
         await #expect(throws: PlanWorkoutValidationError.empty) {
