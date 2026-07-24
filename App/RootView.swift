@@ -11,6 +11,7 @@ struct RootView: View {
     @State private var exerciseListViewModel: ExerciseListViewModel
     @State private var templateListViewModel: TemplateListViewModel
     @State private var rotationListViewModel: RotationListViewModel
+    @State private var programListViewModel: ProgramListViewModel
     @State private var trainingHomeViewModel: TrainingHomeViewModel
     @State private var historyViewModel: HistoryViewModel
     @State private var planScheduleViewModel: PlanScheduleViewModel
@@ -23,6 +24,7 @@ struct RootView: View {
         _exerciseListViewModel = State(initialValue: dependencies.makeExerciseListViewModel())
         _templateListViewModel = State(initialValue: dependencies.makeTemplateListViewModel())
         _rotationListViewModel = State(initialValue: dependencies.makeRotationListViewModel())
+        _programListViewModel = State(initialValue: dependencies.makeProgramListViewModel())
         _trainingHomeViewModel = State(initialValue: dependencies.makeTrainingHomeViewModel())
         _historyViewModel = State(initialValue: dependencies.makeHistoryViewModel())
         _planScheduleViewModel = State(initialValue: dependencies.makePlanScheduleViewModel())
@@ -43,7 +45,9 @@ struct RootView: View {
                 exerciseViewModel: exerciseListViewModel,
                 templateViewModel: templateListViewModel,
                 rotationListViewModel: rotationListViewModel,
-                makeRotationEditor: dependencies.makeRotationEditorViewModel
+                makeRotationEditor: dependencies.makeRotationEditorViewModel,
+                programListViewModel: programListViewModel,
+                makeProgramEditor: dependencies.makeProgramEditorViewModel
             )
             .tabItem { Label("tab.exercises", systemImage: "books.vertical") }
             .tag(1)
@@ -78,6 +82,8 @@ private struct LibraryTabView: View {
     let templateViewModel: TemplateListViewModel
     let rotationListViewModel: RotationListViewModel
     let makeRotationEditor: @MainActor (UUID) -> RotationEditorViewModel
+    let programListViewModel: ProgramListViewModel
+    let makeProgramEditor: @MainActor (UUID) -> ProgramEditorViewModel
     @State private var mode = 0
 
     var body: some View {
@@ -87,6 +93,7 @@ private struct LibraryTabView: View {
                     Text("library.exercises").tag(0)
                     Text("library.templates").tag(1)
                     Text("library.rotation").tag(2)
+                    Text("library.program").tag(3)
                 }
                 .pickerStyle(.segmented)
                 .labelsHidden()
@@ -96,7 +103,8 @@ private struct LibraryTabView: View {
                 switch mode {
                 case 0: ExerciseListView(viewModel: exerciseViewModel)
                 case 1: TemplateListView(viewModel: templateViewModel)
-                default: RotationListView(viewModel: rotationListViewModel, makeEditor: makeRotationEditor)
+                case 2: RotationListView(viewModel: rotationListViewModel, makeEditor: makeRotationEditor)
+                default: ProgramListView(viewModel: programListViewModel, makeEditor: makeProgramEditor)
                 }
             }
             .navigationTitle("tab.exercises")

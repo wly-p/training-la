@@ -3,8 +3,9 @@ import SwiftUI
 
 /// 某天的排課標記（給月曆圓點）。
 public enum DayMark: Equatable, Sendable {
-    case scheduled   // 有未完成排課
+    case scheduled   // 有未完成排課（真實紀錄）
     case done        // 當天排課都已完成
+    case projected   // 未來長期課表投影（尚未落地）：淡色
 }
 
 #if canImport(UIKit)
@@ -63,7 +64,12 @@ struct MonthCalendarView: UIViewRepresentable {
 
         func calendarView(_ calendarView: UICalendarView, decorationFor dateComponents: DateComponents) -> UICalendarView.Decoration? {
             guard let day = dateComponents.dayDate, let mark = parent.mark(day) else { return nil }
-            let color: UIColor = mark == .done ? .systemGreen : .systemGray
+            let color: UIColor
+            switch mark {
+            case .done: color = .systemGreen
+            case .scheduled: color = .systemGray
+            case .projected: color = .systemGray3   // 投影：淡色
+            }
             return .default(color: color, size: .small)
         }
 

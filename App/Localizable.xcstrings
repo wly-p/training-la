@@ -17,6 +17,22 @@
         }
       }
     },
+    "library.program" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Program"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "長期"
+          }
+        }
+      }
+    },
     "library.rotation" : {
       "localizations" : {
         "en" : {
@@ -28,7 +44,7 @@
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "循環課表"
+            "value" : "循環"
           }
         }
       }
@@ -44,7 +60,7 @@
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "課表範本"
+            "value" : "範本"
           }
         }
       }

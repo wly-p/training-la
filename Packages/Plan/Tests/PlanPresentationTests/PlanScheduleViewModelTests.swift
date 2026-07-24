@@ -39,10 +39,34 @@ private actor MockTemplateRepo: WorkoutTemplateRepository {
     func usesExercise(_ exerciseId: UUID) async throws -> Bool { false }
 }
 
+private actor MockProgramRepo: ProgramRepository {
+    var storage: [UUID: Program] = [:]
+    func seed(_ items: [Program]) { for p in items { storage[p.id] = p } }
+    func all() async throws -> [Program] { storage.values.sorted { $0.orderIndex < $1.orderIndex } }
+    func get(id: UUID) async throws -> Program? { storage[id] }
+    func save(_ p: Program) async throws { storage[p.id] = p }
+    func delete(id: UUID) async throws { storage[id] = nil }
+    func usesExercise(_ exerciseId: UUID) async throws -> Bool { false }
+}
+
+private actor MockAssignmentRepo: ProgramAssignmentRepository {
+    var storage: [UUID: ProgramAssignment] = [:]
+    func seed(_ items: [ProgramAssignment]) { for a in items { storage[a.id] = a } }
+    func all() async throws -> [ProgramAssignment] { Array(storage.values) }
+    func get(id: UUID) async throws -> ProgramAssignment? { storage[id] }
+    func save(_ a: ProgramAssignment) async throws { storage[a.id] = a }
+    func delete(id: UUID) async throws { storage[id] = nil }
+    func forProgram(_ programId: UUID) async throws -> [ProgramAssignment] {
+        storage.values.filter { $0.programId == programId }
+    }
+}
+
 @MainActor
 private func makeViewModel(
     repo: MockScheduleRepo,
     templateRepo: MockTemplateRepo = MockTemplateRepo(),
+    programRepo: MockProgramRepo = MockProgramRepo(),
+    assignmentRepo: MockAssignmentRepo = MockAssignmentRepo(),
     catalog: [PlanCatalogExercise] = []
 ) -> PlanScheduleViewModel {
     PlanScheduleViewModel(
@@ -52,6 +76,13 @@ private func makeViewModel(
         deletePlanWorkout: DeletePlanWorkout(repository: repo),
         listTemplates: ListTemplates(repository: templateRepo),
         instantiateTemplate: InstantiateTemplate(templateRepository: templateRepo, planRepository: repo),
+        listPrograms: ListPrograms(repository: programRepo),
+        listAssignments: ListProgramAssignments(repository: assignmentRepo),
+        applyProgram: ApplyProgram(repository: assignmentRepo),
+        deleteAssignment: DeleteProgramAssignment(repository: assignmentRepo),
+        reconcile: ReconcileProgramAssignments(programRepository: programRepo, assignmentRepository: assignmentRepo, planRepository: repo),
+        projectSchedule: ProjectSchedule(programRepository: programRepo, assignmentRepository: assignmentRepo, planRepository: repo),
+        materializeProjection: MaterializeProjectedWorkout(planRepository: repo),
         exerciseCatalog: MockCatalog(items: catalog),
         today: { day1 }
     )
@@ -157,6 +188,36 @@ struct PlanScheduleViewModelTests {
         await vm.delete(id: existing.id)
 
         #expect(vm.planWorkouts.isEmpty)
+    }
+
+    @Test func programProjectionShowsThenMaterializes() async {
+        let repo = MockScheduleRepo()
+        let programRepo = MockProgramRepo()
+        let assignRepo = MockAssignmentRepo()
+        let exId = UUID()
+        let pid = UUID()
+        let spec = WorkoutSpec(name: "推", sets: [
+            PlanSet(id: UUID(), exerciseId: exId, exerciseIndex: 0, setIndex: 0, targetWeight: nil, targetReps: nil),
+        ])
+        await programRepo.seed([Program(id: pid, name: "P", orderIndex: 0, cycleLength: 5, days: [0: spec], createdAt: Date(), updatedAt: Date())])
+        await assignRepo.seed([ProgramAssignment(id: UUID(), programId: pid, startDate: day1, mode: .repeating)])
+        let vm = makeViewModel(
+            repo: repo, programRepo: programRepo, assignmentRepo: assignRepo,
+            catalog: [PlanCatalogExercise(id: exId, name: "臥推", muscleGroup: .chest)]
+        )
+        await vm.load()
+
+        // 今天（起始日）有投影、無真實排課 → projected 標記
+        #expect(vm.projections(on: day1).map(\.spec.name) == ["推"])
+        #expect(vm.mark(on: day1) == .projected)
+        #expect(vm.workouts(on: day1).isEmpty)
+
+        // 落地 → 變真實排課（origin=.program）、投影消失
+        await vm.materialize(vm.projections(on: day1)[0])
+        #expect(vm.workouts(on: day1).map(\.name) == ["推"])
+        #expect(vm.workouts(on: day1).first?.origin == .program)
+        #expect(vm.projections(on: day1).isEmpty)
+        #expect(vm.mark(on: day1) == .scheduled)
     }
 
     @Test func dismissErrorClearsErrorMessage() async {

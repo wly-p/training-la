@@ -18,8 +18,8 @@ final class RotationFlowUITests: XCTestCase {
         app.buttons["儲存"].tap()
         XCTAssertTrue(app.staticTexts["臥推"].waitForExistence(timeout: 5))
 
-        // 動作庫 → 切到「循環課表」分段 → 新增一組具名循環
-        app.segmentedControls.buttons["循環課表"].tap()
+        // 動作庫 → 切到「循環」分段 → 新增一組具名循環
+        app.segmentedControls.buttons["循環"].tap()
         let newRotation = app.buttons["新增循環課表"]
         XCTAssertTrue(newRotation.waitForExistence(timeout: 5))
         newRotation.tap()
