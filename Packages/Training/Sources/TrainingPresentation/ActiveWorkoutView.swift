@@ -269,23 +269,30 @@ public struct ActiveWorkoutView: View {
 
             Section {
                 if viewModel.isFollowingPlan {
-                    if let nextName = viewModel.nextPlannedName {
-                        Button {
-                            Task { await viewModel.advanceToNextPlanned() }
-                        } label: {
-                            Label {
-                                localText("training.nextNamed \(nextName)")
-                            } icon: {
-                                Image(systemName: "arrow.right")
-                            }
-                        }
-                    } else {
+                    if viewModel.upcomingExercises.isEmpty {
                         Label {
                             localText("training.planAllDone")
                         } icon: {
                             Image(systemName: "checkmark.circle")
                         }
                         .foregroundStyle(.secondary)
+                    } else {
+                        // 未做的課表動作：點一下直接跳過去做；編輯模式可拖拉調整順序。
+                        ForEach(viewModel.upcomingExercises) { exercise in
+                            Button {
+                                Task { await viewModel.select(exerciseId: exercise.id) }
+                            } label: {
+                                HStack {
+                                    Image(systemName: "arrow.right").foregroundStyle(.tertiary)
+                                    // 動作名是 DB 資料（verbatim）
+                                    Text(verbatim: exercise.name)
+                                    Spacer()
+                                }
+                                .contentShape(Rectangle())
+                            }
+                            .buttonStyle(.plain)
+                        }
+                        .onMove { viewModel.moveUpcoming(fromOffsets: $0, toOffset: $1) }
                     }
                     Button {
                         showsExercisePicker = true
@@ -305,6 +312,18 @@ public struct ActiveWorkoutView: View {
                         } icon: {
                             Image(systemName: "arrow.right")
                         }
+                    }
+                }
+            } header: {
+                if viewModel.isFollowingPlan && !viewModel.upcomingExercises.isEmpty {
+                    HStack {
+                        localText("training.upcoming")
+                        #if os(iOS)
+                        if viewModel.upcomingExercises.count > 1 {
+                            Spacer()
+                            EditButton().textCase(nil)   // 進編輯模式出現拖拉握把
+                        }
+                        #endif
                     }
                 }
             }

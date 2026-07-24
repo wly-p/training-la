@@ -372,22 +372,6 @@
         }
       }
     },
-    "training.nextNamed %@" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Next: %@"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "下一個動作：%@"
-          }
-        }
-      }
-    },
     "training.noPlanToday" : {
       "localizations" : {
         "en" : {
@@ -976,6 +960,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "接下來：%@"
+          }
+        }
+      }
+    },
+    "training.upcoming" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Up Next"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "接下來"
           }
         }
       }
