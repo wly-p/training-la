@@ -103,15 +103,15 @@ public struct RowValue: View {
 
 public struct ListRow<Leading: View, Trailing: View>: View {
     private let leading: Leading
-    private let title: String
-    private let subtitle: String?
+    private let title: Text
+    private let subtitle: Text?
     private let trailing: Trailing
     private let showChevron: Bool
     private let onTap: (() -> Void)?
 
     public init(
-        title: String,
-        subtitle: String? = nil,
+        title: Text,
+        subtitle: Text? = nil,
         showChevron: Bool = false,
         onTap: (() -> Void)? = nil,
         @ViewBuilder leading: () -> Leading = { EmptyView() },
@@ -129,13 +129,13 @@ public struct ListRow<Leading: View, Trailing: View>: View {
         HStack(spacing: TLSpace.gapM) {
             leading
             VStack(alignment: .leading, spacing: 2) {
-                Text(title)
+                title
                     .font(TLFont.zh(TLFont.rowTitle))          // 15pt weight 500
                     .foregroundStyle(TLColor.text)
                     .lineLimit(1)
                     .truncationMode(.tail)                      // 列表列一行截斷加 …
                 if let subtitle {
-                    Text(subtitle)
+                    subtitle
                         .font(TLFont.zh(TLFont.rowSub, .regular))
                         .foregroundStyle(TLColor.neutral500)
                         .lineLimit(1)

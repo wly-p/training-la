@@ -9,7 +9,7 @@ final class SettingsUITests: XCTestCase {
 
         app.tabBars.buttons["設定"].tap()
 
-        // 主題列（navigationLink picker）：點進去選「深色」
+        // 主題列（drill-in）：點進去選「深色」
         let themeRow = app.buttons["主題"]
         XCTAssertTrue(themeRow.waitForExistence(timeout: 5))
         themeRow.tap()
@@ -18,12 +18,9 @@ final class SettingsUITests: XCTestCase {
         XCTAssertTrue(darkOption.waitForExistence(timeout: 5))
         darkOption.tap()
 
-        // 確保回到設定根頁（不同 iOS 版本 navigationLink picker 選完不一定自動返回）
-        let settingsNav = app.navigationBars["設定"]
-        if !settingsNav.waitForExistence(timeout: 2) {
-            app.navigationBars.buttons.firstMatch.tap()
-            XCTAssertTrue(settingsNav.waitForExistence(timeout: 5))
-        }
+        // 選完自動返回設定根頁（PageHeader 大標題＝設定 staticText）
+        let title = app.staticTexts["設定"]
+        XCTAssertTrue(title.waitForExistence(timeout: 5))
 
         // 主題列的目前值 = 深色
         let row = app.buttons["主題"]
@@ -61,11 +58,9 @@ final class SettingsUITests: XCTestCase {
             confirm.tap()
         }
 
-        let settingsNav = app.navigationBars["設定"]
-        if !settingsNav.waitForExistence(timeout: 2) {
-            app.navigationBars.buttons.firstMatch.tap()
-            XCTAssertTrue(settingsNav.waitForExistence(timeout: 5))
-        }
+        // 選完自動返回設定根頁
+        let title = app.staticTexts["設定"]
+        XCTAssertTrue(title.waitForExistence(timeout: 5))
 
         let row = app.buttons["App 圖示"]
         XCTAssertTrue(row.waitForExistence(timeout: 5))
@@ -80,7 +75,7 @@ final class SettingsUITests: XCTestCase {
 
         app.tabBars.buttons["設定"].tap()
 
-        // 語言列：navigationLink picker，值顯示目前語言的母語名（UI 測試固定 seed 繁中）
+        // 語言列：值顯示目前語言的母語名（UI 測試固定 seed 繁中）
         let row = app.buttons["語言"]
         XCTAssertTrue(row.waitForExistence(timeout: 5))
         XCTAssertEqual(row.value as? String, "繁體中文")
@@ -102,10 +97,8 @@ final class SettingsUITests: XCTestCase {
         XCTAssertTrue(english.waitForExistence(timeout: 5))
         english.tap()
 
-        // 切語言觸發 .id(language) 重建：nav 堆疊重置回設定根頁、留在設定分頁。
-        // Settings 內容與大標題已英文化。
-        XCTAssertTrue(app.staticTexts["Appearance"].waitForExistence(timeout: 5))
-        XCTAssertTrue(app.navigationBars["Settings"].waitForExistence(timeout: 5), "設定大標題應為 Settings")
+        // 切語言觸發 .id(language) 重建：留在設定分頁、內容與大標題已英文化。
+        XCTAssertTrue(app.staticTexts["Settings"].waitForExistence(timeout: 5), "設定大標題應為 Settings")
         let langRowEN = app.buttons["Language"]
         XCTAssertTrue(langRowEN.waitForExistence(timeout: 5))
         XCTAssertEqual(langRowEN.value as? String, "English")
@@ -129,7 +122,7 @@ final class SettingsUITests: XCTestCase {
 
         app.tabBars.buttons["設定"].tap()
 
-        // 「關於」在清單最底，List 是 lazy 的，可能要捲到底元素才會進 hierarchy
+        // 版號在頁面最底，捲到底才進 hierarchy
         let version = app.staticTexts["appVersion"]
         if !version.waitForExistence(timeout: 3) {
             app.swipeUp()

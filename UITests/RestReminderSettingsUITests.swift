@@ -11,7 +11,8 @@ final class RestReminderSettingsUITests: XCTestCase {
 
         app.tabBars.buttons["設定"].tap()
 
-        XCTAssertTrue(app.staticTexts["休息結束提醒（App 開著時）"].waitForExistence(timeout: 5))
+        // 改版後前景／背景兩區併成單一「休息結束提醒」群組（三個開關同組）。
+        XCTAssertTrue(app.staticTexts["休息結束提醒"].waitForExistence(timeout: 5))
 
         let popup = app.switches["彈窗"]
         let sound = app.switches["聲音"]
