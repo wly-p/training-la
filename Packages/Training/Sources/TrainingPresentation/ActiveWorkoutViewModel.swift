@@ -136,11 +136,30 @@ public final class ActiveWorkoutViewModel {
         reorderedPlan ?? blueprint?.exercises.map(\.exerciseId) ?? []
     }
 
-    /// 照課表的下一個動作：（可調整後）順序中還沒記過、且非當前動作的第一個。全部做過回 nil。
+    /// 各動作已記錄組數（done／skipped 都算「已處理一組」）。
+    private var doneSetCounts: [UUID: Int] {
+        var counts: [UUID: Int] = [:]
+        for set in workout.sets { counts[set.exerciseId, default: 0] += 1 }
+        return counts
+    }
+
+    /// 各課表動作的目標組數。
+    private var plannedSetCounts: [UUID: Int] {
+        Dictionary(uniqueKeysWithValues: (blueprint?.exercises ?? []).map { ($0.exerciseId, $0.setCount) })
+    }
+
+    /// 課表動作是否「做滿」（做一半不算做完）。
+    private func isPlannedExerciseFullyDone(_ id: UUID) -> Bool {
+        let planned = plannedSetCounts[id] ?? 0
+        guard planned > 0 else { return false }
+        return (doneSetCounts[id] ?? 0) >= planned
+    }
+
+    /// 照課表的下一個動作：（可調整後）順序中「還沒做滿」且非當前動作的第一個。全部做滿回 nil。
+    /// 用「做滿」而非「有紀錄」判斷——否則做一半就跳走的動作會被當成已完成，導致提早跳訓練結束。
     public var nextPlannedExerciseId: UUID? {
         guard blueprint != nil else { return nil }
-        let recorded = Set(workout.sets.map(\.exerciseId))
-        return plannedOrderIds.first { $0 != currentExerciseId && !recorded.contains($0) }
+        return plannedOrderIds.first { $0 != currentExerciseId && !isPlannedExerciseFullyDone($0) }
     }
 
     /// 下一個課表動作的名稱（給按鈕標題）。
@@ -151,11 +170,8 @@ public final class ActiveWorkoutViewModel {
     /// 本場動作完整序列：課表順序（可拖拉調整後）→ 其後接臨場加練 → 確保當前動作在內。
     /// 每列帶狀態（已完成／進行中／做一半／未開始）＋已做/課表組數，供訓練畫面一份清單呈現。
     public var sessionSequence: [SessionExercise] {
-        var doneCounts: [UUID: Int] = [:]
-        for set in workout.sets { doneCounts[set.exerciseId, default: 0] += 1 }
-        let plannedCounts = Dictionary(
-            uniqueKeysWithValues: (blueprint?.exercises ?? []).map { ($0.exerciseId, $0.setCount) }
-        )
+        let doneCounts = doneSetCounts
+        let plannedCounts = plannedSetCounts
 
         var ids = plannedOrderIds
         for block in workout.blocks where !ids.contains(block.exerciseId) { ids.append(block.exerciseId) }

@@ -617,4 +617,20 @@ struct ActiveWorkoutSessionSequenceTests {
         #expect(a.doneSetCount == 1)
         #expect(a.plannedSetCount == 3)
     }
+
+    /// 回報 bug（PR #38）：做 a（未做滿）→ 跳 b → 做滿 b，不該當成整場做完而跳訓練結束——
+    /// a 還沒做滿、也沒按跳過，下一個仍該是 a。根因：nextPlanned 原本用「有紀錄」判斷，
+    /// partial 的 a 被誤當已完成。改用「做滿」後修正。
+    @Test func partialExerciseStaysNextAfterCompletingAnother() async {
+        let (vm, ids) = makeViewModel(["a", "b"], setCount: 2)
+        await vm.onAppear()                 // current a
+
+        await vm.completeCurrentSet()       // a 1/2（未做滿）
+        await vm.select(exerciseId: ids[1]) // 跳到 b
+        await vm.completeCurrentSet()       // b 1/2
+        await vm.completeCurrentSet()       // b 2/2 做滿
+
+        #expect(vm.nextPlannedExerciseId == ids[0]) // 下一個仍是 a
+        #expect(vm.isPlanFullyDone == false)        // 不是整場做完
+    }
 }
