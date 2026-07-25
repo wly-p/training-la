@@ -308,6 +308,22 @@
         }
       }
     },
+    "training.lastSet" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Last set — almost done"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "本場最後一組，做完就結束"
+          }
+        }
+      }
+    },
     "training.lastTime %@" : {
       "localizations" : {
         "en" : {
@@ -372,18 +388,18 @@
         }
       }
     },
-    "training.nextNamed %@" : {
+    "training.nextSet %@" : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Next: %@"
+            "value" : "Next set: %@"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "下一個動作：%@"
+            "value" : "下一組：%@"
           }
         }
       }
@@ -468,22 +484,6 @@
         }
       }
     },
-    "training.otherExercises" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Other Exercises"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "本場其他動作"
-          }
-        }
-      }
-    },
     "training.pickToStart" : {
       "localizations" : {
         "en" : {
@@ -496,22 +496,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "選一個動作開始"
-          }
-        }
-      }
-    },
-    "training.planAllDone" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "All planned exercises done — finish or keep going"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "課表動作都做完了，可結束或加練"
           }
         }
       }
@@ -688,6 +672,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "搜尋動作"
+          }
+        }
+      }
+    },
+    "training.sessionExercises" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Workout Exercises"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "本場動作"
           }
         }
       }

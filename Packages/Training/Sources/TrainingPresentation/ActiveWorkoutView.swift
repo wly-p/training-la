@@ -265,71 +265,116 @@ public struct ActiveWorkoutView: View {
                 currentSetEditor
             } header: {
                 localText("training.setIndex \(viewModel.currentBlockSets.count + 1)")
+            } footer: {
+                nextSetPreviewFooter
             }
 
+            // 本場動作：一份順序清單，涵蓋已完成／進行中（高亮）／做一半／未開始。
+            // 點任一列＝切到那個動作（高亮就地移動，不會有東西「不見」）；
+            // 未開始的列可長按拖拉調整順序（無需編輯模式）。
             Section {
-                if viewModel.isFollowingPlan {
-                    if let nextName = viewModel.nextPlannedName {
-                        Button {
-                            Task { await viewModel.advanceToNextPlanned() }
-                        } label: {
-                            Label {
-                                localText("training.nextNamed \(nextName)")
-                            } icon: {
-                                Image(systemName: "arrow.right")
-                            }
-                        }
-                    } else {
-                        Label {
-                            localText("training.planAllDone")
-                        } icon: {
-                            Image(systemName: "checkmark.circle")
-                        }
-                        .foregroundStyle(.secondary)
-                    }
+                ForEach(viewModel.sessionSequence) { exercise in
                     Button {
-                        showsExercisePicker = true
+                        Task { await viewModel.select(exerciseId: exercise.id) }
                     } label: {
-                        Label {
-                            localText("training.addAnother")
-                        } icon: {
-                            Image(systemName: "plus")
-                        }
-                    }
-                } else {
-                    Button {
-                        showsExercisePicker = true
-                    } label: {
-                        Label {
-                            localText("training.nextExercise")
-                        } icon: {
-                            Image(systemName: "arrow.right")
-                        }
-                    }
-                }
-            }
-
-            if !viewModel.otherBlocks.isEmpty {
-                Section {
-                    ForEach(viewModel.otherBlocks) { block in
-                        Button {
-                            Task { await viewModel.select(exerciseId: block.exerciseId) }
-                        } label: {
-                            HStack {
-                                Text(verbatim: viewModel.name(for: block.exerciseId))
-                                Spacer()
-                                Text(WeightDisplay.summary(of: block.sets))
+                        HStack(spacing: 10) {
+                            sessionStatusIcon(exercise.status)
+                                .frame(width: 20)
+                            // 動作名是 DB 資料（verbatim）；當前動作加粗
+                            Text(verbatim: exercise.name)
+                                .fontWeight(exercise.isCurrent ? .semibold : .regular)
+                            Spacer()
+                            if let progress = sessionProgress(exercise) {
+                                Text(verbatim: progress)
                                     .font(.footnote)
                                     .foregroundStyle(.secondary)
+                                    .monospacedDigit()
                             }
                         }
-                        .buttonStyle(.plain)
+                        .contentShape(Rectangle())
                     }
-                } header: {
-                    localText("training.otherExercises")
+                    .buttonStyle(.plain)
+                    .listRowBackground(exercise.isCurrent ? Color.accentColor.opacity(0.12) : nil)
+                    .moveDisabled(exercise.status != .upcoming)   // 只有未開始的能拖拉調序
                 }
+                .onMove { viewModel.reorderSession(fromOffsets: $0, toOffset: $1) }
+
+                Button {
+                    showsExercisePicker = true
+                } label: {
+                    Label {
+                        localText("training.addAnother")
+                    } icon: {
+                        Image(systemName: "plus")
+                    }
+                }
+            } header: {
+                localText("training.sessionExercises")
             }
         }
+    }
+
+    @ViewBuilder
+    private func sessionStatusIcon(_ status: SessionExercise.Status) -> some View {
+        switch status {
+        case .done:
+            Image(systemName: "checkmark.circle.fill").foregroundStyle(.green)
+        case .current:
+            Image(systemName: "arrowtriangle.right.circle.fill").foregroundStyle(.tint)
+        case .partial:
+            Image(systemName: "circle.lefthalf.filled").foregroundStyle(.orange)
+        case .upcoming:
+            Image(systemName: "circle").foregroundStyle(.secondary)
+        }
+    }
+
+    /// 右側進度：課表動作「已做/課表」（如 1/3）；臨場加練顯示已做組數；無則不顯示。
+    private func sessionProgress(_ exercise: SessionExercise) -> String? {
+        if exercise.isPlanned {
+            return "\(exercise.doneSetCount)/\(exercise.plannedSetCount)"
+        }
+        return exercise.doneSetCount > 0 ? "\(exercise.doneSetCount)" : nil
+    }
+
+    /// 「下一組」預覽（當前 section footer）：不用翻課表就知道接下來做什麼。
+    @ViewBuilder private var nextSetPreviewFooter: some View {
+        switch viewModel.nextSetPreview {
+        case .upcoming(let name, let target, let isNextExercise):
+            let value = nextSetText(name: name, target: target, includeName: isNextExercise)
+            Label {
+                // value 含 DB 動作名／數值（verbatim），套進本地化前綴「下一組／接下來」
+                if isNextExercise {
+                    localText("training.upNext \(value)")
+                } else {
+                    localText("training.nextSet \(value)")
+                }
+            } icon: {
+                Image(systemName: "arrow.turn.down.right")
+            }
+            .font(.footnote)
+        case .lastSet:
+            Label {
+                localText("training.lastSet")
+            } icon: {
+                Image(systemName: "flag.checkered")
+            }
+            .font(.footnote)
+        case .none:
+            EmptyView()
+        }
+    }
+
+    /// 組出「[動作名] 60kg × 8」；換動作時帶名稱，同動作只給重量×次數。
+    private func nextSetText(name: String, target: PlannedTargetSet?, includeName: Bool) -> String {
+        var parts: [String] = []
+        if includeName { parts.append(name) }
+        if let weight = target?.targetWeight {
+            let reps = target?.targetReps.map { " × \($0)" } ?? ""
+            parts.append("\(WeightDisplay.weight(weight))\(reps)")
+        } else if let reps = target?.targetReps {
+            parts.append("× \(reps)")
+        }
+        return parts.joined(separator: " ")
     }
 
     private var currentSetEditor: some View {

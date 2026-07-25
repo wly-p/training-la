@@ -17,6 +17,7 @@ struct ExerciseDraftsEditor: View {
                 draftRow($draft)
             }
             .onDelete(perform: readOnly ? nil : { drafts.remove(atOffsets: $0) })
+            .onMove(perform: readOnly ? nil : { drafts.move(fromOffsets: $0, toOffset: $1) })
 
             if !readOnly {
                 Button {
@@ -37,7 +38,17 @@ struct ExerciseDraftsEditor: View {
                 }
             }
         } header: {
-            localText("plan.exercises")
+            HStack {
+                localText("plan.exercises")
+                // 兩個以上動作才需要排序；EditButton 進入編輯模式後出現拖拉握把。
+                #if os(iOS)
+                if !readOnly && drafts.count > 1 {
+                    Spacer()
+                    EditButton()
+                        .textCase(nil)   // header 預設大寫，EditButton 文字不套用
+                }
+                #endif
+            }
         }
         .disabled(readOnly)
     }

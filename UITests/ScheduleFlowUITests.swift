@@ -33,21 +33,23 @@ final class ScheduleFlowUITests: XCTestCase {
         let completeButton = app.buttons["完成此組"]
         XCTAssertTrue(completeButton.waitForExistence(timeout: 5))
         XCTAssertTrue(app.staticTexts.matching(NSPredicate(format: "label BEGINSWITH '目標'")).firstMatch.exists)
+        // 下一組預覽（臥推還有下一組）→ footer 顯示「下一組：…」
+        XCTAssertTrue(app.staticTexts.matching(NSPredicate(format: "label BEGINSWITH '下一組'")).firstMatch.waitForExistence(timeout: 5))
 
-        // 完成臥推一組，然後「下一個動作」應直接帶到深蹲（不是打開全清單）
+        // 完成臥推一組 → 「本場動作」清單列出未做的深蹲，點它直接跳過去（不是打開全動作庫）
         completeButton.tap()
         XCTAssertTrue(app.staticTexts["第1組"].waitForExistence(timeout: 5))
-        let nextButton = app.buttons["下一個動作：深蹲"]
-        XCTAssertTrue(nextButton.waitForExistence(timeout: 5))
-        nextButton.tap()
+        let nextExercise = app.staticTexts["深蹲"]
+        XCTAssertTrue(nextExercise.waitForExistence(timeout: 5))
+        nextExercise.tap()
 
         // 現在當前動作是深蹲
         XCTAssertTrue(app.navigationBars["深蹲"].waitForExistence(timeout: 5))
         XCTAssertTrue(app.buttons["完成此組"].waitForExistence(timeout: 5))
 
-        // 完成深蹲一組 → 課表兩個動作都做過 → 顯示做完提示
+        // 完成深蹲一組 → 記錄下來（本場動作清單同時保有臥推、深蹲）
         app.buttons["完成此組"].tap()
-        XCTAssertTrue(app.staticTexts["課表動作都做完了，可結束或加練"].waitForExistence(timeout: 5))
+        XCTAssertTrue(app.staticTexts["第1組"].waitForExistence(timeout: 5))
 
         // 結束
         app.buttons["結束訓練"].tap()

@@ -4,6 +4,26 @@ import RemindersDomain
 import SharedKernel
 import TrainingDomain
 
+/// 訓練中「本場動作」清單的一列：涵蓋課表動作與臨場加練，各帶狀態。
+public struct SessionExercise: Identifiable, Equatable, Sendable {
+    public enum Status: Sendable, Equatable { case done, current, partial, upcoming }
+    public let id: UUID          // exerciseId
+    public let name: String
+    public let status: Status
+    public let doneSetCount: Int
+    public let plannedSetCount: Int   // 0＝非課表動作（臨場加練）
+    public var isCurrent: Bool { status == .current }
+    public var isPlanned: Bool { plannedSetCount > 0 }
+}
+
+/// 「下一組」預覽：讓使用者不用翻課表就知道正在做的這組之後要做什麼。
+public enum NextSetPreview: Equatable, Sendable {
+    /// 還有下一組：同動作下一組（isNextExercise=false），或當前是最後一組時的下一個動作（true）。
+    case upcoming(exerciseName: String, target: PlannedTargetSet?, isNextExercise: Bool)
+    /// 整場最後一組，做完就結束。
+    case lastSet
+}
+
 @MainActor
 @Observable
 public final class ActiveWorkoutViewModel {
@@ -91,12 +111,6 @@ public final class ActiveWorkoutViewModel {
         return workout.blocks.last { $0.exerciseId == id }?.sets ?? []
     }
 
-    /// 目前動作以外、已有紀錄的區塊（畫面下方的摘要）。
-    public var otherBlocks: [ExerciseBlock] {
-        let currentIndex = workout.blocks.last { $0.exerciseId == currentExerciseId }?.exerciseIndex
-        return workout.blocks.filter { $0.exerciseIndex != currentIndex }
-    }
-
     public var totalSetCount: Int { workout.sets.count }
 
     public var durationMinutes: Int {
@@ -123,18 +137,104 @@ public final class ActiveWorkoutViewModel {
     /// 是否照課表訓練。
     public var isFollowingPlan: Bool { blueprint != nil }
 
-    /// 照課表的下一個動作：課表順序中還沒記過、且非當前動作的第一個。全部做過回 nil。
+    /// 本場課表動作順序：訓練中可拖拉調整（session 內有效，不落地回課表範本/排課）。
+    /// nil＝沿用課表原順序。
+    private var reorderedPlan: [UUID]?
+    private var plannedOrderIds: [UUID] {
+        reorderedPlan ?? blueprint?.exercises.map(\.exerciseId) ?? []
+    }
+
+    /// 各動作已記錄組數（done／skipped 都算「已處理一組」）。
+    private var doneSetCounts: [UUID: Int] {
+        var counts: [UUID: Int] = [:]
+        for set in workout.sets { counts[set.exerciseId, default: 0] += 1 }
+        return counts
+    }
+
+    /// 各課表動作的目標組數。
+    private var plannedSetCounts: [UUID: Int] {
+        Dictionary(uniqueKeysWithValues: (blueprint?.exercises ?? []).map { ($0.exerciseId, $0.setCount) })
+    }
+
+    /// 課表動作是否「做滿」（做一半不算做完）。
+    private func isPlannedExerciseFullyDone(_ id: UUID) -> Bool {
+        let planned = plannedSetCounts[id] ?? 0
+        guard planned > 0 else { return false }
+        return (doneSetCounts[id] ?? 0) >= planned
+    }
+
+    /// 照課表的下一個動作：（可調整後）順序中「還沒做滿」且非當前動作的第一個。全部做滿回 nil。
+    /// 用「做滿」而非「有紀錄」判斷——否則做一半就跳走的動作會被當成已完成，導致提早跳訓練結束。
     public var nextPlannedExerciseId: UUID? {
-        guard let blueprint else { return nil }
-        let recorded = Set(workout.sets.map(\.exerciseId))
-        return blueprint.exercises.first {
-            $0.exerciseId != currentExerciseId && !recorded.contains($0.exerciseId)
-        }?.exerciseId
+        guard blueprint != nil else { return nil }
+        return plannedOrderIds.first { $0 != currentExerciseId && !isPlannedExerciseFullyDone($0) }
     }
 
     /// 下一個課表動作的名稱（給按鈕標題）。
     public var nextPlannedName: String? {
         nextPlannedExerciseId.map { name(for: $0) }
+    }
+
+    /// 正在輸入這組之後的「下一組」預覽（照課表訓練用；自由訓練回 nil）。
+    public var nextSetPreview: NextSetPreview? {
+        guard let blueprint, let currentId = currentExerciseId else { return nil }
+        let currentPos = currentBlockSets.count   // 正在輸入的這組的位置（0-based）
+        // 同動作還有下一組
+        if let next = blueprint.target(exerciseId: currentId, position: currentPos + 1) {
+            return .upcoming(exerciseName: name(for: currentId), target: next, isNextExercise: false)
+        }
+        // 當前是這動作最後一組 → 下一個動作的下一組（其未做滿的第一組）
+        if let nextId = nextPlannedExerciseId {
+            let pos = doneSetCounts[nextId] ?? 0
+            return .upcoming(exerciseName: name(for: nextId),
+                             target: blueprint.target(exerciseId: nextId, position: pos),
+                             isNextExercise: true)
+        }
+        // 沒有下一組了 → 整場最後一組
+        return .lastSet
+    }
+
+    /// 本場動作完整序列：課表順序（可拖拉調整後）→ 其後接臨場加練 → 確保當前動作在內。
+    /// 每列帶狀態（已完成／進行中／做一半／未開始）＋已做/課表組數，供訓練畫面一份清單呈現。
+    public var sessionSequence: [SessionExercise] {
+        let doneCounts = doneSetCounts
+        let plannedCounts = plannedSetCounts
+
+        var ids = plannedOrderIds
+        for block in workout.blocks where !ids.contains(block.exerciseId) { ids.append(block.exerciseId) }
+        if let current = currentExerciseId, !ids.contains(current) { ids.append(current) }
+
+        return ids.map { id in
+            let done = doneCounts[id] ?? 0
+            let planned = plannedCounts[id] ?? 0
+            let status: SessionExercise.Status
+            if id == currentExerciseId {
+                status = .current
+            } else if planned > 0 {
+                status = done >= planned ? .done : (done > 0 ? .partial : .upcoming)
+            } else {
+                status = done > 0 ? .done : .upcoming   // 加練：有紀錄即視為已做
+            }
+            return SessionExercise(id: id, name: name(for: id), status: status,
+                                   doneSetCount: done, plannedSetCount: planned)
+        }
+    }
+
+    /// 訓練中拖拉調整順序：以完整序列的新排列，取出課表動作的新相對順序存起來
+    /// （影響 nextPlanned 與清單順序；已做/當前只是視覺上在清單裡）。session 內有效。
+    public func reorderSession(fromOffsets source: IndexSet, toOffset destination: Int) {
+        var ids = sessionSequence.map(\.id)
+        Self.moveElements(&ids, fromOffsets: source, toOffset: destination)
+        let plannedSet = Set(blueprint?.exercises.map(\.exerciseId) ?? [])
+        reorderedPlan = ids.filter { plannedSet.contains($0) }
+    }
+
+    /// 複製 SwiftUI Array.move(fromOffsets:toOffset:) 語意（VM 不引 SwiftUI）。
+    private static func moveElements<T>(_ array: inout [T], fromOffsets source: IndexSet, toOffset destination: Int) {
+        let moving = source.sorted().map { array[$0] }
+        for index in source.sorted(by: >) { array.remove(at: index) }
+        let adjusted = destination - source.filter { $0 < destination }.count
+        array.insert(contentsOf: moving, at: adjusted)
     }
 
     // MARK: - 動作
@@ -359,14 +459,21 @@ public final class ActiveWorkoutViewModel {
         }
     }
 
+    // 排程／取消一律串接在前一個動作之後，保證依呼叫順序、彼此不重疊執行。
+    // 否則快速連續動作（休息中又完成一組、早結束又換組、連點 +/-）會 spawn 多個並行 Task，
+    // 底層通知中心的 remove/add 交錯，舊排程沒被蓋掉 → 重複投遞（bug③）。
     private func scheduleReminder(at end: Date) {
+        let previous = pendingRestNotify
         pendingRestNotify = Task { [reminder] in
+            _ = await previous?.value
             await reminder.schedule(at: end)
         }
     }
 
     private func cancelReminder() {
+        let previous = pendingRestNotify
         pendingRestNotify = Task { [reminder] in
+            _ = await previous?.value
             await reminder.cancel()
         }
     }
