@@ -452,22 +452,6 @@
         }
       }
     },
-    "training.otherExercises" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Other Exercises"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "本場其他動作"
-          }
-        }
-      }
-    },
     "training.pickToStart" : {
       "localizations" : {
         "en" : {
@@ -480,22 +464,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "選一個動作開始"
-          }
-        }
-      }
-    },
-    "training.planAllDone" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "All planned exercises done — finish or keep going"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "課表動作都做完了，可結束或加練"
           }
         }
       }
@@ -672,6 +640,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "搜尋動作"
+          }
+        }
+      }
+    },
+    "training.sessionExercises" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Workout Exercises"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "本場動作"
           }
         }
       }
@@ -960,22 +944,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "接下來：%@"
-          }
-        }
-      }
-    },
-    "training.upcoming" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Up Next"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "接下來"
           }
         }
       }

@@ -526,18 +526,22 @@ struct ActiveWorkoutUndoTests {
     }
 }
 
-// MARK: - 訓練中「接下來」清單 + 拖拉調整順序（①簡單版）
+// MARK: - 訓練中「本場動作」統一清單（狀態 + 拖拉調整順序）
 
 @MainActor
-struct ActiveWorkoutUpcomingTests {
-    /// 建一個「每個動作 1 組」的照課表場次；回傳 VM 與各動作 id（依課表順序）。
-    private func makeViewModel(_ names: [String]) -> (ActiveWorkoutViewModel, [UUID]) {
+struct ActiveWorkoutSessionSequenceTests {
+    typealias Status = SessionExercise.Status
+
+    /// 照課表場次；每個動作 `setCount` 組。回傳 VM 與各動作 id（依課表順序）。
+    private func makeViewModel(_ names: [String], setCount: Int = 1) -> (ActiveWorkoutViewModel, [UUID]) {
         let repo = MockWorkoutRepo()
         let ids = names.map { _ in UUID() }
-        let targets = names.enumerated().map { (i, name) in
-            PlannedTargetSet(id: UUID(), exerciseId: ids[i], exerciseName: name,
-                             exerciseIndex: i, setIndex: 0,
-                             targetWeight: Weight(value: 60, unit: .kg), targetReps: 8, restSec: nil)
+        let targets = names.enumerated().flatMap { (i, name) in
+            (0..<setCount).map { s in
+                PlannedTargetSet(id: UUID(), exerciseId: ids[i], exerciseName: name,
+                                 exerciseIndex: i, setIndex: s,
+                                 targetWeight: Weight(value: 60, unit: .kg), targetReps: 8, restSec: nil)
+            }
         }
         let blueprint = PlannedWorkoutBlueprint(planWorkoutId: UUID(), name: "推日", targets: targets)
         let workout = Workout(id: UUID(), day: DayDate(year: 2026, month: 7, day: 10),
@@ -555,59 +559,62 @@ struct ActiveWorkoutUpcomingTests {
         return (vm, ids)
     }
 
-    @Test func upcomingListsUndoneNonCurrentInPlanOrder() async {
+    @Test func listsAllInPlanOrderWithStatus() async {
         let (vm, ids) = makeViewModel(["a", "b", "c"])
         await vm.onAppear() // 自動選第一個 a
 
         #expect(vm.currentExerciseId == ids[0])
-        #expect(vm.upcomingExercises.map(\.name) == ["b", "c"]) // 當前 a 不列
+        #expect(vm.sessionSequence.map(\.name) == ["a", "b", "c"])   // 全部都在，不消失
+        #expect(vm.sessionSequence.map(\.status) == [.current, .upcoming, .upcoming])
     }
 
-    /// 情境：a→b→c，做完 a 想先做 c 再做 b → 拖拉把 c 移到 b 前面。
-    @Test func reorderUpcomingChangesNextPlanned() async {
+    /// 情境：a→b→c，想先做 c → 把 c 拖到 b 前面（整份序列 index 2 → 1）。
+    @Test func reorderMovesUpcomingAndChangesNext() async {
         let (vm, ids) = makeViewModel(["a", "b", "c"])
         await vm.onAppear()
 
-        // upcoming = [b, c]；把 c（index 1）移到最前 → [c, b]
-        vm.moveUpcoming(fromOffsets: IndexSet(integer: 1), toOffset: 0)
+        vm.reorderSession(fromOffsets: IndexSet(integer: 2), toOffset: 1)
 
-        #expect(vm.upcomingExercises.map(\.name) == ["c", "b"])
+        #expect(vm.sessionSequence.map(\.name) == ["a", "c", "b"])
         #expect(vm.nextPlannedExerciseId == ids[2]) // 下一個變 c
     }
 
-    /// 點「接下來」的項目＝直接跳過去做（select）。
-    @Test func jumpToUpcomingSelectsItAndKeepsRestUndone() async {
+    /// 點任一列＝切過去；當前高亮就地移動，其他動作不「消失到別區」。
+    @Test func jumpChangesCurrentInPlaceKeepingList() async {
         let (vm, ids) = makeViewModel(["a", "b", "c"])
         await vm.onAppear()
 
         await vm.select(exerciseId: ids[2]) // 跳到 c
 
         #expect(vm.currentExerciseId == ids[2])
-        // a、b 都還沒做 → 仍在接下來（c 是當前，排除）
-        #expect(vm.upcomingExercises.map(\.name) == ["a", "b"])
+        #expect(vm.sessionSequence.map(\.name) == ["a", "b", "c"]) // 順序不變、a 沒不見
+        #expect(vm.sessionSequence.map(\.status) == [.upcoming, .upcoming, .current])
     }
 
-    @Test func completedExerciseDropsOutOfUpcoming() async {
-        let (vm, ids) = makeViewModel(["a", "b", "c"])
+    /// 做完並換走 → 該動作變「已完成」，當前高亮移到下一個。
+    @Test func completedShowsDoneAndCurrentMoves() async {
+        let (vm, ids) = makeViewModel(["a", "b", "c"]) // 每個 1 組
         await vm.onAppear()
 
-        await vm.completeCurrentSet()      // 記錄 a（單組）
-        #expect(vm.upcomingExercises.map(\.name) == ["b", "c"])
+        await vm.completeCurrentSet()   // a 做滿（1/1）
+        await vm.advanceToNextPlanned() // → b
 
-        await vm.advanceToNextPlanned()    // → b
         #expect(vm.currentExerciseId == ids[1])
-        #expect(vm.upcomingExercises.map(\.name) == ["c"]) // a 已做、b 當前
+        #expect(vm.sessionSequence.map(\.status) == [.done, .current, .upcoming])
+        #expect(vm.sessionSequence[0].doneSetCount == 1)
     }
 
-    /// 全部做完 → 接下來清單為空。
-    @Test func upcomingEmptyWhenAllRecorded() async {
-        let (vm, _) = makeViewModel(["a", "b"])
+    /// 做一半就切走（非當前、未做滿）→ 顯示「做一半」狀態。
+    @Test func partialWhenStartedNotFinishedAndNotCurrent() async {
+        let (vm, ids) = makeViewModel(["a", "b"], setCount: 3)
         await vm.onAppear()
 
-        await vm.completeCurrentSet()      // a
-        await vm.advanceToNextPlanned()    // → b
-        await vm.completeCurrentSet()      // b
+        await vm.completeCurrentSet()       // a 1/3
+        await vm.select(exerciseId: ids[1]) // 切到 b
 
-        #expect(vm.upcomingExercises.isEmpty)
+        let a = vm.sessionSequence[0]
+        #expect(a.status == .partial)
+        #expect(a.doneSetCount == 1)
+        #expect(a.plannedSetCount == 3)
     }
 }
