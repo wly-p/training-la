@@ -267,88 +267,71 @@ public struct ActiveWorkoutView: View {
                 localText("training.setIndex \(viewModel.currentBlockSets.count + 1)")
             }
 
+            // 本場動作：一份順序清單，涵蓋已完成／進行中（高亮）／做一半／未開始。
+            // 點任一列＝切到那個動作（高亮就地移動，不會有東西「不見」）；
+            // 未開始的列可長按拖拉調整順序（無需編輯模式）。
             Section {
-                if viewModel.isFollowingPlan {
-                    if viewModel.upcomingExercises.isEmpty {
-                        Label {
-                            localText("training.planAllDone")
-                        } icon: {
-                            Image(systemName: "checkmark.circle")
-                        }
-                        .foregroundStyle(.secondary)
-                    } else {
-                        // 未做的課表動作：點一下直接跳過去做；編輯模式可拖拉調整順序。
-                        ForEach(viewModel.upcomingExercises) { exercise in
-                            Button {
-                                Task { await viewModel.select(exerciseId: exercise.id) }
-                            } label: {
-                                HStack {
-                                    Image(systemName: "arrow.right").foregroundStyle(.tertiary)
-                                    // 動作名是 DB 資料（verbatim）
-                                    Text(verbatim: exercise.name)
-                                    Spacer()
-                                }
-                                .contentShape(Rectangle())
+                ForEach(viewModel.sessionSequence) { exercise in
+                    Button {
+                        Task { await viewModel.select(exerciseId: exercise.id) }
+                    } label: {
+                        HStack(spacing: 10) {
+                            sessionStatusIcon(exercise.status)
+                                .frame(width: 20)
+                            // 動作名是 DB 資料（verbatim）；當前動作加粗
+                            Text(verbatim: exercise.name)
+                                .fontWeight(exercise.isCurrent ? .semibold : .regular)
+                            Spacer()
+                            if let progress = sessionProgress(exercise) {
+                                Text(verbatim: progress)
+                                    .font(.footnote)
+                                    .foregroundStyle(.secondary)
+                                    .monospacedDigit()
                             }
-                            .buttonStyle(.plain)
                         }
-                        .onMove { viewModel.moveUpcoming(fromOffsets: $0, toOffset: $1) }
+                        .contentShape(Rectangle())
                     }
-                    Button {
-                        showsExercisePicker = true
-                    } label: {
-                        Label {
-                            localText("training.addAnother")
-                        } icon: {
-                            Image(systemName: "plus")
-                        }
-                    }
-                } else {
-                    Button {
-                        showsExercisePicker = true
-                    } label: {
-                        Label {
-                            localText("training.nextExercise")
-                        } icon: {
-                            Image(systemName: "arrow.right")
-                        }
+                    .buttonStyle(.plain)
+                    .listRowBackground(exercise.isCurrent ? Color.accentColor.opacity(0.12) : nil)
+                    .moveDisabled(exercise.status != .upcoming)   // 只有未開始的能拖拉調序
+                }
+                .onMove { viewModel.reorderSession(fromOffsets: $0, toOffset: $1) }
+
+                Button {
+                    showsExercisePicker = true
+                } label: {
+                    Label {
+                        localText("training.addAnother")
+                    } icon: {
+                        Image(systemName: "plus")
                     }
                 }
             } header: {
-                if viewModel.isFollowingPlan && !viewModel.upcomingExercises.isEmpty {
-                    HStack {
-                        localText("training.upcoming")
-                        #if os(iOS)
-                        if viewModel.upcomingExercises.count > 1 {
-                            Spacer()
-                            EditButton().textCase(nil)   // 進編輯模式出現拖拉握把
-                        }
-                        #endif
-                    }
-                }
-            }
-
-            if !viewModel.otherBlocks.isEmpty {
-                Section {
-                    ForEach(viewModel.otherBlocks) { block in
-                        Button {
-                            Task { await viewModel.select(exerciseId: block.exerciseId) }
-                        } label: {
-                            HStack {
-                                Text(verbatim: viewModel.name(for: block.exerciseId))
-                                Spacer()
-                                Text(WeightDisplay.summary(of: block.sets))
-                                    .font(.footnote)
-                                    .foregroundStyle(.secondary)
-                            }
-                        }
-                        .buttonStyle(.plain)
-                    }
-                } header: {
-                    localText("training.otherExercises")
-                }
+                localText("training.sessionExercises")
             }
         }
+    }
+
+    @ViewBuilder
+    private func sessionStatusIcon(_ status: SessionExercise.Status) -> some View {
+        switch status {
+        case .done:
+            Image(systemName: "checkmark.circle.fill").foregroundStyle(.green)
+        case .current:
+            Image(systemName: "arrowtriangle.right.circle.fill").foregroundStyle(.tint)
+        case .partial:
+            Image(systemName: "circle.lefthalf.filled").foregroundStyle(.orange)
+        case .upcoming:
+            Image(systemName: "circle").foregroundStyle(.secondary)
+        }
+    }
+
+    /// 右側進度：課表動作「已做/課表」（如 1/3）；臨場加練顯示已做組數；無則不顯示。
+    private func sessionProgress(_ exercise: SessionExercise) -> String? {
+        if exercise.isPlanned {
+            return "\(exercise.doneSetCount)/\(exercise.plannedSetCount)"
+        }
+        return exercise.doneSetCount > 0 ? "\(exercise.doneSetCount)" : nil
     }
 
     private var currentSetEditor: some View {
