@@ -33,6 +33,8 @@ final class ScheduleFlowUITests: XCTestCase {
         let completeButton = app.buttons["完成此組"]
         XCTAssertTrue(completeButton.waitForExistence(timeout: 5))
         XCTAssertTrue(app.staticTexts.matching(NSPredicate(format: "label BEGINSWITH '目標'")).firstMatch.exists)
+        // 下一組預覽（臥推還有下一組）→ footer 顯示「下一組：…」
+        XCTAssertTrue(app.staticTexts.matching(NSPredicate(format: "label BEGINSWITH '下一組'")).firstMatch.waitForExistence(timeout: 5))
 
         // 完成臥推一組 → 「本場動作」清單列出未做的深蹲，點它直接跳過去（不是打開全動作庫）
         completeButton.tap()

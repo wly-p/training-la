@@ -16,6 +16,14 @@ public struct SessionExercise: Identifiable, Equatable, Sendable {
     public var isPlanned: Bool { plannedSetCount > 0 }
 }
 
+/// 「下一組」預覽：讓使用者不用翻課表就知道正在做的這組之後要做什麼。
+public enum NextSetPreview: Equatable, Sendable {
+    /// 還有下一組：同動作下一組（isNextExercise=false），或當前是最後一組時的下一個動作（true）。
+    case upcoming(exerciseName: String, target: PlannedTargetSet?, isNextExercise: Bool)
+    /// 整場最後一組，做完就結束。
+    case lastSet
+}
+
 @MainActor
 @Observable
 public final class ActiveWorkoutViewModel {
@@ -165,6 +173,25 @@ public final class ActiveWorkoutViewModel {
     /// 下一個課表動作的名稱（給按鈕標題）。
     public var nextPlannedName: String? {
         nextPlannedExerciseId.map { name(for: $0) }
+    }
+
+    /// 正在輸入這組之後的「下一組」預覽（照課表訓練用；自由訓練回 nil）。
+    public var nextSetPreview: NextSetPreview? {
+        guard let blueprint, let currentId = currentExerciseId else { return nil }
+        let currentPos = currentBlockSets.count   // 正在輸入的這組的位置（0-based）
+        // 同動作還有下一組
+        if let next = blueprint.target(exerciseId: currentId, position: currentPos + 1) {
+            return .upcoming(exerciseName: name(for: currentId), target: next, isNextExercise: false)
+        }
+        // 當前是這動作最後一組 → 下一個動作的下一組（其未做滿的第一組）
+        if let nextId = nextPlannedExerciseId {
+            let pos = doneSetCounts[nextId] ?? 0
+            return .upcoming(exerciseName: name(for: nextId),
+                             target: blueprint.target(exerciseId: nextId, position: pos),
+                             isNextExercise: true)
+        }
+        // 沒有下一組了 → 整場最後一組
+        return .lastSet
     }
 
     /// 本場動作完整序列：課表順序（可拖拉調整後）→ 其後接臨場加練 → 確保當前動作在內。

@@ -265,6 +265,8 @@ public struct ActiveWorkoutView: View {
                 currentSetEditor
             } header: {
                 localText("training.setIndex \(viewModel.currentBlockSets.count + 1)")
+            } footer: {
+                nextSetPreviewFooter
             }
 
             // 本場動作：一份順序清單，涵蓋已完成／進行中（高亮）／做一半／未開始。
@@ -332,6 +334,47 @@ public struct ActiveWorkoutView: View {
             return "\(exercise.doneSetCount)/\(exercise.plannedSetCount)"
         }
         return exercise.doneSetCount > 0 ? "\(exercise.doneSetCount)" : nil
+    }
+
+    /// 「下一組」預覽（當前 section footer）：不用翻課表就知道接下來做什麼。
+    @ViewBuilder private var nextSetPreviewFooter: some View {
+        switch viewModel.nextSetPreview {
+        case .upcoming(let name, let target, let isNextExercise):
+            let value = nextSetText(name: name, target: target, includeName: isNextExercise)
+            Label {
+                // value 含 DB 動作名／數值（verbatim），套進本地化前綴「下一組／接下來」
+                if isNextExercise {
+                    localText("training.upNext \(value)")
+                } else {
+                    localText("training.nextSet \(value)")
+                }
+            } icon: {
+                Image(systemName: "arrow.turn.down.right")
+            }
+            .font(.footnote)
+        case .lastSet:
+            Label {
+                localText("training.lastSet")
+            } icon: {
+                Image(systemName: "flag.checkered")
+            }
+            .font(.footnote)
+        case .none:
+            EmptyView()
+        }
+    }
+
+    /// 組出「[動作名] 60kg × 8」；換動作時帶名稱，同動作只給重量×次數。
+    private func nextSetText(name: String, target: PlannedTargetSet?, includeName: Bool) -> String {
+        var parts: [String] = []
+        if includeName { parts.append(name) }
+        if let weight = target?.targetWeight {
+            let reps = target?.targetReps.map { " × \($0)" } ?? ""
+            parts.append("\(WeightDisplay.weight(weight))\(reps)")
+        } else if let reps = target?.targetReps {
+            parts.append("× \(reps)")
+        }
+        return parts.joined(separator: " ")
     }
 
     private var currentSetEditor: some View {

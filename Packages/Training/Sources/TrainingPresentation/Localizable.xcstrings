@@ -308,6 +308,22 @@
         }
       }
     },
+    "training.lastSet" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Last set — almost done"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "本場最後一組，做完就結束"
+          }
+        }
+      }
+    },
     "training.lastTime %@" : {
       "localizations" : {
         "en" : {
@@ -368,6 +384,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "下一個動作"
+          }
+        }
+      }
+    },
+    "training.nextSet %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Next set: %@"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "下一組：%@"
           }
         }
       }

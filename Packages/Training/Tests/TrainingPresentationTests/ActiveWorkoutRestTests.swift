@@ -633,4 +633,39 @@ struct ActiveWorkoutSessionSequenceTests {
         #expect(vm.nextPlannedExerciseId == ids[0]) // 下一個仍是 a
         #expect(vm.isPlanFullyDone == false)        // 不是整場做完
     }
+
+    // MARK: - 下一組預覽
+
+    @Test func nextSetPreviewShowsSameExerciseNextSet() async {
+        let (vm, _) = makeViewModel(["a", "b"], setCount: 3)
+        await vm.onAppear() // 正在做 a 第 1 組（還有第 2、3 組）
+
+        if case .upcoming(let name, let target, let isNext)? = vm.nextSetPreview {
+            #expect(name == "a")           // 同動作
+            #expect(isNext == false)
+            #expect(target?.targetReps == 8)
+        } else {
+            Issue.record("預期 .upcoming，實際 \(String(describing: vm.nextSetPreview))")
+        }
+    }
+
+    @Test func nextSetPreviewShowsNextExerciseOnLastSet() async {
+        let (vm, _) = makeViewModel(["a", "b"], setCount: 2)
+        await vm.onAppear()
+        await vm.completeCurrentSet() // a 1/2 → 正在做 a 第 2 組（最後一組）
+
+        if case .upcoming(let name, _, let isNext)? = vm.nextSetPreview {
+            #expect(name == "b")          // 換下一個動作
+            #expect(isNext == true)
+        } else {
+            Issue.record("預期 .upcoming(b)，實際 \(String(describing: vm.nextSetPreview))")
+        }
+    }
+
+    @Test func nextSetPreviewLastSetOfWholePlan() async {
+        let (vm, _) = makeViewModel(["a"], setCount: 1)
+        await vm.onAppear() // 整場唯一一組
+
+        #expect(vm.nextSetPreview == .lastSet)
+    }
 }
