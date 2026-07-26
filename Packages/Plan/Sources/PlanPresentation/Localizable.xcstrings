@@ -2614,6 +2614,70 @@
         }
       }
     },
+    "template.set.absolute": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Absolute"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "絕對值"
+          }
+        }
+      }
+    },
+    "template.set.copyPrevious": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Same as prev"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "同上組"
+          }
+        }
+      }
+    },
+    "template.set.relative": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Relative to last"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "相對上次"
+          }
+        }
+      }
+    },
+    "template.set.relativeKicker": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Relative to last (KG)"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "相對上次（KG）"
+          }
+        }
+      }
+    },
     "template.set.remove": {
       "localizations": {
         "en": {
@@ -2630,6 +2694,22 @@
         }
       }
     },
+    "template.set.weightKicker": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Weight (KG)"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "重量（KG）"
+          }
+        }
+      }
+    },
     "template.setNumber %lld": {
       "localizations": {
         "en": {
@@ -2642,6 +2722,22 @@
           "stringUnit": {
             "state": "translated",
             "value": "組 %lld"
+          }
+        }
+      }
+    },
+    "template.setNumber.reps": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reps"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "次數"
           }
         }
       }

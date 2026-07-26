@@ -17,6 +17,8 @@ public struct EditScaffold<Content: View>: View {
     private let onSave: () -> Void
     private let content: Content
 
+    @FocusState private var titleFocused: Bool
+
     public init(
         title: Binding<String>,
         titlePrompt: Text,
@@ -50,7 +52,13 @@ public struct EditScaffold<Content: View>: View {
                 .padding(.horizontal, TLSpace.page)
                 .padding(.top, TLSpace.gapL)
                 .padding(.bottom, 40)
+                // 點內容區的空白處收鍵盤（列/按鈕自己的 tap 手勢優先，不會被這個蓋掉）。
+                .contentShape(Rectangle())
+                .onTapGesture { titleFocused = false }
             }
+            // 一開始拖曳就收鍵盤：名稱欄位／備註等文字輸入沒有「完成」鍵時，鍵盤才收得起來。
+            // `.interactively`（跟手漸進收合）在 UITest 的合成 swipe 上不可靠，用 `.immediately`。
+            .scrollDismissesKeyboard(.immediately)
         }
         .background(TLColor.bg.ignoresSafeArea())
     }
@@ -82,6 +90,7 @@ public struct EditScaffold<Content: View>: View {
                 .font(TLFont.zh(TLFont.pageTitle, .bold))
                 .tracking(TLFont.pageTitle * -0.02)
                 .foregroundStyle(TLColor.text)
+                .focused($titleFocused)
                 .accessibilityIdentifier("editScaffoldTitle")
             if let subtitle {
                 subtitle

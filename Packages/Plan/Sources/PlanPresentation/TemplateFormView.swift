@@ -101,10 +101,16 @@ struct TemplateFormView: View {
         }
         .sheet(item: $editingSet) { editing in
             if let index = draftSets.firstIndex(where: { $0.id == editing.setId }) {
+                let current = draftSets[index]
+                let previous = draftSets.first {
+                    $0.exerciseIndex == current.exerciseIndex && $0.setIndex == current.setIndex - 1
+                }
                 SetEditSheet(
                     exerciseName: name(for: editing.exerciseId),
                     setNumber: editing.setNumber,
                     weightStep: weightStep(for: editing.exerciseId),
+                    previousWeight: previous?.targetWeight,
+                    previousReps: previous?.targetReps,
                     targetWeight: $draftSets[index].targetWeight,
                     targetReps: $draftSets[index].targetReps
                 )
@@ -493,10 +499,14 @@ private struct TemplateBlockTransfer: Codable, Transferable {
 }
 
 /// 逐組編輯：單組的重量表達式（絕對值／相對上次）＋次數。用 `ValuePicker` 選值。
+/// 逐組編輯（設計稿 4a「08 · 數值選擇器」）：重量／次數並排在同一個 `DualValuePicker`，
+/// 共用一排快捷（-step/+step/同上組）。「同上組」複製前一組的重量與次數，第一組沒有上一組故不顯示。
 private struct SetEditSheet: View {
     let exerciseName: String
     let setNumber: Int
     let weightStep: Double
+    let previousWeight: WeightExpression?
+    let previousReps: Int?
     @Binding var targetWeight: WeightExpression?
     @Binding var targetReps: Int?
 
@@ -509,12 +519,16 @@ private struct SetEditSheet: View {
         exerciseName: String,
         setNumber: Int,
         weightStep: Double,
+        previousWeight: WeightExpression?,
+        previousReps: Int?,
         targetWeight: Binding<WeightExpression?>,
         targetReps: Binding<Int?>
     ) {
         self.exerciseName = exerciseName
         self.setNumber = setNumber
         self.weightStep = weightStep
+        self.previousWeight = previousWeight
+        self.previousReps = previousReps
         self._targetWeight = targetWeight
         self._targetReps = targetReps
         switch targetWeight.wrappedValue {
@@ -537,29 +551,50 @@ private struct SetEditSheet: View {
             : Array(stride(from: 0, through: 300, by: weightStep))
     }
 
+    private var repsValues: [Double] { Array(stride(from: 1, through: 30, by: 1)) }
+
+    private var quickActions: [DualValuePicker.QuickAction] {
+        var actions: [DualValuePicker.QuickAction] = [
+            .init("-\(formatNumber(weightStep))") {
+                weightValue = max(weightValues.first ?? 0, weightValue - weightStep)
+            },
+            .init("+\(formatNumber(weightStep))") {
+                weightValue = min(weightValues.last ?? 0, weightValue + weightStep)
+            },
+        ]
+        if previousWeight != nil || previousReps != nil {
+            actions.append(.init(String(localized: "template.set.copyPrevious", bundle: .module), flex: 1.4) {
+                switch previousWeight {
+                case .absolute(let w): isRelative = false; weightValue = w.value
+                case .relativeToLast(let d): isRelative = true; weightValue = d.value
+                case nil: break
+                }
+                if let previousReps { repsValue = Double(previousReps) }
+            })
+        }
+        return actions
+    }
+
     var body: some View {
         VStack(alignment: .leading, spacing: TLSpace.gapL) {
             topBar
             modeChips
-            ValuePicker(
-                value: $weightValue,
-                values: weightValues,
-                kicker: isRelative ? "相對上次（公斤）" : "重量（公斤）",
-                quickActions: [
-                    .init("-\(formatNumber(weightStep))") {
-                        weightValue = max(weightValues.first ?? 0, weightValue - weightStep)
-                    },
-                    .init("+\(formatNumber(weightStep))") {
-                        weightValue = min(weightValues.last ?? 0, weightValue + weightStep)
-                    },
-                ]
+            DualValuePicker(
+                primaryValue: $weightValue,
+                primaryValues: weightValues,
+                primaryKicker: isRelative
+                    ? String(localized: "template.set.relativeKicker", bundle: .module)
+                    : String(localized: "template.set.weightKicker", bundle: .module),
+                secondaryValue: $repsValue,
+                secondaryValues: repsValues,
+                secondaryKicker: String(localized: "template.setNumber.reps", bundle: .module),
+                quickActions: quickActions
             )
-            ValuePicker(value: $repsValue, values: Array(stride(from: 1, through: 30, by: 1)), kicker: "次數")
         }
         .padding(TLSpace.page)
         .padding(.top, TLSpace.gapL)
         .background(TLColor.bg.ignoresSafeArea())
-        .presentationDetents([.medium])
+        .presentationDetents([.height(560)])
     }
 
     private var topBar: some View {
@@ -589,11 +624,13 @@ private struct SetEditSheet: View {
     private var modeChips: some View {
         HStack(spacing: 8) {
             SelectableChip(
-                "絕對值", isSelected: !isRelative, selectedFill: TLColor.accent, selectedText: TLColor.bg,
+                String(localized: "template.set.absolute", bundle: .module), isSelected: !isRelative,
+                selectedFill: TLColor.accent, selectedText: TLColor.bg,
                 onTap: { isRelative = false }
             )
             SelectableChip(
-                "相對上次", isSelected: isRelative, selectedFill: TLColor.accent, selectedText: TLColor.bg,
+                String(localized: "template.set.relative", bundle: .module), isSelected: isRelative,
+                selectedFill: TLColor.accent, selectedText: TLColor.bg,
                 onTap: { isRelative = true }
             )
         }
