@@ -43,15 +43,21 @@ public struct TemplateListView: View {
         .sheet(item: $editing) { target in
             TemplateFormView(
                 target: target.formTarget,
-                catalog: viewModel.catalog
-            ) { name, drafts in
-                switch target {
-                case .create:
-                    await viewModel.create(name: name, drafts: drafts)
-                case .edit(let template):
-                    await viewModel.update(id: template.id, name: name, drafts: drafts)
+                catalog: viewModel.catalog,
+                onSubmit: { name, sets in
+                    switch target {
+                    case .create:
+                        await viewModel.create(name: name, sets: sets)
+                    case .edit(let template):
+                        await viewModel.update(id: template.id, name: name, sets: sets)
+                    }
+                },
+                onDelete: {
+                    if case .edit(let template) = target {
+                        await viewModel.delete(id: template.id)
+                    }
                 }
-            }
+            )
         }
         .alert(
             localText("plan.error"),

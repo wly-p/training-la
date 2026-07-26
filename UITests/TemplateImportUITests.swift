@@ -24,7 +24,7 @@ final class TemplateImportUITests: XCTestCase {
         let templateName = app.textFields["範本名稱"]
         XCTAssertTrue(templateName.waitForExistence(timeout: 5))
         templateName.tap(); templateName.typeText("胸推範本")
-        app.buttons["加入動作"].tap()
+        app.buttons["從動作庫加入"].tap()
         let pick = app.staticTexts["臥推"].firstMatch
         XCTAssertTrue(pick.waitForExistence(timeout: 5))
         pick.tap()

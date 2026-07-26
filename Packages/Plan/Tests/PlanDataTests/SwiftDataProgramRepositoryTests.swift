@@ -17,7 +17,7 @@ struct SwiftDataProgramRepositoryTests {
     private func spec(_ name: String, exercise: UUID = UUID()) -> WorkoutSpec {
         WorkoutSpec(name: name, sets: [
             PlanSet(id: UUID(), exerciseId: exercise, exerciseIndex: 0, setIndex: 0,
-                    targetWeight: Weight(value: 100, unit: .kg), targetReps: 5, restSec: 90),
+                    targetWeight: .absolute(Weight(value: 100, unit: .kg)), targetReps: 5, restSec: 90),
         ])
     }
 

@@ -119,35 +119,34 @@ public struct DeleteRotation: Sendable {
 public struct StartRotation: Sendable {
     private let rotationRepository: any RotationRepository
     private let planRepository: any PlanWorkoutRepository
+    private let exerciseCatalog: any PlanExerciseCatalog
+    private let lastPerformedWeightLookup: any LastPerformedWeightLookup
     private let makeID: @Sendable () -> UUID
 
     public init(
         rotationRepository: any RotationRepository,
         planRepository: any PlanWorkoutRepository,
+        exerciseCatalog: any PlanExerciseCatalog,
+        lastPerformedWeightLookup: any LastPerformedWeightLookup,
         makeID: @escaping @Sendable () -> UUID = { UUID() }
     ) {
         self.rotationRepository = rotationRepository
         self.planRepository = planRepository
+        self.exerciseCatalog = exerciseCatalog
+        self.lastPerformedWeightLookup = lastPerformedWeightLookup
         self.makeID = makeID
     }
 
-    /// 回傳建立的當日排課；找不到循環或空循環回 nil。
+    /// 回傳建立的當日排課；找不到循環或空循環回 nil。循環 spec 的重量表達式在這裡收斂。
     @discardableResult
     public func callAsFunction(id: UUID, date: DayDate) async throws -> PlanWorkout? {
         guard let rotation = try await rotationRepository.get(id: id),
               let spec = rotation.current else { return nil }
         let orderIndex = (try await planRepository.onDate(date).map(\.orderIndex).max() ?? -1) + 1
-        let sets = spec.sets.map { set in
-            PlanSet(
-                id: makeID(),
-                exerciseId: set.exerciseId,
-                exerciseIndex: set.exerciseIndex,
-                setIndex: set.setIndex,
-                targetWeight: set.targetWeight,
-                targetReps: set.targetReps,
-                restSec: set.restSec
-            )
-        }
+        let catalog = try await exerciseCatalog.exercises()
+        let sets = try await resolvedPlanSets(
+            from: spec.sets, catalog: catalog, lookup: lastPerformedWeightLookup, makeID: makeID
+        )
         let plan = PlanWorkout(
             id: makeID(),
             name: spec.name.isEmpty ? nil : spec.name,

@@ -49,6 +49,8 @@ final class RotationSetModel {
     var exerciseId: UUID
     var exerciseIndex: Int
     var setIndex: Int
+    /// "absolute" ／ "relativeToLast"；nil＝沒有目標重量。見 `WeightExpressionCoding`。
+    var targetWeightKindRaw: String?
     var targetWeightValue: Double?
     var targetWeightUnitRaw: String?
     var targetReps: Int?
@@ -60,6 +62,7 @@ final class RotationSetModel {
         exerciseId: UUID,
         exerciseIndex: Int,
         setIndex: Int,
+        targetWeightKindRaw: String?,
         targetWeightValue: Double?,
         targetWeightUnitRaw: String?,
         targetReps: Int?,
@@ -69,6 +72,7 @@ final class RotationSetModel {
         self.exerciseId = exerciseId
         self.exerciseIndex = exerciseIndex
         self.setIndex = setIndex
+        self.targetWeightKindRaw = targetWeightKindRaw
         self.targetWeightValue = targetWeightValue
         self.targetWeightUnitRaw = targetWeightUnitRaw
         self.targetReps = targetReps
@@ -124,13 +128,15 @@ extension RotationWorkoutModel {
 
 extension RotationSetModel {
     convenience init(from set: PlanSet) {
+        let encoded = WeightExpressionCoding.encode(set.targetWeight)
         self.init(
             id: set.id,
             exerciseId: set.exerciseId,
             exerciseIndex: set.exerciseIndex,
             setIndex: set.setIndex,
-            targetWeightValue: set.targetWeight?.value,
-            targetWeightUnitRaw: set.targetWeight?.unit.rawValue,
+            targetWeightKindRaw: encoded.kind,
+            targetWeightValue: encoded.value,
+            targetWeightUnitRaw: encoded.unit,
             targetReps: set.targetReps,
             restSec: set.restSec
         )
@@ -142,9 +148,9 @@ extension RotationSetModel {
             exerciseId: exerciseId,
             exerciseIndex: exerciseIndex,
             setIndex: setIndex,
-            targetWeight: targetWeightValue.map {
-                Weight(value: $0, unit: WeightUnit(rawValue: targetWeightUnitRaw ?? "kg") ?? .kg)
-            },
+            targetWeight: WeightExpressionCoding.decode(
+                kind: targetWeightKindRaw, value: targetWeightValue, unitRaw: targetWeightUnitRaw
+            ),
             targetReps: targetReps,
             restSec: restSec
         )

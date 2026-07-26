@@ -265,16 +265,22 @@ public struct ProjectSchedule: Sendable {
 }
 
 /// 把一則投影落地成當天的真實排課（未開始）。使用者從月曆某天「加入這天」時用。
-/// 冪等：同 (assignment, date) 已有真實紀錄就不重複建。
+/// 冪等：同 (assignment, date) 已有真實紀錄就不重複建。長期 spec 的重量表達式在這裡收斂。
 public struct MaterializeProjectedWorkout: Sendable {
     private let planRepository: any PlanWorkoutRepository
+    private let exerciseCatalog: any PlanExerciseCatalog
+    private let lastPerformedWeightLookup: any LastPerformedWeightLookup
     private let makeID: @Sendable () -> UUID
 
     public init(
         planRepository: any PlanWorkoutRepository,
+        exerciseCatalog: any PlanExerciseCatalog,
+        lastPerformedWeightLookup: any LastPerformedWeightLookup,
         makeID: @escaping @Sendable () -> UUID = { UUID() }
     ) {
         self.planRepository = planRepository
+        self.exerciseCatalog = exerciseCatalog
+        self.lastPerformedWeightLookup = lastPerformedWeightLookup
         self.makeID = makeID
     }
 
@@ -283,17 +289,10 @@ public struct MaterializeProjectedWorkout: Sendable {
         let onDate = try await planRepository.onDate(projected.date)
         if onDate.contains(where: { $0.assignmentId == projected.assignmentId }) { return nil }
         let orderIndex = (onDate.map(\.orderIndex).max() ?? -1) + 1
-        let sets = projected.spec.sets.map { set in
-            PlanSet(
-                id: makeID(),
-                exerciseId: set.exerciseId,
-                exerciseIndex: set.exerciseIndex,
-                setIndex: set.setIndex,
-                targetWeight: set.targetWeight,
-                targetReps: set.targetReps,
-                restSec: set.restSec
-            )
-        }
+        let catalog = try await exerciseCatalog.exercises()
+        let sets = try await resolvedPlanSets(
+            from: projected.spec.sets, catalog: catalog, lookup: lastPerformedWeightLookup, makeID: makeID
+        )
         let plan = PlanWorkout(
             id: makeID(),
             name: projected.spec.name.isEmpty ? nil : projected.spec.name,
@@ -318,17 +317,23 @@ public struct ReconcileProgramAssignments: Sendable {
     private let programRepository: any ProgramRepository
     private let assignmentRepository: any ProgramAssignmentRepository
     private let planRepository: any PlanWorkoutRepository
+    private let exerciseCatalog: any PlanExerciseCatalog
+    private let lastPerformedWeightLookup: any LastPerformedWeightLookup
     private let makeID: @Sendable () -> UUID
 
     public init(
         programRepository: any ProgramRepository,
         assignmentRepository: any ProgramAssignmentRepository,
         planRepository: any PlanWorkoutRepository,
+        exerciseCatalog: any PlanExerciseCatalog,
+        lastPerformedWeightLookup: any LastPerformedWeightLookup,
         makeID: @escaping @Sendable () -> UUID = { UUID() }
     ) {
         self.programRepository = programRepository
         self.assignmentRepository = assignmentRepository
         self.planRepository = planRepository
+        self.exerciseCatalog = exerciseCatalog
+        self.lastPerformedWeightLookup = lastPerformedWeightLookup
         self.makeID = makeID
     }
 
@@ -340,6 +345,7 @@ public struct ReconcileProgramAssignments: Sendable {
             (try await programRepository.all()).map { ($0.id, $0) },
             uniquingKeysWith: { first, _ in first }
         )
+        let catalog = try await exerciseCatalog.exercises()
         let existing = try await planRepository.all()
         var materialized = Set(
             existing.compactMap { plan in
@@ -365,7 +371,10 @@ public struct ReconcileProgramAssignments: Sendable {
                    !materialized.contains(key) {
                     let order = nextOrderIndex[day, default: 0]
                     nextOrderIndex[day] = order + 1
-                    try await planRepository.save(makePlan(from: spec, on: day, assignmentId: assignment.id, orderIndex: order))
+                    let plan = try await makePlan(
+                        from: spec, on: day, assignmentId: assignment.id, orderIndex: order, catalog: catalog
+                    )
+                    try await planRepository.save(plan)
                     materialized.insert(key)
                     created += 1
                 }
@@ -378,18 +387,12 @@ public struct ReconcileProgramAssignments: Sendable {
         return created
     }
 
-    private func makePlan(from spec: WorkoutSpec, on date: DayDate, assignmentId: UUID, orderIndex: Int) -> PlanWorkout {
-        let sets = spec.sets.map { set in
-            PlanSet(
-                id: makeID(),
-                exerciseId: set.exerciseId,
-                exerciseIndex: set.exerciseIndex,
-                setIndex: set.setIndex,
-                targetWeight: set.targetWeight,
-                targetReps: set.targetReps,
-                restSec: set.restSec
-            )
-        }
+    private func makePlan(
+        from spec: WorkoutSpec, on date: DayDate, assignmentId: UUID, orderIndex: Int, catalog: [PlanCatalogExercise]
+    ) async throws -> PlanWorkout {
+        let sets = try await resolvedPlanSets(
+            from: spec.sets, catalog: catalog, lookup: lastPerformedWeightLookup, makeID: makeID
+        )
         return PlanWorkout(
             id: makeID(),
             name: spec.name.isEmpty ? nil : spec.name,

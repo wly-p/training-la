@@ -6,7 +6,7 @@ import Testing
 private func spec(_ name: String, exercise: UUID = UUID()) -> WorkoutSpec {
     WorkoutSpec(name: name, sets: [
         PlanSet(id: UUID(), exerciseId: exercise, exerciseIndex: 0, setIndex: 0,
-                targetWeight: Weight(value: 60, unit: .kg), targetReps: 8, restSec: 60),
+                targetWeight: .absolute(Weight(value: 60, unit: .kg)), targetReps: 8, restSec: 60),
     ])
 }
 
@@ -123,7 +123,7 @@ struct StartRotationTests {
         let planRepo = MockPlanWorkoutRepository()
         let id = UUID()
         await rotationRepo.seed(Rotation(id: id, name: "推拉", workouts: [spec("推"), spec("拉")], cursor: 0))
-        let start = StartRotation(rotationRepository: rotationRepo, planRepository: planRepo)
+        let start = StartRotation(rotationRepository: rotationRepo, planRepository: planRepo, exerciseCatalog: MockPlanExerciseCatalog(), lastPerformedWeightLookup: MockLastPerformedWeightLookup())
 
         let plan = try await start(id: id, date: today)
 
@@ -143,7 +143,7 @@ struct StartRotationTests {
         let planRepo = MockPlanWorkoutRepository()
         let id = UUID()
         await rotationRepo.seed(Rotation(id: id, name: "R", workouts: [spec("A"), spec("B")], cursor: 0))
-        let start = StartRotation(rotationRepository: rotationRepo, planRepository: planRepo)
+        let start = StartRotation(rotationRepository: rotationRepo, planRepository: planRepo, exerciseCatalog: MockPlanExerciseCatalog(), lastPerformedWeightLookup: MockLastPerformedWeightLookup())
 
         _ = try await start(id: id, date: today)               // 開始 A → 游標到 B
         let second = try await start(id: id, date: today)       // 開始 B → 游標繞回 A
@@ -154,7 +154,7 @@ struct StartRotationTests {
 
     @Test func unknownOrEmptyRotationReturnsNil() async throws {
         let rotationRepo = MockRotationRepository()
-        let start = StartRotation(rotationRepository: rotationRepo, planRepository: MockPlanWorkoutRepository())
+        let start = StartRotation(rotationRepository: rotationRepo, planRepository: MockPlanWorkoutRepository(), exerciseCatalog: MockPlanExerciseCatalog(), lastPerformedWeightLookup: MockLastPerformedWeightLookup())
         // 不存在的 id
         #expect(try await start(id: UUID(), date: today) == nil)
         // 空循環
@@ -168,7 +168,7 @@ struct StartRotationTests {
         let planRepo = MockPlanWorkoutRepository()
         let id = UUID()
         await rotationRepo.seed(Rotation(id: id, name: "R", workouts: [spec("A"), spec("B"), spec("C")], cursor: 0))
-        let start = StartRotation(rotationRepository: rotationRepo, planRepository: planRepo)
+        let start = StartRotation(rotationRepository: rotationRepo, planRepository: planRepo, exerciseCatalog: MockPlanExerciseCatalog(), lastPerformedWeightLookup: MockLastPerformedWeightLookup())
 
         for _ in 0..<3 { _ = try await start(id: id, date: today) }  // 開始三次＝跑完一輪
 

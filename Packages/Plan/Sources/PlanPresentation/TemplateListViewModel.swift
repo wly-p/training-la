@@ -45,12 +45,12 @@ public final class TemplateListViewModel {
         }
     }
 
-    public func create(name: String, drafts: [ExerciseTargetDraft]) async {
-        await run { try await self.createTemplate(name: name, drafts: drafts) }
+    public func create(name: String, sets: [PlanSet]) async {
+        await run { try await self.createTemplate(name: name, sets: sets) }
     }
 
-    public func update(id: UUID, name: String, drafts: [ExerciseTargetDraft]) async {
-        await run { try await self.updateTemplate(id: id, name: name, drafts: drafts) }
+    public func update(id: UUID, name: String, sets: [PlanSet]) async {
+        await run { try await self.updateTemplate(id: id, name: name, sets: sets) }
     }
 
     public func delete(id: UUID) async {

@@ -54,13 +54,15 @@ public struct PlanWorkout: Identifiable, Equatable, Sendable {
     public var blocks: [PlanBlock] { sets.planBlocks }
 }
 
-/// 一組目標（plan_set）。
+/// 一組目標（plan_set）。`targetWeight` 是重量表達式（見 `WeightExpression`）：
+/// 範本/循環/長期的 spec 可以是 `.absolute` 或 `.relativeToLast`；一旦實例化成
+/// `PlanWorkout`（當日排課），投影用例保證一律收斂成 `.absolute`（或 nil）。
 public struct PlanSet: Identifiable, Equatable, Sendable {
     public var id: UUID
     public var exerciseId: UUID
     public var exerciseIndex: Int
     public var setIndex: Int
-    public var targetWeight: Weight?
+    public var targetWeight: WeightExpression?
     public var targetReps: Int?
     public var restSec: Int?
 
@@ -69,7 +71,7 @@ public struct PlanSet: Identifiable, Equatable, Sendable {
         exerciseId: UUID,
         exerciseIndex: Int,
         setIndex: Int,
-        targetWeight: Weight?,
+        targetWeight: WeightExpression?,
         targetReps: Int?,
         restSec: Int? = nil
     ) {
@@ -108,6 +110,8 @@ extension Array where Element == PlanSet {
 extension PlanSet {
     /// 從「動作 → 每個動作幾組、目標」的編輯輸入，指派一致的 0-based index 建立 sets。
     /// 每個 draft 是一個動作區塊，sets 數量＝該動作要做的組數，每組同目標。PlanWorkout 與範本共用。
+    /// 這個簡易輸入（`ExerciseTargetDraft`）只給絕對值——需要「相對上次」的逐組編輯走新版範本編輯器，
+    /// 直接建構 `[PlanSet]`（見 TemplateFormView）。
     public static func make(from drafts: [ExerciseTargetDraft], makeID: () -> UUID = { UUID() }) -> [PlanSet] {
         var result: [PlanSet] = []
         for (exerciseIndex, draft) in drafts.enumerated() {
@@ -117,7 +121,7 @@ extension PlanSet {
                     exerciseId: draft.exerciseId,
                     exerciseIndex: exerciseIndex,
                     setIndex: setIndex,
-                    targetWeight: draft.targetWeight,
+                    targetWeight: draft.targetWeight.map { .absolute($0) },
                     targetReps: draft.targetReps,
                     restSec: draft.restSec
                 ))

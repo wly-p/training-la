@@ -167,9 +167,11 @@ public struct CreateTemplate: Sendable {
         self.now = now
     }
 
+    /// `sets` 逐組各自的重量表達式（絕對值／相對上次）由呼叫端（新版範本編輯器）決定，
+    /// 這裡不再經過 `ExerciseTargetDraft`（那是「整個動作一個目標」的簡化輸入，逐組編輯用不上）。
     @discardableResult
-    public func callAsFunction(name: String, drafts: [ExerciseTargetDraft]) async throws -> WorkoutTemplate {
-        guard !drafts.isEmpty else { throw PlanWorkoutValidationError.empty }
+    public func callAsFunction(name: String, sets: [PlanSet]) async throws -> WorkoutTemplate {
+        guard !sets.isEmpty else { throw PlanWorkoutValidationError.empty }
         let validName = try validatedTemplateName(name)
         let orderIndex = (try await repository.all().map(\.orderIndex).max() ?? -1) + 1
         let timestamp = now()
@@ -178,7 +180,7 @@ public struct CreateTemplate: Sendable {
             name: validName,
             source: .user,
             orderIndex: orderIndex,
-            sets: PlanSet.make(from: drafts, makeID: makeID),
+            sets: sets,
             createdAt: timestamp,
             updatedAt: timestamp
         )
@@ -204,14 +206,14 @@ public struct UpdateTemplate: Sendable {
     }
 
     @discardableResult
-    public func callAsFunction(id: UUID, name: String, drafts: [ExerciseTargetDraft]) async throws -> WorkoutTemplate {
-        guard !drafts.isEmpty else { throw PlanWorkoutValidationError.empty }
+    public func callAsFunction(id: UUID, name: String, sets: [PlanSet]) async throws -> WorkoutTemplate {
+        guard !sets.isEmpty else { throw PlanWorkoutValidationError.empty }
         let validName = try validatedTemplateName(name)
         guard var existing = try await repository.get(id: id) else {
             throw WorkoutTemplateRepositoryError.notFound(id: id)
         }
         existing.name = validName
-        existing.sets = PlanSet.make(from: drafts, makeID: makeID)
+        existing.sets = sets
         existing.updatedAt = now()
         try await repository.save(existing)
         return existing
@@ -225,18 +227,25 @@ public struct DeleteTemplate: Sendable {
 }
 
 /// 依範本實例化成當日排課：copy sets 快照（新 set id），status = notStarted，記下 templateId。
+/// 範本的重量表達式在這裡收斂成確定公斤（見 `resolvedPlanSets`）。
 public struct InstantiateTemplate: Sendable {
     private let templateRepository: any WorkoutTemplateRepository
     private let planRepository: any PlanWorkoutRepository
+    private let exerciseCatalog: any PlanExerciseCatalog
+    private let lastPerformedWeightLookup: any LastPerformedWeightLookup
     private let makeID: @Sendable () -> UUID
 
     public init(
         templateRepository: any WorkoutTemplateRepository,
         planRepository: any PlanWorkoutRepository,
+        exerciseCatalog: any PlanExerciseCatalog,
+        lastPerformedWeightLookup: any LastPerformedWeightLookup,
         makeID: @escaping @Sendable () -> UUID = { UUID() }
     ) {
         self.templateRepository = templateRepository
         self.planRepository = planRepository
+        self.exerciseCatalog = exerciseCatalog
+        self.lastPerformedWeightLookup = lastPerformedWeightLookup
         self.makeID = makeID
     }
 
@@ -246,17 +255,10 @@ public struct InstantiateTemplate: Sendable {
             throw WorkoutTemplateRepositoryError.notFound(id: templateId)
         }
         let orderIndex = (try await planRepository.onDate(date).map(\.orderIndex).max() ?? -1) + 1
-        let sets = template.sets.map { set in
-            PlanSet(
-                id: makeID(),
-                exerciseId: set.exerciseId,
-                exerciseIndex: set.exerciseIndex,
-                setIndex: set.setIndex,
-                targetWeight: set.targetWeight,
-                targetReps: set.targetReps,
-                restSec: set.restSec
-            )
-        }
+        let catalog = try await exerciseCatalog.exercises()
+        let sets = try await resolvedPlanSets(
+            from: template.sets, catalog: catalog, lookup: lastPerformedWeightLookup, makeID: makeID
+        )
         let plan = PlanWorkout(
             id: makeID(),
             name: template.name,

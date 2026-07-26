@@ -34,7 +34,7 @@ actor MockAssignmentRepository: ProgramAssignmentRepository {
 private func spec(_ name: String, exercise: UUID = UUID()) -> WorkoutSpec {
     WorkoutSpec(name: name, sets: [
         PlanSet(id: UUID(), exerciseId: exercise, exerciseIndex: 0, setIndex: 0,
-                targetWeight: Weight(value: 60, unit: .kg), targetReps: 8, restSec: 60),
+                targetWeight: .absolute(Weight(value: 60, unit: .kg)), targetReps: 8, restSec: 60),
     ])
 }
 
@@ -139,7 +139,10 @@ struct ReconcileProgramAssignmentsTests {
         _ assignRepo: MockAssignmentRepository,
         _ planRepo: MockPlanWorkoutRepository
     ) -> ReconcileProgramAssignments {
-        ReconcileProgramAssignments(programRepository: programRepo, assignmentRepository: assignRepo, planRepository: planRepo)
+        ReconcileProgramAssignments(
+            programRepository: programRepo, assignmentRepository: assignRepo, planRepository: planRepo,
+            exerciseCatalog: MockPlanExerciseCatalog(), lastPerformedWeightLookup: MockLastPerformedWeightLookup()
+        )
     }
 
     @Test func materializesPastDaysAsNotStarted() async throws {

@@ -57,6 +57,8 @@ final class ProgramSlotSetModel {
     var exerciseId: UUID
     var exerciseIndex: Int
     var setIndex: Int
+    /// "absolute" ／ "relativeToLast"；nil＝沒有目標重量。見 `WeightExpressionCoding`。
+    var targetWeightKindRaw: String?
     var targetWeightValue: Double?
     var targetWeightUnitRaw: String?
     var targetReps: Int?
@@ -65,12 +67,14 @@ final class ProgramSlotSetModel {
 
     init(
         id: UUID, exerciseId: UUID, exerciseIndex: Int, setIndex: Int,
-        targetWeightValue: Double?, targetWeightUnitRaw: String?, targetReps: Int?, restSec: Int?
+        targetWeightKindRaw: String?, targetWeightValue: Double?, targetWeightUnitRaw: String?,
+        targetReps: Int?, restSec: Int?
     ) {
         self.id = id
         self.exerciseId = exerciseId
         self.exerciseIndex = exerciseIndex
         self.setIndex = setIndex
+        self.targetWeightKindRaw = targetWeightKindRaw
         self.targetWeightValue = targetWeightValue
         self.targetWeightUnitRaw = targetWeightUnitRaw
         self.targetReps = targetReps
@@ -146,13 +150,15 @@ extension ProgramModel {
 
 extension ProgramSlotSetModel {
     convenience init(from set: PlanSet) {
+        let encoded = WeightExpressionCoding.encode(set.targetWeight)
         self.init(
             id: set.id,
             exerciseId: set.exerciseId,
             exerciseIndex: set.exerciseIndex,
             setIndex: set.setIndex,
-            targetWeightValue: set.targetWeight?.value,
-            targetWeightUnitRaw: set.targetWeight?.unit.rawValue,
+            targetWeightKindRaw: encoded.kind,
+            targetWeightValue: encoded.value,
+            targetWeightUnitRaw: encoded.unit,
             targetReps: set.targetReps,
             restSec: set.restSec
         )
@@ -164,9 +170,9 @@ extension ProgramSlotSetModel {
             exerciseId: exerciseId,
             exerciseIndex: exerciseIndex,
             setIndex: setIndex,
-            targetWeight: targetWeightValue.map {
-                Weight(value: $0, unit: WeightUnit(rawValue: targetWeightUnitRaw ?? "kg") ?? .kg)
-            },
+            targetWeight: WeightExpressionCoding.decode(
+                kind: targetWeightKindRaw, value: targetWeightValue, unitRaw: targetWeightUnitRaw
+            ),
             targetReps: targetReps,
             restSec: restSec
         )

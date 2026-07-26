@@ -20,7 +20,7 @@ struct SwiftDataPlanWorkoutRepositoryTests {
             id: UUID(), name: "推日", date: date, status: .notStarted, orderIndex: order,
             sets: (0..<sets).map {
                 PlanSet(id: UUID(), exerciseId: UUID(), exerciseIndex: 0, setIndex: $0,
-                        targetWeight: Weight(value: 100, unit: .kg), targetReps: 5)
+                        targetWeight: .absolute(Weight(value: 100, unit: .kg)), targetReps: 5)
             }
         )
     }

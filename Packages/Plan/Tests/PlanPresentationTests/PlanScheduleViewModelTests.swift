@@ -29,6 +29,10 @@ private struct MockCatalog: PlanExerciseCatalog {
     func exercises() async throws -> [PlanCatalogExercise] { items }
 }
 
+private struct MockLookup: LastPerformedWeightLookup {
+    func lastPerformedWeight(exerciseId: UUID) async throws -> Weight? { nil }
+}
+
 private actor MockTemplateRepo: WorkoutTemplateRepository {
     var storage: [UUID: WorkoutTemplate] = [:]
     func seed(_ items: [WorkoutTemplate]) { for i in items { storage[i.id] = i } }
@@ -75,14 +79,22 @@ private func makeViewModel(
         updatePlanWorkout: UpdatePlanWorkout(repository: repo),
         deletePlanWorkout: DeletePlanWorkout(repository: repo),
         listTemplates: ListTemplates(repository: templateRepo),
-        instantiateTemplate: InstantiateTemplate(templateRepository: templateRepo, planRepository: repo),
+        instantiateTemplate: InstantiateTemplate(
+            templateRepository: templateRepo, planRepository: repo,
+            exerciseCatalog: MockCatalog(items: catalog), lastPerformedWeightLookup: MockLookup()
+        ),
         listPrograms: ListPrograms(repository: programRepo),
         listAssignments: ListProgramAssignments(repository: assignmentRepo),
         applyProgram: ApplyProgram(repository: assignmentRepo),
         deleteAssignment: DeleteProgramAssignment(repository: assignmentRepo),
-        reconcile: ReconcileProgramAssignments(programRepository: programRepo, assignmentRepository: assignmentRepo, planRepository: repo),
+        reconcile: ReconcileProgramAssignments(
+            programRepository: programRepo, assignmentRepository: assignmentRepo, planRepository: repo,
+            exerciseCatalog: MockCatalog(items: catalog), lastPerformedWeightLookup: MockLookup()
+        ),
         projectSchedule: ProjectSchedule(programRepository: programRepo, assignmentRepository: assignmentRepo, planRepository: repo),
-        materializeProjection: MaterializeProjectedWorkout(planRepository: repo),
+        materializeProjection: MaterializeProjectedWorkout(
+            planRepository: repo, exerciseCatalog: MockCatalog(items: catalog), lastPerformedWeightLookup: MockLookup()
+        ),
         exerciseCatalog: MockCatalog(items: catalog),
         today: { day1 }
     )
@@ -98,7 +110,7 @@ struct PlanScheduleViewModelTests {
         let repo = MockScheduleRepo()
         let exerciseId = UUID()
         await repo.seed([PlanWorkout(id: UUID(), name: "推日", date: day1, orderIndex: 0)])
-        let vm = makeViewModel(repo: repo, catalog: [PlanCatalogExercise(id: exerciseId, name: "臥推", muscleGroup: .chest)])
+        let vm = makeViewModel(repo: repo, catalog: [PlanCatalogExercise(id: exerciseId, name: "臥推", muscleGroup: .chest, equipment: .barbell)])
 
         await vm.load()
 
@@ -203,7 +215,7 @@ struct PlanScheduleViewModelTests {
         await assignRepo.seed([ProgramAssignment(id: UUID(), programId: pid, startDate: day1, mode: .repeating)])
         let vm = makeViewModel(
             repo: repo, programRepo: programRepo, assignmentRepo: assignRepo,
-            catalog: [PlanCatalogExercise(id: exId, name: "臥推", muscleGroup: .chest)]
+            catalog: [PlanCatalogExercise(id: exId, name: "臥推", muscleGroup: .chest, equipment: .barbell)]
         )
         await vm.load()
 

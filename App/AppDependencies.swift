@@ -112,19 +112,27 @@ struct AppDependencies {
             listExercises: ListExercises(repository: exerciseRepository),
             revertPlanWorkout: RevertPlanWorkoutDone(repository: planRepository)
         )
+        let planCatalog = PlanCatalogAdapter(listExercises: ListExercises(repository: exerciseRepository))
+        // 重量表達式「相對上次」的投影收斂查這個（Training 的實際紀錄）。
+        let lastPerformedWeightLookup = LastPerformedWeightLookupAdapter(workoutRepository: workoutRepository)
         // Training ↔ Plan 的兩條 port（今天排課、標記完成）
         let plannedProvider = PlanProviderAdapter(
             todaysWorkout: TodaysWorkout(repository: planRepository),
             getPlanWorkout: { try await planRepository.get(id: $0) },
             listTemplates: ListTemplates(repository: templateRepository),
-            instantiateTemplate: InstantiateTemplate(templateRepository: templateRepository, planRepository: planRepository),
+            instantiateTemplate: InstantiateTemplate(
+                templateRepository: templateRepository, planRepository: planRepository,
+                exerciseCatalog: planCatalog, lastPerformedWeightLookup: lastPerformedWeightLookup
+            ),
             listRotations: ListRotations(repository: rotationRepository),
-            startRotationUseCase: StartRotation(rotationRepository: rotationRepository, planRepository: planRepository),
+            startRotationUseCase: StartRotation(
+                rotationRepository: rotationRepository, planRepository: planRepository,
+                exerciseCatalog: planCatalog, lastPerformedWeightLookup: lastPerformedWeightLookup
+            ),
             today: { DayDate(Date()) },
             listExercises: ListExercises(repository: exerciseRepository)
         )
         let planProgress = PlanProgressAdapter(markDone: MarkPlanWorkoutDone(repository: planRepository))
-        let planCatalog = PlanCatalogAdapter(listExercises: ListExercises(repository: exerciseRepository))
 
         return AppDependencies(
             makeExerciseListViewModel: {
@@ -169,7 +177,10 @@ struct AppDependencies {
                     updatePlanWorkout: UpdatePlanWorkout(repository: planRepository),
                     deletePlanWorkout: DeletePlanWorkout(repository: planRepository),
                     listTemplates: ListTemplates(repository: templateRepository),
-                    instantiateTemplate: InstantiateTemplate(templateRepository: templateRepository, planRepository: planRepository),
+                    instantiateTemplate: InstantiateTemplate(
+                        templateRepository: templateRepository, planRepository: planRepository,
+                        exerciseCatalog: planCatalog, lastPerformedWeightLookup: lastPerformedWeightLookup
+                    ),
                     listPrograms: ListPrograms(repository: programRepository),
                     listAssignments: ListProgramAssignments(repository: programAssignmentRepository),
                     applyProgram: ApplyProgram(repository: programAssignmentRepository),
@@ -177,14 +188,20 @@ struct AppDependencies {
                     reconcile: ReconcileProgramAssignments(
                         programRepository: programRepository,
                         assignmentRepository: programAssignmentRepository,
-                        planRepository: planRepository
+                        planRepository: planRepository,
+                        exerciseCatalog: planCatalog,
+                        lastPerformedWeightLookup: lastPerformedWeightLookup
                     ),
                     projectSchedule: ProjectSchedule(
                         programRepository: programRepository,
                         assignmentRepository: programAssignmentRepository,
                         planRepository: planRepository
                     ),
-                    materializeProjection: MaterializeProjectedWorkout(planRepository: planRepository),
+                    materializeProjection: MaterializeProjectedWorkout(
+                        planRepository: planRepository,
+                        exerciseCatalog: planCatalog,
+                        lastPerformedWeightLookup: lastPerformedWeightLookup
+                    ),
                     exerciseCatalog: planCatalog
                 )
             },

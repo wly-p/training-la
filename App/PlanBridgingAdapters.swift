@@ -61,7 +61,8 @@ struct PlanProviderAdapter: PlannedWorkoutProvider {
                 exerciseName: names[set.exerciseId] ?? "動作",
                 exerciseIndex: set.exerciseIndex,
                 setIndex: set.setIndex,
-                targetWeight: set.targetWeight,
+                // 材料化後的 PlanWorkout.sets 一律 .absolute（投影用例保證），這裡解成確定公斤。
+                targetWeight: set.targetWeight?.resolvedWeight,
                 targetReps: set.targetReps,
                 restSec: set.restSec
             )
@@ -79,13 +80,24 @@ struct PlanProgressAdapter: PlanProgressRecorder {
     }
 }
 
+/// Plan 的「上次實際練的重量」port ← Training 的 WorkoutRepository.lastPerformance。
+/// 讓「相對上次」表達式在投影收斂時查得到真實訓練紀錄（不是 Plan 自己的目標值）。
+struct LastPerformedWeightLookupAdapter: LastPerformedWeightLookup {
+    let workoutRepository: any WorkoutRepository
+
+    func lastPerformedWeight(exerciseId: UUID) async throws -> Weight? {
+        let sets = try await workoutRepository.lastPerformance(exerciseId: exerciseId, excludingWorkout: nil)
+        return sets.map(\.weight).max { $0.value < $1.value }
+    }
+}
+
 /// Plan 的動作庫 port ← Spec 的 ListExercises。
 struct PlanCatalogAdapter: PlanExerciseCatalog {
     let listExercises: ListExercises
 
     func exercises() async throws -> [PlanCatalogExercise] {
         try await listExercises(muscleGroup: nil).map {
-            PlanCatalogExercise(id: $0.id, name: $0.name, muscleGroup: $0.muscleGroup)
+            PlanCatalogExercise(id: $0.id, name: $0.name, muscleGroup: $0.muscleGroup, equipment: $0.equipment)
         }
     }
 }

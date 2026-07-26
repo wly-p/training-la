@@ -169,14 +169,15 @@ private struct PlanExercisePickerView: View {
     }
 }
 
-/// 把 PlanWorkout / WorkoutTemplate 的 blocks 轉成表單用的 drafts。
+/// 把 PlanWorkout / WorkoutSpec 的 blocks 轉成表單用的 drafts（簡易編輯，只認絕對值——
+/// `.relativeToLast` 會被當成空白待填，這條路徑本來就不會產生它）。
 func draftsFromBlocks(_ blocks: [PlanBlock]) -> [ExerciseTargetDraft] {
     blocks.map { block in
         let first = block.sets[0]
         return ExerciseTargetDraft(
             exerciseId: block.exerciseId,
             setCount: block.sets.count,
-            targetWeight: first.targetWeight,
+            targetWeight: first.targetWeight?.resolvedWeight,
             targetReps: first.targetReps,
             restSec: first.restSec
         )
