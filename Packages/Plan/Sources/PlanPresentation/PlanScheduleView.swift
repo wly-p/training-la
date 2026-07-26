@@ -1,12 +1,17 @@
+import DesignSystem
 import PlanDomain
 import SharedKernel
 import SwiftUI
 
+/// 課表分頁（設計稿 4d）：原生月曆佔了 40% 高度只為顯示幾個標記，換成 `WeekDateStrip`
+/// （左右滑動換週）。省下的空間給當天課表內容；整月檢視降級成清單底部的「月檢視」入口
+/// （顯示本月已完成次數），不是預設呈現。
 public struct PlanScheduleView: View {
     @Bindable private var viewModel: PlanScheduleViewModel
     @State private var editing: PlanFormTarget?
     @State private var pickingTemplate = false
     @State private var applyingProgram = false
+    @State private var showingMonthView = false
     @Environment(\.locale) private var locale
 
     public init(viewModel: PlanScheduleViewModel) {
@@ -15,50 +20,68 @@ public struct PlanScheduleView: View {
 
     public var body: some View {
         NavigationStack {
-            GeometryReader { geo in
-                let wide = geo.size.width > 700
-                let layout = wide ? AnyLayout(HStackLayout(spacing: 0)) : AnyLayout(VStackLayout(spacing: 0))
-                layout {
-                    MonthCalendarView(
-                        selectedDate: $viewModel.selectedDate,
-                        markedDates: viewModel.markedDates,
-                        mark: viewModel.mark(on:)
-                    )
-                    // 高度交給 sizeThatFits 依當月週數決定（narrow）；wide 時月曆佔左側固定寬、撐滿高。
-                    .frame(maxWidth: wide ? 360 : .infinity, maxHeight: wide ? .infinity : nil)
-                    Divider()
-                    dayDetail
-                        .frame(maxWidth: .infinity, maxHeight: .infinity)
-                }
-            }
-            .navigationTitle(localText("plan.title"))
-            #if os(iOS)
-            .navigationBarTitleDisplayMode(.inline)
-            #endif
-            .toolbar {
-                ToolbarItem(placement: .primaryAction) {
-                    Menu {
-                        Button {
-                            editing = .create(viewModel.selectedDate)
+            ScrollView {
+                VStack(alignment: .leading, spacing: 0) {
+                    PageHeader(localText("plan.title"), kicker: monthKicker) {
+                        Menu {
+                            Button {
+                                editing = .create(viewModel.selectedDate)
+                            } label: {
+                                Label { localText("plan.addBlank") } icon: { Image(systemName: "square.and.pencil") }
+                            }
+                            Button {
+                                pickingTemplate = true
+                            } label: {
+                                Label { localText("plan.addFromTemplate") } icon: { Image(systemName: "square.stack.3d.up") }
+                            }
+                            Button {
+                                applyingProgram = true
+                            } label: {
+                                Label { localText("plan.applyProgram") } icon: { Image(systemName: "calendar.badge.clock") }
+                            }
                         } label: {
-                            Label { localText("plan.addBlank") } icon: { Image(systemName: "square.and.pencil") }
+                            Image(systemName: "plus")
+                                .font(.system(size: 18, weight: .semibold))
+                                .foregroundStyle(TLColor.bg)
+                                .frame(width: TLSize.iconButton, height: TLSize.iconButton)
+                                .background(TLColor.accent)
+                                .clipShape(Capsule())
                         }
-                        Button {
-                            pickingTemplate = true
-                        } label: {
-                            Label { localText("plan.addFromTemplate") } icon: { Image(systemName: "square.stack.3d.up") }
-                        }
-                        Button {
-                            applyingProgram = true
-                        } label: {
-                            Label { localText("plan.applyProgram") } icon: { Image(systemName: "calendar.badge.clock") }
-                        }
-                    } label: {
-                        Label { localText("plan.new") } icon: { Image(systemName: "plus") }
+                        .accessibilityLabel(localText("plan.new"))
                     }
+
+                    WeekDateStrip(
+                        selectedDate: selectedDateBinding,
+                        mark: { weekMark(for: DayDate($0)) }
+                    )
+                    .padding(.top, TLSpace.gapM)
+                    localText("plan.weekStrip.hint")
+                        .font(TLFont.zh(TLFont.rowSub, .regular))
+                        .foregroundStyle(TLColor.neutral500)
+                        .padding(.horizontal, TLSpace.page)
+                        .padding(.top, 6)
+
+                    VStack(alignment: .leading, spacing: TLSpace.section) {
+                        daySection
+                        monthViewEntryRow
+                    }
+                    .padding(.horizontal, TLSpace.page)
+                    .padding(.top, TLSpace.section)
                 }
+                .padding(.bottom, 40)
             }
+            .background(TLColor.bg.ignoresSafeArea())
+            #if os(iOS)
+            .toolbar(.hidden, for: .navigationBar)
+            #endif
             .task { await viewModel.load() }
+            .sheet(isPresented: $showingMonthView) {
+                MonthViewSheet(
+                    selectedDate: selectedDateBinding,
+                    markedDates: Set(viewModel.markedDates.map(\.asDate)),
+                    mark: { weekMark(for: DayDate($0)) }
+                )
+            }
             .sheet(item: $editing) { target in
                 PlanWorkoutFormView(
                     target: target,
@@ -105,81 +128,159 @@ public struct PlanScheduleView: View {
         }
     }
 
-    private var dayDetail: some View {
-        List {
-            let items = viewModel.workouts(on: viewModel.selectedDate)
-            let projected = viewModel.projections(on: viewModel.selectedDate)
-            Section {
-                if items.isEmpty && projected.isEmpty {
-                    localText("plan.day.empty")
-                        .foregroundStyle(.secondary)
-                } else {
+    // MARK: - Week strip 橋接
+
+    /// `WeekDateStrip` 只吃 `Date`；`PlanScheduleViewModel.selectedDate` 是 `DayDate`
+    /// （見 SharedKernel：純日曆日，避免時區把日期偏移一天），這裡互轉。
+    private var selectedDateBinding: Binding<Date> {
+        Binding(
+            get: { viewModel.selectedDate.asDate },
+            set: { viewModel.selectedDate = DayDate($0) }
+        )
+    }
+
+    private func weekMark(for date: DayDate) -> WeekDateStrip.DayMark {
+        switch viewModel.mark(on: date) {
+        case .done: .completed
+        case .scheduled, .projected: .scheduled
+        case nil: .none
+        }
+    }
+
+    private var monthKicker: Text {
+        Text(verbatim: String(format: "%d 月", viewModel.selectedDate.month))
+    }
+
+    // MARK: - 當天課表
+
+    private var daySection: some View {
+        let items = viewModel.workouts(on: viewModel.selectedDate)
+        let projected = viewModel.projections(on: viewModel.selectedDate)
+        return VStack(alignment: .leading, spacing: 0) {
+            SectionHeader(Text(PlanFormatting.dayLabel(viewModel.selectedDate, locale: locale)))
+            if items.isEmpty && projected.isEmpty {
+                emptyDay
+            } else {
+                TLGroup {
                     ForEach(items) { row($0) }
                     ForEach(projected) { projectedRow($0) }
                 }
-            } header: {
-                Text(PlanFormatting.dayLabel(viewModel.selectedDate, locale: locale))
+            }
+        }
+    }
+
+    private var emptyDay: some View {
+        localText("plan.day.empty")
+            .font(TLFont.zh(TLFont.rowSub, .regular))
+            .foregroundStyle(TLColor.neutral500)
+            .padding(.vertical, 18)
+    }
+
+    private func row(_ plan: PlanWorkout) -> some View {
+        ListRow(
+            title: plan.name.map { Text(verbatim: $0) } ?? localText("plan.untitled"),
+            subtitle: Text(PlanFormatting.summary(plan, name: viewModel.name(for:), language: AppLanguage(locale: locale))),
+            showChevron: true,
+            onTap: { editing = .edit(plan) },
+            leading: {
+                CircleBadge(fill: plan.status == .done ? TLColor.accent : TLColor.neutral300) {
+                    if plan.status == .done {
+                        Image(systemName: "checkmark")
+                            .font(.system(size: 13, weight: .bold))
+                            .foregroundStyle(TLColor.bg)
+                    } else {
+                        Text(verbatim: "\(plan.orderIndex + 1)")
+                            .font(TLFont.display(15))
+                            .foregroundStyle(TLColor.neutral700)
+                    }
+                }
+            }
+        )
+        .contextMenu {
+            Button(role: .destructive) {
+                Task { await viewModel.delete(id: plan.id) }
+            } label: {
+                Label { localText("plan.delete") } icon: { Image(systemName: "trash") }
             }
         }
     }
 
     /// 長期課表投影建議（尚未落地）：顯示「排定：X」＋「加入這天」把它變成真實排課。
+    /// 「加入這天」是獨立按鈕（不是整列 tap）——這一列本身還不是真的排課，不該點哪裡都觸發落地。
     private func projectedRow(_ projected: ProjectedWorkout) -> some View {
-        VStack(alignment: .leading, spacing: 6) {
-            HStack {
-                Label { localText("plan.projected") } icon: { Image(systemName: "calendar.badge.clock") }
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
-                Spacer()
-                // 課表名是使用者資料（verbatim）
-                Text(verbatim: projected.programName)
-                    .font(.caption2)
-                    .foregroundStyle(.tertiary)
+        ListRow(
+            title: Text(verbatim: projected.spec.name),
+            subtitle: Text(PlanFormatting.summary(projected.spec, name: viewModel.name(for:), language: AppLanguage(locale: locale))),
+            leading: {
+                CircleBadge(icon: "calendar.badge.clock", fill: TLColor.neutral200, tint: TLColor.neutral600)
+            },
+            trailing: {
+                Button {
+                    Task { await viewModel.materialize(projected) }
+                } label: {
+                    Text("plan.addThisDay", bundle: .module)
+                        .font(TLFont.zh(TLFont.rowSub, .semibold))
+                        .foregroundStyle(TLColor.accent700)
+                }
+                .buttonStyle(.plain)
             }
-            // workout 名是使用者資料（verbatim）
-            Text(verbatim: projected.spec.name).font(.headline)
-            Text(PlanFormatting.summary(projected.spec, name: viewModel.name(for:), language: AppLanguage(locale: locale)))
-                .font(.footnote)
-                .foregroundStyle(.secondary)
-            Button {
-                Task { await viewModel.materialize(projected) }
-            } label: {
-                Label { localText("plan.addThisDay") } icon: { Image(systemName: "plus.circle") }
-                    .font(.subheadline)
-            }
-            .buttonStyle(.borderless)
-            .padding(.top, 2)
-        }
-        .padding(.vertical, 2)
+        )
     }
 
-    private func row(_ plan: PlanWorkout) -> some View {
-        Button {
-            editing = .edit(plan)
-        } label: {
-            VStack(alignment: .leading, spacing: 4) {
-                HStack {
-                    // 課表名是 DB 資料（verbatim）；沒命名時用本地化的「未命名」
-                    (plan.name.map { Text(verbatim: $0) } ?? localText("plan.untitled")).font(.headline)
-                    Spacer()
-                    if plan.status == .done {
-                        Image(systemName: "checkmark.circle.fill").foregroundStyle(.green)
+    // MARK: - 月檢視入口
+
+    private var monthViewEntryRow: some View {
+        TLGroup {
+            ListRow(
+                title: localText("plan.monthView.title"),
+                subtitle: Text("plan.monthView.subtitle \(viewModel.monthCompletedCount(for: viewModel.selectedDate))", bundle: .module),
+                showChevron: true,
+                onTap: { showingMonthView = true },
+                leading: { CircleBadge(icon: "calendar", fill: TLColor.neutral200, tint: TLColor.neutral600) }
+            )
+        }
+    }
+}
+
+/// 「月檢視」sheet：原生 `UICalendarView`，只在使用者主動要看整月分佈時才開（非預設呈現）。
+private struct MonthViewSheet: View {
+    @Binding var selectedDate: Date
+    let markedDates: Set<Date>
+    let mark: (Date) -> WeekDateStrip.DayMark
+
+    @Environment(\.dismiss) private var dismiss
+
+    private var selectedDayDate: Binding<DayDate> {
+        Binding(
+            get: { DayDate(selectedDate) },
+            set: { selectedDate = $0.asDate; dismiss() }
+        )
+    }
+
+    var body: some View {
+        NavigationStack {
+            MonthCalendarView(
+                selectedDate: selectedDayDate,
+                markedDates: Set(markedDates.map { DayDate($0) }),
+                mark: { day in
+                    switch mark(day.asDate) {
+                    case .completed: .done
+                    case .scheduled: .scheduled
+                    case .none: nil
                     }
                 }
-                Text(PlanFormatting.summary(plan, name: viewModel.name(for:), language: AppLanguage(locale: locale)))
-                    .font(.footnote)
-                    .foregroundStyle(.secondary)
-            }
-            .contentShape(Rectangle())
-        }
-        .buttonStyle(.plain)
-        .swipeActions(edge: .trailing) {
-            Button(role: .destructive) {
-                Task { await viewModel.delete(id: plan.id) }
-            } label: {
-                localText("plan.delete")
+            )
+            .navigationTitle(localText("plan.monthView.title"))
+            #if os(iOS)
+            .navigationBarTitleDisplayMode(.inline)
+            #endif
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button { dismiss() } label: { localText("plan.cancel") }
+                }
             }
         }
+        .presentationDetents([.medium])
     }
 }
 

@@ -148,6 +148,22 @@ struct PlanScheduleViewModelTests {
         #expect(vm.mark(on: DayDate(year: 2026, month: 7, day: 12)) == nil)
     }
 
+    @Test func monthCompletedCountOnlyCountsDoneWithinSameYearMonth() async {
+        let repo = MockScheduleRepo()
+        await repo.seed([
+            PlanWorkout(id: UUID(), name: "d1", date: day1, status: .done, orderIndex: 0),
+            PlanWorkout(id: UUID(), name: "d2", date: day2, status: .done, orderIndex: 0),
+            PlanWorkout(id: UUID(), name: "notDone", date: day1, status: .notStarted, orderIndex: 1),
+            PlanWorkout(id: UUID(), name: "otherMonth", date: DayDate(year: 2026, month: 8, day: 1), status: .done, orderIndex: 0),
+        ])
+        let vm = makeViewModel(repo: repo)
+        await vm.load()
+
+        #expect(vm.monthCompletedCount(for: day1) == 2)
+        #expect(vm.monthCompletedCount(for: DayDate(year: 2026, month: 8, day: 1)) == 1)
+        #expect(vm.monthCompletedCount(for: DayDate(year: 2025, month: 7, day: 10)) == 0)
+    }
+
     @Test func addFromTemplateCreatesDatedPlanFromSnapshot() async {
         let repo = MockScheduleRepo()
         let trepo = MockTemplateRepo()

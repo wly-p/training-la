@@ -100,6 +100,11 @@ public final class PlanScheduleViewModel {
         catalog.first { $0.id == exerciseId }?.name ?? "動作"
     }
 
+    /// 某月已完成的排課次數（「月檢視」入口列的摘要用）。
+    public func monthCompletedCount(for date: DayDate) -> Int {
+        planWorkouts.filter { $0.status == .done && $0.date.year == date.year && $0.date.month == date.month }.count
+    }
+
     /// 某套用對應的課表名稱（管理清單顯示用）。
     public func programName(for assignment: ProgramAssignment) -> String {
         programs.first { $0.id == assignment.programId }?.name ?? ""

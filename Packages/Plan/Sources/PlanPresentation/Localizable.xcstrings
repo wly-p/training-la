@@ -484,6 +484,38 @@
         }
       }
     },
+    "plan.monthView.subtitle %lld": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld completed this month"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "本月已完成 %lld 次"
+          }
+        }
+      }
+    },
+    "plan.monthView.title": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Month view"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "月檢視"
+          }
+        }
+      }
+    },
     "plan.name.placeholder": {
       "localizations": {
         "en": {
@@ -752,6 +784,22 @@
           "stringUnit": {
             "state": "translated",
             "value": "檢視排課"
+          }
+        }
+      }
+    },
+    "plan.weekStrip.hint": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Swipe to change week · tap a date to view it"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "左右滑動換週 · 點日期看當天"
           }
         }
       }
