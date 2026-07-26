@@ -1,55 +1,67 @@
+import DesignSystem
 import PlanDomain
 import SharedKernel
 import SwiftUI
 
-/// 單一長期課表的內容編輯器：改名、調週期天數、逐天指定 workout 或休息。
+/// 單一長期課表的內容編輯器（設計稿 9c）：套 `EditScaffold`。
+/// 本地草稿（名稱／週期天數／每天安排）只在按「儲存」時一次寫回；「總長度」chips 純畫面用，
+/// 只決定下方預覽格要畫幾輪，不寫進 Domain（`Program.cycleLength` 才是真正的「週期」）。
 /// 不自帶 NavigationStack：由動作庫 tab 共用的 NavigationStack push 進來。
 public struct ProgramEditorView: View {
     @Bindable private var viewModel: ProgramEditorViewModel
-    @State private var editingDay: EditingDay?
-    @State private var draftName: String = ""
+    @Environment(\.dismiss) private var dismiss
     @Environment(\.locale) private var locale
+
+    @State private var draftName = ""
+    @State private var draftCycleLength = 7
+    @State private var draftDays: [Int: WorkoutSpec] = [:]
+
+    @State private var previewTotalLength = 28
+    @State private var isCustomTotalLength = false
+    @State private var showCycleLengthEditor = false
+    @State private var editingDay: EditingDay?
+    @State private var showDeleteConfirm = false
 
     public init(viewModel: ProgramEditorViewModel) {
         self.viewModel = viewModel
     }
 
+    private var canSave: Bool {
+        !draftName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+            && (draftName != viewModel.name || draftCycleLength != viewModel.cycleLength || draftDays != viewModel.days)
+    }
+
     public var body: some View {
-        List {
-            Section {
-                TextField("", text: $draftName, prompt: localText("program.name.placeholder"))
-                    .onSubmit { Task { await viewModel.rename(draftName) } }
-                Stepper(value: cycleLengthBinding, in: 1...60) {
-                    HStack {
-                        localText("program.cycleLength")
-                        Spacer()
-                        Text(verbatim: "\(viewModel.cycleLength)").foregroundStyle(.secondary)
+        EditScaffold(
+            title: $draftName,
+            titlePrompt: localText("program.name.placeholder"),
+            canSave: canSave,
+            cancelLabel: localText("plan.cancel"),
+            saveLabel: localText("plan.save"),
+            onCancel: { dismiss() },
+            onSave: {
+                Task {
+                    if await viewModel.save(name: draftName, cycleLength: draftCycleLength, days: draftDays) {
+                        dismiss()
                     }
                 }
             }
-
-            Section {
-                ForEach(Array(0..<viewModel.cycleLength), id: \.self) { index in
-                    dayRow(index)
-                }
-            } header: {
-                localText("program.days.header")
-            } footer: {
-                localText("program.days.footer")
-            }
+        ) {
+            totalLengthSection
+            cycleSection
+            previewSection
+            deleteSection
         }
-        // 課表名是使用者資料（verbatim）
-        .navigationTitle(Text(verbatim: viewModel.name))
-        #if os(iOS)
-        .navigationBarTitleDisplayMode(.inline)
-        #endif
         .task {
             await viewModel.load()
             draftName = viewModel.name
+            draftCycleLength = viewModel.cycleLength
+            draftDays = viewModel.days
+            previewTotalLength = [10, 14, 28].first { $0 >= draftCycleLength } ?? draftCycleLength
         }
         .sheet(item: $editingDay) { editing in
             let index = editing.index
-            let existing = viewModel.workout(day: index)
+            let existing = draftDays[index]
             WorkoutSpecFormView(
                 titleKey: "program.dayEdit",
                 name: existing?.name ?? "",
@@ -57,7 +69,7 @@ public struct ProgramEditorView: View {
                 catalog: viewModel.catalog,
                 templates: viewModel.templates
             ) { name, drafts in
-                Task { await viewModel.setDay(index, name: name, drafts: drafts) }
+                draftDays[index] = WorkoutSpec(id: existing?.id ?? UUID(), name: name, sets: PlanSet.make(from: drafts))
             }
         }
         .alert(
@@ -71,54 +83,186 @@ public struct ProgramEditorView: View {
         } message: {
             Text(viewModel.errorMessage ?? "")
         }
-    }
-
-    private var cycleLengthBinding: Binding<Int> {
-        Binding(
-            get: { viewModel.cycleLength },
-            set: { newValue in Task { await viewModel.setCycleLength(newValue) } }
+        .tlConfirmationDialog(
+            isPresented: $showDeleteConfirm,
+            title: localText("program.delete.confirm.title"),
+            message: localText("program.delete.confirm.message"),
+            confirmLabel: localText("plan.delete"),
+            cancelLabel: localText("plan.cancel"),
+            role: .destructive,
+            confirmIdentifier: "confirmDeleteProgramFromEditor",
+            onConfirm: {
+                Task {
+                    if await viewModel.delete() { dismiss() }
+                }
+            }
         )
     }
 
-    @ViewBuilder
-    private func dayRow(_ index: Int) -> some View {
-        let spec = viewModel.workout(day: index)
-        Button {
-            editingDay = EditingDay(index: index)
-        } label: {
-            HStack(alignment: .firstTextBaseline) {
-                Text(dayLabel(index)).font(.subheadline.weight(.medium))
-                    .frame(minWidth: 56, alignment: .leading)
-                if let spec {
-                    VStack(alignment: .leading, spacing: 2) {
-                        // workout 名是使用者資料（verbatim）
-                        Text(verbatim: spec.name).font(.body)
-                        Text(PlanFormatting.summary(spec, name: viewModel.name(for:), language: AppLanguage(locale: locale)))
-                            .font(.footnote)
-                            .foregroundStyle(.secondary)
-                    }
-                } else {
-                    localText("program.rest").foregroundStyle(.tertiary)
+    // MARK: - 總長度（畫面用，決定預覽格畫幾輪，不進 Domain）
+
+    private var totalLengthSection: some View {
+        EditSection(localText("program.totalLength.section")) {
+            FlowLayout(spacing: 8, lineSpacing: 8) {
+                ForEach([10, 14, 28], id: \.self) { preset in
+                    SelectableChip(
+                        totalLengthLabel(preset),
+                        isSelected: !isCustomTotalLength && previewTotalLength == preset,
+                        selectedFill: TLColor.accent,
+                        selectedText: TLColor.bg,
+                        onTap: {
+                            isCustomTotalLength = false
+                            previewTotalLength = preset
+                        }
+                    )
                 }
-                Spacer()
+                SelectableChip(
+                    customTotalLengthLabel,
+                    isSelected: isCustomTotalLength,
+                    selectedFill: TLColor.accent,
+                    selectedText: TLColor.bg,
+                    onTap: { isCustomTotalLength = true }
+                )
             }
-            .contentShape(Rectangle())
-        }
-        .buttonStyle(.plain)
-        .swipeActions(edge: .trailing) {
-            if spec != nil {
-                Button {
-                    Task { await viewModel.clearDay(index) }
-                } label: {
-                    localText("program.clearDay")
+            .frame(maxWidth: .infinity, alignment: .leading)
+            if isCustomTotalLength {
+                Stepper(value: $previewTotalLength, in: max(draftCycleLength, 1)...120) {
+                    HStack {
+                        localText("program.totalLength.custom")
+                        Spacer()
+                        Text(verbatim: "\(previewTotalLength)").foregroundStyle(TLColor.neutral600)
+                    }
                 }
-                .tint(.gray)
+                .padding(.horizontal, TLSpace.rowInset)
             }
         }
     }
 
-    private func dayLabel(_ index: Int) -> String {
-        String(localized: "program.day \(index + 1)", bundle: .module, locale: locale)
+    private func totalLengthLabel(_ n: Int) -> String {
+        String(localized: "program.totalLength.days \(n)", bundle: .module, locale: locale)
+    }
+
+    private var customTotalLengthLabel: String {
+        String(localized: "program.totalLength.custom", bundle: .module, locale: locale)
+    }
+
+    // MARK: - 週期（真正的 Domain 欄位：cycleLength／days）
+
+    private var cycleSection: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            SectionHeader(
+                localText("program.cycle.header \(draftCycleLength)"),
+                actionLabel: localText("program.cycle.changeLength"),
+                action: { showCycleLengthEditor.toggle() }
+            )
+            if showCycleLengthEditor {
+                Stepper(value: $draftCycleLength, in: 1...60) {
+                    HStack {
+                        localText("program.cycleLength")
+                        Spacer()
+                        Text(verbatim: "\(draftCycleLength)").foregroundStyle(TLColor.neutral600)
+                    }
+                }
+                .padding(.horizontal, TLSpace.rowInset)
+                .padding(.bottom, 8)
+            }
+            TLGroup {
+                ForEach(Array(0..<draftCycleLength), id: \.self) { index in
+                    dayRow(index)
+                }
+            }
+        }
+    }
+
+    private func dayRow(_ index: Int) -> some View {
+        let spec = draftDays[index]
+        return ListRow(
+            title: spec.map { Text(verbatim: $0.name) } ?? localText("program.day.rest"),
+            subtitle: spec.map { Text(PlanFormatting.summary($0, name: viewModel.name(for:), language: AppLanguage(locale: locale))) },
+            showChevron: true,
+            onTap: { editingDay = EditingDay(index: index) },
+            leading: { indexBadge(index + 1, rest: spec == nil) }
+        )
+        .contextMenu {
+            if spec != nil {
+                Button(role: .destructive) {
+                    draftDays[index] = nil
+                } label: {
+                    Label { localText("program.day.setRest") } icon: { Image(systemName: "moon.zzz") }
+                }
+            }
+        }
+    }
+
+    private func indexBadge(_ n: Int, rest: Bool) -> some View {
+        CircleBadge(fill: rest ? TLColor.neutral200 : TLColor.accent200) {
+            Text(verbatim: "\(n)")
+                .font(TLFont.display(15))
+                .foregroundStyle(rest ? TLColor.neutral500 : TLColor.accent800)
+        }
+    }
+
+    // MARK: - 預覽格（7 欄 × N 列，填色＝訓練日）
+
+    private var rounds: Int {
+        max(1, Int((Double(previewTotalLength) / Double(max(1, draftCycleLength))).rounded()))
+    }
+
+    private var practiceCountPerCycle: Int {
+        (0..<draftCycleLength).filter { draftDays[$0] != nil }.count
+    }
+
+    private var previewSection: some View {
+        EditSection(localText("program.preview.section")) {
+            VStack(alignment: .leading, spacing: TLSpace.gapM) {
+                previewGrid
+                previewSummary
+                    .font(TLFont.zh(TLFont.rowSub, .semibold))
+                    .foregroundStyle(TLColor.neutral700)
+            }
+            .padding(TLSpace.rowInset)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .background(TLColor.neutral300)
+            .clipShape(RoundedRectangle(cornerRadius: TLRadius.container, style: .continuous))
+        }
+    }
+
+    private var previewGrid: some View {
+        HStack(spacing: 4) {
+            ForEach(0..<draftCycleLength, id: \.self) { day in
+                VStack(spacing: 4) {
+                    ForEach(0..<rounds, id: \.self) { _ in
+                        RoundedRectangle(cornerRadius: 5, style: .continuous)
+                            .fill(draftDays[day] != nil ? TLColor.accent : TLColor.neutral100)
+                            .frame(width: 18, height: 18)
+                    }
+                }
+            }
+        }
+    }
+
+    private var previewSummary: Text {
+        let restCount = draftCycleLength - practiceCountPerCycle
+        return localText("program.preview.cycle \(draftCycleLength)")
+            + Text(verbatim: " · ")
+            + localText("program.preview.split \(practiceCountPerCycle) \(restCount)")
+            + Text(verbatim: " · ")
+            + localText("program.preview.repeat \(rounds)")
+            + Text(verbatim: " = ")
+            + localText("program.preview.total \(rounds * draftCycleLength) \(rounds * practiceCountPerCycle)")
+    }
+
+    // MARK: - 刪除
+
+    private var deleteSection: some View {
+        TLGroup {
+            SettingsRow(
+                localText("program.delete.thisProgram"),
+                role: .destructive,
+                onTap: { showDeleteConfirm = true }
+            )
+        }
+        .accessibilityIdentifier("deleteProgramButton")
     }
 }
 

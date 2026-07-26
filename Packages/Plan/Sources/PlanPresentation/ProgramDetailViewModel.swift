@@ -52,6 +52,11 @@ public final class ProgramDetailViewModel {
     public func load() async {
         do {
             program = try await getProgram(id: programId)
+            guard program != nil else {
+                // 課表在別處（如編輯頁）被刪除了，回到清單。
+                didDelete = true
+                return
+            }
             progress = try await getProgress(programId: programId, today: today())
             catalog = try await exerciseCatalog.exercises()
             errorMessage = nil

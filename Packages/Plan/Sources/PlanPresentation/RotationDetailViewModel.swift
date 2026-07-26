@@ -50,6 +50,11 @@ public final class RotationDetailViewModel {
     public func load() async {
         do {
             rotation = try await getRotation(id: rotationId)
+            guard rotation != nil else {
+                // 循環在別處（如編輯頁）被刪除了，回到清單。
+                didDelete = true
+                return
+            }
             catalog = try await exerciseCatalog.exercises()
             errorMessage = nil
         } catch {

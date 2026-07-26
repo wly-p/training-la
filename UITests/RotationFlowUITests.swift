@@ -45,8 +45,11 @@ final class RotationFlowUITests: XCTestCase {
         let pick = app.staticTexts["臥推"].firstMatch
         XCTAssertTrue(pick.waitForExistence(timeout: 5))
         pick.tap()
-        app.buttons["儲存"].tap()
+        // 「新增循環 workout」表單自己的儲存（跟外層編輯頁的儲存同名，用 navigationBar 鎖定這顆）。
+        app.navigationBars.buttons["儲存"].tap()
         XCTAssertTrue(app.staticTexts["推日"].waitForExistence(timeout: 5))
+        // 編輯頁是本地草稿，要按頁面自己的「儲存」才真正寫回。
+        app.buttons["儲存"].tap()
 
         // 訓練首頁：出現該組「今天輪到 推日」＋ 開始
         app.tabBars.buttons["訓練"].tap()

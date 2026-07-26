@@ -807,18 +807,34 @@
         }
       }
     },
-    "program.clearDay" : {
+    "program.cycle.changeLength" : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Set Rest"
+            "value" : "Change length"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "改休息"
+            "value" : "改長度"
+          }
+        }
+      }
+    },
+    "program.cycle.header %lld" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cycle · %lld days"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "週期 · %lld 天"
           }
         }
       }
@@ -856,6 +872,7 @@
       }
     },
     "program.day %lld" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -883,6 +900,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "休息"
+          }
+        }
+      }
+    },
+    "program.day.setRest" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Set as rest"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "設為休息"
           }
         }
       }
@@ -916,38 +949,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "第 %1$lld 天 / 共 %2$lld 天"
-          }
-        }
-      }
-    },
-    "program.days.footer" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Tap a day to set its workout; leave blank for rest"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "點一天指定 workout，留白＝休息"
-          }
-        }
-      }
-    },
-    "program.days.header" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Daily Plan"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "每天安排"
           }
         }
       }
@@ -1028,6 +1029,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "刪除這個計畫？"
+          }
+        }
+      }
+    },
+    "program.delete.thisProgram" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Delete this program"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "刪除這個計畫"
           }
         }
       }
@@ -1288,18 +1305,82 @@
         }
       }
     },
-    "program.rest" : {
+    "program.preview.cycle %lld" : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Rest"
+            "value" : "%lld-day cycle"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "休息"
+            "value" : "%lld 天週期"
+          }
+        }
+      }
+    },
+    "program.preview.repeat %lld" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Repeat %lld times"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "重複 %lld 輪"
+          }
+        }
+      }
+    },
+    "program.preview.section" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Preview"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "預覽"
+          }
+        }
+      }
+    },
+    "program.preview.split %lld %lld" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$lld on, %2$lld off"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$lld 練 %2$lld 休"
+          }
+        }
+      }
+    },
+    "program.preview.total %lld %lld" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$lld days, %2$lld sessions"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$lld 天 %2$lld 練"
           }
         }
       }
@@ -1349,6 +1430,54 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "今天"
+          }
+        }
+      }
+    },
+    "program.totalLength.custom" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Custom"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "自訂"
+          }
+        }
+      }
+    },
+    "program.totalLength.days %lld" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld days"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld 天"
+          }
+        }
+      }
+    },
+    "program.totalLength.section" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Total length"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "總長度"
           }
         }
       }
@@ -1462,6 +1591,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "刪除這個循環？"
+          }
+        }
+      }
+    },
+    "rotation.delete.thisRotation" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Delete this rotation"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "刪除這個循環"
           }
         }
       }
@@ -1851,6 +1996,54 @@
         }
       }
     },
+    "rotation.reorder.down" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Move down"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "下移"
+          }
+        }
+      }
+    },
+    "rotation.reorder.remove" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Remove"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "移除"
+          }
+        }
+      }
+    },
+    "rotation.reorder.up" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Move up"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "上移"
+          }
+        }
+      }
+    },
     "rotation.rounds %lld" : {
       "localizations" : {
         "en" : {
@@ -1918,6 +2111,7 @@
       }
     },
     "rotation.workout.empty" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -1945,6 +2139,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "名稱（例：推日）"
+          }
+        }
+      }
+    },
+    "rotation.workouts.section" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Template order"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "範本順序"
           }
         }
       }

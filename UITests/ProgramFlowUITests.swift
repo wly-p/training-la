@@ -35,7 +35,7 @@ final class ProgramFlowUITests: XCTestCase {
         let editButton = app.buttons["編輯"]
         XCTAssertTrue(editButton.waitForExistence(timeout: 5))
         editButton.tap()
-        let firstDay = app.staticTexts["第 1 天"]
+        let firstDay = app.staticTexts["休息"].firstMatch
         XCTAssertTrue(firstDay.waitForExistence(timeout: 5))
         firstDay.tap()
         let workoutName = app.textFields["名稱（例：推日）"]
@@ -45,8 +45,11 @@ final class ProgramFlowUITests: XCTestCase {
         let pick = app.staticTexts["臥推"].firstMatch
         XCTAssertTrue(pick.waitForExistence(timeout: 5))
         pick.tap()
-        app.buttons["儲存"].tap()
+        // 「編輯這天」表單自己的儲存（跟外層編輯頁的儲存同名，用 navigationBar 鎖定這顆）。
+        app.navigationBars.buttons["儲存"].tap()
         XCTAssertTrue(app.staticTexts["推日"].waitForExistence(timeout: 5))
+        // 編輯頁是本地草稿，要按頁面自己的「儲存」才真正寫回。
+        app.buttons["儲存"].tap()
 
         // 課表 tab → 套用長期課表（起始日預設今天、模式預設重複）
         app.tabBars.buttons["課表"].tap()

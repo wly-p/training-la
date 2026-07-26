@@ -52,7 +52,8 @@ final class TemplateImportUITests: XCTestCase {
         XCTAssertTrue(menuItem.waitForExistence(timeout: 5))
         menuItem.tap()
         // 帶入後名稱自動填「胸推範本」、動作已帶臥推 → 儲存
-        app.buttons["儲存"].tap()
+        // 表單自己的儲存（跟外層編輯頁的儲存同名，用 navigationBar 鎖定這顆）。
+        app.navigationBars.buttons["儲存"].tap()
 
         // 循環清單裡出現這張帶入的 workout
         XCTAssertTrue(app.staticTexts["胸推範本"].waitForExistence(timeout: 5))

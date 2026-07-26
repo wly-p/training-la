@@ -3,7 +3,8 @@ import Observation
 import PlanDomain
 import SharedKernel
 
-/// 單一循環課表的內容編輯器：載入某組循環的名稱與 workouts，增刪改順序。
+/// 單一循環課表的內容編輯器（設計稿骨架，同 9c 一套）：載入現況給 View 建本地草稿，
+/// 草稿只在使用者按「儲存」時一次性寫回（`save`）；「取消」不留痕跡。
 @MainActor
 @Observable
 public final class RotationEditorViewModel {
@@ -16,20 +17,26 @@ public final class RotationEditorViewModel {
     public private(set) var errorMessage: LocalizedStringResource?
 
     private let getRotation: GetRotation
+    private let renameRotation: RenameRotation
     private let saveRotationWorkouts: SaveRotationWorkouts
+    private let deleteRotation: DeleteRotation
     private let listTemplates: ListTemplates
     private let exerciseCatalog: any PlanExerciseCatalog
 
     public init(
         rotationId: UUID,
         getRotation: GetRotation,
+        renameRotation: RenameRotation,
         saveRotationWorkouts: SaveRotationWorkouts,
+        deleteRotation: DeleteRotation,
         listTemplates: ListTemplates,
         exerciseCatalog: any PlanExerciseCatalog
     ) {
         self.rotationId = rotationId
         self.getRotation = getRotation
+        self.renameRotation = renameRotation
         self.saveRotationWorkouts = saveRotationWorkouts
+        self.deleteRotation = deleteRotation
         self.listTemplates = listTemplates
         self.exerciseCatalog = exerciseCatalog
     }
@@ -51,40 +58,33 @@ public final class RotationEditorViewModel {
         }
     }
 
-    public func add(name: String, drafts: [ExerciseTargetDraft]) async {
-        var next = workouts
-        next.append(WorkoutSpec(name: name, sets: PlanSet.make(from: drafts)))
-        await persist(next)
-    }
-
-    public func update(id: UUID, name: String, drafts: [ExerciseTargetDraft]) async {
-        let next = workouts.map { spec in
-            spec.id == id ? WorkoutSpec(id: id, name: name, sets: PlanSet.make(from: drafts)) : spec
+    /// 把整份草稿（名稱／範本順序）一次寫回；成功才讓 View 退出編輯頁。
+    @discardableResult
+    public func save(name: String, workouts: [WorkoutSpec]) async -> Bool {
+        do {
+            try await renameRotation(id: rotationId, name: name)
+            try await saveRotationWorkouts(id: rotationId, workouts: workouts)
+            errorMessage = nil
+            return true
+        } catch PlanWorkoutValidationError.emptyName {
+            errorMessage = .plan("rotation.error.needName")
+            return false
+        } catch {
+            errorMessage = .plan("plan.error.actionFailed \(error.localizedDescription)")
+            return false
         }
-        await persist(next)
     }
 
-    public func delete(at offsets: IndexSet) async {
-        var next = workouts
-        next.remove(atOffsets: offsets)
-        await persist(next)
-    }
-
-    public func move(from source: IndexSet, to destination: Int) async {
-        var next = workouts
-        next.move(fromOffsets: source, toOffset: destination)
-        await persist(next)
+    @discardableResult
+    public func delete() async -> Bool {
+        do {
+            try await deleteRotation(id: rotationId)
+            return true
+        } catch {
+            errorMessage = .plan("plan.error.actionFailed \(error.localizedDescription)")
+            return false
+        }
     }
 
     public func dismissError() { errorMessage = nil }
-
-    private func persist(_ next: [WorkoutSpec]) async {
-        do {
-            try await saveRotationWorkouts(id: rotationId, workouts: next)
-            workouts = try await getRotation(id: rotationId)?.workouts ?? next
-            errorMessage = nil
-        } catch {
-            errorMessage = .plan("plan.error.actionFailed \(error.localizedDescription)")
-        }
-    }
 }

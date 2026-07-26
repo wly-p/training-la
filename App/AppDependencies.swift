@@ -210,7 +210,9 @@ struct AppDependencies {
                 RotationEditorViewModel(
                     rotationId: rotationId,
                     getRotation: GetRotation(repository: rotationRepository),
+                    renameRotation: RenameRotation(repository: rotationRepository),
                     saveRotationWorkouts: SaveRotationWorkouts(repository: rotationRepository),
+                    deleteRotation: DeleteRotation(repository: rotationRepository),
                     listTemplates: ListTemplates(repository: templateRepository),
                     exerciseCatalog: planCatalog
                 )
@@ -248,6 +250,10 @@ struct AppDependencies {
                     programId: programId,
                     getProgram: GetProgram(repository: programRepository),
                     updateProgram: UpdateProgram(repository: programRepository),
+                    deleteProgram: DeleteProgram(
+                        programRepository: programRepository,
+                        assignmentRepository: programAssignmentRepository
+                    ),
                     listTemplates: ListTemplates(repository: templateRepository),
                     exerciseCatalog: planCatalog
                 )

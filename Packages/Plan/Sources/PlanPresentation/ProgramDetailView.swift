@@ -41,7 +41,8 @@ public struct ProgramDetailView: View {
         #if os(iOS)
         .toolbar(.hidden, for: .navigationBar)
         #endif
-        .task { await viewModel.load() }
+        // onAppear（非 .task）：從編輯頁 pop 回來也要重新讀，撈到改名/改週期/被刪除。
+        .onAppear { Task { await viewModel.load() } }
         .onChange(of: viewModel.didDelete) { _, deleted in if deleted { dismiss() } }
         .tlConfirmationDialog(
             isPresented: $showDeactivateConfirm,
