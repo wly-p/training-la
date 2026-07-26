@@ -41,7 +41,7 @@ struct HistoryViewModelTests {
                        reps: reps, status: .done, targetWeight: nil, targetReps: nil)
     }
 
-    @Test func loadPopulatesWorkoutsAndSelectsFirstExercise() async throws {
+    @Test func loadPopulatesWorkoutsAndExerciseOptions() async throws {
         let squatId = UUID()
         let stub = StubReading()
         let day = DayDate(year: 2026, month: 7, day: 9)
@@ -56,13 +56,13 @@ struct HistoryViewModelTests {
         await vm.load()
 
         #expect(vm.workouts.count == 1)
-        #expect(vm.selectedExerciseId == squatId)
-        // 選定第一個動作後 sessions 應載入
-        try await Task.sleep(nanoseconds: 50_000_000)
-        #expect(vm.sessions.count == 1)
+        #expect(vm.exerciseOptions.map(\.id) == [squatId])
+        // 「依動作」清單頁本身不查 sessions，點進單一動作頁才查（見 ExerciseHistoryView）。
+        let sessions = await vm.sessions(for: squatId)
+        #expect(sessions.count == 1)
     }
 
-    @Test func changingExerciseReloadsSessions() async throws {
+    @Test func sessionsForExerciseQueriesIndependently() async throws {
         let squatId = UUID()
         let benchId = UUID()
         let stub = StubReading()
@@ -83,11 +83,8 @@ struct HistoryViewModelTests {
         )
         let vm = HistoryViewModel(reading: stub, editing: NoopEditing())
         await vm.load()
-        try await Task.sleep(nanoseconds: 50_000_000)
-        #expect(vm.sessions.count == 1) // 深蹲
 
-        vm.selectedExerciseId = benchId
-        try await Task.sleep(nanoseconds: 50_000_000)
-        #expect(vm.sessions.count == 2) // 臥推
+        #expect(await vm.sessions(for: squatId).count == 1)
+        #expect(await vm.sessions(for: benchId).count == 2)
     }
 }

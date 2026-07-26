@@ -52,7 +52,9 @@ final class DeleteHistoryRevertsPlanUITests: XCTestCase {
 
         // 歷史：刪除該場（含確認）
         app.tabBars.buttons["歷史"].tap()
-        app.cells.firstMatch.tap()
+        let dateRow = app.staticTexts.matching(NSPredicate(format: "label CONTAINS '個動作'")).firstMatch
+        XCTAssertTrue(dateRow.waitForExistence(timeout: 5))
+        dateRow.tap()
         XCTAssertTrue(app.buttons["workoutDetail.delete"].waitForExistence(timeout: 5))
         app.buttons["workoutDetail.delete"].tap()
         let confirm = app.alerts.buttons["刪除"].firstMatch

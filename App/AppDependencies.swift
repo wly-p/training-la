@@ -116,7 +116,8 @@ struct AppDependencies {
         let historyReading = HistoryReadingAdapter(
             workoutRepository: workoutRepository,
             listExercises: ListExercises(repository: exerciseRepository),
-            revertPlanWorkout: RevertPlanWorkoutDone(repository: planRepository)
+            revertPlanWorkout: RevertPlanWorkoutDone(repository: planRepository),
+            getPlanWorkout: { try await planRepository.get(id: $0) }
         )
         let planCatalog = PlanCatalogAdapter(listExercises: ListExercises(repository: exerciseRepository))
         // 重量表達式「相對上次」的投影收斂查這個（Training 的實際紀錄）。

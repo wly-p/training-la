@@ -1,13 +1,20 @@
+import DesignSystem
 import HistoryDomain
 import SharedKernel
 import SwiftUI
 
+/// 單場分析（設計稿 11d）：達成摘要卡 ＋ 逐組對照表（差異用符號不用色塊：達標打勾、
+/// 超出+1、未達−1）。超過 5 組摘錄「⋯還有 N 組」，點「全部展開」才看完整。
+/// 跳過的動作在這裡看得到（標「跳過」）；移除的看不到（見 01-training.md 跳過≠移除）。
 struct WorkoutDetailView: View {
     let summary: HistoryWorkoutSummary
     @State private var viewModel: WorkoutDetailViewModel
     @State private var showsDeleteConfirm = false
+    @State private var expandedBlocks: Set<Int> = []
     @Environment(\.dismiss) private var dismiss
     @Environment(\.locale) private var locale
+
+    private let collapseThreshold = 5
 
     /// `makeViewModel` 以 autoclosure 存入 @State，確保每個詳情頁只建一次 view model。
     init(summary: HistoryWorkoutSummary, makeViewModel: @autoclosure @escaping () -> WorkoutDetailViewModel) {
@@ -16,39 +23,27 @@ struct WorkoutDetailView: View {
     }
 
     var body: some View {
-        List {
-            if let detail = viewModel.detail {
-                headerSection(detail)
-                ForEach(detail.blocks) { block in
-                    Section(block.exerciseName) {
-                        ForEach(block.sets) { set in
-                            if viewModel.isEditing {
-                                editRow(set)
-                            } else {
-                                displayRow(set)
-                            }
+        ScrollView {
+            VStack(alignment: .leading, spacing: 0) {
+                if let detail = viewModel.detail {
+                    VStack(alignment: .leading, spacing: TLSpace.section) {
+                        achievementCard(detail)
+                        ForEach(detail.blocks) { block in
+                            blockSection(block)
+                        }
+                        if !viewModel.isEditing {
+                            deleteRow
                         }
                     }
+                    .padding(.horizontal, TLSpace.page)
+                    .padding(.top, TLSpace.section)
+                } else {
+                    ProgressView().padding(.top, 60).frame(maxWidth: .infinity)
                 }
-                if !viewModel.isEditing {
-                    Section {
-                        Button(role: .destructive) {
-                            showsDeleteConfirm = true
-                        } label: {
-                            Label {
-                                localText("history.deleteWorkout")
-                            } icon: {
-                                Image(systemName: "trash")
-                            }
-                            .frame(maxWidth: .infinity)
-                        }
-                        .accessibilityIdentifier("workoutDetail.delete")
-                    }
-                }
-            } else {
-                ProgressView()
             }
+            .padding(.bottom, 40)
         }
+        .background(TLColor.bg.ignoresSafeArea())
         .navigationTitle(HistoryFormatting.dayLabel(summary.day, locale: locale))
         #if os(iOS)
         .navigationBarTitleDisplayMode(.inline)
@@ -98,57 +93,142 @@ struct WorkoutDetailView: View {
         }
     }
 
-    // MARK: - Sections
+    // MARK: - 達成摘要卡
 
-    private func headerSection(_ detail: HistoryWorkoutDetail) -> some View {
-        Section {
-            HStack(spacing: 12) {
-                if let minutes = detail.summary.durationMinutes {
-                    Label {
+    private func achievementCard(_ detail: HistoryWorkoutDetail) -> some View {
+        let (achievedCount, totalCount) = HistoryFormatting.achievedSetCount(detail.blocks)
+        let (actualVolume, targetVolume) = HistoryFormatting.totalVolume(detail.blocks)
+        return VStack(alignment: .leading, spacing: 16) {
+            HStack(alignment: .top) {
+                VStack(alignment: .leading, spacing: 4) {
+                    Text(verbatim: detail.summary.name ?? String(localized: "history.freeTraining", bundle: .module))
+                        .font(TLFont.zh(21, .bold))
+                        .foregroundStyle(TLColor.text)
+                    if let minutes = detail.summary.durationMinutes {
                         localText("history.minutes \(minutes)")
-                    } icon: {
-                        Image(systemName: "clock")
+                            .font(TLFont.zh(TLFont.rowSub, .regular))
+                            .foregroundStyle(TLColor.neutral600)
                     }
                 }
-                Label {
-                    localText("history.setsSpaced \(detail.summary.totalSets)")
-                } icon: {
-                    Image(systemName: "checklist")
-                }
-                if !HistoryFormatting.feeling(detail.summary.overallFeeling).isEmpty {
-                    Text(HistoryFormatting.feeling(detail.summary.overallFeeling))
+                Spacer()
+                if totalCount > 0 {
+                    localText("history.achievedCount \(achievedCount) \(totalCount)")
+                        .font(TLFont.zh(TLFont.rowSub, .semibold))
+                        .foregroundStyle(TLColor.sage800)
+                        .padding(.horizontal, 12)
+                        .padding(.vertical, 6)
+                        .background(Capsule().fill(TLColor.sage200))
                 }
             }
-            .font(.footnote)
-            .foregroundStyle(.secondary)
+            HStack(alignment: .firstTextBaseline, spacing: 28) {
+                numberStat(value: HistoryFormatting.formatNumber(actualVolume), unit: "kg", label: String(localized: "history.totalVolume", bundle: .module))
+                if let targetVolume, targetVolume > 0 {
+                    numberStat(
+                        value: String(format: "%.0f", actualVolume / targetVolume * 100), unit: "%",
+                        label: String(localized: "history.achievementRate", bundle: .module)
+                    )
+                }
+            }
             if let note = detail.note {
-                // 使用者備註是 DB 資料（verbatim）
                 Text(verbatim: note)
+                    .font(TLFont.zh(TLFont.rowSub, .regular))
+                    .foregroundStyle(TLColor.neutral600)
+            }
+        }
+        .padding(TLSpace.rowInset)
+        .background(TLColor.neutral300)
+        .clipShape(RoundedRectangle(cornerRadius: TLRadius.container, style: .continuous))
+    }
+
+    private func numberStat(value: String, unit: String, label: String) -> some View {
+        VStack(alignment: .leading, spacing: 2) {
+            (Text(verbatim: value).font(TLFont.display(24)) + Text(verbatim: " \(unit)").font(TLFont.zh(13, .medium)))
+                .foregroundStyle(TLColor.text)
+            Text(verbatim: label)
+                .font(TLFont.zh(11.5, .regular))
+                .foregroundStyle(TLColor.neutral600)
+        }
+    }
+
+    // MARK: - 逐組對照表
+
+    private func blockSection(_ block: HistoryBlock) -> some View {
+        let expanded = expandedBlocks.contains(block.id)
+        let visibleSets = expanded ? block.sets : Array(block.sets.prefix(collapseThreshold))
+        let remaining = block.sets.count - visibleSets.count
+        return VStack(alignment: .leading, spacing: 0) {
+            SectionHeader(Text(verbatim: block.exerciseName))
+            TLGroup {
+                ForEach(visibleSets) { set in
+                    if viewModel.isEditing {
+                        editRow(set)
+                    } else {
+                        displayRow(set)
+                    }
+                }
+                if remaining > 0 {
+                    Button {
+                        expandedBlocks.insert(block.id)
+                    } label: {
+                        HStack {
+                            localText("history.showMore \(remaining)")
+                            Spacer()
+                            localText("history.showAll")
+                        }
+                        .font(TLFont.zh(TLFont.rowSub, .medium))
+                        .foregroundStyle(TLColor.accent700)
+                        .padding(.vertical, 4)
+                    }
+                    .buttonStyle(.plain)
+                    .padding(.horizontal, TLSpace.rowInset)
+                    .frame(minHeight: 44)
+                }
             }
         }
     }
 
-    // MARK: - Rows
-
     private func displayRow(_ set: HistorySetLine) -> some View {
         HStack {
             localText("history.setIndex \(set.setIndex + 1)")
-                .foregroundStyle(set.status == .skipped ? .secondary : .primary)
+                .font(TLFont.zh(TLFont.rowTitle))
+                .foregroundStyle(set.status == .skipped ? TLColor.neutral500 : TLColor.text)
             if set.status != .done {
                 localText(HistoryFormatting.statusLabel(set.status))
-                    .font(.caption2)
-                    .foregroundStyle(.secondary)
+                    .font(TLFont.zh(10.5, .semibold))
+                    .foregroundStyle(TLColor.neutral500)
+                    .padding(.horizontal, 8).padding(.vertical, 3)
+                    .background(Capsule().fill(TLColor.neutral200))
             }
             Spacer()
             if let targetWeight = set.targetWeight, let targetReps = set.targetReps {
                 localText("history.target \(targetWeight.displayString) \(targetReps)")
-                    .font(.caption)
-                    .foregroundStyle(.tertiary)
+                    .font(TLFont.zh(11.5, .regular))
+                    .foregroundStyle(TLColor.neutral500)
             }
-            // 重量／次數是數值資料（verbatim）；「×」不用翻譯，寫死字面量會被 SwiftUI 當
-            // LocalizedStringKey 隱式抽進 String Catalog（自動長出一個 "%@ × %lld" key），故明確 verbatim。
             Text(verbatim: "\(set.weight.displayString) × \(set.reps)")
-                .monospacedDigit()
+                .font(TLFont.display(15))
+                .foregroundStyle(TLColor.text)
+            diffMark(set)
+                .frame(width: 28, alignment: .trailing)
+        }
+        .padding(.vertical, 2)
+    }
+
+    /// 差異用符號不用色塊：達標打勾(sage)、超出+N、未達−N(danger-700)，沒有目標＝不顯示。
+    @ViewBuilder
+    private func diffMark(_ set: HistorySetLine) -> some View {
+        switch HistoryFormatting.achieved(set) {
+        case true:
+            Image(systemName: "checkmark")
+                .font(.system(size: 13, weight: .bold))
+                .foregroundStyle(TLColor.sage)
+        case false:
+            let delta = HistoryFormatting.repsDelta(set) ?? 0
+            Text(verbatim: delta > 0 ? "+\(delta)" : "\(delta)")
+                .font(TLFont.zh(12, .semibold))
+                .foregroundStyle(delta > 0 ? TLColor.sage700 : TLColor.danger700)
+        case nil:
+            EmptyView()
         }
     }
 
@@ -156,7 +236,7 @@ struct WorkoutDetailView: View {
     private func editRow(_ set: HistorySetLine) -> some View {
         if let draft = viewModel.draft(for: set.id) {
             VStack(alignment: .leading, spacing: 10) {
-                localText("history.setIndex \(set.setIndex + 1)").font(.subheadline.bold())
+                localText("history.setIndex \(set.setIndex + 1)").font(TLFont.zh(TLFont.rowTitle, .bold))
                 HStack(spacing: 20) {
                     stepper(
                         label: "history.weight",
@@ -183,7 +263,8 @@ struct WorkoutDetailView: View {
                 }
                 .pickerStyle(.segmented)
             }
-            .padding(.vertical, 4)
+            .padding(.vertical, 6)
+            .padding(.horizontal, TLSpace.rowInset)
         }
     }
 
@@ -198,5 +279,16 @@ struct WorkoutDetailView: View {
             .buttonStyle(.borderless)
             .font(.title3)
         }
+    }
+
+    private var deleteRow: some View {
+        TLGroup {
+            SettingsRow(
+                localText("history.deleteWorkout"),
+                role: .destructive,
+                onTap: { showsDeleteConfirm = true }
+            )
+        }
+        .accessibilityIdentifier("workoutDetail.delete")
     }
 }

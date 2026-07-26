@@ -51,12 +51,12 @@ final class TrainingFlowUITests: XCTestCase {
         app.tabBars.buttons["歷史"].tap()
         let dateRow = app.staticTexts.matching(NSPredicate(format: "label CONTAINS '個動作'")).firstMatch
         XCTAssertTrue(dateRow.waitForExistence(timeout: 5))
-        app.cells.firstMatch.tap()
+        dateRow.tap()
         XCTAssertTrue(app.staticTexts["深蹲"].waitForExistence(timeout: 5))
 
-        // 7. 切「按動作」，該動作有紀錄
+        // 7. 切「按動作」，該動作有紀錄（清單列出動作名，點進去才是單一動作歷史頁）
         app.navigationBars.buttons.firstMatch.tap() // 返回
         app.buttons["按動作"].tap()
-        XCTAssertTrue(app.staticTexts["共練過"].waitForExistence(timeout: 5))
+        XCTAssertTrue(app.staticTexts["深蹲"].waitForExistence(timeout: 5))
     }
 }

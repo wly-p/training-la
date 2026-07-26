@@ -12,6 +12,8 @@ struct HistoryReadingAdapter: WorkoutHistoryReading, WorkoutHistoryEditing {
     let listExercises: ListExercises
     /// 刪除場次後，若對應排課已無完成紀錄，用它把排課還原成未開始。
     let revertPlanWorkout: RevertPlanWorkoutDone
+    /// 查排課名稱（列表主標，設計稿 7b）；nil＝自由訓練，UI 自己顯示「自由訓練」。
+    let getPlanWorkout: @Sendable (UUID) async throws -> PlanWorkout?
 
     private func exerciseIndex() async throws -> [UUID: Exercise] {
         let all = try await listExercises(muscleGroup: nil)
@@ -19,7 +21,11 @@ struct HistoryReadingAdapter: WorkoutHistoryReading, WorkoutHistoryEditing {
     }
 
     func workouts() async throws -> [HistoryWorkoutSummary] {
-        try await workoutRepository.finishedWorkouts().map(Self.summary(of:))
+        var result: [HistoryWorkoutSummary] = []
+        for workout in try await workoutRepository.finishedWorkouts() {
+            result.append(await summary(of: workout))
+        }
+        return result
     }
 
     func workoutDetail(id: UUID) async throws -> HistoryWorkoutDetail? {
@@ -32,7 +38,7 @@ struct HistoryReadingAdapter: WorkoutHistoryReading, WorkoutHistoryEditing {
                 sets: block.sets.map(Self.line(from:))
             )
         }
-        return HistoryWorkoutDetail(summary: Self.summary(of: workout), note: workout.note, blocks: blocks)
+        return HistoryWorkoutDetail(summary: await summary(of: workout), note: workout.note, blocks: blocks)
     }
 
     func exercisesWithHistory() async throws -> [HistoryExerciseOption] {
@@ -100,16 +106,21 @@ struct HistoryReadingAdapter: WorkoutHistoryReading, WorkoutHistoryEditing {
 
     // MARK: - Mapping
 
-    private static func summary(of workout: Workout) -> HistoryWorkoutSummary {
+    private func summary(of workout: Workout) async -> HistoryWorkoutSummary {
         let duration: Int?
         if let start = workout.startedAt, let end = workout.endedAt {
             duration = max(0, Int(end.timeIntervalSince(start) / 60))
         } else {
             duration = nil
         }
+        var name: String?
+        if let planWorkoutId = workout.planWorkoutId {
+            name = (try? await getPlanWorkout(planWorkoutId))?.name
+        }
         return HistoryWorkoutSummary(
             id: workout.id,
             day: workout.day,
+            name: name,
             exerciseCount: workout.blocks.count,
             totalSets: workout.sets.count,
             overallFeeling: workout.overallFeeling,

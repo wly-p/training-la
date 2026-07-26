@@ -14,17 +14,11 @@ public final class HistoryViewModel {
 
     // 按日期
     public private(set) var workouts: [HistoryWorkoutSummary] = []
+    /// 搜尋文字（比對排課名稱；空字串＝不篩選）。
+    public var searchText: String = ""
 
-    // 按動作
+    // 按動作：只是「有紀錄過的動作」清單，點進去才查該動作的歷次場次（見 ExerciseHistoryView）。
     public private(set) var exerciseOptions: [HistoryExerciseOption] = []
-    public var selectedExerciseId: UUID? {
-        didSet {
-            if selectedExerciseId != oldValue {
-                Task { await loadSessions() }
-            }
-        }
-    }
-    public private(set) var sessions: [HistoryExerciseSession] = []
 
     /// 本地化錯誤字串（延後解析，由 View 依 Environment locale 顯示）。
     public private(set) var errorMessage: LocalizedStringResource?
@@ -47,18 +41,16 @@ public final class HistoryViewModel {
         )
     }
 
-    public var selectedExerciseSessionCount: Int { sessions.count }
+    /// 依搜尋文字篩選（比對排課名稱；沒有名稱的自由訓練用本地化字串比對，由 View 傳入）。
+    public func filteredWorkouts(freeTrainingLabel: String) -> [HistoryWorkoutSummary] {
+        guard !searchText.trimmingCharacters(in: .whitespaces).isEmpty else { return workouts }
+        return workouts.filter { ($0.name ?? freeTrainingLabel).localizedCaseInsensitiveContains(searchText) }
+    }
 
     public func load() async {
         do {
             workouts = try await reading.workouts()
             exerciseOptions = try await reading.exercisesWithHistory()
-            // 預設選第一個有紀錄的動作
-            if selectedExerciseId == nil {
-                selectedExerciseId = exerciseOptions.first?.id
-            } else {
-                await loadSessions()
-            }
             errorMessage = nil
         } catch {
             errorMessage = .history("history.error.loadHistory \(error.localizedDescription)")
@@ -74,17 +66,15 @@ public final class HistoryViewModel {
         }
     }
 
-    public func dismissError() { errorMessage = nil }
-
-    private func loadSessions() async {
-        guard let id = selectedExerciseId else {
-            sessions = []
-            return
-        }
+    /// 某動作的歷次場次（單一動作歷史頁 `ExerciseHistoryView` 自己的 `.task` 呼叫）。
+    public func sessions(for exerciseId: UUID) async -> [HistoryExerciseSession] {
         do {
-            sessions = try await reading.sessions(exerciseId: id)
+            return try await reading.sessions(exerciseId: exerciseId)
         } catch {
             errorMessage = .history("history.error.loadExerciseHistory \(error.localizedDescription)")
+            return []
         }
     }
+
+    public func dismissError() { errorMessage = nil }
 }

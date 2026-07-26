@@ -59,7 +59,9 @@ final class ScheduleFlowUITests: XCTestCase {
 
         // 歷史詳情有兩個動作區塊 + 目標快照
         app.tabBars.buttons["歷史"].tap()
-        app.cells.firstMatch.tap()
+        let dateRow = app.staticTexts.matching(NSPredicate(format: "label CONTAINS '個動作'")).firstMatch
+        XCTAssertTrue(dateRow.waitForExistence(timeout: 5))
+        dateRow.tap()
         XCTAssertTrue(app.staticTexts["臥推"].waitForExistence(timeout: 5))
         XCTAssertTrue(app.staticTexts["深蹲"].exists)
         XCTAssertTrue(app.staticTexts.matching(NSPredicate(format: "label BEGINSWITH '目標'")).firstMatch.exists)
