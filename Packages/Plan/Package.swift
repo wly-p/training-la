@@ -11,12 +11,20 @@ let package = Package(
         .library(name: "PlanPresentation", targets: ["PlanPresentation"]),
     ],
     dependencies: [
-        .package(path: "../SharedKernel")
+        .package(path: "../SharedKernel"),
+        .package(path: "../DesignSystem"),
     ],
     targets: [
         .target(name: "PlanDomain", dependencies: ["SharedKernel"]),
         .target(name: "PlanData", dependencies: ["PlanDomain"]),
-        .target(name: "PlanPresentation", dependencies: ["PlanDomain"], resources: [.process("Localizable.xcstrings")]),
+        .target(
+            name: "PlanPresentation",
+            dependencies: [
+                "PlanDomain",
+                .product(name: "DesignSystem", package: "DesignSystem"),
+            ],
+            resources: [.process("Localizable.xcstrings")]
+        ),
         .testTarget(name: "PlanDomainTests", dependencies: ["PlanDomain"]),
         .testTarget(name: "PlanDataTests", dependencies: ["PlanData"]),
         .testTarget(name: "PlanPresentationTests", dependencies: ["PlanPresentation"]),

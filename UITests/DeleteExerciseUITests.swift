@@ -9,7 +9,7 @@ final class DeleteExerciseUITests: XCTestCase {
 
         // 建動作
         app.tabBars.buttons["動作庫"].tap()
-        app.buttons["新增動作"].tap()
+        app.buttons["libraryAddButton"].tap()
         let nameField = app.textFields["名稱（例：臥推）"]
         XCTAssertTrue(nameField.waitForExistence(timeout: 5))
         nameField.tap()
@@ -32,12 +32,14 @@ final class DeleteExerciseUITests: XCTestCase {
         app.buttons["儲存"].tap()
         XCTAssertTrue(app.staticTexts["推日"].waitForExistence(timeout: 5))
 
-        // 回動作庫嘗試刪除 → 被擋
+        // 回動作庫嘗試刪除 → 被擋（長按 context menu → 刪除）
         app.tabBars.buttons["動作庫"].tap()
-        let row = app.cells.containing(.staticText, identifier: "臥推").firstMatch
+        let row = app.staticTexts["臥推"].firstMatch
         XCTAssertTrue(row.waitForExistence(timeout: 5))
-        row.swipeLeft()
-        app.buttons["刪除"].tap()
+        row.press(forDuration: 1.0)
+        let deleteButton = app.buttons["刪除"]
+        XCTAssertTrue(deleteButton.waitForExistence(timeout: 5))
+        deleteButton.tap()
 
         XCTAssertTrue(app.staticTexts["此動作已被課表或訓練紀錄使用，無法刪除"].waitForExistence(timeout: 5))
         app.buttons["好"].tap()

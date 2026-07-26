@@ -4,6 +4,22 @@
     "" : {
 
     },
+    "plan.activate" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Activate"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "啟用"
+          }
+        }
+      }
+    },
     "plan.addBlank" : {
       "localizations" : {
         "en" : {
@@ -871,6 +887,22 @@
         }
       }
     },
+    "program.dayUnit" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "days"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "天"
+          }
+        }
+      }
+    },
     "program.empty" : {
       "localizations" : {
         "en" : {
@@ -915,6 +947,38 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "請幫長期課表取個名稱"
+          }
+        }
+      }
+    },
+    "program.explainer" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "A program has an end. A rotation loops forever."
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "長期＝有終點的計畫。\n循環＝沒有終點，一直輪。"
+          }
+        }
+      }
+    },
+    "program.librarySummary %lld %lld" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$lld templates · %2$lld-day cycle"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$lld 個範本・%2$lld 天週期"
           }
         }
       }
@@ -1000,6 +1064,7 @@
       }
     },
     "program.summary %lld %lld" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -1015,7 +1080,24 @@
         }
       }
     },
+    "program.today" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Today"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "今天"
+          }
+        }
+      }
+    },
     "rotation.active" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -1027,6 +1109,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "使用中"
+          }
+        }
+      }
+    },
+    "rotation.active.section" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Active"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "進行中"
           }
         }
       }
@@ -1127,6 +1225,22 @@
         }
       }
     },
+    "rotation.inactive.section" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Inactive"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "未啟用"
+          }
+        }
+      }
+    },
     "rotation.list.new" : {
       "localizations" : {
         "en" : {
@@ -1176,6 +1290,7 @@
       }
     },
     "rotation.paused" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -1207,6 +1322,38 @@
         }
       }
     },
+    "rotation.rounds %lld" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld rounds"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld 輪"
+          }
+        }
+      }
+    },
+    "rotation.templateCount %lld" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld templates"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld 個範本"
+          }
+        }
+      }
+    },
     "rotation.title" : {
       "extractionState" : "stale",
       "localizations" : {
@@ -1225,6 +1372,7 @@
       }
     },
     "rotation.turnPrefix" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -1336,6 +1484,22 @@
         }
       }
     },
+    "template.explainer" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "A template is \"what one workout does\". Use it in a schedule, rotation, or program."
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "範本是「一次訓練要做什麼」。\n排進課表或放進循環／長期都用它。"
+          }
+        }
+      }
+    },
     "template.name.placeholder" : {
       "localizations" : {
         "en" : {
@@ -1364,6 +1528,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "新增範本"
+          }
+        }
+      }
+    },
+    "template.sectionTitle" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "What one workout contains"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "一次訓練的內容"
           }
         }
       }

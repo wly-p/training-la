@@ -1,6 +1,22 @@
 {
   "sourceLanguage" : "zh-Hant",
   "strings" : {
+    "library.add" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Add"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "新增"
+          }
+        }
+      }
+    },
     "library.exercises" : {
       "localizations" : {
         "en" : {
@@ -66,7 +82,6 @@
       }
     },
     "tab.exercises" : {
-      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {

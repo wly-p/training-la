@@ -8,9 +8,15 @@ import SwiftUI
 public struct TLSegmentedControl<Value: Hashable>: View {
     public struct Option: Identifiable {
         public let value: Value
-        public let label: String
+        public let label: Text
         public var id: Value { value }
+        /// 定值標籤（kg/lb 等 verbatim，不本地化）。
         public init(_ value: Value, _ label: String) {
+            self.value = value
+            self.label = Text(verbatim: label)
+        }
+        /// 本地化標籤：呼叫端用 `localText(key)` 或 `Text(key)` 建，才能對到 bundle、切語言即時重繪。
+        public init(_ value: Value, _ label: Text) {
             self.value = value
             self.label = label
         }
@@ -32,7 +38,7 @@ public struct TLSegmentedControl<Value: Hashable>: View {
                 Button {
                     withAnimation(.easeOut(duration: 0.2)) { selection = option.value }
                 } label: {
-                    Text(option.label)
+                    option.label
                         .font(TLFont.zh(TLFont.rowTitle, isSelected ? .bold : .medium))
                         .foregroundStyle(isSelected ? TLColor.text : TLColor.neutral600)
                         .frame(maxWidth: .infinity)

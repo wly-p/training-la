@@ -11,7 +11,8 @@ let package = Package(
         .library(name: "SpecPresentation", targets: ["SpecPresentation"]),
     ],
     dependencies: [
-        .package(path: "../SharedKernel")
+        .package(path: "../SharedKernel"),
+        .package(path: "../DesignSystem"),
     ],
     targets: [
         .target(
@@ -24,7 +25,10 @@ let package = Package(
         ),
         .target(
             name: "SpecPresentation",
-            dependencies: ["SpecDomain"],
+            dependencies: [
+                "SpecDomain",
+                .product(name: "DesignSystem", package: "DesignSystem"),
+            ],
             resources: [.process("Localizable.xcstrings")]
         ),
         .testTarget(

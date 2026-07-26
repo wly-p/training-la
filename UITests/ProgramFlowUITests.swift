@@ -11,7 +11,7 @@ final class ProgramFlowUITests: XCTestCase {
 
         // 動作庫：建動作
         app.tabBars.buttons["動作庫"].tap()
-        app.buttons["新增動作"].tap()
+        app.buttons["libraryAddButton"].tap()
         let nameField = app.textFields["名稱（例：臥推）"]
         XCTAssertTrue(nameField.waitForExistence(timeout: 5))
         nameField.tap(); nameField.typeText("臥推")
@@ -19,8 +19,8 @@ final class ProgramFlowUITests: XCTestCase {
         XCTAssertTrue(app.staticTexts["臥推"].waitForExistence(timeout: 5))
 
         // 動作庫 → 「長期」分段 → 新增一份長期課表
-        app.segmentedControls.buttons["長期"].tap()
-        let newProgram = app.buttons["新增長期課表"]
+        app.buttons["長期"].tap()
+        let newProgram = app.buttons["libraryAddButton"]
         XCTAssertTrue(newProgram.waitForExistence(timeout: 5))
         newProgram.tap()
         let programName = app.textFields["名稱（例：PPL）"]

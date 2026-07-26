@@ -69,7 +69,7 @@ final class ScheduleFlowUITests: XCTestCase {
 
     @MainActor private func addExercise(_ app: XCUIApplication, name: String) {
         app.tabBars.buttons["動作庫"].tap()
-        app.buttons["新增動作"].tap()
+        app.buttons["libraryAddButton"].tap()
         let field = app.textFields["名稱（例：臥推）"]
         XCTAssertTrue(field.waitForExistence(timeout: 5))
         field.tap()

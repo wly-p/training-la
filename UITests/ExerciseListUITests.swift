@@ -8,7 +8,7 @@ final class ExerciseListUITests: XCTestCase {
         app.launch()
 
         app.tabBars.buttons["動作庫"].tap()
-        app.buttons["新增動作"].tap()
+        app.buttons["libraryAddButton"].tap()
 
         let nameField = app.textFields["名稱（例：臥推）"]
         XCTAssertTrue(nameField.waitForExistence(timeout: 5))
@@ -20,9 +20,8 @@ final class ExerciseListUITests: XCTestCase {
         // 列表列顯示器材（預設槓鈴）→ 證明 equipment 有存進去並顯示
         XCTAssertTrue(app.staticTexts["槓鈴"].waitForExistence(timeout: 5))
 
-        // swipe 刪除
-        let row = app.cells.containing(.staticText, identifier: "臥推").firstMatch
-        row.swipeLeft()
+        // 長按列叫出 context menu → 刪除（DesignSystem 容器非原生 List，無 swipe）
+        app.staticTexts["臥推"].press(forDuration: 1.0)
         let deleteButton = app.buttons["刪除"]
         XCTAssertTrue(deleteButton.waitForExistence(timeout: 5))
         deleteButton.tap()

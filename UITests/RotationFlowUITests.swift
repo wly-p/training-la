@@ -11,7 +11,7 @@ final class RotationFlowUITests: XCTestCase {
 
         // 動作庫：建動作
         app.tabBars.buttons["動作庫"].tap()
-        app.buttons["新增動作"].tap()
+        app.buttons["libraryAddButton"].tap()
         let nameField = app.textFields["名稱（例：臥推）"]
         XCTAssertTrue(nameField.waitForExistence(timeout: 5))
         nameField.tap(); nameField.typeText("臥推")
@@ -19,8 +19,8 @@ final class RotationFlowUITests: XCTestCase {
         XCTAssertTrue(app.staticTexts["臥推"].waitForExistence(timeout: 5))
 
         // 動作庫 → 切到「循環」分段 → 新增一組具名循環
-        app.segmentedControls.buttons["循環"].tap()
-        let newRotation = app.buttons["新增循環課表"]
+        app.buttons["循環"].tap()
+        let newRotation = app.buttons["libraryAddButton"]
         XCTAssertTrue(newRotation.waitForExistence(timeout: 5))
         newRotation.tap()
         let rotationName = app.textFields["名稱（例：推拉腿）"]
