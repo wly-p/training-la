@@ -90,7 +90,7 @@ struct SaveRotationWorkoutsTests {
 }
 
 struct SetRotationActiveTests {
-    @Test func deactivatingResetsCursor() async throws {
+    @Test func deactivatingPreservesCursor() async throws {
         let repo = MockRotationRepository()
         let id = UUID()
         await repo.seed(Rotation(id: id, name: "R", workouts: [spec("A"), spec("B")], cursor: 1, isActive: true))
@@ -99,7 +99,7 @@ struct SetRotationActiveTests {
 
         let r = try await repo.get(id: id)!
         #expect(r.isActive == false)
-        #expect(r.cursor == 0)  // 停用歸零
+        #expect(r.cursor == 1)  // v3 8b：停用保留游標（停在原處，再啟用從此續）
     }
 
     @Test func activatingKeepsCursor() async throws {
@@ -161,5 +161,47 @@ struct StartRotationTests {
         let emptyId = UUID()
         await rotationRepo.seed(Rotation(id: emptyId, name: "空"))
         #expect(try await start(id: emptyId, date: today) == nil)
+    }
+
+    @Test func startIncrementsCompletedCountAndRounds() async throws {
+        let rotationRepo = MockRotationRepository()
+        let planRepo = MockPlanWorkoutRepository()
+        let id = UUID()
+        await rotationRepo.seed(Rotation(id: id, name: "R", workouts: [spec("A"), spec("B"), spec("C")], cursor: 0))
+        let start = StartRotation(rotationRepository: rotationRepo, planRepository: planRepo)
+
+        for _ in 0..<3 { _ = try await start(id: id, date: today) }  // 開始三次＝跑完一輪
+
+        let r = try await rotationRepo.get(id: id)!
+        #expect(r.completedCount == 3)
+        #expect(r.roundsCompleted == 1)          // 3 次 ÷ 3 範本 = 1 輪
+        #expect(r.current?.name == "A")          // 游標繞回第一張
+    }
+}
+
+struct AdvanceResetRotationTests {
+    @Test func advanceMovesCursorWithoutCounting() async throws {
+        let repo = MockRotationRepository()
+        let id = UUID()
+        await repo.seed(Rotation(id: id, name: "R", workouts: [spec("A"), spec("B")], cursor: 0, completedCount: 5))
+
+        try await AdvanceRotation(repository: repo)(id: id)
+
+        let r = try await repo.get(id: id)!
+        #expect(r.current?.name == "B")     // 游標前進
+        #expect(r.completedCount == 5)      // 次數不變（手動跳不算完成）
+    }
+
+    @Test func resetZerosCursorAndCount() async throws {
+        let repo = MockRotationRepository()
+        let id = UUID()
+        await repo.seed(Rotation(id: id, name: "R", workouts: [spec("A"), spec("B")], cursor: 1, completedCount: 7))
+
+        try await ResetRotation(repository: repo)(id: id)
+
+        let r = try await repo.get(id: id)!
+        #expect(r.cursor == 0)
+        #expect(r.completedCount == 0)
+        #expect(r.roundsCompleted == 0)
     }
 }

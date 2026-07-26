@@ -67,7 +67,7 @@ public struct SaveRotationWorkouts: Sendable {
     }
 }
 
-/// 啟用／停用某組循環；**停用時游標歸零**（下次啟用從第一張重來）。
+/// 啟用／停用某組循環；**停用時保留游標與次數**（設計稿 8b：「停在第 N 輪」，再啟用從原處續）。
 public struct SetRotationActive: Sendable {
     private let repository: any RotationRepository
     public init(repository: any RotationRepository) { self.repository = repository }
@@ -77,7 +77,34 @@ public struct SetRotationActive: Sendable {
             throw RotationRepositoryError.notFound(id: id)
         }
         rotation.isActive = isActive
-        if !isActive { rotation.cursor = 0 }
+        try await repository.save(rotation)
+    }
+}
+
+/// 手動跳到下一個範本（詳情頁「跳到下一個範本」）：只移游標，**不計入次數**。
+public struct AdvanceRotation: Sendable {
+    private let repository: any RotationRepository
+    public init(repository: any RotationRepository) { self.repository = repository }
+
+    public func callAsFunction(id: UUID) async throws {
+        guard let rotation = try await repository.get(id: id) else {
+            throw RotationRepositoryError.notFound(id: id)
+        }
+        try await repository.save(rotation.advanced())
+    }
+}
+
+/// 重設輪次（詳情頁「重設輪次 → 回到第 1 輪」）：游標歸零、次數歸零。
+public struct ResetRotation: Sendable {
+    private let repository: any RotationRepository
+    public init(repository: any RotationRepository) { self.repository = repository }
+
+    public func callAsFunction(id: UUID) async throws {
+        guard var rotation = try await repository.get(id: id) else {
+            throw RotationRepositoryError.notFound(id: id)
+        }
+        rotation.cursor = 0
+        rotation.completedCount = 0
         try await repository.save(rotation)
     }
 }
@@ -131,7 +158,10 @@ public struct StartRotation: Sendable {
             sets: sets
         )
         try await planRepository.save(plan)
-        try await rotationRepository.save(rotation.advanced())
+        // 開始一張＝次數 +1、游標往下（詳情頁「已完成 N 次訓練」「N 輪」由此累計）。
+        var next = rotation.advanced()
+        next.completedCount += 1
+        try await rotationRepository.save(next)
         return plan
     }
 }

@@ -28,10 +28,13 @@ final class RotationFlowUITests: XCTestCase {
         rotationName.tap(); rotationName.typeText("推拉腿")
         app.buttons["儲存"].tap()
 
-        // 點進這組循環 → 加入一張循環 workout
+        // 點進這組循環 → 詳情頁 → 編輯 → 加入一張循環 workout
         let rotationRow = app.staticTexts["推拉腿"]
         XCTAssertTrue(rotationRow.waitForExistence(timeout: 5))
         rotationRow.tap()
+        let editButton = app.buttons["編輯"]
+        XCTAssertTrue(editButton.waitForExistence(timeout: 5))
+        editButton.tap()
         let addWorkout = app.buttons["加入循環 workout"]
         XCTAssertTrue(addWorkout.waitForExistence(timeout: 5))
         addWorkout.tap()

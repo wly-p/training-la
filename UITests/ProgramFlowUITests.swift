@@ -28,10 +28,13 @@ final class ProgramFlowUITests: XCTestCase {
         programName.tap(); programName.typeText("測試課表")
         app.buttons["儲存"].tap()
 
-        // 點進課表 → 指定第 1 天的 workout
+        // 點進課表 → 詳情頁 → 編輯 → 指定第 1 天的 workout
         let programRow = app.staticTexts["測試課表"]
         XCTAssertTrue(programRow.waitForExistence(timeout: 5))
         programRow.tap()
+        let editButton = app.buttons["編輯"]
+        XCTAssertTrue(editButton.waitForExistence(timeout: 5))
+        editButton.tap()
         let firstDay = app.staticTexts["第 1 天"]
         XCTAssertTrue(firstDay.waitForExistence(timeout: 5))
         firstDay.tap()

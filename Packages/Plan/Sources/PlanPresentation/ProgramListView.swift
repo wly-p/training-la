@@ -4,13 +4,11 @@ import SharedKernel
 import SwiftUI
 
 /// 動作庫「長期」分頁：進行中的升級成進度卡（設計稿 5d），未啟用為一般列。
-///
-/// ⚠️ 佔位：長期課表的「進行中／進度／今天」需要 ProgramAssignment（在課表 tab 那條線），
-/// ProgramListViewModel 目前拿不到。這裡把第一筆當「進行中」、天數/進度/今天用**假資料**呈現，
-/// 「啟用」為 no-op。全部標 TODO，之後接上 assignment/進度資料再改真。
+/// 進行中／進度／今天由**真實 assignment**（`viewModel.progressByProgram`）決定；點卡進詳情頁 8a。
 public struct ProgramListView: View {
     @Bindable private var viewModel: ProgramListViewModel
     private let makeEditor: @MainActor (UUID) -> ProgramEditorViewModel
+    private let makeDetail: @MainActor (UUID) -> ProgramDetailViewModel
     private let createToken: Int
     @Environment(\.locale) private var locale
     @State private var creating = false
@@ -18,16 +16,14 @@ public struct ProgramListView: View {
     public init(
         viewModel: ProgramListViewModel,
         makeEditor: @escaping @MainActor (UUID) -> ProgramEditorViewModel,
+        makeDetail: @escaping @MainActor (UUID) -> ProgramDetailViewModel,
         createToken: Int = 0
     ) {
         self.viewModel = viewModel
         self.makeEditor = makeEditor
+        self.makeDetail = makeDetail
         self.createToken = createToken
     }
-
-    // TODO 假資料：無 assignment/啟用狀態，暫定「第一筆＝進行中，其餘＝未啟用」。
-    private var activeProgram: Program? { viewModel.programs.first }
-    private var inactivePrograms: [Program] { Array(viewModel.programs.dropFirst()) }
 
     public var body: some View {
         ScrollView {
@@ -35,17 +31,19 @@ public struct ProgramListView: View {
                 if viewModel.programs.isEmpty {
                     emptyState
                 }
-                if let activeProgram {
+                if !viewModel.activePrograms.isEmpty {
                     VStack(alignment: .leading, spacing: 0) {
-                        SectionHeader(localText("rotation.active.section") + Text(verbatim: " · 1"), tint: TLColor.accent600)
-                        activeCard(activeProgram)
+                        SectionHeader(localText("rotation.active.section") + Text(verbatim: " · \(viewModel.activePrograms.count)"), tint: TLColor.accent600)
+                        VStack(spacing: TLSpace.gapM) {
+                            ForEach(viewModel.activePrograms) { activeCard($0) }
+                        }
                     }
                 }
-                if !inactivePrograms.isEmpty {
+                if !viewModel.inactivePrograms.isEmpty {
                     VStack(alignment: .leading, spacing: 0) {
-                        SectionHeader(localText("rotation.inactive.section") + Text(verbatim: " · \(inactivePrograms.count)"), tint: TLColor.neutral500)
+                        SectionHeader(localText("rotation.inactive.section") + Text(verbatim: " · \(viewModel.inactivePrograms.count)"), tint: TLColor.neutral500)
                         TLGroup {
-                            ForEach(inactivePrograms) { inactiveRow($0) }
+                            ForEach(viewModel.inactivePrograms) { inactiveRow($0) }
                         }
                     }
                 }
@@ -57,6 +55,12 @@ public struct ProgramListView: View {
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background(TLColor.bg)
+        .navigationDestination(for: UUID.self) { id in
+            ProgramDetailView(viewModel: makeDetail(id))
+        }
+        .navigationDestination(for: ProgramEditRoute.self) { route in
+            ProgramEditorView(viewModel: makeEditor(route.id))
+        }
         .task { await viewModel.load() }
         .onChange(of: createToken) { creating = true }
         .sheet(isPresented: $creating) {
@@ -77,20 +81,13 @@ public struct ProgramListView: View {
         }
     }
 
-    // MARK: - 進行中卡片（佔位進度）
+    // MARK: - 進行中卡片（真實進度）
 
     private func activeCard(_ program: Program) -> some View {
-        // TODO 假資料：以週期一半當「目前天數」、據此算進度；「今天」取第一個有課的 workout 名。
-        let total = program.cycleLength
-        let fakeDay = max(1, total / 2)
-        let progress = Double(fakeDay) / Double(max(1, total))
-        let todayName = program.days.min(by: { $0.key < $1.key })?.value.name
-
+        let progress = viewModel.progressByProgram[program.id]
         return VStack(spacing: TLSpace.gapM) {
-            // 上半：可點進編輯（inline destination NavigationLink，與改版前一致）
-            NavigationLink {
-                ProgramEditorView(viewModel: makeEditor(program.id))
-            } label: {
+            // 上半：點進詳情頁（8a）
+            NavigationLink(value: program.id) {
                 HStack(spacing: TLSpace.gapM) {
                     CircleBadge(icon: "chart.bar", fill: TLColor.accent, tint: TLColor.bg)
                     VStack(alignment: .leading, spacing: 2) {
@@ -110,22 +107,24 @@ public struct ProgramListView: View {
             }
             .buttonStyle(.plain)
 
-            // 下半：天數＋今天＋進度條
-            HStack(alignment: .firstTextBaseline) {
-                HStack(alignment: .firstTextBaseline, spacing: 4) {
-                    Text(verbatim: "\(fakeDay)")
-                        .font(TLFont.display(26))
-                        .foregroundStyle(TLColor.text)
-                    (Text(verbatim: "/ \(total) ") + localText("program.dayUnit"))
-                        .font(TLFont.zh(TLFont.rowSub))
-                        .foregroundStyle(TLColor.neutral500)
+            // 下半：天數＋今天＋進度條（真實）
+            if let progress {
+                HStack(alignment: .firstTextBaseline) {
+                    HStack(alignment: .firstTextBaseline, spacing: 4) {
+                        Text(verbatim: "\(progress.day)")
+                            .font(TLFont.display(26))
+                            .foregroundStyle(TLColor.text)
+                        (Text(verbatim: "/ \(progress.totalDays) ") + localText("program.dayUnit"))
+                            .font(TLFont.zh(TLFont.rowSub))
+                            .foregroundStyle(TLColor.neutral500)
+                    }
+                    Spacer()
+                    (localText("program.today") + Text(verbatim: "：\(progress.todayWorkoutName ?? "—")"))
+                        .font(TLFont.zh(TLFont.rowSub, .semibold))
+                        .foregroundStyle(TLColor.neutral700)
                 }
-                Spacer()
-                (localText("program.today") + Text(verbatim: "：\(todayName ?? "—")"))
-                    .font(TLFont.zh(TLFont.rowSub, .semibold))
-                    .foregroundStyle(TLColor.neutral700)
+                progressBar(Double(progress.day) / Double(max(1, progress.totalDays)))
             }
-            progressBar(progress)
         }
         .padding(TLSpace.rowInset)
         .background(TLColor.neutral100)
@@ -136,12 +135,12 @@ public struct ProgramListView: View {
         }
     }
 
-    private func progressBar(_ progress: Double) -> some View {
+    private func progressBar(_ ratio: Double) -> some View {
         GeometryReader { geo in
             ZStack(alignment: .leading) {
                 Capsule().fill(TLColor.neutral200)
                 Capsule().fill(TLColor.accent)
-                    .frame(width: geo.size.width * min(1, max(0, progress)))
+                    .frame(width: geo.size.width * min(1, max(0, ratio)))
             }
         }
         .frame(height: 6)
@@ -150,22 +149,36 @@ public struct ProgramListView: View {
     // MARK: - 未啟用列
 
     private func inactiveRow(_ program: Program) -> some View {
-        ListRow(
-            title: Text(verbatim: program.name),
-            subtitle: Text(PlanFormatting.programLibrarySummary(program, language: AppLanguage(locale: locale))),
-            leading: {
-                CircleBadge(icon: "chart.bar", fill: TLColor.neutral300, tint: TLColor.neutral600)
-            },
-            trailing: {
-                Button {
-                    // TODO 假資料：啟用長期課表＝建立 ProgramAssignment（選起始日/模式），
-                    // 需要課表 tab 那條線的資料；此處先 no-op。
-                } label: {
-                    localText("plan.activate")
+        // 左側可點進詳情頁（8a，可再進編輯）、右側 inline「啟用」——兩個獨立點擊區。
+        HStack(spacing: TLSpace.gapM) {
+            NavigationLink(value: program.id) {
+                HStack(spacing: TLSpace.gapM) {
+                    CircleBadge(icon: "chart.bar", fill: TLColor.neutral300, tint: TLColor.neutral600)
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text(verbatim: program.name)
+                            .font(TLFont.zh(TLFont.rowTitle))
+                            .foregroundStyle(TLColor.text)
+                            .lineLimit(1)
+                        Text(PlanFormatting.programLibrarySummary(program, language: AppLanguage(locale: locale)))
+                            .font(TLFont.zh(TLFont.rowSub, .regular))
+                            .foregroundStyle(TLColor.neutral500)
+                            .lineLimit(1)
+                    }
+                    Spacer(minLength: TLSpace.gapS)
                 }
-                .buttonStyle(.tlText)
+                .contentShape(Rectangle())
             }
-        )
+            .buttonStyle(.plain)
+
+            Button {
+                Task { await viewModel.activate(id: program.id) }
+            } label: {
+                localText("plan.activate")
+            }
+            .buttonStyle(.tlText)
+        }
+        .padding(.horizontal, TLSpace.rowInset)
+        .frame(minHeight: TLSize.rowWithSub)
         .contextMenu {
             Button(role: .destructive) {
                 Task { await viewModel.delete(id: program.id) }

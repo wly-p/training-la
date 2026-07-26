@@ -12,6 +12,8 @@ public struct Rotation: Identifiable, Equatable, Sendable {
     public var isActive: Bool
     /// 清單排序。
     public var orderIndex: Int
+    /// 累計已開始的訓練次數（每次 `StartRotation` +1）。詳情頁「已完成 N 次訓練」與「N 輪」由此算。
+    public var completedCount: Int
 
     public init(
         id: UUID = UUID(),
@@ -19,7 +21,8 @@ public struct Rotation: Identifiable, Equatable, Sendable {
         workouts: [WorkoutSpec] = [],
         cursor: Int = 0,
         isActive: Bool = true,
-        orderIndex: Int = 0
+        orderIndex: Int = 0,
+        completedCount: Int = 0
     ) {
         self.id = id
         self.name = name
@@ -27,6 +30,7 @@ public struct Rotation: Identifiable, Equatable, Sendable {
         self.cursor = Rotation.clamp(cursor, count: workouts.count)
         self.isActive = isActive
         self.orderIndex = orderIndex
+        self.completedCount = max(0, completedCount)
     }
 
     /// 目前輪到的 workout；空循環＝nil。
@@ -34,7 +38,12 @@ public struct Rotation: Identifiable, Equatable, Sendable {
         workouts.isEmpty ? nil : workouts[Rotation.clamp(cursor, count: workouts.count)]
     }
 
-    /// 游標往下一張（做完回到第一張），其餘欄位不變。
+    /// 已完成的整輪數＝總次數 ÷ 範本數（無條件捨去）。空循環＝0。
+    public var roundsCompleted: Int {
+        workouts.isEmpty ? 0 : completedCount / workouts.count
+    }
+
+    /// 游標往下一張（做完回到第一張），其餘欄位不變。**不計入次數**（給「跳到下一個範本」用）。
     public func advanced() -> Rotation {
         guard !workouts.isEmpty else { return self }
         var next = self

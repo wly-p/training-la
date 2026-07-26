@@ -134,6 +134,64 @@ public struct DeleteProgramAssignment: Sendable {
     public func callAsFunction(id: UUID) async throws { try await repository.delete(id: id) }
 }
 
+/// 一份長期課表「此刻」的進度（動作庫長期分頁進行中卡／詳情頁用）。
+/// day＝從起始日算起的第幾天（1-based，對週期取模）；totalDays＝週期天數（目前模型的最佳可用長度）；
+/// todayWorkoutName＝今天排的 workout 名（nil＝休息日）。
+public struct ProgramProgress: Equatable, Sendable {
+    public let assignmentId: UUID
+    public let day: Int
+    public let totalDays: Int
+    public let todayWorkoutName: String?
+    public init(assignmentId: UUID, day: Int, totalDays: Int, todayWorkoutName: String?) {
+        self.assignmentId = assignmentId
+        self.day = day
+        self.totalDays = totalDays
+        self.todayWorkoutName = todayWorkoutName
+    }
+}
+
+/// 查某份長期課表此刻的進度（取它第一筆 assignment）。無 assignment＝nil（＝未啟用）。
+public struct GetProgramProgress: Sendable {
+    private let programRepository: any ProgramRepository
+    private let assignmentRepository: any ProgramAssignmentRepository
+
+    public init(
+        programRepository: any ProgramRepository,
+        assignmentRepository: any ProgramAssignmentRepository
+    ) {
+        self.programRepository = programRepository
+        self.assignmentRepository = assignmentRepository
+    }
+
+    public func callAsFunction(programId: UUID, today: DayDate) async throws -> ProgramProgress? {
+        guard let program = try await programRepository.get(id: programId),
+              let assignment = try await assignmentRepository.all().first(where: { $0.programId == programId })
+        else { return nil }
+        let cycleDay = assignment.cycleDay(for: today, cycleLength: program.cycleLength)
+        // cycleDay nil（起始日之前／once 已結束）→ day 夾在範圍內顯示。
+        let dayIndex = cycleDay ?? 0
+        return ProgramProgress(
+            assignmentId: assignment.id,
+            day: dayIndex + 1,
+            totalDays: program.cycleLength,
+            todayWorkoutName: program.workout(dayIndex: dayIndex)?.name
+        )
+    }
+}
+
+/// 重設長期課表進度（詳情頁「重設進度 → 回到 D1」）：把 assignment 起始日移到今天、清補登游標。
+public struct ResetProgramProgress: Sendable {
+    private let repository: any ProgramAssignmentRepository
+    public init(repository: any ProgramAssignmentRepository) { self.repository = repository }
+
+    public func callAsFunction(programId: UUID, today: DayDate) async throws {
+        guard var assignment = try await repository.all().first(where: { $0.programId == programId }) else { return }
+        assignment.startDate = today
+        assignment.lastReconciledDate = nil
+        try await repository.save(assignment)
+    }
+}
+
 // MARK: - 投影（未來，不入 DB）
 
 /// 一則未來投影：某天、某套用、排定的 workout。

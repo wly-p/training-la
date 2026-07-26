@@ -9,6 +9,7 @@ import SwiftUI
 public struct RotationListView: View {
     @Bindable private var viewModel: RotationListViewModel
     private let makeEditor: @MainActor (UUID) -> RotationEditorViewModel
+    private let makeDetail: @MainActor (UUID) -> RotationDetailViewModel
     private let createToken: Int
     @Environment(\.locale) private var locale
     @State private var creating = false
@@ -17,10 +18,12 @@ public struct RotationListView: View {
     public init(
         viewModel: RotationListViewModel,
         makeEditor: @escaping @MainActor (UUID) -> RotationEditorViewModel,
+        makeDetail: @escaping @MainActor (UUID) -> RotationDetailViewModel,
         createToken: Int = 0
     ) {
         self.viewModel = viewModel
         self.makeEditor = makeEditor
+        self.makeDetail = makeDetail
         self.createToken = createToken
     }
 
@@ -59,7 +62,12 @@ public struct RotationListView: View {
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background(TLColor.bg)
         .navigationDestination(for: UUID.self) { id in
-            RotationEditorView(viewModel: makeEditor(id))
+            // active 列 drill-in → 詳情頁（8a）。
+            RotationDetailView(viewModel: makeDetail(id))
+        }
+        .navigationDestination(for: RotationEditRoute.self) { route in
+            // 詳情頁「編輯」→ 編輯器。value-based＋祖層 destination，避免 factory VM 競態（drill-in 陷阱）。
+            RotationEditorView(viewModel: makeEditor(route.id))
         }
         .task { await viewModel.load() }
         .onChange(of: createToken) { creating = true }
@@ -129,9 +137,10 @@ public struct RotationListView: View {
 
     private func inactiveRow(_ rotation: Rotation) -> some View {
         // 未啟用列：設計稿無 chevron、不 drill-in（低頻編輯先啟用再進）；右側 inline「啟用」。
+        // 有進度者副標顯示「停在第 N 輪 · 目前範本」（8b）；沒進度就顯示組成摘要。
         ListRow(
             title: Text(verbatim: rotation.name),
-            subtitle: Text(PlanFormatting.rotationSummary(rotation, language: AppLanguage(locale: locale))),
+            subtitle: inactiveSubtitle(rotation),
             leading: {
                 CircleBadge(icon: "arrow.triangle.2.circlepath", fill: TLColor.neutral300, tint: TLColor.neutral600)
             },
@@ -147,14 +156,20 @@ public struct RotationListView: View {
         .contextMenu { rowMenu(rotation) }
     }
 
-    /// 右側狀態膠囊「7 輪 · 推日」：輪數為佔位（見下），當前 workout 名為真實資料。
+    private func inactiveSubtitle(_ rotation: Rotation) -> Text {
+        if rotation.completedCount > 0, let current = rotation.current {
+            return localText("rotation.pausedAt \(rotation.roundsCompleted)")
+                + Text(verbatim: " · \(current.name)")
+        }
+        return Text(PlanFormatting.rotationSummary(rotation, language: AppLanguage(locale: locale)))
+    }
+
+    /// 右側狀態膠囊「7 輪 · 推日」：真實累計輪數（roundsCompleted）＋當前 workout 名。
     @ViewBuilder
     private func statusPill(_ rotation: Rotation) -> some View {
         if let current = rotation.current {
             HStack(spacing: 4) {
-                // TODO 假資料：Rotation 只存單圈內游標 cursor，沒有累計「輪數」。
-                // 這裡用 cursor+1 佔位；接上真正的輪數統計後替換。
-                localText("rotation.rounds \(rotation.cursor + 1)")
+                localText("rotation.rounds \(rotation.roundsCompleted)")
                 Text(verbatim: "·")
                 Text(verbatim: current.name)
             }
@@ -172,6 +187,14 @@ public struct RotationListView: View {
             renaming = rotation
         } label: {
             Label { localText("rotation.rename") } icon: { Image(systemName: "pencil") }
+        }
+        // 停用改用 contextMenu（DesignSystem 容器非原生 List，無左滑）；主要停用流程在詳情頁。
+        if rotation.isActive {
+            Button {
+                Task { await viewModel.setActive(id: rotation.id, false) }
+            } label: {
+                Label { localText("rotation.manage.deactivate") } icon: { Image(systemName: "pause") }
+            }
         }
         Button(role: .destructive) {
             Task { await viewModel.delete(id: rotation.id) }

@@ -39,7 +39,10 @@ final class TemplateImportUITests: XCTestCase {
         rotationName.tap(); rotationName.typeText("測試循環")
         app.buttons["儲存"].tap()
         app.staticTexts["測試循環"].tap()
-
+        // 詳情頁 → 編輯 → 加 workout
+        let editButton = app.buttons["編輯"]
+        XCTAssertTrue(editButton.waitForExistence(timeout: 5))
+        editButton.tap()
         app.buttons["加入循環 workout"].tap()
         let importButton = app.buttons["從範本帶入"]
         XCTAssertTrue(importButton.waitForExistence(timeout: 5))

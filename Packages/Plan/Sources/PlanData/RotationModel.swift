@@ -10,15 +10,18 @@ final class RotationModel {
     var cursor: Int
     var isActive: Bool
     var orderIndex: Int
+    /// 累計已開始訓練次數。新欄位；預設 0（未發佈、無 migration 需求）。
+    var completedCount: Int = 0
     @Relationship(deleteRule: .cascade, inverse: \RotationWorkoutModel.rotation)
     var workouts: [RotationWorkoutModel]
 
-    init(id: UUID, name: String, cursor: Int, isActive: Bool, orderIndex: Int, workouts: [RotationWorkoutModel] = []) {
+    init(id: UUID, name: String, cursor: Int, isActive: Bool, orderIndex: Int, completedCount: Int = 0, workouts: [RotationWorkoutModel] = []) {
         self.id = id
         self.name = name
         self.cursor = cursor
         self.isActive = isActive
         self.orderIndex = orderIndex
+        self.completedCount = completedCount
         self.workouts = workouts
     }
 }
@@ -83,6 +86,7 @@ extension RotationModel {
             cursor: rotation.cursor,
             isActive: rotation.isActive,
             orderIndex: rotation.orderIndex,
+            completedCount: rotation.completedCount,
             workouts: rotation.workouts.enumerated().map { index, spec in
                 RotationWorkoutModel(from: spec, orderIndex: index)
             }
@@ -93,7 +97,7 @@ extension RotationModel {
         let specs = workouts
             .sorted { $0.orderIndex < $1.orderIndex }
             .map { $0.toDomain() }
-        return Rotation(id: id, name: name, workouts: specs, cursor: cursor, isActive: isActive, orderIndex: orderIndex)
+        return Rotation(id: id, name: name, workouts: specs, cursor: cursor, isActive: isActive, orderIndex: orderIndex, completedCount: completedCount)
     }
 }
 
