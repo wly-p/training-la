@@ -134,6 +134,46 @@ public final class ActiveWorkoutViewModel {
         return blueprint?.target(exerciseId: exerciseId, position: currentBlockSets.count)
     }
 
+    /// 組表一列（3b+11c）：已完成／進行中／未做，各自帶目標＋實際。
+    public struct SetTableRow: Identifiable, Equatable, Sendable {
+        public enum Status: Equatable, Sendable { case done, current, upcoming }
+        public let setIndex: Int
+        public let target: PlannedTargetSet?
+        public let actual: WorkoutSet?
+        public let status: Status
+        public var id: Int { setIndex }
+    }
+
+    /// 組表：已完成的組（帶目標快照）→ 正在輸入的這一組（current）→ 照課表還沒做到的組（upcoming，
+    /// 自由訓練沒有課表組數就不會有這段）。
+    public var setTableRows: [SetTableRow] {
+        guard let exerciseId = currentExerciseId else { return [] }
+        var rows: [SetTableRow] = currentBlockSets.map { set in
+            SetTableRow(
+                setIndex: set.setIndex,
+                target: blueprint?.target(exerciseId: exerciseId, position: set.setIndex),
+                actual: set, status: .done
+            )
+        }
+        let currentPosition = currentBlockSets.count
+        rows.append(SetTableRow(
+            setIndex: currentPosition,
+            target: blueprint?.target(exerciseId: exerciseId, position: currentPosition),
+            actual: nil, status: .current
+        ))
+        if let plannedCount = blueprint?.exercises.first(where: { $0.exerciseId == exerciseId })?.setCount,
+           currentPosition + 1 < plannedCount {
+            for position in (currentPosition + 1)..<plannedCount {
+                rows.append(SetTableRow(
+                    setIndex: position,
+                    target: blueprint?.target(exerciseId: exerciseId, position: position),
+                    actual: nil, status: .upcoming
+                ))
+            }
+        }
+        return rows
+    }
+
     /// 是否照課表訓練。
     public var isFollowingPlan: Bool { blueprint != nil }
 
@@ -512,6 +552,24 @@ public final class ActiveWorkoutViewModel {
 
     public func bumpReps(_ direction: Int) {
         draftReps = max(0, draftReps + direction)
+    }
+
+    /// 快捷「同上組」：把草稿設回本場這個動作上一組記錄的值；沒有上一組時無效。
+    public func applyLastSetValues() {
+        guard let last = currentBlockSets.last else { return }
+        apply(weight: last.weight, reps: last.reps)
+    }
+
+    /// 快捷「回到目標」：把草稿重設回這組的課表目標；沒有目標時無效。
+    public func resetToTarget() {
+        guard let target = currentTarget, let weight = target.targetWeight else { return }
+        apply(weight: weight, reps: target.targetReps ?? draftReps)
+    }
+
+    /// 草稿是否已經偏離目標——決定第三顆快捷鍵顯示「同上組」還是「回到目標」（11c）。
+    public var isDraftModifiedFromTarget: Bool {
+        guard let target = currentTarget, let weight = target.targetWeight else { return false }
+        return draftWeightValue != weight.value || (target.targetReps.map { $0 != draftReps } ?? false)
     }
 
     // MARK: - 私有

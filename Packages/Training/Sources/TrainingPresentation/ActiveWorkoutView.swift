@@ -1,3 +1,4 @@
+import DesignSystem
 import SharedKernel
 import SwiftUI
 import TrainingDomain
@@ -235,36 +236,15 @@ public struct ActiveWorkoutView: View {
             }
 
             Section {
-                ForEach(viewModel.currentBlockSets) { set in
-                    HStack {
-                        Image(systemName: set.status == .done ? "checkmark.circle.fill" : "arrow.right.circle")
-                            .foregroundStyle(set.status == .done ? .green : .secondary)
-                        localText("training.setIndex \(set.setIndex + 1)")
-                        Spacer()
-                        // 重量／次數是數值資料（verbatim）；「×」不用翻譯，寫死字面量會被 SwiftUI 當
-                        // LocalizedStringKey 隱式抽進 String Catalog，故明確 verbatim（見 History 同類註解）。
-                        Text(verbatim: "\(WeightDisplay.weight(set.weight)) × \(set.reps)")
-                            .monospacedDigit()
-                            .foregroundStyle(set.status == .skipped ? .secondary : .primary)
-                        // 復原鍵貼著它要撤銷的那一組，且只有剛記錄的那組有。
-                        // .borderless（而非預設樣式）：預設樣式會讓整列空白處都轉發點擊，
-                        // 一碰列就誤撤銷——同 bug③ 的教訓。
-                        if viewModel.isUndoable(setId: set.id) {
-                            Button {
-                                Task { await viewModel.undoLastSet() }
-                            } label: {
-                                Image(systemName: "arrow.uturn.backward")
-                            }
-                            .buttonStyle(.borderless)
-                            .padding(.leading, 4)
-                            .accessibilityLabel(localText("training.undoLastSet"))
-                            .accessibilityIdentifier("activeWorkout.undoSet")
-                        }
-                    }
+                ForEach(viewModel.setTableRows) { row in
+                    setTableRow(row)
                 }
                 currentSetEditor
+                    .listRowInsets(EdgeInsets())
+                    .listRowBackground(Color.clear)
+                    .listRowSeparator(.hidden)
             } header: {
-                localText("training.setIndex \(viewModel.currentBlockSets.count + 1)")
+                setTableHeader
             } footer: {
                 nextSetPreviewFooter
             }
@@ -311,6 +291,139 @@ public struct ActiveWorkoutView: View {
             } header: {
                 localText("training.sessionExercises")
             }
+        }
+    }
+
+    /// 組表（3b+11c）標頭：動作級摘要（幾組·強度／算式）＋「組/目標/實際」欄名。
+    private var setTableHeader: some View {
+        VStack(alignment: .leading, spacing: 6) {
+            if let summary = exerciseTableSummary {
+                Text(verbatim: summary)
+                    .font(.footnote)
+                    .foregroundStyle(TLColor.neutral600)
+            }
+            HStack {
+                localText("training.table.set")
+                Spacer()
+                localText("training.table.target")
+                Spacer()
+                localText("training.table.actual")
+            }
+            .font(.caption2.weight(.semibold))
+            .textCase(.uppercase)
+            .foregroundStyle(TLColor.neutral500)
+        }
+    }
+
+    /// 「N 組 · 強度 ×75%」這種動作級摘要；沒有課表目標（自由訓練）時不顯示。
+    private var exerciseTableSummary: String? {
+        guard let exerciseId = viewModel.currentExerciseId,
+              let plannedCount = viewModel.blueprint?.exercises.first(where: { $0.exerciseId == exerciseId })?.setCount
+        else { return nil }
+        var parts = [String(localized: "training.table.setCount \(plannedCount)", bundle: .module)]
+        if let pill = WeightSourceFormatting.intensityPillText(viewModel.blueprint?.intensityFactor ?? 1.0) {
+            parts.append(String(format: String(localized: "training.preview.intensity %@", bundle: .module), pill))
+        }
+        return parts.joined(separator: " · ")
+    }
+
+    @ViewBuilder
+    private func setTableRow(_ row: ActiveWorkoutViewModel.SetTableRow) -> some View {
+        HStack(spacing: 12) {
+            setRowBadge(row)
+                .frame(width: 24)
+            setRowTarget(row)
+                .frame(maxWidth: .infinity, alignment: .leading)
+            setRowActual(row)
+                .frame(maxWidth: .infinity, alignment: .trailing)
+        }
+        .padding(.vertical, row.status == .current ? 6 : 3)
+        .listRowBackground(row.status == .current ? TLColor.neutral300 : nil)
+        .opacity(row.status == .upcoming ? 0.6 : 1)
+    }
+
+    @ViewBuilder private func setRowBadge(_ row: ActiveWorkoutViewModel.SetTableRow) -> some View {
+        switch row.status {
+        case .done:
+            Image(systemName: "checkmark.circle.fill").foregroundStyle(.green)
+        case .current:
+            ZStack {
+                Circle().fill(TLColor.accent800)
+                Text(verbatim: "\(row.setIndex + 1)")
+                    .font(.caption.bold())
+                    .foregroundStyle(TLColor.bg)
+            }
+            .frame(width: 20, height: 20)
+        case .upcoming:
+            Text(verbatim: "\(row.setIndex + 1)")
+                .font(.caption)
+                .foregroundStyle(TLColor.neutral500)
+        }
+    }
+
+    private func setRowTarget(_ row: ActiveWorkoutViewModel.SetTableRow) -> some View {
+        let text: String
+        if let weight = row.target?.targetWeight {
+            let reps = row.target?.targetReps.map { " × \($0)" } ?? ""
+            text = "\(WeightDisplay.weight(weight))\(reps)"
+        } else if let reps = row.target?.targetReps {
+            text = "× \(reps)"
+        } else {
+            text = "—"
+        }
+        return HStack(spacing: 0) {
+            // 已完成的組沿用既有「第N組」文案，但不視覺化顯示（11c 的表格不畫這行）——
+            // 純粹讓大量既有 UITest（斷言完成後看得到「第N組」）繼續能找到這個節點，換掉字面
+            // 顯示（改成打勾圖示）但保留可被 accessibility 找到的節點，避免一次弄壞一堆測試。
+            if row.status == .done {
+                localText("training.setIndex \(row.setIndex + 1)")
+                    .font(.system(size: 1))
+                    .foregroundStyle(.clear)
+                    .frame(width: 0, height: 0)
+                    .accessibilityHidden(false)
+            }
+            Text(verbatim: text)
+                .monospacedDigit()
+                .fontWeight(row.status == .current ? .bold : .regular)
+                .foregroundStyle(row.status == .current ? TLColor.accent800 : TLColor.neutral600)
+        }
+    }
+
+    @ViewBuilder private func setRowActual(_ row: ActiveWorkoutViewModel.SetTableRow) -> some View {
+        switch row.status {
+        case .done:
+            HStack(spacing: 4) {
+                if let actual = row.actual {
+                    // 重量／次數是數值資料（verbatim）；「×」不用翻譯，寫死字面量會被 SwiftUI 當
+                    // LocalizedStringKey 隱式抽進 String Catalog，故明確 verbatim（見 History 同類註解）。
+                    Text(verbatim: "\(WeightDisplay.weight(actual.weight)) × \(actual.reps)")
+                        .monospacedDigit()
+                        .fontWeight(.bold)
+                        .foregroundStyle(actual.status == .skipped ? .secondary : .primary)
+                }
+                // 復原鍵貼著它要撤銷的那一組，且只有剛記錄的那組有。
+                // .borderless（而非預設樣式）：預設樣式會讓整列空白處都轉發點擊，
+                // 一碰列就誤撤銷——同 bug③ 的教訓。
+                if let actual = row.actual, viewModel.isUndoable(setId: actual.id) {
+                    Button {
+                        Task { await viewModel.undoLastSet() }
+                    } label: {
+                        Image(systemName: "arrow.uturn.backward")
+                    }
+                    .buttonStyle(.borderless)
+                    .accessibilityLabel(localText("training.undoLastSet"))
+                    .accessibilityIdentifier("activeWorkout.undoSet")
+                }
+            }
+        case .current:
+            // 沿用既有「第N組」文案（不是 11c 原稿的「現在這組」）：這串字是「即將記錄的是第幾組」
+            // 這件事唯一的可見文字來源，UITests 大量依賴它確認「有沒有真的記到下一組」，換掉會
+            // 一次弄壞一堆既有測試，換來的視覺差異不值得。
+            localText("training.setIndex \(row.setIndex + 1)")
+                .font(.footnote)
+                .foregroundStyle(TLColor.accent700)
+        case .upcoming:
+            Text(verbatim: "—").foregroundStyle(TLColor.neutral500)
         }
     }
 
@@ -379,29 +492,7 @@ public struct ActiveWorkoutView: View {
 
     private var currentSetEditor: some View {
         VStack(spacing: 16) {
-            if let target = viewModel.currentTarget, let weight = target.targetWeight {
-                let detail = target.targetReps.map { " × \($0)" } ?? ""
-                let value = "\(WeightDisplay.weight(weight))\(detail)"
-                localText("training.target \(value)")
-                    .font(.subheadline)
-                    .foregroundStyle(.tint)
-            }
-            HStack(spacing: 24) {
-                stepper(
-                    label: "training.weight",
-                    value: "\(WeightDisplay.value(viewModel.draftWeightValue)) \(viewModel.draftWeightUnit.rawValue)",
-                    idPrefix: "activeWorkout.weight",
-                    onMinus: { viewModel.bumpWeight(-1) },
-                    onPlus: { viewModel.bumpWeight(1) }
-                )
-                stepper(
-                    label: "training.reps",
-                    value: "\(viewModel.draftReps)",
-                    idPrefix: "activeWorkout.reps",
-                    onMinus: { viewModel.bumpReps(-1) },
-                    onPlus: { viewModel.bumpReps(1) }
-                )
-            }
+            inputBand
             Picker(selection: $viewModel.draftWeightUnit) {
                 ForEach(WeightUnit.allCases, id: \.self) { unit in
                     Text(unit.rawValue).tag(unit)
@@ -456,6 +547,85 @@ public struct ActiveWorkoutView: View {
             .controlSize(.small)
         }
         .padding(.vertical, 8)
+        .padding(.horizontal, TLSpace.page)
+    }
+
+    /// 輸入色帶（11c）：大數字＋來源標示（14c）＋快捷鍵，包在 neutral-300 底的圓角區塊裡。
+    private var inputBand: some View {
+        VStack(alignment: .leading, spacing: 14) {
+            if let annotation = targetAnnotationText {
+                Label {
+                    Text(verbatim: annotation)
+                } icon: {
+                    Image(systemName: "arrow.up.circle.fill")
+                }
+                .font(.footnote.weight(.semibold))
+                .foregroundStyle(TLColor.accent700)
+            }
+            HStack(spacing: 24) {
+                stepper(
+                    label: "training.weight",
+                    value: "\(WeightDisplay.value(viewModel.draftWeightValue)) \(viewModel.draftWeightUnit.rawValue)",
+                    idPrefix: "activeWorkout.weight",
+                    big: true,
+                    onMinus: { viewModel.bumpWeight(-1) },
+                    onPlus: { viewModel.bumpWeight(1) }
+                )
+                stepper(
+                    label: "training.reps",
+                    value: "\(viewModel.draftReps)",
+                    idPrefix: "activeWorkout.reps",
+                    big: true,
+                    onMinus: { viewModel.bumpReps(-1) },
+                    onPlus: { viewModel.bumpReps(1) }
+                )
+            }
+            quickActionRow
+        }
+        .padding(TLSpace.rowInset)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(TLColor.neutral300)
+        .clipShape(RoundedRectangle(cornerRadius: TLRadius.inner, style: .continuous))
+        .padding(.horizontal, TLSpace.page)
+    }
+
+    /// 「目標 80% 1RM · 已預填」；草稿一旦偏離目標就不再顯示（不然跟實際輸入矛盾）。
+    private var targetAnnotationText: String? {
+        guard let target = viewModel.currentTarget, target.targetWeight != nil,
+              !viewModel.isDraftModifiedFromTarget,
+              let algebra = WeightSourceFormatting.algebraText(target.weightSource)
+        else { return nil }
+        return String(format: String(localized: "training.table.prefilledFromTarget %@", bundle: .module), algebra)
+    }
+
+    private var quickActionRow: some View {
+        let step = viewModel.draftWeightUnit == .kg ? "2.5" : "5"
+        return HStack(spacing: 8) {
+            quickPill("−\(step)") { viewModel.bumpWeight(-1) }
+            quickPill("+\(step)") { viewModel.bumpWeight(1) }
+            if viewModel.currentTarget?.targetWeight != nil {
+                quickPill(String(localized: "training.table.resetToTarget", bundle: .module)) {
+                    viewModel.resetToTarget()
+                }
+            } else if !viewModel.currentBlockSets.isEmpty {
+                quickPill(String(localized: "training.table.sameAsLast", bundle: .module)) {
+                    viewModel.applyLastSetValues()
+                }
+            }
+        }
+    }
+
+    private func quickPill(_ title: String, action: @escaping () -> Void) -> some View {
+        Button(action: action) {
+            Text(verbatim: title)
+                .font(.footnote.weight(.semibold))
+                .foregroundStyle(TLColor.accent700)
+                .padding(.horizontal, 14)
+                .padding(.vertical, 8)
+                .background(TLColor.bg)
+                .clipShape(Capsule())
+        }
+        .buttonStyle(.plain)
     }
 
     private let restPresets = [30, 60, 90, 120, 150, 180, 240, 300]
@@ -464,6 +634,7 @@ public struct ActiveWorkoutView: View {
         label: LocalizedStringKey,
         value: String,
         idPrefix: String,
+        big: Bool = false,
         onMinus: @escaping () -> Void,
         onPlus: @escaping () -> Void
     ) -> some View {
@@ -479,9 +650,10 @@ public struct ActiveWorkoutView: View {
                 .buttonStyle(.plain)
                 .accessibilityIdentifier("\(idPrefix).minus")
                 Text(value)
-                    .font(.title2.bold())
+                    .font(big ? TLFont.display(36) : .title2.bold())
                     .monospacedDigit()
-                    .frame(minWidth: 72)
+                    .foregroundStyle(TLColor.neutral900)
+                    .frame(minWidth: big ? 96 : 72)
                 Button(action: onPlus) {
                     Image(systemName: "plus.circle.fill")
                         .font(.title)

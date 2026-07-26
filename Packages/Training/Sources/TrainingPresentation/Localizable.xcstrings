@@ -1170,18 +1170,114 @@
         }
       }
     },
-    "training.target %@": {
+    "training.table.actual": {
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Target: %@"
+            "value": "ACTUAL"
           }
         },
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "目標：%@"
+            "value": "實際"
+          }
+        }
+      }
+    },
+    "training.table.prefilledFromTarget %@": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Target %@ · prefilled"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "目標 %@ · 已預填"
+          }
+        }
+      }
+    },
+    "training.table.resetToTarget": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reset to Target"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "回到目標"
+          }
+        }
+      }
+    },
+    "training.table.sameAsLast": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Same as Last"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "同上組"
+          }
+        }
+      }
+    },
+    "training.table.set": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "SET"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "組"
+          }
+        }
+      }
+    },
+    "training.table.setCount %lld": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld sets"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld 組"
+          }
+        }
+      }
+    },
+    "training.table.target": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "TARGET"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "目標"
           }
         }
       }
