@@ -2,6 +2,7 @@ import DesignSystem
 import PlanDomain
 import SharedKernel
 import SwiftUI
+import UniformTypeIdentifiers
 
 /// 課表範本編輯（設計稿 9b/11b）：套 `EditScaffold`。逐組編輯——每個動作收起顯示摘要膠囊，
 /// 點膠囊/整列展開才逐組編輯（組N／重量表達式／次數）。重量表達式只支援絕對值／相對上次，
@@ -138,10 +139,20 @@ struct TemplateFormView: View {
 
     @ViewBuilder
     private func blockView(_ block: PlanBlock) -> some View {
-        if expandedExerciseIndex == block.exerciseIndex {
-            expandedBlock(block)
-        } else {
-            collapsedRow(block)
+        Group {
+            if expandedExerciseIndex == block.exerciseIndex {
+                expandedBlock(block)
+            } else {
+                collapsedRow(block)
+            }
+        }
+        // 長按拖曳排序（設計稿 9b/11b 的「=」把手）：系統原生拖放，不會跟點擊展開／捲動打架
+        // （跟 8b 那個自訂水平滑動手勢是不同類，見 memory nav-drill-in-pitfall）。
+        .draggable(TemplateBlockTransfer(exerciseIndex: block.exerciseIndex))
+        .dropDestination(for: TemplateBlockTransfer.self) { items, _ in
+            guard let dragged = items.first else { return false }
+            moveBlock(fromExerciseIndex: dragged.exerciseIndex, toExerciseIndex: block.exerciseIndex)
+            return true
         }
     }
 
@@ -150,9 +161,16 @@ struct TemplateFormView: View {
             title: Text(verbatim: name(for: block.exerciseId)),
             subtitle: subtitle(for: block.sets),
             onTap: { expandedExerciseIndex = block.exerciseIndex },
+            leading: { dragHandle },
             trailing: { capsule(for: block.sets) }
         )
         .contextMenu { blockMenu(block) }
+    }
+
+    private var dragHandle: some View {
+        Image(systemName: "line.3.horizontal")
+            .font(.system(size: 14, weight: .semibold))
+            .foregroundStyle(TLColor.neutral400)
     }
 
     private func capsule(for sets: [PlanSet]) -> some View {
@@ -309,6 +327,18 @@ struct TemplateFormView: View {
         reindex(reordered)
     }
 
+    /// 拖曳排序：把來源動作搬到目標動作的位置（其餘依序往前/往後補）。
+    private func moveBlock(fromExerciseIndex: Int, toExerciseIndex: Int) {
+        guard fromExerciseIndex != toExerciseIndex else { return }
+        var reordered = blocks
+        guard let fromIndex = reordered.firstIndex(where: { $0.exerciseIndex == fromExerciseIndex }),
+              let toIndex = reordered.firstIndex(where: { $0.exerciseIndex == toExerciseIndex })
+        else { return }
+        let moved = reordered.remove(at: fromIndex)
+        reordered.insert(moved, at: toIndex)
+        reindex(reordered)
+    }
+
     private func removeBlock(at index: Int) {
         var reordered = blocks
         guard reordered.indices.contains(index) else { return }
@@ -430,6 +460,14 @@ private struct EditingSet: Identifiable {
     let setId: UUID
     let setNumber: Int
     var id: UUID { setId }
+}
+
+/// 動作區塊拖曳排序用的傳輸值——只在同一個編輯畫面內拖放，內容就一個 index。
+private struct TemplateBlockTransfer: Codable, Transferable {
+    let exerciseIndex: Int
+    static var transferRepresentation: some TransferRepresentation {
+        CodableRepresentation(contentType: .data)
+    }
 }
 
 /// 逐組編輯：單組的重量表達式（絕對值／相對上次）＋次數。用 `ValuePicker` 選值。
