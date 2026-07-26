@@ -11,13 +11,16 @@ public struct FlowLayout: Layout {
     }
 
     public func sizeThatFits(proposal: ProposedViewSize, subviews: Subviews, cache: inout Void) -> CGSize {
-        let maxWidth = proposal.width ?? .infinity
+        // 寬度未指定（ideal-size 查詢）時，用最寬的單一子項當容器寬 —— 不能回「單行總寬」，
+        // 否則在 vertical ScrollView 裡容器會採用超寬 ideal、chip 溢出畫面（爆版）。
+        let sizes = subviews.map { $0.sizeThatFits(.unspecified) }
+        let widest = sizes.map(\.width).max() ?? 0
+        let maxWidth = proposal.width ?? widest
         var x: CGFloat = 0
         var y: CGFloat = 0
         var lineHeight: CGFloat = 0
         var maxLineWidth: CGFloat = 0
-        for view in subviews {
-            let size = view.sizeThatFits(.unspecified)
+        for size in sizes {
             if x > 0, x + size.width > maxWidth {
                 x = 0
                 y += lineHeight + lineSpacing

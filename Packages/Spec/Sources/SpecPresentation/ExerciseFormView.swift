@@ -114,6 +114,7 @@ struct ExerciseFormView: View {
                     )
                 }
             }
+            .frame(maxWidth: .infinity, alignment: .leading)
         }
     }
 
@@ -132,6 +133,7 @@ struct ExerciseFormView: View {
                     )
                 }
             }
+            .frame(maxWidth: .infinity, alignment: .leading)
         }
     }
 

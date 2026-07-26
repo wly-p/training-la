@@ -14,6 +14,8 @@ public struct RotationListView: View {
     @Environment(\.locale) private var locale
     @State private var creating = false
     @State private var renaming: Rotation?
+    /// 左滑停用（8b）待確認的循環 id；非 nil＝顯示 accent 確認框。
+    @State private var pendingDeactivate: UUID?
 
     public init(
         viewModel: RotationListViewModel,
@@ -92,6 +94,23 @@ public struct RotationListView: View {
         } message: {
             Text(viewModel.errorMessage ?? "")
         }
+        .tlConfirmationDialog(
+            isPresented: Binding(
+                get: { pendingDeactivate != nil },
+                set: { if !$0 { pendingDeactivate = nil } }
+            ),
+            title: localText("rotation.deactivate.confirm.title"),
+            message: localText("rotation.deactivate.confirm.message"),
+            confirmLabel: localText("rotation.manage.deactivate"),
+            cancelLabel: localText("plan.cancel"),
+            role: .normal,
+            confirmIdentifier: "confirmDeactivateRotationList",
+            onConfirm: {
+                if let id = pendingDeactivate {
+                    Task { await viewModel.setActive(id: id, false) }
+                }
+            }
+        )
     }
 
     // MARK: - 區塊
@@ -118,20 +137,25 @@ public struct RotationListView: View {
     // MARK: - 列
 
     private func activeRow(_ rotation: Rotation) -> some View {
-        // drill-in 用 value-based NavigationLink（＋上面的 navigationDestination(for:)），
-        // 與改版前一致；狀態膠囊是純文字、不搶點擊。
-        NavigationLink(value: rotation.id) {
-            ListRow(
-                title: Text(verbatim: rotation.name),
-                subtitle: Text(PlanFormatting.rotationSummary(rotation, language: AppLanguage(locale: locale))),
-                showChevron: true,
-                leading: {
-                    CircleBadge(icon: "arrow.triangle.2.circlepath", fill: TLColor.accent, tint: TLColor.bg)
-                },
-                trailing: { statusPill(rotation) }
-            )
+        // 左滑露出「停用」（8b，neutral-400、非紅）→ accent 確認；drill-in 用 value-based NavigationLink。
+        SwipeToRevealRow(
+            actionLabel: localText("rotation.manage.deactivate"),
+            actionSystemImage: "pause",
+            onAction: { pendingDeactivate = rotation.id }
+        ) {
+            NavigationLink(value: rotation.id) {
+                ListRow(
+                    title: Text(verbatim: rotation.name),
+                    subtitle: Text(PlanFormatting.rotationSummary(rotation, language: AppLanguage(locale: locale))),
+                    showChevron: true,
+                    leading: {
+                        CircleBadge(icon: "arrow.triangle.2.circlepath", fill: TLColor.accent, tint: TLColor.bg)
+                    },
+                    trailing: { statusPill(rotation) }
+                )
+            }
+            .buttonStyle(.plain)
         }
-        .buttonStyle(.plain)
         .contextMenu { rowMenu(rotation) }
     }
 
