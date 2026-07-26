@@ -70,7 +70,7 @@ targets:
       - package: Reminders
         products: [RemindersDomain, RemindersKit]
       - package: Ability
-        products: [AbilityDomain, AbilityData]
+        products: [AbilityDomain, AbilityData, AbilityPresentation]
       - package: SharedKernel
       - package: DesignSystem
     settings:

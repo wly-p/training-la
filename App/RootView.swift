@@ -1,3 +1,4 @@
+import AbilityPresentation
 import DesignSystem
 import HistoryPresentation
 import PlanPresentation
@@ -17,6 +18,7 @@ struct RootView: View {
     @State private var historyViewModel: HistoryViewModel
     @State private var planScheduleViewModel: PlanScheduleViewModel
     @State private var settingsViewModel: SettingsViewModel
+    @State private var abilityListViewModel: AbilityListViewModel
     /// 目前分頁；放在被 `.id(language)` 重建的 TabView 外層，切語言重建後才能留在原分頁。
     @State private var selection = 0
 
@@ -30,6 +32,7 @@ struct RootView: View {
         _historyViewModel = State(initialValue: dependencies.makeHistoryViewModel())
         _planScheduleViewModel = State(initialValue: dependencies.makePlanScheduleViewModel())
         _settingsViewModel = State(initialValue: dependencies.makeSettingsViewModel(onEraseAll))
+        _abilityListViewModel = State(initialValue: dependencies.makeAbilityListViewModel())
     }
 
     var body: some View {
@@ -60,7 +63,8 @@ struct RootView: View {
                 .tag(3)
             SettingsView(
                 viewModel: settingsViewModel,
-                appVersion: AppVersion.displayString(infoDictionary: Bundle.main.infoDictionary ?? [:])
+                appVersion: AppVersion.displayString(infoDictionary: Bundle.main.infoDictionary ?? [:]),
+                abilityDestination: { AnyView(AbilityListView(viewModel: abilityListViewModel)) }
             )
             .tabItem { Label("tab.settings", systemImage: "gearshape") }
             .tag(4)

@@ -1,5 +1,6 @@
 import AbilityData
 import AbilityDomain
+import AbilityPresentation
 import Foundation
 import HistoryDomain
 import HistoryPresentation
@@ -34,6 +35,7 @@ struct AppDependencies {
     let makeProgramDetailViewModel: @MainActor (_ programId: UUID) -> ProgramDetailViewModel
     /// `onErased`：清除成功後由 App 層觸發整個畫面重建（回到全新初始狀態）。
     let makeSettingsViewModel: @MainActor (_ onErased: @escaping @MainActor () -> Void) -> SettingsViewModel
+    let makeAbilityListViewModel: @MainActor () -> AbilityListViewModel
 
     /// 正式組裝：SwiftData 落地儲存，各 domain 的 models 併進同一個 Schema。
     /// `inMemory`：UI 測試用，換成不落地的 store（每次啟動都是乾淨狀態）。
@@ -296,6 +298,16 @@ struct AppDependencies {
                     languageStore: languageStore,
                     dataEraser: dataEraser,
                     onErased: onErased
+                )
+            },
+            makeAbilityListViewModel: {
+                AbilityListViewModel(
+                    listAbilityValues: ListAbilityValues(repository: abilityValueRepository),
+                    setAbilityValue: SetAbilityValue(repository: abilityValueRepository),
+                    practicedLister: PracticedExerciseListerAdapter(
+                        workoutRepository: workoutRepository,
+                        listExercises: ListExercises(repository: exerciseRepository)
+                    )
                 )
             }
         )
