@@ -63,8 +63,11 @@ public struct ProgramListView: View {
                     target: .edit(program),
                     templates: viewModel.templates,
                     name: viewModel.name(for:),
-                    onSubmit: { name, cycleLength, days in
-                        await viewModel.update(id: program.id, name: name, cycleLength: cycleLength, days: days)
+                    onSubmit: { name, cycleLength, days, intensityFactor in
+                        await viewModel.update(
+                            id: program.id, name: name, cycleLength: cycleLength, days: days,
+                            intensityFactor: intensityFactor
+                        )
                     },
                     onDelete: { await viewModel.delete(id: program.id) }
                 )
@@ -79,8 +82,10 @@ public struct ProgramListView: View {
                 target: .create,
                 templates: viewModel.templates,
                 name: viewModel.name(for:),
-                onSubmit: { name, cycleLength, days in
-                    await viewModel.create(name: name, cycleLength: cycleLength, days: days)
+                onSubmit: { name, cycleLength, days, intensityFactor in
+                    await viewModel.create(
+                        name: name, cycleLength: cycleLength, days: days, intensityFactor: intensityFactor
+                    )
                 },
                 onDelete: {}
             )

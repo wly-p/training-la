@@ -6,6 +6,8 @@ import SwiftUI
 public struct TemplateListView: View {
     @Bindable private var viewModel: TemplateListViewModel
     @State private var editing: TemplateEditTarget?
+    /// 14a：剛複製進來的來源範本名，只在那一次 `.sheet` 開著時有值。
+    @State private var duplicatedFromName: String?
     @Environment(\.locale) private var locale
     /// 由動作庫殼頁首「+」轉發：值一變就開建立表單。
     private let createToken: Int
@@ -39,12 +41,13 @@ public struct TemplateListView: View {
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background(TLColor.bg)
         .task { await viewModel.load() }
-        .onChange(of: createToken) { editing = .create }
+        .onChange(of: createToken) { duplicatedFromName = nil; editing = .create }
         .sheet(item: $editing) { target in
             TemplateFormView(
                 target: target.formTarget,
                 catalog: viewModel.catalog,
                 recentExerciseIds: recentExerciseIds,
+                duplicatedFromName: duplicatedFromName,
                 onSubmit: { name, sets in
                     switch target {
                     case .create:
@@ -88,25 +91,41 @@ public struct TemplateListView: View {
     }
 
     private func row(_ template: WorkoutTemplate) -> some View {
-        ListRow(
-            title: Text(verbatim: template.name),
-            subtitle: Text(PlanFormatting.templateSummary(template, name: viewModel.name(for:), language: AppLanguage(locale: locale))),
-            showChevron: true,
-            onTap: { editing = .edit(template) },
-            leading: {
-                // 數字圓章＝含幾個動作（neutral 底，設計稿 5b）。
-                CircleBadge(fill: TLColor.neutral300) {
-                    Text(verbatim: "\(template.blocks.count)")
-                        .font(TLFont.display(16))
-                        .foregroundStyle(TLColor.neutral800)
+        // 左滑露出「複製」（14a，88pt、neutral-400 底）——左滑只有複製，刪除依 8b 原則不放滑動裡。
+        SwipeToRevealRow(
+            actionLabel: localText("template.duplicate"),
+            actionSystemImage: "doc.on.doc",
+            onAction: {
+                Task {
+                    guard let copy = await viewModel.duplicate(id: template.id) else { return }
+                    duplicatedFromName = template.name
+                    editing = .edit(copy)
                 }
             }
-        )
-        .contextMenu {
-            Button(role: .destructive) {
-                Task { await viewModel.delete(id: template.id) }
-            } label: {
-                Label { localText("plan.delete") } icon: { Image(systemName: "trash") }
+        ) {
+            ListRow(
+                title: Text(verbatim: template.name),
+                subtitle: Text(PlanFormatting.templateSummary(template, name: viewModel.name(for:), language: AppLanguage(locale: locale))),
+                showChevron: true,
+                onTap: {
+                    duplicatedFromName = nil
+                    editing = .edit(template)
+                },
+                leading: {
+                    // 數字圓章＝含幾個動作（neutral 底，設計稿 5b）。
+                    CircleBadge(fill: TLColor.neutral300) {
+                        Text(verbatim: "\(template.blocks.count)")
+                            .font(TLFont.display(16))
+                            .foregroundStyle(TLColor.neutral800)
+                    }
+                }
+            )
+            .contextMenu {
+                Button(role: .destructive) {
+                    Task { await viewModel.delete(id: template.id) }
+                } label: {
+                    Label { localText("plan.delete") } icon: { Image(systemName: "trash") }
+                }
             }
         }
     }

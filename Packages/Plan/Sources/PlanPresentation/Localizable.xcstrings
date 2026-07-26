@@ -1204,6 +1204,22 @@
         }
       }
     },
+    "program.intensity.footer": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Applies to every slot in this program — the template itself is never changed. Rounded down to each exercise's weight increment."
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "套用到這個計畫的每一格，範本本身不會被改。依各動作的遞增單位向下取整。"
+          }
+        }
+      }
+    },
     "program.librarySummary %lld %lld": {
       "localizations": {
         "en": {
@@ -1893,6 +1909,86 @@
         }
       }
     },
+    "rotation.intensity.baseline": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Baseline"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "基準"
+          }
+        }
+      }
+    },
+    "rotation.intensity.custom": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Custom"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "自訂"
+          }
+        }
+      }
+    },
+    "rotation.intensity.footer": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Applies to every slot in this rotation — the template itself is never changed. Rounded down to each exercise's weight increment."
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "套用到這個循環的每一格，範本本身不會被改。依各動作的遞增單位向下取整。"
+          }
+        }
+      }
+    },
+    "rotation.intensity.section": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Intensity baseline"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "強度基準"
+          }
+        }
+      }
+    },
+    "rotation.intensity.useBaseline": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Use baseline"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "使用基準"
+          }
+        }
+      }
+    },
     "rotation.manage.deactivate": {
       "localizations": {
         "en": {
@@ -2454,6 +2550,38 @@
         }
       }
     },
+    "template.duplicate": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Duplicate"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "複製"
+          }
+        }
+      }
+    },
+    "template.duplicatedFrom %@": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Duplicated from “%@”"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "從「%@」複製"
+          }
+        }
+      }
+    },
     "template.empty": {
       "localizations": {
         "en": {
@@ -2882,6 +3010,22 @@
           "stringUnit": {
             "state": "translated",
             "value": "%lld 組"
+          }
+        }
+      }
+    },
+    "template.stats.summary %lld %lld %lld": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld exercises · %lld sets · ~%lld min"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld 個動作 · %lld 組 · 約 %lld 分"
           }
         }
       }

@@ -80,12 +80,18 @@ public final class ProgramListViewModel {
         }
     }
 
-    public func create(name: String, cycleLength: Int, days: [Int: WorkoutSpec]) async {
-        await run { try await self.createProgram(name: name, cycleLength: cycleLength, days: days) }
+    public func create(name: String, cycleLength: Int, days: [Int: WorkoutSpec], intensityFactor: Double = 1.0) async {
+        await run {
+            try await self.createProgram(name: name, cycleLength: cycleLength, days: days, intensityFactor: intensityFactor)
+        }
     }
 
-    public func update(id: UUID, name: String, cycleLength: Int, days: [Int: WorkoutSpec]) async {
-        await run { try await self.updateProgram(id: id, name: name, cycleLength: cycleLength, days: days) }
+    public func update(id: UUID, name: String, cycleLength: Int, days: [Int: WorkoutSpec], intensityFactor: Double) async {
+        await run {
+            try await self.updateProgram(
+                id: id, name: name, cycleLength: cycleLength, days: days, intensityFactor: intensityFactor
+            )
+        }
     }
 
     public func delete(id: UUID) async {

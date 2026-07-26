@@ -226,6 +226,7 @@ struct AppDependencies {
                     createTemplate: CreateTemplate(repository: templateRepository),
                     updateTemplate: UpdateTemplate(repository: templateRepository),
                     deleteTemplate: DeleteTemplate(repository: templateRepository),
+                    duplicateTemplate: DuplicateTemplate(repository: templateRepository),
                     exerciseCatalog: planCatalog
                 )
             },
@@ -236,6 +237,7 @@ struct AppDependencies {
                     renameRotation: RenameRotation(repository: rotationRepository),
                     saveRotationWorkouts: SaveRotationWorkouts(repository: rotationRepository),
                     setRotationActive: SetRotationActive(repository: rotationRepository),
+                    setRotationIntensityFactor: SetRotationIntensityFactor(repository: rotationRepository),
                     deleteRotation: DeleteRotation(repository: rotationRepository),
                     listTemplates: ListTemplates(repository: templateRepository),
                     exerciseCatalog: planCatalog

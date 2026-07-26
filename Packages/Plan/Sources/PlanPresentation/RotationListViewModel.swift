@@ -19,6 +19,7 @@ public final class RotationListViewModel {
     private let renameRotation: RenameRotation
     private let saveRotationWorkouts: SaveRotationWorkouts
     private let setRotationActive: SetRotationActive
+    private let setRotationIntensityFactor: SetRotationIntensityFactor
     private let deleteRotation: DeleteRotation
     private let listTemplates: ListTemplates
     private let exerciseCatalog: any PlanExerciseCatalog
@@ -29,6 +30,7 @@ public final class RotationListViewModel {
         renameRotation: RenameRotation,
         saveRotationWorkouts: SaveRotationWorkouts,
         setRotationActive: SetRotationActive,
+        setRotationIntensityFactor: SetRotationIntensityFactor,
         deleteRotation: DeleteRotation,
         listTemplates: ListTemplates,
         exerciseCatalog: any PlanExerciseCatalog
@@ -38,6 +40,7 @@ public final class RotationListViewModel {
         self.renameRotation = renameRotation
         self.saveRotationWorkouts = saveRotationWorkouts
         self.setRotationActive = setRotationActive
+        self.setRotationIntensityFactor = setRotationIntensityFactor
         self.deleteRotation = deleteRotation
         self.listTemplates = listTemplates
         self.exerciseCatalog = exerciseCatalog
@@ -58,14 +61,21 @@ public final class RotationListViewModel {
         }
     }
 
-    public func create(name: String, workouts: [WorkoutSpec], isActive: Bool, cursor: Int) async {
-        await run { try await self.createRotation(name: name, workouts: workouts, isActive: isActive, cursor: cursor) }
+    public func create(
+        name: String, workouts: [WorkoutSpec], isActive: Bool, cursor: Int, intensityFactor: Double = 1.0
+    ) async {
+        await run {
+            try await self.createRotation(
+                name: name, workouts: workouts, isActive: isActive, cursor: cursor, intensityFactor: intensityFactor
+            )
+        }
     }
 
-    public func update(id: UUID, name: String, workouts: [WorkoutSpec]) async {
+    public func update(id: UUID, name: String, workouts: [WorkoutSpec], intensityFactor: Double) async {
         await run {
             try await self.renameRotation(id: id, name: name)
             try await self.saveRotationWorkouts(id: id, workouts: workouts)
+            try await self.setRotationIntensityFactor(id: id, intensityFactor: intensityFactor)
         }
     }
 

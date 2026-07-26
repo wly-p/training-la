@@ -73,8 +73,8 @@ public struct RotationListView: View {
                     target: .edit(rotation),
                     templates: viewModel.templates,
                     name: viewModel.name(for:),
-                    onSubmit: { name, workouts, _, _ in
-                        await viewModel.update(id: rotation.id, name: name, workouts: workouts)
+                    onSubmit: { name, workouts, _, _, intensityFactor in
+                        await viewModel.update(id: rotation.id, name: name, workouts: workouts, intensityFactor: intensityFactor)
                     },
                     onDelete: { await viewModel.delete(id: rotation.id) }
                 )
@@ -89,8 +89,10 @@ public struct RotationListView: View {
                 target: .create,
                 templates: viewModel.templates,
                 name: viewModel.name(for:),
-                onSubmit: { name, workouts, isActive, cursor in
-                    await viewModel.create(name: name, workouts: workouts, isActive: isActive, cursor: cursor)
+                onSubmit: { name, workouts, isActive, cursor, intensityFactor in
+                    await viewModel.create(
+                        name: name, workouts: workouts, isActive: isActive, cursor: cursor, intensityFactor: intensityFactor
+                    )
                 },
                 onDelete: {}
             )

@@ -15,6 +15,7 @@ public final class TemplateListViewModel {
     private let createTemplate: CreateTemplate
     private let updateTemplate: UpdateTemplate
     private let deleteTemplate: DeleteTemplate
+    private let duplicateTemplate: DuplicateTemplate
     private let exerciseCatalog: any PlanExerciseCatalog
 
     public init(
@@ -22,12 +23,14 @@ public final class TemplateListViewModel {
         createTemplate: CreateTemplate,
         updateTemplate: UpdateTemplate,
         deleteTemplate: DeleteTemplate,
+        duplicateTemplate: DuplicateTemplate,
         exerciseCatalog: any PlanExerciseCatalog
     ) {
         self.listTemplates = listTemplates
         self.createTemplate = createTemplate
         self.updateTemplate = updateTemplate
         self.deleteTemplate = deleteTemplate
+        self.duplicateTemplate = duplicateTemplate
         self.exerciseCatalog = exerciseCatalog
     }
 
@@ -55,6 +58,19 @@ public final class TemplateListViewModel {
 
     public func delete(id: UUID) async {
         await run { try await self.deleteTemplate(id: id) }
+    }
+
+    /// 左滑「複製」（14a）：深拷貝已存進 repository，回傳新的一份給呼叫端直接開編輯頁。
+    @discardableResult
+    public func duplicate(id: UUID) async -> WorkoutTemplate? {
+        do {
+            let copy = try await duplicateTemplate(id: id)
+            await load()
+            return copy
+        } catch {
+            errorMessage = .plan("plan.error.actionFailed \(error.localizedDescription)")
+            return nil
+        }
     }
 
     public func dismissError() { errorMessage = nil }

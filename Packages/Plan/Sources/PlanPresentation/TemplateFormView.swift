@@ -17,6 +17,9 @@ struct TemplateFormView: View {
     let catalog: [PlanCatalogExercise]
     /// 最近用過的動作 id（picker 的「最近用過」分組；由呼叫端算好傳入，見 TemplateListView）。
     let recentExerciseIds: [UUID]
+    /// 14a 複製範本：剛複製進來時的來源範本名，只在這次開表單顯示一次（存檔後消失，
+    /// 呼叫端下次正常編輯不會再傳這個）。
+    let duplicatedFromName: String?
     let onSubmit: (String, [PlanSet]) async -> Void
     let onDelete: () async -> Void
 
@@ -33,12 +36,14 @@ struct TemplateFormView: View {
         target: Target,
         catalog: [PlanCatalogExercise],
         recentExerciseIds: [UUID] = [],
+        duplicatedFromName: String? = nil,
         onSubmit: @escaping (String, [PlanSet]) async -> Void,
         onDelete: @escaping () async -> Void = {}
     ) {
         self.target = target
         self.catalog = catalog
         self.recentExerciseIds = recentExerciseIds
+        self.duplicatedFromName = duplicatedFromName
         self.onSubmit = onSubmit
         self.onDelete = onDelete
         switch target {
@@ -77,7 +82,11 @@ struct TemplateFormView: View {
                 }
             }
         ) {
-            statsLine
+            if let duplicatedFromName {
+                duplicatedFromBanner(duplicatedFromName)
+            } else {
+                statsLine
+            }
             exercisesSection
             if !isCreating {
                 deleteSection
@@ -144,6 +153,19 @@ struct TemplateFormView: View {
             + localText("template.stats.minutes \(estimatedMinutes)"))
             .font(TLFont.zh(TLFont.rowSub, .semibold))
             .foregroundStyle(TLColor.neutral500)
+    }
+
+    /// 14a：只在剛複製那次顯示，存檔後這個 View instance 就會被 dismiss，不會殘留。
+    /// accent-700 ＋複製圖示，一行文字（來源＋即時統計），設計稿 02-library.md B2 節。
+    private func duplicatedFromBanner(_ originalName: String) -> some View {
+        let statsText = String(
+            localized: "template.stats.summary \(blocks.count) \(draftSets.count) \(estimatedMinutes)",
+            bundle: .module
+        )
+        let sourceText = String(localized: "template.duplicatedFrom \(originalName)", bundle: .module)
+        return (Text(Image(systemName: "doc.on.doc")) + Text(verbatim: "  \(sourceText) · \(statsText)"))
+            .font(TLFont.zh(TLFont.rowSub, .semibold))
+            .foregroundStyle(TLColor.accent700)
     }
 
     // MARK: - 動作清單

@@ -20,13 +20,14 @@ public struct ProgramEditorView: View {
     let target: Target
     let templates: [WorkoutTemplate]
     let name: (UUID) -> String
-    let onSubmit: (String, Int, [Int: WorkoutSpec]) async -> Void
+    let onSubmit: (String, Int, [Int: WorkoutSpec], Double) async -> Void
     let onDelete: () async -> Void
 
     @Environment(\.dismiss) private var dismiss
     @State private var draftName: String
     @State private var draftCycleLength: Int
     @State private var draftDays: [Int: WorkoutSpec]
+    @State private var draftIntensityFactor: Double
     /// 新增模式：使用者已經決定過（指派範本或設休息）的天數索引。編輯模式不使用（永遠視為全部已決定）。
     @State private var touchedDays: Set<Int> = []
 
@@ -35,16 +36,19 @@ public struct ProgramEditorView: View {
     @State private var showCycleLengthEditor = false
     @State private var pickingDay: EditingDay?
     @State private var showDeleteConfirm = false
+    /// 14b：正在編輯覆寫值的那一天（nil＝沒有 sheet 開著）。
+    @State private var overridingDay: Int?
 
     private let initialName: String
     private let initialCycleLength: Int
     private let initialDays: [Int: WorkoutSpec]
+    private let initialIntensityFactor: Double
 
     public init(
         target: Target,
         templates: [WorkoutTemplate],
         name: @escaping (UUID) -> String,
-        onSubmit: @escaping (String, Int, [Int: WorkoutSpec]) async -> Void,
+        onSubmit: @escaping (String, Int, [Int: WorkoutSpec], Double) async -> Void,
         onDelete: @escaping () async -> Void = {}
     ) {
         self.target = target
@@ -57,14 +61,17 @@ public struct ProgramEditorView: View {
             initialName = ""
             initialCycleLength = 7
             initialDays = [:]
+            initialIntensityFactor = 1.0
         case .edit(let program):
             initialName = program.name
             initialCycleLength = program.cycleLength
             initialDays = program.days
+            initialIntensityFactor = program.intensityFactor
         }
         _draftName = State(initialValue: initialName)
         _draftCycleLength = State(initialValue: initialCycleLength)
         _draftDays = State(initialValue: initialDays)
+        _draftIntensityFactor = State(initialValue: initialIntensityFactor)
         _previewTotalLength = State(initialValue: [10, 14, 28].first { $0 >= initialCycleLength } ?? initialCycleLength)
     }
 
@@ -86,6 +93,7 @@ public struct ProgramEditorView: View {
         guard !draftName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else { return false }
         if isCreating { return unassignedCount == 0 }
         return draftName != initialName || draftCycleLength != initialCycleLength || draftDays != initialDays
+            || draftIntensityFactor != initialIntensityFactor
     }
 
     /// 最近用過的範本（依 `updatedAt` 新到舊，取前 5）：picker 的「最近用過」分組。
@@ -103,7 +111,7 @@ public struct ProgramEditorView: View {
             onCancel: { dismiss() },
             onSave: {
                 Task {
-                    await onSubmit(draftName, draftCycleLength, draftDays)
+                    await onSubmit(draftName, draftCycleLength, draftDays, draftIntensityFactor)
                     dismiss()
                 }
             }
@@ -111,6 +119,7 @@ public struct ProgramEditorView: View {
             totalLengthSection
             cycleSection
             previewSection
+            intensitySection
             if !isCreating {
                 deleteSection
             }
@@ -128,6 +137,14 @@ public struct ProgramEditorView: View {
                 selection: .single(onSelect: { item in assignDay(index, item) }),
                 labels: PlanPickerLabels.standard
             )
+        }
+        .sheet(isPresented: Binding(
+            get: { overridingDay != nil },
+            set: { if !$0 { overridingDay = nil } }
+        )) {
+            if let day = overridingDay {
+                intensityOverrideSheet(for: day)
+            }
         }
         .tlConfirmationDialog(
             isPresented: $showDeleteConfirm,
@@ -247,7 +264,17 @@ public struct ProgramEditorView: View {
             subtitle: spec.map { Text(PlanFormatting.exerciseNamesSummary($0, name: name)) },
             showChevron: true,
             onTap: { pickingDay = EditingDay(index: index) },
-            leading: { indexBadge(index + 1, state: state, isNext: isNext) }
+            leading: { indexBadge(index + 1, state: state, isNext: isNext) },
+            trailing: {
+                // 休息日沒有重量可算，強度覆寫膠囊只在指派了範本的天顯示（14b）。
+                if state == .assigned {
+                    IntensityOverridePill(
+                        factor: spec?.intensityFactor,
+                        baselineLabel: String(localized: "rotation.intensity.baseline", bundle: .module),
+                        onTap: { overridingDay = index }
+                    )
+                }
+            }
         )
         .background(isNext ? TLColor.accent.opacity(0.07) : Color.clear)
     }
@@ -350,6 +377,49 @@ public struct ProgramEditorView: View {
                 + Text(verbatim: " = ")
                 + localText("program.preview.total \(rounds * draftCycleLength) \(rounds * practiceCountPerCycle)")
         }
+    }
+
+    // MARK: - 強度基準（14b）
+
+    /// 「套用後」試算：拿目前週期裡第一個已指派的範本、它的第一組當代表動作。
+    private var intensityPreviewLines: [IntensityFactorGroup.PreviewLine] {
+        guard let firstSet = draftDays.values.first?.sets.first else { return [] }
+        let base = firstSet.targetWeight?.resolvedWeight?.value ?? 60
+        let result = (base * draftIntensityFactor / 2.5).rounded(.down) * 2.5
+        return [
+            IntensityFactorGroup.PreviewLine(
+                label: Text(verbatim: "\(name(firstSet.exerciseId)) ") + localText("template.setNumber \(firstSet.setIndex + 1)"),
+                expression: Text(verbatim: String(format: "%.0f kg × %.0f%%", base, draftIntensityFactor * 100)),
+                result: Text(verbatim: String(format: "%.1f kg", result))
+            )
+        ]
+    }
+
+    private var intensitySection: some View {
+        EditSection(localText("rotation.intensity.section"), footer: localText("program.intensity.footer")) {
+            IntensityFactorGroup(
+                factor: $draftIntensityFactor,
+                customLabel: String(localized: "rotation.intensity.custom", bundle: .module),
+                previewLines: intensityPreviewLines
+            )
+        }
+    }
+
+    /// 點某一天的強度膠囊：ValuePicker 選 0.5–1.2，或「使用基準」清掉覆寫。
+    private func intensityOverrideSheet(for day: Int) -> some View {
+        IntensityOverrideSheet(
+            baseline: draftIntensityFactor,
+            current: draftDays[day]?.intensityFactor,
+            onCancel: { overridingDay = nil },
+            onUseBaseline: {
+                draftDays[day]?.intensityFactor = nil
+                overridingDay = nil
+            },
+            onCommit: { newValue in
+                draftDays[day]?.intensityFactor = newValue
+                overridingDay = nil
+            }
+        )
     }
 
     // MARK: - 刪除（僅編輯模式）
