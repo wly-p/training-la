@@ -18,6 +18,15 @@ public struct WeekTrainingSummary: Equatable, Sendable {
     public let days: [Day]
 }
 
+/// 開練前預覽（13d）：卡片被點開的那一刻試算出來的藍圖，尚未真正「開始」
+/// （尚未 `StartWorkout`；循環的話也還沒動游標，見 `PreviewRotationWorkout`）。
+public struct PendingStart: Identifiable, Sendable {
+    public enum Source: Sendable, Equatable { case plan, rotation(UUID) }
+    public let id = UUID()
+    public let source: Source
+    public let blueprint: PlannedWorkoutBlueprint
+}
+
 /// 訓練首頁「重複上次」列：最近一場已完成場次的摘要。
 public struct RecentSessionSummary: Equatable, Sendable {
     public let workoutId: UUID
@@ -44,6 +53,8 @@ public final class TrainingHomeViewModel {
     public private(set) var lastSession: RecentSessionSummary?
     /// 非 nil → 呈現記錄畫面。
     public var recording: Workout?
+    /// 非 nil → 呈現開練前預覽 sheet（13d）。
+    public var pendingStart: PendingStart?
     /// 本地化錯誤字串（延後解析，由 View 依 Environment locale 顯示）。
     public private(set) var errorMessage: LocalizedStringResource?
 
@@ -153,6 +164,40 @@ public final class TrainingHomeViewModel {
 
     public func resume() {
         recording = resumable
+    }
+
+    // MARK: - 開練前預覽（13d）
+
+    /// 點「今天指定」卡：today's plan 已經材料化好了，直接拿現成的藍圖預覽，不用再問一次 Plan。
+    public func previewPlan() {
+        guard let plan = todaysPlan else { return }
+        pendingStart = PendingStart(source: .plan, blueprint: plan)
+    }
+
+    /// 點「隨時可做」卡：用不落地、不動游標的 `previewRotation` 試算，跟「開始循環」分開。
+    public func previewRotation(id: UUID) async {
+        do {
+            guard let blueprint = try await plannedProvider?.previewRotation(id: id) else { return }
+            pendingStart = PendingStart(source: .rotation(id), blueprint: blueprint)
+        } catch {
+            errorMessage = .training("training.error.loadStatus \(error.localizedDescription)")
+        }
+    }
+
+    public func dismissPendingStart() {
+        pendingStart = nil
+    }
+
+    /// 預覽 sheet 按「開始訓練」：這一刻才真正落地（循環的游標也是這時才動）。
+    public func confirmPendingStart() async {
+        guard let pending = pendingStart else { return }
+        pendingStart = nil
+        switch pending.source {
+        case .plan:
+            await startFromPlan()
+        case .rotation(let id):
+            await startFromRotation(id: id)
+        }
     }
 
     public func dismissError() { errorMessage = nil }

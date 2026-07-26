@@ -24,16 +24,33 @@ private actor MockHomeWorkoutRepo: WorkoutRepository {
     func usesExercise(_ exerciseId: UUID) async throws -> Bool { false }
 }
 
-private struct MockPlannedProvider: PlannedWorkoutProvider {
+private actor MockPlannedProvider: PlannedWorkoutProvider {
     let plan: PlannedWorkoutBlueprint?
     var templateList: [PlannedTemplateSummary] = []
     var rotationList: [PlannedRotationSummary] = []
+    /// 呼叫紀錄：驗證預覽階段不該碰 startRotation（不動游標），只有 confirm 才碰。
+    private(set) var previewRotationCallCount = 0
+    private(set) var startRotationCallCount = 0
+
+    init(plan: PlannedWorkoutBlueprint?, templateList: [PlannedTemplateSummary] = [], rotationList: [PlannedRotationSummary] = []) {
+        self.plan = plan
+        self.templateList = templateList
+        self.rotationList = rotationList
+    }
+
     func todaysPlan() async throws -> PlannedWorkoutBlueprint? { plan }
     func blueprint(planWorkoutId: UUID) async throws -> PlannedWorkoutBlueprint? { plan }
     func templates() async throws -> [PlannedTemplateSummary] { templateList }
     func instantiate(templateId: UUID) async throws -> PlannedWorkoutBlueprint? { plan }
     func activeRotations() async throws -> [PlannedRotationSummary] { rotationList }
-    func startRotation(id: UUID) async throws -> PlannedWorkoutBlueprint? { plan }
+    func previewRotation(id: UUID) async throws -> PlannedWorkoutBlueprint? {
+        previewRotationCallCount += 1
+        return plan
+    }
+    func startRotation(id: UUID) async throws -> PlannedWorkoutBlueprint? {
+        startRotationCallCount += 1
+        return plan
+    }
 }
 
 private struct ThrowingPlannedProvider: PlannedWorkoutProvider {
@@ -43,6 +60,7 @@ private struct ThrowingPlannedProvider: PlannedWorkoutProvider {
     func templates() async throws -> [PlannedTemplateSummary] { throw Failure() }
     func instantiate(templateId: UUID) async throws -> PlannedWorkoutBlueprint? { throw Failure() }
     func activeRotations() async throws -> [PlannedRotationSummary] { throw Failure() }
+    func previewRotation(id: UUID) async throws -> PlannedWorkoutBlueprint? { throw Failure() }
     func startRotation(id: UUID) async throws -> PlannedWorkoutBlueprint? { throw Failure() }
 }
 
@@ -180,6 +198,97 @@ struct TrainingHomeViewModelTests {
         vm.dismissError()
 
         #expect(vm.errorMessage == nil)
+    }
+
+    // MARK: - 13d 開練前預覽
+
+    @Test func previewPlanUsesAlreadyLoadedTodaysPlanWithoutStarting() async {
+        let repo = MockHomeWorkoutRepo()
+        let plan = PlannedWorkoutBlueprint(planWorkoutId: UUID(), name: "推日", targets: [])
+        let vm = TrainingHomeViewModel(
+            startWorkout: StartWorkout(repository: repo),
+            resumeWorkout: ResumeWorkout(repository: repo),
+            plannedProvider: MockPlannedProvider(plan: plan)
+        )
+        await vm.refresh()
+
+        vm.previewPlan()
+
+        #expect(vm.pendingStart?.source == .plan)
+        #expect(vm.pendingStart?.blueprint.planWorkoutId == plan.planWorkoutId)
+        #expect(vm.recording == nil)   // 只是預覽，還沒真的開始
+    }
+
+    @Test func previewRotationCallsPreviewNotStart() async {
+        let repo = MockHomeWorkoutRepo()
+        let plan = PlannedWorkoutBlueprint(planWorkoutId: UUID(), name: "推日", targets: [])
+        let rotationId = UUID()
+        let provider = MockPlannedProvider(plan: plan)
+        let vm = TrainingHomeViewModel(
+            startWorkout: StartWorkout(repository: repo),
+            resumeWorkout: ResumeWorkout(repository: repo),
+            plannedProvider: provider
+        )
+
+        await vm.previewRotation(id: rotationId)
+
+        #expect(vm.pendingStart?.source == .rotation(rotationId))
+        #expect(await provider.previewRotationCallCount == 1)
+        #expect(await provider.startRotationCallCount == 0)   // 關鍵：預覽不該動到游標
+        #expect(vm.recording == nil)
+    }
+
+    @Test func confirmPendingStartForPlanStartsWorkout() async {
+        let repo = MockHomeWorkoutRepo()
+        let plan = PlannedWorkoutBlueprint(planWorkoutId: UUID(), name: "推日", targets: [])
+        let vm = TrainingHomeViewModel(
+            startWorkout: StartWorkout(repository: repo),
+            resumeWorkout: ResumeWorkout(repository: repo),
+            plannedProvider: MockPlannedProvider(plan: plan)
+        )
+        await vm.refresh()
+        vm.previewPlan()
+
+        await vm.confirmPendingStart()
+
+        #expect(vm.pendingStart == nil)
+        #expect(vm.recording?.planWorkoutId == plan.planWorkoutId)
+    }
+
+    @Test func confirmPendingStartForRotationCallsStartExactlyOnce() async {
+        let repo = MockHomeWorkoutRepo()
+        let plan = PlannedWorkoutBlueprint(planWorkoutId: UUID(), name: "推日", targets: [])
+        let rotationId = UUID()
+        let provider = MockPlannedProvider(plan: plan)
+        let vm = TrainingHomeViewModel(
+            startWorkout: StartWorkout(repository: repo),
+            resumeWorkout: ResumeWorkout(repository: repo),
+            plannedProvider: provider
+        )
+        await vm.previewRotation(id: rotationId)
+
+        await vm.confirmPendingStart()
+
+        #expect(vm.pendingStart == nil)
+        #expect(vm.recording?.planWorkoutId == plan.planWorkoutId)
+        #expect(await provider.startRotationCallCount == 1)   // 真正開始，只在確認那一刻動游標
+    }
+
+    @Test func dismissPendingStartClearsPreviewWithoutStarting() async {
+        let repo = MockHomeWorkoutRepo()
+        let plan = PlannedWorkoutBlueprint(planWorkoutId: UUID(), name: "推日", targets: [])
+        let vm = TrainingHomeViewModel(
+            startWorkout: StartWorkout(repository: repo),
+            resumeWorkout: ResumeWorkout(repository: repo),
+            plannedProvider: MockPlannedProvider(plan: plan)
+        )
+        await vm.refresh()
+        vm.previewPlan()
+
+        vm.dismissPendingStart()
+
+        #expect(vm.pendingStart == nil)
+        #expect(vm.recording == nil)
     }
 }
 

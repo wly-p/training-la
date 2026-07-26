@@ -88,6 +88,8 @@ public struct TargetWeightSource: Equatable, Sendable {
     public enum Kind: Equatable, Sendable { case none, absolute, relativeToLast, percentOf1RM }
 
     public let kind: Kind
+    /// `.absolute` 套用強度倍率之前的原始公斤數（14c 算式「120 kg × 75%」的 120）。
+    public let base: Weight?
     public let percent: Double?
     /// `.percentOf1RM` 當時查到的能力值(1RM)；nil＝當時還沒設，算不出來。
     public let abilityValue: Weight?
@@ -98,6 +100,7 @@ public struct TargetWeightSource: Equatable, Sendable {
 
     public init(
         kind: Kind,
+        base: Weight? = nil,
         percent: Double? = nil,
         abilityValue: Weight? = nil,
         delta: Weight? = nil,
@@ -105,6 +108,7 @@ public struct TargetWeightSource: Equatable, Sendable {
         intensityFactor: Double
     ) {
         self.kind = kind
+        self.base = base
         self.percent = percent
         self.abilityValue = abilityValue
         self.delta = delta
@@ -160,6 +164,8 @@ public protocol PlannedWorkoutProvider: Sendable {
     func instantiate(templateId: UUID) async throws -> PlannedWorkoutBlueprint?
     /// 目前啟用中、且有內容的循環課表（每組今天輪到哪張）；可多組並行。
     func activeRotations() async throws -> [PlannedRotationSummary]
+    /// 開始前預覽（13d）：試算今天這組循環會是什麼樣子，不落地、不動游標。
+    func previewRotation(id: UUID) async throws -> PlannedWorkoutBlueprint?
     /// 開始某組循環今天的 workout：建立當日排課、游標往下一張，回傳其藍圖。
     func startRotation(id: UUID) async throws -> PlannedWorkoutBlueprint?
 }

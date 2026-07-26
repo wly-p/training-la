@@ -46,6 +46,8 @@ public struct WeightSourceInfo: Equatable, Sendable, Codable {
     public enum Kind: String, Sendable, Codable { case none, absolute, relativeToLast, percentOf1RM }
 
     public let kind: Kind
+    /// `.absolute` 套用強度倍率之前的原始公斤數（14c 算式「120 kg × 75%」的 120）。
+    public let base: Weight?
     /// `.percentOf1RM` 的百分比數字。
     public let percent: Double?
     /// `.percentOf1RM` 當時查到的能力值(1RM)；nil＝當時還沒設，算不出來。
@@ -58,6 +60,7 @@ public struct WeightSourceInfo: Equatable, Sendable, Codable {
 
     public init(
         kind: Kind,
+        base: Weight? = nil,
         percent: Double? = nil,
         abilityValue: Weight? = nil,
         delta: Weight? = nil,
@@ -65,6 +68,7 @@ public struct WeightSourceInfo: Equatable, Sendable, Codable {
         intensityFactor: Double
     ) {
         self.kind = kind
+        self.base = base
         self.percent = percent
         self.abilityValue = abilityValue
         self.delta = delta
@@ -103,7 +107,7 @@ func resolveWeightExpression(
         source = WeightSourceInfo(kind: .none, intensityFactor: intensityFactor)
     case .absolute(let weight):
         base = weight
-        source = WeightSourceInfo(kind: .absolute, intensityFactor: intensityFactor)
+        source = WeightSourceInfo(kind: .absolute, base: weight, intensityFactor: intensityFactor)
     case .percentOf1RM(let percent):
         let ability = try await abilityValueLookup.abilityValue(exerciseId: exerciseId)
         base = ability.map { Weight(value: $0.value * percent / 100, unit: $0.unit) }

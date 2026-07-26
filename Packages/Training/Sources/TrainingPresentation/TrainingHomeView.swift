@@ -9,19 +9,23 @@ public struct TrainingHomeView: View {
     @Bindable private var viewModel: TrainingHomeViewModel
     @Environment(\.locale) private var locale
     private let makeActiveWorkoutViewModel: @MainActor (Workout) -> ActiveWorkoutViewModel
-    /// 「啟用一個循環或長期計畫」→ 切到課表分頁；nil＝不顯示這條路（例如預覽/測試環境未接線）。
+    /// 「啟用一個循環或長期計畫」／13d「只調這一次」→ 切到課表分頁；nil＝不顯示這條路。
     private let openSchedule: (() -> Void)?
+    /// 13d「改範本」→ 切到動作庫分頁（範本/循環/長期的編輯都在那裡）；nil＝不顯示這條路。
+    private let openLibrary: (() -> Void)?
 
     @State private var showsTemplatePicker = false
 
     public init(
         viewModel: TrainingHomeViewModel,
         makeActiveWorkoutViewModel: @escaping @MainActor (Workout) -> ActiveWorkoutViewModel,
-        openSchedule: (() -> Void)? = nil
+        openSchedule: (() -> Void)? = nil,
+        openLibrary: (() -> Void)? = nil
     ) {
         self.viewModel = viewModel
         self.makeActiveWorkoutViewModel = makeActiveWorkoutViewModel
         self.openSchedule = openSchedule
+        self.openLibrary = openLibrary
     }
 
     public var body: some View {
@@ -66,6 +70,14 @@ public struct TrainingHomeView: View {
             }) { workout in
                 ActiveWorkoutView(viewModel: makeActiveWorkoutViewModel(workout))
                     .interactiveDismissDisabled()
+            }
+            .sheet(item: $viewModel.pendingStart) { pending in
+                TrainingPreviewSheet(
+                    blueprint: pending.blueprint,
+                    onStart: { Task { await viewModel.confirmPendingStart() } },
+                    onAdjustOnce: openSchedule,
+                    onEditTemplate: openLibrary
+                )
             }
             .confirmationDialog(
                 localText("training.chooseTemplate"),
@@ -253,14 +265,14 @@ public struct TrainingHomeView: View {
         switch card.kind {
         case .todaySpecified:
             Button {
-                Task { await viewModel.startFromPlan() }
+                viewModel.previewPlan()
             } label: {
                 localText("training.home.startCard")
             }
             .buttonStyle(.tlPrimary)
         case .rotation(let id):
             Button {
-                Task { await viewModel.startFromRotation(id: id) }
+                Task { await viewModel.previewRotation(id: id) }
             } label: {
                 localText("training.home.startRotationCard")
             }

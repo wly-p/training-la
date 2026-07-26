@@ -27,6 +27,10 @@ final class ExerciseCompletionUITests: XCTestCase {
         app.tabBars.buttons["訓練"].tap()
         XCTAssertTrue(app.buttons["開始"].waitForExistence(timeout: 5))
         app.buttons["開始"].tap()
+        // 13d 開練前預覽 sheet：確認開始才真正落地
+        let confirmStart = app.buttons["開始訓練"]
+        XCTAssertTrue(confirmStart.waitForExistence(timeout: 5))
+        confirmStart.tap()
 
         // 完成臥推 3 組
         let complete = app.buttons["完成此組"]

@@ -212,6 +212,55 @@ struct StartRotationTests {
     }
 }
 
+/// 13d 開始前預覽：跟 `StartRotationTests` 同樣的收斂邏輯，但關鍵差異是「不寫入、不動游標」——
+/// 這是預覽跟真正開始唯一該有的行為差異，兩邊都要驗證到。
+struct PreviewRotationWorkoutTests {
+    private let makePreview: (any RotationRepository) -> PreviewRotationWorkout = { repo in
+        PreviewRotationWorkout(
+            rotationRepository: repo, exerciseCatalog: MockPlanExerciseCatalog(),
+            lastPerformedWeightLookup: MockLastPerformedWeightLookup(), abilityValueLookup: MockAbilityValueLookup()
+        )
+    }
+
+    @Test func resolvesCurrentWorkoutSameAsStart() async throws {
+        let rotationRepo = MockRotationRepository()
+        let id = UUID()
+        await rotationRepo.seed(Rotation(id: id, name: "推拉", workouts: [spec("推"), spec("拉")], cursor: 0))
+        let preview = makePreview(rotationRepo)
+
+        let plan = try await preview(id: id)
+
+        #expect(plan?.name == "推")
+        #expect(plan?.sets.count == 1)
+        #expect(plan?.sets.first?.targetWeight == .absolute(Weight(value: 60, unit: .kg)))
+    }
+
+    @Test func doesNotAdvanceCursorOrPersistAnything() async throws {
+        let rotationRepo = MockRotationRepository()
+        let id = UUID()
+        await rotationRepo.seed(Rotation(id: id, name: "推拉", workouts: [spec("推"), spec("拉")], cursor: 0))
+        let preview = makePreview(rotationRepo)
+
+        _ = try await preview(id: id)
+        _ = try await preview(id: id)   // 呼叫兩次也不該有副作用累積
+
+        let after = try await rotationRepo.get(id: id)!
+        #expect(after.current?.name == "推")   // 游標沒動
+        #expect(after.completedCount == 0)     // 次數沒累計
+    }
+
+    @Test func unknownOrEmptyRotationReturnsNil() async throws {
+        let rotationRepo = MockRotationRepository()
+        let preview = makePreview(rotationRepo)
+
+        #expect(try await preview(id: UUID()) == nil)
+
+        let emptyId = UUID()
+        await rotationRepo.seed(Rotation(id: emptyId, name: "空"))
+        #expect(try await preview(id: emptyId) == nil)
+    }
+}
+
 struct SetRotationIntensityFactorTests {
     @Test func updatesIntensityFactor() async throws {
         let repo = MockRotationRepository()

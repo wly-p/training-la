@@ -195,6 +195,49 @@ public struct StartRotation: Sendable {
     }
 }
 
+/// 開始前預覽（13d）：用現在的能力值／上次紀錄試算今天這張會是什麼樣子——
+/// 純讀取，不寫入、不動游標／累計次數。真正「開始」還是要走 `StartRotation`，
+/// 兩者刻意分開：預覽階段使用者可能只是看看就關掉，不該讓循環往下走一輪。
+public struct PreviewRotationWorkout: Sendable {
+    private let rotationRepository: any RotationRepository
+    private let exerciseCatalog: any PlanExerciseCatalog
+    private let lastPerformedWeightLookup: any LastPerformedWeightLookup
+    private let abilityValueLookup: any AbilityValueLookup
+
+    public init(
+        rotationRepository: any RotationRepository,
+        exerciseCatalog: any PlanExerciseCatalog,
+        lastPerformedWeightLookup: any LastPerformedWeightLookup,
+        abilityValueLookup: any AbilityValueLookup
+    ) {
+        self.rotationRepository = rotationRepository
+        self.exerciseCatalog = exerciseCatalog
+        self.lastPerformedWeightLookup = lastPerformedWeightLookup
+        self.abilityValueLookup = abilityValueLookup
+    }
+
+    /// 回傳試算結果（未落地的 `PlanWorkout` 形狀，只借用它的欄位給呼叫端組 blueprint）；
+    /// 找不到循環或空循環回 nil。
+    public func callAsFunction(id: UUID) async throws -> PlanWorkout? {
+        guard let rotation = try await rotationRepository.get(id: id),
+              let spec = rotation.current else { return nil }
+        let catalog = try await exerciseCatalog.exercises()
+        let sets = try await resolvedPlanSets(
+            from: spec.sets, catalog: catalog,
+            intensityFactor: spec.intensityFactor ?? rotation.intensityFactor,
+            lastPerformedLookup: lastPerformedWeightLookup, abilityValueLookup: abilityValueLookup,
+            makeID: { UUID() }
+        )
+        return PlanWorkout(
+            id: UUID(),
+            name: spec.name.isEmpty ? nil : spec.name,
+            date: DayDate(Date()),
+            orderIndex: 0,
+            sets: sets
+        )
+    }
+}
+
 /// 循環課表名稱驗證：去頭尾空白、不可為空。
 func validatedRotationName(_ name: String) throws -> String {
     let trimmed = name.trimmingCharacters(in: .whitespacesAndNewlines)

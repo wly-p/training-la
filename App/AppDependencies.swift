@@ -137,6 +137,11 @@ struct AppDependencies {
                 abilityValueLookup: abilityValueLookup
             ),
             listRotations: ListRotations(repository: rotationRepository),
+            previewRotationUseCase: PreviewRotationWorkout(
+                rotationRepository: rotationRepository,
+                exerciseCatalog: planCatalog, lastPerformedWeightLookup: lastPerformedWeightLookup,
+                abilityValueLookup: abilityValueLookup
+            ),
             startRotationUseCase: StartRotation(
                 rotationRepository: rotationRepository, planRepository: planRepository,
                 exerciseCatalog: planCatalog, lastPerformedWeightLookup: lastPerformedWeightLookup,

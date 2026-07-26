@@ -49,6 +49,10 @@ final class RotationFlowUITests: XCTestCase {
         app.tabBars.buttons["訓練"].tap()
         XCTAssertTrue(app.staticTexts["推日"].waitForExistence(timeout: 5))
         app.buttons["開始循環"].tap()
+        // 13d 開練前預覽 sheet：確認開始才真正落地
+        let confirmStart = app.buttons["開始訓練"]
+        XCTAssertTrue(confirmStart.waitForExistence(timeout: 5))
+        confirmStart.tap()
 
         // 記錄畫面：自動選到循環的動作（臥推）
         XCTAssertTrue(app.navigationBars["臥推"].waitForExistence(timeout: 5))

@@ -818,6 +818,134 @@
         }
       }
     },
+    "training.preview.adjustOnce": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Adjust Just for Today"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "只調這一次"
+          }
+        }
+      }
+    },
+    "training.preview.editTemplate": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Edit Template"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "改範本"
+          }
+        }
+      }
+    },
+    "training.preview.exerciseSetCount %lld %lld": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$lld exercises · %2$lld sets"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$lld 個動作 · %2$lld 組"
+          }
+        }
+      }
+    },
+    "training.preview.hint": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Weights are computed from your last record and 1RM. You can still adjust each set after starting."
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "重量已依上次紀錄與 1RM 換算。開始後仍可逐組改。"
+          }
+        }
+      }
+    },
+    "training.preview.intensity %@": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Intensity %@"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "強度 %@"
+          }
+        }
+      }
+    },
+    "training.preview.lockNotice": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Weights are locked in for today. Changing your 1RM or intensity baseline later won't affect this session."
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "重量已鎖定為今天的課表。之後改 1RM 或強度基準，都不會動到這一份。"
+          }
+        }
+      }
+    },
+    "training.preview.pending": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "TBD"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "待填"
+          }
+        }
+      }
+    },
+    "training.preview.start": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Start Workout"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "開始訓練"
+          }
+        }
+      }
+    },
     "training.reps": {
       "localizations": {
         "en": {
@@ -1182,6 +1310,54 @@
           "stringUnit": {
             "state": "translated",
             "value": "重量"
+          }
+        }
+      }
+    },
+    "training.weightSource.reason.noAbility": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "1RM not set yet"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "還沒設定 1RM"
+          }
+        }
+      }
+    },
+    "training.weightSource.reason.noLast": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No previous record"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "沒有上次紀錄"
+          }
+        }
+      }
+    },
+    "training.weightSource.reason.none": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No history yet, and 1RM isn't set"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "沒有紀錄，也還沒設 1RM"
           }
         }
       }

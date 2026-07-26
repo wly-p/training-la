@@ -15,6 +15,7 @@ struct PlanProviderAdapter: PlannedWorkoutProvider {
     let listTemplates: ListTemplates
     let instantiateTemplate: InstantiateTemplate
     let listRotations: ListRotations
+    let previewRotationUseCase: PreviewRotationWorkout
     let startRotationUseCase: StartRotation
     let today: @Sendable () -> DayDate
     let listExercises: ListExercises
@@ -45,6 +46,11 @@ struct PlanProviderAdapter: PlannedWorkoutProvider {
                 guard let current = rotation.current else { return nil }
                 return PlannedRotationSummary(id: rotation.id, rotationName: rotation.name, currentName: current.name)
             }
+    }
+
+    func previewRotation(id: UUID) async throws -> PlannedWorkoutBlueprint? {
+        guard let plan = try await previewRotationUseCase(id: id) else { return nil }
+        return try await blueprint(from: plan)
     }
 
     func startRotation(id: UUID) async throws -> PlannedWorkoutBlueprint? {
@@ -79,7 +85,7 @@ struct PlanProviderAdapter: PlannedWorkoutProvider {
         case .none:
             return TargetWeightSource(kind: .none, intensityFactor: info.intensityFactor)
         case .absolute:
-            return TargetWeightSource(kind: .absolute, intensityFactor: info.intensityFactor)
+            return TargetWeightSource(kind: .absolute, base: info.base, intensityFactor: info.intensityFactor)
         case .relativeToLast:
             return TargetWeightSource(
                 kind: .relativeToLast, delta: info.delta, lastWeight: info.lastWeight,
