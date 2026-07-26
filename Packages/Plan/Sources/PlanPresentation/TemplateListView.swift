@@ -1,3 +1,4 @@
+import DesignSystem
 import PlanDomain
 import SharedKernel
 import SwiftUI
@@ -6,35 +7,39 @@ public struct TemplateListView: View {
     @Bindable private var viewModel: TemplateListViewModel
     @State private var editing: TemplateEditTarget?
     @Environment(\.locale) private var locale
+    /// 由動作庫殼頁首「+」轉發：值一變就開建立表單。
+    private let createToken: Int
 
-    public init(viewModel: TemplateListViewModel) {
+    public init(viewModel: TemplateListViewModel, createToken: Int = 0) {
         self.viewModel = viewModel
+        self.createToken = createToken
     }
 
     // 不自帶 NavigationStack：嵌在動作庫 tab 共用的 NavigationStack 內。
     public var body: some View {
-        List {
-            ForEach(viewModel.templates) { row($0) }
-        }
-        .toolbar {
-            ToolbarItem(placement: .primaryAction) {
-                Button {
-                    editing = .create
-                } label: {
-                    Label { localText("template.new") } icon: { Image(systemName: "plus") }
+        ScrollView {
+            VStack(alignment: .leading, spacing: TLSpace.section) {
+                if viewModel.templates.isEmpty {
+                    emptyState
+                } else {
+                    VStack(alignment: .leading, spacing: 0) {
+                        SectionHeader(localText("template.sectionTitle")
+                            + Text(verbatim: " · \(viewModel.templates.count)"))
+                        TLGroup {
+                            ForEach(viewModel.templates) { row($0) }
+                        }
+                    }
                 }
+                explainerCard(localText("template.explainer"))
             }
+            .padding(.horizontal, TLSpace.page)
+            .padding(.top, TLSpace.gapS)
+            .padding(.bottom, 40)
         }
-        .overlay {
-            if viewModel.templates.isEmpty {
-                ContentUnavailableView {
-                    Label { localText("template.empty") } icon: { Image(systemName: "square.stack.3d.up") }
-                } description: {
-                    localText("template.empty.hint")
-                }
-            }
-        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .background(TLColor.bg)
         .task { await viewModel.load() }
+        .onChange(of: createToken) { editing = .create }
         .sheet(item: $editing) { target in
             TemplateFormView(
                 target: target.formTarget,
@@ -62,26 +67,53 @@ public struct TemplateListView: View {
     }
 
     private func row(_ template: WorkoutTemplate) -> some View {
-        Button {
-            editing = .edit(template)
-        } label: {
-            VStack(alignment: .leading, spacing: 4) {
-                // 範本名是使用者輸入的資料（verbatim）
-                Text(verbatim: template.name).font(.headline)
-                Text(PlanFormatting.templateSummary(template, name: viewModel.name(for:), language: AppLanguage(locale: locale)))
-                    .font(.footnote)
-                    .foregroundStyle(.secondary)
+        ListRow(
+            title: Text(verbatim: template.name),
+            subtitle: Text(PlanFormatting.templateSummary(template, name: viewModel.name(for:), language: AppLanguage(locale: locale))),
+            showChevron: true,
+            onTap: { editing = .edit(template) },
+            leading: {
+                // 數字圓章＝含幾個動作（neutral 底，設計稿 5b）。
+                CircleBadge(fill: TLColor.neutral300) {
+                    Text(verbatim: "\(template.blocks.count)")
+                        .font(TLFont.display(16))
+                        .foregroundStyle(TLColor.neutral800)
+                }
             }
-            .contentShape(Rectangle())
-        }
-        .buttonStyle(.plain)
-        .swipeActions(edge: .trailing) {
+        )
+        .contextMenu {
             Button(role: .destructive) {
                 Task { await viewModel.delete(id: template.id) }
             } label: {
-                localText("plan.delete")
+                Label { localText("plan.delete") } icon: { Image(systemName: "trash") }
             }
         }
+    }
+
+    private var emptyState: some View {
+        VStack(spacing: 8) {
+            localText("template.empty")
+                .font(TLFont.zh(16, .bold))
+                .foregroundStyle(TLColor.text)
+            localText("template.empty.hint")
+                .font(TLFont.zh(12.5, .regular))
+                .foregroundStyle(TLColor.neutral600)
+                .multilineTextAlignment(.center)
+        }
+        .frame(maxWidth: .infinity)
+        .padding(.vertical, 40)
+    }
+
+    private func explainerCard(_ text: Text) -> some View {
+        text
+            .font(TLFont.zh(TLFont.rowTitle, .regular))
+            .foregroundStyle(TLColor.neutral600)
+            .multilineTextAlignment(.center)
+            .frame(maxWidth: .infinity)
+            .padding(.horizontal, TLSpace.page)
+            .padding(.vertical, 26)
+            .background(TLColor.neutral100)
+            .clipShape(RoundedRectangle(cornerRadius: TLRadius.container, style: .continuous))
     }
 }
 

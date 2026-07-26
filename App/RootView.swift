@@ -1,3 +1,4 @@
+import DesignSystem
 import HistoryPresentation
 import PlanPresentation
 import SettingsPresentation
@@ -75,8 +76,12 @@ struct RootView: View {
     }
 }
 
-/// 動作庫 tab：共用單一 NavigationStack，頂部分段切換「動作／課表範本／循環課表」三種訓練素材。
-/// 子頁不各自帶 NavigationStack，它們的 toolbar（＋／編輯）會掛到這層共用的 nav bar（情境化）。
+/// 動作庫 tab：共用單一 NavigationStack，頂部 PageHeader ＋自訂分段控制切換四種訓練素材
+/// （動作／範本／循環／長期）。子頁不各自帶 NavigationStack，drill-in 掛到這層共用的 stack。
+///
+/// 頁首 44pt 圓形「+」為四個子分頁共用：點擊自增 `createToken`；當前被實例化的那個子分頁
+/// 以 `.onChange(of: createToken)` 開自己的建立表單（同時只有一個子分頁存在，故只觸發當前分頁）。
+/// 這樣「+」不必知道各分頁的建立細節，也不需改任何 ViewModel／DI。
 private struct LibraryTabView: View {
     let exerciseViewModel: ExerciseListViewModel
     let templateViewModel: TemplateListViewModel
@@ -84,31 +89,49 @@ private struct LibraryTabView: View {
     let makeRotationEditor: @MainActor (UUID) -> RotationEditorViewModel
     let programListViewModel: ProgramListViewModel
     let makeProgramEditor: @MainActor (UUID) -> ProgramEditorViewModel
-    @State private var mode = 0
+
+    private enum Mode: Hashable { case exercises, templates, rotation, program }
+    @State private var mode: Mode = .exercises
+    @State private var createToken = 0
 
     var body: some View {
         NavigationStack {
             VStack(spacing: 0) {
-                Picker("", selection: $mode) {
-                    Text("library.exercises").tag(0)
-                    Text("library.templates").tag(1)
-                    Text("library.rotation").tag(2)
-                    Text("library.program").tag(3)
+                PageHeader(Text("tab.exercises")) {
+                    CircleIconButton(systemImage: "plus", filled: true) { createToken += 1 }
+                        .accessibilityLabel(Text("library.add"))
+                        .accessibilityIdentifier("libraryAddButton")
                 }
-                .pickerStyle(.segmented)
-                .labelsHidden()
-                .padding(.horizontal)
-                .padding(.vertical, 8)
+                TLSegmentedControl(selection: $mode, options: [
+                    .init(.exercises, Text("library.exercises")),
+                    .init(.templates, Text("library.templates")),
+                    .init(.rotation, Text("library.rotation")),
+                    .init(.program, Text("library.program")),
+                ])
+                .padding(.horizontal, TLSpace.page)
+                .padding(.top, TLSpace.gapL)
+                .padding(.bottom, TLSpace.gapM)
 
-                switch mode {
-                case 0: ExerciseListView(viewModel: exerciseViewModel)
-                case 1: TemplateListView(viewModel: templateViewModel)
-                case 2: RotationListView(viewModel: rotationListViewModel, makeEditor: makeRotationEditor)
-                default: ProgramListView(viewModel: programListViewModel, makeEditor: makeProgramEditor)
-                }
+                subtab
             }
-            .navigationTitle("tab.exercises")
-            .navigationBarTitleDisplayMode(.inline)
+            .background(TLColor.bg.ignoresSafeArea())
+            #if os(iOS)
+            .toolbar(.hidden, for: .navigationBar)
+            #endif
+        }
+    }
+
+    @ViewBuilder
+    private var subtab: some View {
+        switch mode {
+        case .exercises:
+            ExerciseListView(viewModel: exerciseViewModel, createToken: createToken)
+        case .templates:
+            TemplateListView(viewModel: templateViewModel, createToken: createToken)
+        case .rotation:
+            RotationListView(viewModel: rotationListViewModel, makeEditor: makeRotationEditor, createToken: createToken)
+        case .program:
+            ProgramListView(viewModel: programListViewModel, makeEditor: makeProgramEditor, createToken: createToken)
         }
     }
 }

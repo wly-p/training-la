@@ -11,7 +11,7 @@ final class DeleteHistoryRevertsPlanUITests: XCTestCase {
 
         // 動作庫：建動作
         app.tabBars.buttons["動作庫"].tap()
-        app.buttons["新增動作"].tap()
+        app.buttons["libraryAddButton"].tap()
         let nameField = app.textFields["名稱（例：臥推）"]
         XCTAssertTrue(nameField.waitForExistence(timeout: 5))
         nameField.tap(); nameField.typeText("臥推")

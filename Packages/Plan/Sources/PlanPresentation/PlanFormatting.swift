@@ -28,6 +28,22 @@ enum PlanFormatting {
             .joined(separator: " · ")
     }
 
+    /// 循環課表副標「3 個範本 · 推日 → 拉日」：範本數（本地化單位）＋ workout 名以 → 串接（名稱是使用者資料）。
+    /// 過長由列自身 `lineLimit(1)` 截斷。
+    static func rotationSummary(_ rotation: Rotation, language: AppLanguage) -> String {
+        let countFormat = language.localizedString("rotation.templateCount %lld", bundle: .module)
+        let count = String(format: countFormat, rotation.workouts.count)
+        guard !rotation.workouts.isEmpty else { return count }
+        let names = rotation.workouts.map(\.name).joined(separator: " → ")
+        return "\(count) · \(names)"
+    }
+
+    /// 長期課表副標「4 個範本 · 7 天週期」：有課天數 ＋ 週期天數（皆本地化）。
+    static func programLibrarySummary(_ program: Program, language: AppLanguage) -> String {
+        let format = language.localizedString("program.librarySummary %lld %lld", bundle: .module)
+        return String(format: format, program.days.count, program.cycleLength)
+    }
+
     /// 星期依 `locale` 取當地縮寫（由 View 傳 `@Environment(\.locale)`）。
     static func dayLabel(_ day: DayDate, locale: Locale) -> String {
         var components = DateComponents()

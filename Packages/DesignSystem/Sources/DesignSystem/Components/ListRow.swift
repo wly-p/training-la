@@ -49,6 +49,19 @@ public extension CircleBadge where Content == Text {
     }
 }
 
+public extension CircleBadge where Content == AnyView {
+    /// 圖示圓章（循環＝循環箭頭、長期＝長條圖）。`fill` 底、`tint` 圖示色。
+    init(icon systemName: String, fill: Color, tint: Color) {
+        self.init(fill: fill) {
+            AnyView(
+                Image(systemName: systemName)
+                    .font(.system(size: 15, weight: .semibold))
+                    .foregroundStyle(tint)
+            )
+        }
+    }
+}
+
 /// 22pt 赭紅圓形勾（可勾選列）。
 public struct CheckBadge: View {
     private let isChecked: Bool

@@ -47,7 +47,7 @@ fastlane/screenshots/**/*.png
 
 # 本機開發筆記（Notion 流程等內部資訊，不進 repo）
 *.local.md
-design_handoff_training_la_uiux/
+design_handoff_training_la_uiux*/
 
 # xcodegen 產物（用 xcodegen generate 重生）
 TrainingLa.xcodeproj/
