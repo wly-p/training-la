@@ -107,3 +107,27 @@ struct ExerciseUsageChecker: ExerciseUsageChecking {
         return try await programRepository.usesExercise(exerciseId)
     }
 }
+
+/// Spec 的「被使用於」名稱清單 port ← Plan 的範本／循環／長期（編輯頁 9a 護欄）。
+/// 只看 spec 層（範本/循環/長期）—— 訓練紀錄是過去的事、不是「還在用」，不列入護欄。
+struct ExerciseUsageLister: ExerciseUsageListing {
+    let templateRepository: any WorkoutTemplateRepository
+    let rotationRepository: any RotationRepository
+    let programRepository: any ProgramRepository
+
+    func usages(exerciseId: UUID) async throws -> [ExerciseUsageRef] {
+        var refs: [ExerciseUsageRef] = []
+        for t in try await templateRepository.all() where t.sets.contains(where: { $0.exerciseId == exerciseId }) {
+            refs.append(ExerciseUsageRef(id: t.id, name: t.name, kind: .template))
+        }
+        for r in try await rotationRepository.all()
+        where r.workouts.contains(where: { $0.sets.contains(where: { $0.exerciseId == exerciseId }) }) {
+            refs.append(ExerciseUsageRef(id: r.id, name: r.name, kind: .rotation))
+        }
+        for p in try await programRepository.all()
+        where p.days.values.contains(where: { $0.sets.contains(where: { $0.exerciseId == exerciseId }) }) {
+            refs.append(ExerciseUsageRef(id: p.id, name: p.name, kind: .program))
+        }
+        return refs
+    }
+}

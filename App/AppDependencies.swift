@@ -130,7 +130,12 @@ struct AppDependencies {
                     listExercises: ListExercises(repository: exerciseRepository),
                     createExercise: CreateExercise(repository: exerciseRepository),
                     updateExercise: UpdateExercise(repository: exerciseRepository),
-                    deleteExercise: DeleteExercise(repository: exerciseRepository)
+                    deleteExercise: DeleteExercise(repository: exerciseRepository),
+                    usageListing: ExerciseUsageLister(
+                        templateRepository: templateRepository,
+                        rotationRepository: rotationRepository,
+                        programRepository: programRepository
+                    )
                 )
             },
             makeTrainingHomeViewModel: {

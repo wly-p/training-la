@@ -93,6 +93,7 @@ private struct LibraryTabView: View {
     private enum Mode: Hashable { case exercises, templates, rotation, program }
     @State private var mode: Mode = .exercises
     @State private var createToken = 0
+    @State private var showAddSheet = false
 
     var body: some View {
         NavigationStack {
@@ -101,6 +102,11 @@ private struct LibraryTabView: View {
                     CircleIconButton(systemImage: "plus", filled: true) { createToken += 1 }
                         .accessibilityLabel(Text("library.add"))
                         .accessibilityIdentifier("libraryAddButton")
+                        // 長按 → 跨類新增選單（設計稿 10a）；短按維持直接新增當前分頁。
+                        .simultaneousGesture(
+                            LongPressGesture(minimumDuration: 0.4)
+                                .onEnded { _ in showAddSheet = true }
+                        )
                 }
                 TLSegmentedControl(selection: $mode, options: [
                     .init(.exercises, Text("library.exercises")),
@@ -118,6 +124,44 @@ private struct LibraryTabView: View {
             #if os(iOS)
             .toolbar(.hidden, for: .navigationBar)
             #endif
+            .sheet(isPresented: $showAddSheet) {
+                AddSheet(
+                    title: Text("library.add.title"),
+                    subtitle: Text("library.add.subtitle"),
+                    currentTag: Text("library.add.current"),
+                    items: [
+                        addItem(.exercises, "dumbbell", Text("library.exercises"), Text("library.add.exercise.desc")),
+                        addItem(.templates, "square.stack.3d.up", Text("library.templates"), Text("library.add.template.desc")),
+                        addItem(.rotation, "arrow.triangle.2.circlepath", Text("library.rotation"), Text("library.add.rotation.desc")),
+                        addItem(.program, "chart.bar", Text("library.program"), Text("library.add.program.desc")),
+                    ]
+                )
+                .presentationDetents([.height(440)])
+                .presentationDragIndicator(.visible)
+            }
+        }
+    }
+
+    private func addItem(_ target: Mode, _ icon: String, _ title: Text, _ subtitle: Text) -> AddSheet.Item {
+        AddSheet.Item(
+            id: "\(target)",
+            systemImage: icon,
+            title: title,
+            subtitle: subtitle,
+            isCurrent: mode == target,
+            action: { requestCreate(target) }
+        )
+    }
+
+    /// 選單選了某類：關選單 → 切到該分頁 → 觸發它的建立表單。
+    /// 切分頁後子分頁才重建，故延一拍再 bump token（onChange 只在已掛載時對「變化」反應）。
+    private func requestCreate(_ target: Mode) {
+        showAddSheet = false
+        if mode == target {
+            createToken += 1
+        } else {
+            mode = target
+            DispatchQueue.main.async { createToken += 1 }
         }
     }
 

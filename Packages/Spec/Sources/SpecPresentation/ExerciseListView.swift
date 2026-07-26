@@ -65,14 +65,23 @@ public struct ExerciseListView: View {
         .task { await viewModel.load() }
         .onChange(of: createToken) { editingTarget = .create }
         .sheet(item: $editingTarget) { target in
-            ExerciseFormView(target: target) { name, muscleGroup, equipment, description in
-                switch target {
-                case .create:
-                    await viewModel.add(name: name, muscleGroup: muscleGroup, equipment: equipment, description: description)
-                case .edit(let exercise):
-                    await viewModel.edit(id: exercise.id, name: name, muscleGroup: muscleGroup, equipment: equipment, description: description)
+            ExerciseFormView(
+                target: target,
+                loadUsages: { await viewModel.usages(of: $0) },
+                onSubmit: { name, muscleGroup, equipment, description in
+                    switch target {
+                    case .create:
+                        await viewModel.add(name: name, muscleGroup: muscleGroup, equipment: equipment, description: description)
+                    case .edit(let exercise):
+                        await viewModel.edit(id: exercise.id, name: name, muscleGroup: muscleGroup, equipment: equipment, description: description)
+                    }
+                },
+                onDelete: {
+                    if case .edit(let exercise) = target {
+                        await viewModel.remove(id: exercise.id)
+                    }
                 }
-            }
+            )
         }
         .alert(
             localText("spec.error"),

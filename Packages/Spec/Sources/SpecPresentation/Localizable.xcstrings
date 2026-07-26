@@ -50,6 +50,54 @@
         }
       }
     },
+    "spec.delete.confirm.message": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This cannot be undone."
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "刪除後無法復原。"
+          }
+        }
+      }
+    },
+    "spec.delete.confirm.title": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Delete this exercise?"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "刪除這個動作？"
+          }
+        }
+      }
+    },
+    "spec.delete.exercise": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Delete this exercise"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "刪除這個動作"
+          }
+        }
+      }
+    },
     "spec.edit": {
       "localizations": {
         "en": {
@@ -110,6 +158,22 @@
           "stringUnit": {
             "state": "translated",
             "value": "器材"
+          }
+        }
+      }
+    },
+    "spec.equipment.hint": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Equipment sets the default weight increment."
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "器材決定重量的預設遞增幅度。"
           }
         }
       }
@@ -290,6 +354,22 @@
         }
       }
     },
+    "spec.notes.section": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Notes · optional"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "備註 · 選填"
+          }
+        }
+      }
+    },
     "spec.ok": {
       "localizations": {
         "en": {
@@ -351,6 +431,54 @@
           "stringUnit": {
             "state": "translated",
             "value": "動作庫"
+          }
+        }
+      }
+    },
+    "spec.usedIn.count %lld": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld items"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld 項"
+          }
+        }
+      }
+    },
+    "spec.usedIn.empty": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Not used by any template yet"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "尚未被任何範本使用"
+          }
+        }
+      }
+    },
+    "spec.usedIn.section": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Used in"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "被使用於"
           }
         }
       }
