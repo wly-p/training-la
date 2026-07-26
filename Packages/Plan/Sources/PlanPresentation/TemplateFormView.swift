@@ -438,6 +438,7 @@ struct TemplateFormView: View {
         case nil: "—"
         case .absolute(let w): formatNumber(w.value)
         case .relativeToLast(let delta): "上次\(delta.value >= 0 ? "+" : "")\(formatNumber(delta.value))"
+        case .percentOf1RM(let percent): "\(formatNumber(percent))%1RM"
         }
     }
 
@@ -459,6 +460,8 @@ struct TemplateFormView: View {
             localText("template.block.same \(sets.count)")
         case .uniform(.some(.relativeToLast)):
             localText("template.block.relativeToLast \(sets.count)")
+        case .uniform(.some(.percentOf1RM)):
+            localText("template.block.percentOf1RM \(sets.count)")
         case .varying:
             localText("template.block.progressive \(sets.count)")
         }
@@ -471,6 +474,8 @@ struct TemplateFormView: View {
             return "\(sets.count) × \(reps) @ \(formatNumber(w.value))"
         case .uniform(.some(.relativeToLast(let delta))):
             return "\(sets.count) × \(reps) 上次\(delta.value >= 0 ? "+" : "")\(formatNumber(delta.value))"
+        case .uniform(.some(.percentOf1RM(let percent))):
+            return "\(sets.count) × \(reps) \(formatNumber(percent))%1RM"
         case .uniform(nil):
             return "\(sets.count) × \(reps)"
         case .varying:
@@ -510,8 +515,15 @@ private struct SetEditSheet: View {
     @Binding var targetWeight: WeightExpression?
     @Binding var targetReps: Int?
 
+    /// 三種重量表達式對應的輸入模式（見 91-weight-model.md §3：同一份範本裡逐組可混用）。
+    private enum WeightInputMode: Equatable {
+        case absolute
+        case relativeToLast
+        case percentOf1RM
+    }
+
     @Environment(\.dismiss) private var dismiss
-    @State private var isRelative: Bool
+    @State private var mode: WeightInputMode
     @State private var weightValue: Double
     @State private var repsValue: Double
 
@@ -533,40 +545,49 @@ private struct SetEditSheet: View {
         self._targetReps = targetReps
         switch targetWeight.wrappedValue {
         case .relativeToLast(let delta):
-            _isRelative = State(initialValue: true)
+            _mode = State(initialValue: .relativeToLast)
             _weightValue = State(initialValue: delta.value)
         case .absolute(let w):
-            _isRelative = State(initialValue: false)
+            _mode = State(initialValue: .absolute)
             _weightValue = State(initialValue: w.value)
+        case .percentOf1RM(let percent):
+            _mode = State(initialValue: .percentOf1RM)
+            _weightValue = State(initialValue: percent)
         case nil:
-            _isRelative = State(initialValue: false)
+            _mode = State(initialValue: .absolute)
             _weightValue = State(initialValue: 20)
         }
         _repsValue = State(initialValue: Double(targetReps.wrappedValue ?? 10))
     }
 
+    /// 快捷 ±／滾輪的步階：絕對值與相對上次跟著器材遞增單位，%1RM 固定 5（百分比不是公斤）。
+    private var quickStep: Double { mode == .percentOf1RM ? 5 : weightStep }
+
     private var weightValues: [Double] {
-        isRelative
-            ? Array(stride(from: -50, through: 50, by: weightStep))
-            : Array(stride(from: 0, through: 300, by: weightStep))
+        switch mode {
+        case .relativeToLast: Array(stride(from: -50, through: 50, by: weightStep))
+        case .percentOf1RM: Array(stride(from: 0, through: 100, by: 5))
+        case .absolute: Array(stride(from: 0, through: 300, by: weightStep))
+        }
     }
 
     private var repsValues: [Double] { Array(stride(from: 1, through: 30, by: 1)) }
 
     private var quickActions: [DualValuePicker.QuickAction] {
         var actions: [DualValuePicker.QuickAction] = [
-            .init("-\(formatNumber(weightStep))") {
-                weightValue = max(weightValues.first ?? 0, weightValue - weightStep)
+            .init("-\(formatNumber(quickStep))") {
+                weightValue = max(weightValues.first ?? 0, weightValue - quickStep)
             },
-            .init("+\(formatNumber(weightStep))") {
-                weightValue = min(weightValues.last ?? 0, weightValue + weightStep)
+            .init("+\(formatNumber(quickStep))") {
+                weightValue = min(weightValues.last ?? 0, weightValue + quickStep)
             },
         ]
         if previousWeight != nil || previousReps != nil {
             actions.append(.init(String(localized: "template.set.copyPrevious", bundle: .module), flex: 1.4) {
                 switch previousWeight {
-                case .absolute(let w): isRelative = false; weightValue = w.value
-                case .relativeToLast(let d): isRelative = true; weightValue = d.value
+                case .absolute(let w): mode = .absolute; weightValue = w.value
+                case .relativeToLast(let d): mode = .relativeToLast; weightValue = d.value
+                case .percentOf1RM(let p): mode = .percentOf1RM; weightValue = p
                 case nil: break
                 }
                 if let previousReps { repsValue = Double(previousReps) }
@@ -582,9 +603,7 @@ private struct SetEditSheet: View {
             DualValuePicker(
                 primaryValue: $weightValue,
                 primaryValues: weightValues,
-                primaryKicker: isRelative
-                    ? String(localized: "template.set.relativeKicker", bundle: .module)
-                    : String(localized: "template.set.weightKicker", bundle: .module),
+                primaryKicker: primaryKicker,
                 secondaryValue: $repsValue,
                 secondaryValues: repsValues,
                 secondaryKicker: String(localized: "template.setNumber.reps", bundle: .module),
@@ -595,6 +614,14 @@ private struct SetEditSheet: View {
         .padding(.top, TLSpace.gapL)
         .background(TLColor.bg.ignoresSafeArea())
         .presentationDetents([.height(560)])
+    }
+
+    private var primaryKicker: String {
+        switch mode {
+        case .relativeToLast: String(localized: "template.set.relativeKicker", bundle: .module)
+        case .percentOf1RM: String(localized: "template.set.percentKicker", bundle: .module)
+        case .absolute: String(localized: "template.set.weightKicker", bundle: .module)
+        }
     }
 
     private var topBar: some View {
@@ -608,9 +635,14 @@ private struct SetEditSheet: View {
                 .foregroundStyle(TLColor.text)
             Spacer()
             Button {
-                targetWeight = isRelative
-                    ? .relativeToLast(delta: Weight(value: weightValue, unit: .kg))
-                    : .absolute(Weight(value: weightValue, unit: .kg))
+                switch mode {
+                case .relativeToLast:
+                    targetWeight = .relativeToLast(delta: Weight(value: weightValue, unit: .kg))
+                case .percentOf1RM:
+                    targetWeight = .percentOf1RM(weightValue)
+                case .absolute:
+                    targetWeight = .absolute(Weight(value: weightValue, unit: .kg))
+                }
                 targetReps = Int(repsValue)
                 dismiss()
             } label: {
@@ -624,14 +656,19 @@ private struct SetEditSheet: View {
     private var modeChips: some View {
         HStack(spacing: 8) {
             SelectableChip(
-                String(localized: "template.set.absolute", bundle: .module), isSelected: !isRelative,
+                String(localized: "template.set.absolute", bundle: .module), isSelected: mode == .absolute,
                 selectedFill: TLColor.accent, selectedText: TLColor.bg,
-                onTap: { isRelative = false }
+                onTap: { mode = .absolute }
             )
             SelectableChip(
-                String(localized: "template.set.relative", bundle: .module), isSelected: isRelative,
+                String(localized: "template.set.relative", bundle: .module), isSelected: mode == .relativeToLast,
                 selectedFill: TLColor.accent, selectedText: TLColor.bg,
-                onTap: { isRelative = true }
+                onTap: { mode = .relativeToLast }
+            )
+            SelectableChip(
+                String(localized: "template.set.percent", bundle: .module), isSelected: mode == .percentOf1RM,
+                selectedFill: TLColor.accent, selectedText: TLColor.bg,
+                onTap: { mode = .percentOf1RM }
             )
         }
     }

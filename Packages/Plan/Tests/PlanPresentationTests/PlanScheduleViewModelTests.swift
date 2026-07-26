@@ -30,7 +30,11 @@ private struct MockCatalog: PlanExerciseCatalog {
 }
 
 private struct MockLookup: LastPerformedWeightLookup {
-    func lastPerformedWeight(exerciseId: UUID) async throws -> Weight? { nil }
+    func lastPerformedWeight(exerciseId: UUID) async throws -> LastPerformedSet? { nil }
+}
+
+private struct MockAbilityLookup: AbilityValueLookup {
+    func abilityValue(exerciseId: UUID) async throws -> Weight? { nil }
 }
 
 private actor MockTemplateRepo: WorkoutTemplateRepository {
@@ -81,7 +85,8 @@ private func makeViewModel(
         listTemplates: ListTemplates(repository: templateRepo),
         instantiateTemplate: InstantiateTemplate(
             templateRepository: templateRepo, planRepository: repo,
-            exerciseCatalog: MockCatalog(items: catalog), lastPerformedWeightLookup: MockLookup()
+            exerciseCatalog: MockCatalog(items: catalog), lastPerformedWeightLookup: MockLookup(),
+            abilityValueLookup: MockAbilityLookup()
         ),
         listPrograms: ListPrograms(repository: programRepo),
         listAssignments: ListProgramAssignments(repository: assignmentRepo),
@@ -89,11 +94,13 @@ private func makeViewModel(
         deleteAssignment: DeleteProgramAssignment(repository: assignmentRepo),
         reconcile: ReconcileProgramAssignments(
             programRepository: programRepo, assignmentRepository: assignmentRepo, planRepository: repo,
-            exerciseCatalog: MockCatalog(items: catalog), lastPerformedWeightLookup: MockLookup()
+            exerciseCatalog: MockCatalog(items: catalog), lastPerformedWeightLookup: MockLookup(),
+            abilityValueLookup: MockAbilityLookup()
         ),
         projectSchedule: ProjectSchedule(programRepository: programRepo, assignmentRepository: assignmentRepo, planRepository: repo),
         materializeProjection: MaterializeProjectedWorkout(
-            planRepository: repo, exerciseCatalog: MockCatalog(items: catalog), lastPerformedWeightLookup: MockLookup()
+            planRepository: repo, exerciseCatalog: MockCatalog(items: catalog), lastPerformedWeightLookup: MockLookup(),
+            abilityValueLookup: MockAbilityLookup()
         ),
         exerciseCatalog: MockCatalog(items: catalog),
         today: { day1 }

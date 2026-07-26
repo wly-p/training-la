@@ -122,7 +122,7 @@ struct InstantiateTemplateTests {
         let planRepo = MockPlanWorkoutRepository()
         let tpl = template()
         await templateRepo.seed([tpl])
-        let instantiate = InstantiateTemplate(templateRepository: templateRepo, planRepository: planRepo, exerciseCatalog: MockPlanExerciseCatalog(), lastPerformedWeightLookup: MockLastPerformedWeightLookup())
+        let instantiate = InstantiateTemplate(templateRepository: templateRepo, planRepository: planRepo, exerciseCatalog: MockPlanExerciseCatalog(), lastPerformedWeightLookup: MockLastPerformedWeightLookup(), abilityValueLookup: MockAbilityValueLookup())
 
         let plan = try await instantiate(templateId: tpl.id, date: today)
 
@@ -146,7 +146,7 @@ struct InstantiateTemplateTests {
         let tpl = template()
         await templateRepo.seed([tpl])
         await planRepo.seed([PlanWorkout(id: UUID(), name: "先排的", date: today, orderIndex: 0)])
-        let instantiate = InstantiateTemplate(templateRepository: templateRepo, planRepository: planRepo, exerciseCatalog: MockPlanExerciseCatalog(), lastPerformedWeightLookup: MockLastPerformedWeightLookup())
+        let instantiate = InstantiateTemplate(templateRepository: templateRepo, planRepository: planRepo, exerciseCatalog: MockPlanExerciseCatalog(), lastPerformedWeightLookup: MockLastPerformedWeightLookup(), abilityValueLookup: MockAbilityValueLookup())
 
         let plan = try await instantiate(templateId: tpl.id, date: today)
 
@@ -159,10 +159,61 @@ struct InstantiateTemplateTests {
             templateRepository: MockWorkoutTemplateRepository(),
             planRepository: MockPlanWorkoutRepository(),
             exerciseCatalog: MockPlanExerciseCatalog(),
-            lastPerformedWeightLookup: MockLastPerformedWeightLookup()
+            lastPerformedWeightLookup: MockLastPerformedWeightLookup(),
+            abilityValueLookup: MockAbilityValueLookup()
         )
         await #expect(throws: WorkoutTemplateRepositoryError.notFound(id: ghost)) {
             try await instantiate(templateId: ghost, date: today)
+        }
+    }
+}
+
+struct DuplicateTemplateTests {
+    private func template() -> WorkoutTemplate {
+        WorkoutTemplate(
+            id: UUID(), name: "推日", source: .user, orderIndex: 0,
+            sets: [
+                PlanSet(id: UUID(), exerciseId: UUID(), exerciseIndex: 0, setIndex: 0,
+                        targetWeight: .absolute(Weight(value: 100, unit: .kg)), targetReps: 5, restSec: 90),
+            ],
+            createdAt: Date(), updatedAt: Date()
+        )
+    }
+
+    @Test func duplicateDeepCopiesSetsWithNewIdsAndSuffixedName() async throws {
+        let repo = MockWorkoutTemplateRepository()
+        let original = template()
+        await repo.seed([original])
+
+        let copy = try await DuplicateTemplate(repository: repo)(id: original.id)
+
+        #expect(copy.id != original.id)
+        #expect(copy.name == "推日 · 副本")
+        #expect(copy.sets.count == original.sets.count)
+        #expect(Set(copy.sets.map(\.id)).isDisjoint(with: Set(original.sets.map(\.id))))
+        #expect(copy.sets.first?.targetWeight == original.sets.first?.targetWeight)
+        // 兩份都存在、互相獨立
+        #expect(try await repo.all().count == 2)
+        #expect(try await repo.get(id: original.id) != nil)
+    }
+
+    @Test func duplicateIsIndependentFromOriginal() async throws {
+        let repo = MockWorkoutTemplateRepository()
+        let original = template()
+        await repo.seed([original])
+        let copy = try await DuplicateTemplate(repository: repo)(id: original.id)
+
+        try await UpdateTemplate(repository: repo)(id: copy.id, name: "改過的副本", sets: copy.sets)
+
+        let untouchedOriginal = try await repo.get(id: original.id)
+        #expect(untouchedOriginal?.name == "推日")
+    }
+
+    @Test func duplicateMissingTemplateThrowsNotFound() async throws {
+        let repo = MockWorkoutTemplateRepository()
+        let ghost = UUID()
+        await #expect(throws: WorkoutTemplateRepositoryError.notFound(id: ghost)) {
+            try await DuplicateTemplate(repository: repo)(id: ghost)
         }
     }
 }

@@ -1,3 +1,5 @@
+import AbilityData
+import AbilityDomain
 import Foundation
 import HistoryDomain
 import HistoryPresentation
@@ -37,6 +39,7 @@ struct AppDependencies {
     /// `inMemory`：UI 測試用，換成不落地的 store（每次啟動都是乾淨狀態）。
     static func live(inMemory: Bool = false) throws -> AppDependencies {
         let allModels = SpecDataFactory.models + TrainingDataFactory.models + PlanDataFactory.models
+            + AbilityDataFactory.models
         let schema = Schema(allModels)
         let container = try ModelContainer(
             for: schema,
@@ -48,6 +51,7 @@ struct AppDependencies {
         let rotationRepository = PlanDataFactory.makeRotationRepository(container: container)
         let programRepository = PlanDataFactory.makeProgramRepository(container: container)
         let programAssignmentRepository = PlanDataFactory.makeProgramAssignmentRepository(container: container)
+        let abilityValueRepository = AbilityDataFactory.makeAbilityValueRepository(container: container)
         // 本地落實 in_use：刪動作前查 Training / Plan / 範本 / 循環 / 長期 有沒有引用
         let usageChecker = ExerciseUsageChecker(
             workoutRepository: workoutRepository,
@@ -81,6 +85,7 @@ struct AppDependencies {
             rotationRepository: rotationRepository,
             programRepository: programRepository,
             programAssignmentRepository: programAssignmentRepository,
+            abilityValueRepository: abilityValueRepository,
             reminder: reminder,
             reminderStore: reminderStore,
             languageStore: languageStore,
@@ -97,6 +102,7 @@ struct AppDependencies {
         rotationRepository: any RotationRepository,
         programRepository: any ProgramRepository,
         programAssignmentRepository: any ProgramAssignmentRepository,
+        abilityValueRepository: any AbilityValueRepository,
         reminder: any RestEndReminding,
         reminderStore: any RestReminderPreferenceStoring,
         languageStore: any LanguagePreferenceStoring = InMemoryLanguageStore(),
@@ -113,6 +119,10 @@ struct AppDependencies {
         let planCatalog = PlanCatalogAdapter(listExercises: ListExercises(repository: exerciseRepository))
         // 重量表達式「相對上次」的投影收斂查這個（Training 的實際紀錄）。
         let lastPerformedWeightLookup = LastPerformedWeightLookupAdapter(workoutRepository: workoutRepository)
+        // 重量表達式「%1RM」的投影收斂查這個（使用者的能力值）。
+        let abilityValueLookup = AbilityValueLookupAdapter(
+            getAbilityValue: GetAbilityValue(repository: abilityValueRepository)
+        )
         // Training ↔ Plan 的兩條 port（今天排課、標記完成）
         let plannedProvider = PlanProviderAdapter(
             todaysWorkout: TodaysWorkout(repository: planRepository),
@@ -120,12 +130,14 @@ struct AppDependencies {
             listTemplates: ListTemplates(repository: templateRepository),
             instantiateTemplate: InstantiateTemplate(
                 templateRepository: templateRepository, planRepository: planRepository,
-                exerciseCatalog: planCatalog, lastPerformedWeightLookup: lastPerformedWeightLookup
+                exerciseCatalog: planCatalog, lastPerformedWeightLookup: lastPerformedWeightLookup,
+                abilityValueLookup: abilityValueLookup
             ),
             listRotations: ListRotations(repository: rotationRepository),
             startRotationUseCase: StartRotation(
                 rotationRepository: rotationRepository, planRepository: planRepository,
-                exerciseCatalog: planCatalog, lastPerformedWeightLookup: lastPerformedWeightLookup
+                exerciseCatalog: planCatalog, lastPerformedWeightLookup: lastPerformedWeightLookup,
+                abilityValueLookup: abilityValueLookup
             ),
             today: { DayDate(Date()) },
             listExercises: ListExercises(repository: exerciseRepository)
@@ -177,7 +189,8 @@ struct AppDependencies {
                     listTemplates: ListTemplates(repository: templateRepository),
                     instantiateTemplate: InstantiateTemplate(
                         templateRepository: templateRepository, planRepository: planRepository,
-                        exerciseCatalog: planCatalog, lastPerformedWeightLookup: lastPerformedWeightLookup
+                        exerciseCatalog: planCatalog, lastPerformedWeightLookup: lastPerformedWeightLookup,
+                        abilityValueLookup: abilityValueLookup
                     ),
                     listPrograms: ListPrograms(repository: programRepository),
                     listAssignments: ListProgramAssignments(repository: programAssignmentRepository),
@@ -188,7 +201,8 @@ struct AppDependencies {
                         assignmentRepository: programAssignmentRepository,
                         planRepository: planRepository,
                         exerciseCatalog: planCatalog,
-                        lastPerformedWeightLookup: lastPerformedWeightLookup
+                        lastPerformedWeightLookup: lastPerformedWeightLookup,
+                        abilityValueLookup: abilityValueLookup
                     ),
                     projectSchedule: ProjectSchedule(
                         programRepository: programRepository,
@@ -198,7 +212,8 @@ struct AppDependencies {
                     materializeProjection: MaterializeProjectedWorkout(
                         planRepository: planRepository,
                         exerciseCatalog: planCatalog,
-                        lastPerformedWeightLookup: lastPerformedWeightLookup
+                        lastPerformedWeightLookup: lastPerformedWeightLookup,
+                        abilityValueLookup: abilityValueLookup
                     ),
                     exerciseCatalog: planCatalog
                 )

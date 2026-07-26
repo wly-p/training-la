@@ -1,3 +1,4 @@
+import AbilityDomain
 import Foundation
 import PlanDomain
 import SharedKernel
@@ -82,12 +83,25 @@ struct PlanProgressAdapter: PlanProgressRecorder {
 
 /// Plan 的「上次實際練的重量」port ← Training 的 WorkoutRepository.lastPerformance。
 /// 讓「相對上次」表達式在投影收斂時查得到真實訓練紀錄（不是 Plan 自己的目標值）。
+/// `metTarget`：那組的目標次數快照 vs 實際次數——沒有快照（臨時加練）視為達標，維持舊行為。
 struct LastPerformedWeightLookupAdapter: LastPerformedWeightLookup {
     let workoutRepository: any WorkoutRepository
 
-    func lastPerformedWeight(exerciseId: UUID) async throws -> Weight? {
+    func lastPerformedWeight(exerciseId: UUID) async throws -> LastPerformedSet? {
         let sets = try await workoutRepository.lastPerformance(exerciseId: exerciseId, excludingWorkout: nil)
-        return sets.map(\.weight).max { $0.value < $1.value }
+        guard let best = sets.max(by: { $0.weight.value < $1.weight.value }) else { return nil }
+        let metTarget = best.targetReps.map { best.reps >= $0 } ?? true
+        return LastPerformedSet(weight: best.weight, metTarget: metTarget)
+    }
+}
+
+/// Plan 的「能力值(1RM)」port ← Ability 的 GetAbilityValue。讓 `%1RM` 表達式在投影收斂時
+/// 查得到使用者的能力值（Plan package 不依賴 Ability，經由這個 App 層 adapter 接線）。
+struct AbilityValueLookupAdapter: AbilityValueLookup {
+    let getAbilityValue: GetAbilityValue
+
+    func abilityValue(exerciseId: UUID) async throws -> Weight? {
+        try await getAbilityValue(exerciseId: exerciseId)?.value
     }
 }
 

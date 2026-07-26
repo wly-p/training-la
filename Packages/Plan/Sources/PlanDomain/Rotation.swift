@@ -14,6 +14,8 @@ public struct Rotation: Identifiable, Equatable, Sendable {
     public var orderIndex: Int
     /// 累計已開始的訓練次數（每次 `StartRotation` +1）。詳情頁「已完成 N 次訓練」與「N 輪」由此算。
     public var completedCount: Int
+    /// 這組循環的強度倍率（預設 1.0＝基準）。格子（`WorkoutSpec.intensityFactor`）可選填覆寫。
+    public var intensityFactor: Double
 
     public init(
         id: UUID = UUID(),
@@ -22,7 +24,8 @@ public struct Rotation: Identifiable, Equatable, Sendable {
         cursor: Int = 0,
         isActive: Bool = true,
         orderIndex: Int = 0,
-        completedCount: Int = 0
+        completedCount: Int = 0,
+        intensityFactor: Double = 1.0
     ) {
         self.id = id
         self.name = name
@@ -31,6 +34,7 @@ public struct Rotation: Identifiable, Equatable, Sendable {
         self.isActive = isActive
         self.orderIndex = orderIndex
         self.completedCount = max(0, completedCount)
+        self.intensityFactor = intensityFactor
     }
 
     /// 目前輪到的 workout；空循環＝nil。

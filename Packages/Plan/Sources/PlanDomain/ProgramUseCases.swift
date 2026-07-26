@@ -32,7 +32,12 @@ public struct CreateProgram: Sendable {
     }
 
     @discardableResult
-    public func callAsFunction(name: String, cycleLength: Int = 7, days: [Int: WorkoutSpec] = [:]) async throws -> Program {
+    public func callAsFunction(
+        name: String,
+        cycleLength: Int = 7,
+        days: [Int: WorkoutSpec] = [:],
+        intensityFactor: Double = 1.0
+    ) async throws -> Program {
         let validName = try validatedProgramName(name)
         let orderIndex = (try await repository.all().map(\.orderIndex).max() ?? -1) + 1
         let timestamp = now()
@@ -43,6 +48,7 @@ public struct CreateProgram: Sendable {
             orderIndex: orderIndex,
             cycleLength: length,
             days: days.filter { (0..<length).contains($0.key) },
+            intensityFactor: intensityFactor,
             createdAt: timestamp,
             updatedAt: timestamp
         )
@@ -64,7 +70,9 @@ public struct UpdateProgram: Sendable {
         self.now = now
     }
 
-    public func callAsFunction(id: UUID, name: String, cycleLength: Int, days: [Int: WorkoutSpec]) async throws {
+    public func callAsFunction(
+        id: UUID, name: String, cycleLength: Int, days: [Int: WorkoutSpec], intensityFactor: Double? = nil
+    ) async throws {
         guard var program = try await repository.get(id: id) else {
             throw ProgramRepositoryError.notFound(id: id)
         }
@@ -73,6 +81,30 @@ public struct UpdateProgram: Sendable {
         program.cycleLength = length
         // 縮短週期時，丟掉落在範圍外的日子。
         program.days = days.filter { (0..<length).contains($0.key) }
+        if let intensityFactor { program.intensityFactor = intensityFactor }
+        program.updatedAt = now()
+        try await repository.save(program)
+    }
+}
+
+/// 設定長期課表的強度倍率（14b：計畫層一個數字，格子的覆寫值不受影響）。
+public struct SetProgramIntensityFactor: Sendable {
+    private let repository: any ProgramRepository
+    private let now: @Sendable () -> Date
+
+    public init(
+        repository: any ProgramRepository,
+        now: @escaping @Sendable () -> Date = { Date() }
+    ) {
+        self.repository = repository
+        self.now = now
+    }
+
+    public func callAsFunction(id: UUID, intensityFactor: Double) async throws {
+        guard var program = try await repository.get(id: id) else {
+            throw ProgramRepositoryError.notFound(id: id)
+        }
+        program.intensityFactor = intensityFactor
         program.updatedAt = now()
         try await repository.save(program)
     }
@@ -202,13 +234,20 @@ public struct ProjectedWorkout: Identifiable, Equatable, Sendable {
     public let programId: UUID
     public let programName: String
     public let spec: WorkoutSpec
+    /// 已解出的強度倍率（`spec.intensityFactor ?? program.intensityFactor`），
+    /// 落地時直接用，不用再查一次 program。
+    public let intensityFactor: Double
 
-    public init(date: DayDate, assignmentId: UUID, programId: UUID, programName: String, spec: WorkoutSpec) {
+    public init(
+        date: DayDate, assignmentId: UUID, programId: UUID, programName: String, spec: WorkoutSpec,
+        intensityFactor: Double = 1.0
+    ) {
         self.date = date
         self.assignmentId = assignmentId
         self.programId = programId
         self.programName = programName
         self.spec = spec
+        self.intensityFactor = intensityFactor
     }
 
     public var id: String { "\(assignmentId.uuidString)-\(date.isoString)" }
@@ -255,7 +294,8 @@ public struct ProjectSchedule: Sendable {
                    !materialized.contains(AssignmentDay(assignmentId: assignment.id, date: day)) {
                     result.append(ProjectedWorkout(
                         date: day, assignmentId: assignment.id, programId: program.id,
-                        programName: program.name, spec: spec
+                        programName: program.name, spec: spec,
+                        intensityFactor: spec.intensityFactor ?? program.intensityFactor
                     ))
                 }
                 day = day.adding(days: 1)
@@ -271,17 +311,20 @@ public struct MaterializeProjectedWorkout: Sendable {
     private let planRepository: any PlanWorkoutRepository
     private let exerciseCatalog: any PlanExerciseCatalog
     private let lastPerformedWeightLookup: any LastPerformedWeightLookup
+    private let abilityValueLookup: any AbilityValueLookup
     private let makeID: @Sendable () -> UUID
 
     public init(
         planRepository: any PlanWorkoutRepository,
         exerciseCatalog: any PlanExerciseCatalog,
         lastPerformedWeightLookup: any LastPerformedWeightLookup,
+        abilityValueLookup: any AbilityValueLookup,
         makeID: @escaping @Sendable () -> UUID = { UUID() }
     ) {
         self.planRepository = planRepository
         self.exerciseCatalog = exerciseCatalog
         self.lastPerformedWeightLookup = lastPerformedWeightLookup
+        self.abilityValueLookup = abilityValueLookup
         self.makeID = makeID
     }
 
@@ -292,7 +335,8 @@ public struct MaterializeProjectedWorkout: Sendable {
         let orderIndex = (onDate.map(\.orderIndex).max() ?? -1) + 1
         let catalog = try await exerciseCatalog.exercises()
         let sets = try await resolvedPlanSets(
-            from: projected.spec.sets, catalog: catalog, lookup: lastPerformedWeightLookup, makeID: makeID
+            from: projected.spec.sets, catalog: catalog, intensityFactor: projected.intensityFactor,
+            lastPerformedLookup: lastPerformedWeightLookup, abilityValueLookup: abilityValueLookup, makeID: makeID
         )
         let plan = PlanWorkout(
             id: makeID(),
@@ -320,6 +364,7 @@ public struct ReconcileProgramAssignments: Sendable {
     private let planRepository: any PlanWorkoutRepository
     private let exerciseCatalog: any PlanExerciseCatalog
     private let lastPerformedWeightLookup: any LastPerformedWeightLookup
+    private let abilityValueLookup: any AbilityValueLookup
     private let makeID: @Sendable () -> UUID
 
     public init(
@@ -328,6 +373,7 @@ public struct ReconcileProgramAssignments: Sendable {
         planRepository: any PlanWorkoutRepository,
         exerciseCatalog: any PlanExerciseCatalog,
         lastPerformedWeightLookup: any LastPerformedWeightLookup,
+        abilityValueLookup: any AbilityValueLookup,
         makeID: @escaping @Sendable () -> UUID = { UUID() }
     ) {
         self.programRepository = programRepository
@@ -335,6 +381,7 @@ public struct ReconcileProgramAssignments: Sendable {
         self.planRepository = planRepository
         self.exerciseCatalog = exerciseCatalog
         self.lastPerformedWeightLookup = lastPerformedWeightLookup
+        self.abilityValueLookup = abilityValueLookup
         self.makeID = makeID
     }
 
@@ -373,7 +420,8 @@ public struct ReconcileProgramAssignments: Sendable {
                     let order = nextOrderIndex[day, default: 0]
                     nextOrderIndex[day] = order + 1
                     let plan = try await makePlan(
-                        from: spec, on: day, assignmentId: assignment.id, orderIndex: order, catalog: catalog
+                        from: spec, on: day, assignmentId: assignment.id, orderIndex: order, catalog: catalog,
+                        intensityFactor: spec.intensityFactor ?? program.intensityFactor
                     )
                     try await planRepository.save(plan)
                     materialized.insert(key)
@@ -389,10 +437,12 @@ public struct ReconcileProgramAssignments: Sendable {
     }
 
     private func makePlan(
-        from spec: WorkoutSpec, on date: DayDate, assignmentId: UUID, orderIndex: Int, catalog: [PlanCatalogExercise]
+        from spec: WorkoutSpec, on date: DayDate, assignmentId: UUID, orderIndex: Int, catalog: [PlanCatalogExercise],
+        intensityFactor: Double
     ) async throws -> PlanWorkout {
         let sets = try await resolvedPlanSets(
-            from: spec.sets, catalog: catalog, lookup: lastPerformedWeightLookup, makeID: makeID
+            from: spec.sets, catalog: catalog, intensityFactor: intensityFactor,
+            lastPerformedLookup: lastPerformedWeightLookup, abilityValueLookup: abilityValueLookup, makeID: makeID
         )
         return PlanWorkout(
             id: makeID(),

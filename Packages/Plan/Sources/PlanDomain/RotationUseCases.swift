@@ -34,12 +34,14 @@ public struct CreateRotation: Sendable {
         name: String,
         workouts: [WorkoutSpec] = [],
         isActive: Bool = true,
-        cursor: Int = 0
+        cursor: Int = 0,
+        intensityFactor: Double = 1.0
     ) async throws -> Rotation {
         let validName = try validatedRotationName(name)
         let orderIndex = (try await repository.all().map(\.orderIndex).max() ?? -1) + 1
         let rotation = Rotation(
-            id: makeID(), name: validName, workouts: workouts, cursor: cursor, isActive: isActive, orderIndex: orderIndex
+            id: makeID(), name: validName, workouts: workouts, cursor: cursor, isActive: isActive,
+            orderIndex: orderIndex, intensityFactor: intensityFactor
         )
         try await repository.save(rotation)
         return rotation
@@ -71,6 +73,20 @@ public struct SaveRotationWorkouts: Sendable {
         }
         rotation.workouts = workouts
         rotation.cursor = min(rotation.cursor, max(0, workouts.count - 1))
+        try await repository.save(rotation)
+    }
+}
+
+/// 設定循環的強度倍率（14b：計畫層一個數字，整包覆寫，格子的覆寫值不受影響）。
+public struct SetRotationIntensityFactor: Sendable {
+    private let repository: any RotationRepository
+    public init(repository: any RotationRepository) { self.repository = repository }
+
+    public func callAsFunction(id: UUID, intensityFactor: Double) async throws {
+        guard var rotation = try await repository.get(id: id) else {
+            throw RotationRepositoryError.notFound(id: id)
+        }
+        rotation.intensityFactor = intensityFactor
         try await repository.save(rotation)
     }
 }
@@ -129,6 +145,7 @@ public struct StartRotation: Sendable {
     private let planRepository: any PlanWorkoutRepository
     private let exerciseCatalog: any PlanExerciseCatalog
     private let lastPerformedWeightLookup: any LastPerformedWeightLookup
+    private let abilityValueLookup: any AbilityValueLookup
     private let makeID: @Sendable () -> UUID
 
     public init(
@@ -136,16 +153,19 @@ public struct StartRotation: Sendable {
         planRepository: any PlanWorkoutRepository,
         exerciseCatalog: any PlanExerciseCatalog,
         lastPerformedWeightLookup: any LastPerformedWeightLookup,
+        abilityValueLookup: any AbilityValueLookup,
         makeID: @escaping @Sendable () -> UUID = { UUID() }
     ) {
         self.rotationRepository = rotationRepository
         self.planRepository = planRepository
         self.exerciseCatalog = exerciseCatalog
         self.lastPerformedWeightLookup = lastPerformedWeightLookup
+        self.abilityValueLookup = abilityValueLookup
         self.makeID = makeID
     }
 
-    /// 回傳建立的當日排課；找不到循環或空循環回 nil。循環 spec 的重量表達式在這裡收斂。
+    /// 回傳建立的當日排課；找不到循環或空循環回 nil。循環 spec 的重量表達式在這裡收斂
+    /// （強度倍率：格子覆寫 `spec.intensityFactor` 優先於循環的 `rotation.intensityFactor`）。
     @discardableResult
     public func callAsFunction(id: UUID, date: DayDate) async throws -> PlanWorkout? {
         guard let rotation = try await rotationRepository.get(id: id),
@@ -153,7 +173,9 @@ public struct StartRotation: Sendable {
         let orderIndex = (try await planRepository.onDate(date).map(\.orderIndex).max() ?? -1) + 1
         let catalog = try await exerciseCatalog.exercises()
         let sets = try await resolvedPlanSets(
-            from: spec.sets, catalog: catalog, lookup: lastPerformedWeightLookup, makeID: makeID
+            from: spec.sets, catalog: catalog,
+            intensityFactor: spec.intensityFactor ?? rotation.intensityFactor,
+            lastPerformedLookup: lastPerformedWeightLookup, abilityValueLookup: abilityValueLookup, makeID: makeID
         )
         let plan = PlanWorkout(
             id: makeID(),

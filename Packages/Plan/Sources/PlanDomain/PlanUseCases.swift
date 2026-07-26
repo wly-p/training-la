@@ -220,6 +220,54 @@ public struct UpdateTemplate: Sendable {
     }
 }
 
+/// 複製範本（14a）：深拷貝全部 sets（含逐組表達式），重新產生所有 id，
+/// 名稱加「· 副本」，接在清單末端。複製出來的是完全獨立的一份，改它不影響原本那份。
+public struct DuplicateTemplate: Sendable {
+    private let repository: any WorkoutTemplateRepository
+    private let makeID: @Sendable () -> UUID
+    private let now: @Sendable () -> Date
+
+    public init(
+        repository: any WorkoutTemplateRepository,
+        makeID: @escaping @Sendable () -> UUID = { UUID() },
+        now: @escaping @Sendable () -> Date = { Date() }
+    ) {
+        self.repository = repository
+        self.makeID = makeID
+        self.now = now
+    }
+
+    @discardableResult
+    public func callAsFunction(id: UUID) async throws -> WorkoutTemplate {
+        guard let original = try await repository.get(id: id) else {
+            throw WorkoutTemplateRepositoryError.notFound(id: id)
+        }
+        let orderIndex = (try await repository.all().map(\.orderIndex).max() ?? -1) + 1
+        let timestamp = now()
+        let copy = WorkoutTemplate(
+            id: makeID(),
+            name: "\(original.name) · 副本",
+            source: .user,
+            orderIndex: orderIndex,
+            sets: original.sets.map { set in
+                PlanSet(
+                    id: makeID(),
+                    exerciseId: set.exerciseId,
+                    exerciseIndex: set.exerciseIndex,
+                    setIndex: set.setIndex,
+                    targetWeight: set.targetWeight,
+                    targetReps: set.targetReps,
+                    restSec: set.restSec
+                )
+            },
+            createdAt: timestamp,
+            updatedAt: timestamp
+        )
+        try await repository.save(copy)
+        return copy
+    }
+}
+
 public struct DeleteTemplate: Sendable {
     private let repository: any WorkoutTemplateRepository
     public init(repository: any WorkoutTemplateRepository) { self.repository = repository }
@@ -233,6 +281,7 @@ public struct InstantiateTemplate: Sendable {
     private let planRepository: any PlanWorkoutRepository
     private let exerciseCatalog: any PlanExerciseCatalog
     private let lastPerformedWeightLookup: any LastPerformedWeightLookup
+    private let abilityValueLookup: any AbilityValueLookup
     private let makeID: @Sendable () -> UUID
 
     public init(
@@ -240,12 +289,14 @@ public struct InstantiateTemplate: Sendable {
         planRepository: any PlanWorkoutRepository,
         exerciseCatalog: any PlanExerciseCatalog,
         lastPerformedWeightLookup: any LastPerformedWeightLookup,
+        abilityValueLookup: any AbilityValueLookup,
         makeID: @escaping @Sendable () -> UUID = { UUID() }
     ) {
         self.templateRepository = templateRepository
         self.planRepository = planRepository
         self.exerciseCatalog = exerciseCatalog
         self.lastPerformedWeightLookup = lastPerformedWeightLookup
+        self.abilityValueLookup = abilityValueLookup
         self.makeID = makeID
     }
 
@@ -256,8 +307,10 @@ public struct InstantiateTemplate: Sendable {
         }
         let orderIndex = (try await planRepository.onDate(date).map(\.orderIndex).max() ?? -1) + 1
         let catalog = try await exerciseCatalog.exercises()
+        // 範本永遠是 100% 的原始處方，沒有強度倍率概念（見 91-weight-model.md §9）。
         let sets = try await resolvedPlanSets(
-            from: template.sets, catalog: catalog, lookup: lastPerformedWeightLookup, makeID: makeID
+            from: template.sets, catalog: catalog, intensityFactor: 1.0,
+            lastPerformedLookup: lastPerformedWeightLookup, abilityValueLookup: abilityValueLookup, makeID: makeID
         )
         let plan = PlanWorkout(
             id: makeID(),

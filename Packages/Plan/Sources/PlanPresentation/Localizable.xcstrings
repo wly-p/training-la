@@ -2310,6 +2310,22 @@
         }
       }
     },
+    "template.block.percentOf1RM %lld": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld sets · % 1RM"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld 組 · % 1RM"
+          }
+        }
+      }
+    },
     "template.block.progressive %lld": {
       "localizations": {
         "en": {
@@ -2642,6 +2658,38 @@
           "stringUnit": {
             "state": "translated",
             "value": "同上組"
+          }
+        }
+      }
+    },
+    "template.set.percent": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "% 1RM"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "% 1RM"
+          }
+        }
+      }
+    },
+    "template.set.percentKicker": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "% 1RM"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "% 1RM"
           }
         }
       }

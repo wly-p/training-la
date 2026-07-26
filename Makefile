@@ -1,7 +1,7 @@
 .PHONY: test test-unit test-uitest test-e2e generate
 
 # 7 個 SPM local package，各自跑 `swift test`（純邏輯 / in-memory SwiftData，秒級、免模擬器）。
-PACKAGES := SharedKernel Spec Training Plan History Settings Reminders
+PACKAGES := SharedKernel Spec Training Plan History Settings Reminders Ability
 
 SCHEME := TrainingLa-Dev
 
