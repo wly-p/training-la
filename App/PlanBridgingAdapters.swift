@@ -65,10 +65,32 @@ struct PlanProviderAdapter: PlannedWorkoutProvider {
                 // 材料化後的 PlanWorkout.sets 一律 .absolute（投影用例保證），這裡解成確定公斤。
                 targetWeight: set.targetWeight?.resolvedWeight,
                 targetReps: set.targetReps,
-                restSec: set.restSec
+                restSec: set.restSec,
+                weightSource: set.weightSource.map(Self.mapWeightSource)
             )
         }
         return PlannedWorkoutBlueprint(planWorkoutId: plan.id, name: plan.name, targets: targets)
+    }
+
+    /// Plan 的 `WeightSourceInfo` → Training 的 `TargetWeightSource`（14c）：換一層型別，
+    /// 讓 Training 不用認識 Plan 的表達式型別，數值本身原封不動地搬過去。
+    private static func mapWeightSource(_ info: WeightSourceInfo) -> TargetWeightSource {
+        switch info.kind {
+        case .none:
+            return TargetWeightSource(kind: .none, intensityFactor: info.intensityFactor)
+        case .absolute:
+            return TargetWeightSource(kind: .absolute, intensityFactor: info.intensityFactor)
+        case .relativeToLast:
+            return TargetWeightSource(
+                kind: .relativeToLast, delta: info.delta, lastWeight: info.lastWeight,
+                intensityFactor: info.intensityFactor
+            )
+        case .percentOf1RM:
+            return TargetWeightSource(
+                kind: .percentOf1RM, percent: info.percent, abilityValue: info.abilityValue,
+                intensityFactor: info.intensityFactor
+            )
+        }
     }
 }
 

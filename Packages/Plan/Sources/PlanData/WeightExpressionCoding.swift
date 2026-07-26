@@ -26,3 +26,17 @@ enum WeightExpressionCoding {
         return kind == "relativeToLast" ? .relativeToLast(delta: weight) : .absolute(weight)
     }
 }
+
+/// `WeightSourceInfo` ⇄ 單欄 JSON 字串編碼（只有 `PlanSetModel` 用得到——只有材料化排課需要留這份
+/// 「數字怎麼來的」快照；範本/循環/長期的 spec set 從不設這個欄位）。
+enum WeightSourceInfoCoding {
+    static func encode(_ info: WeightSourceInfo?) -> String? {
+        guard let info, let data = try? JSONEncoder().encode(info) else { return nil }
+        return String(data: data, encoding: .utf8)
+    }
+
+    static func decode(_ json: String?) -> WeightSourceInfo? {
+        guard let json, let data = json.data(using: .utf8) else { return nil }
+        return try? JSONDecoder().decode(WeightSourceInfo.self, from: data)
+    }
+}

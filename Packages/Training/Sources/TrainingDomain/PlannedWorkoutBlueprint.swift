@@ -37,6 +37,11 @@ public struct PlannedWorkoutBlueprint: Equatable, Sendable {
             .dropFirst(position)
             .first
     }
+
+    /// 這份排課套用的強度倍率（同一份排課的所有組共用同一個值）；1.0＝基準，UI 不顯示膠囊。
+    public var intensityFactor: Double {
+        targets.compactMap { $0.weightSource?.intensityFactor }.first ?? 1.0
+    }
 }
 
 public struct PlannedTargetSet: Identifiable, Equatable, Sendable {
@@ -50,6 +55,9 @@ public struct PlannedTargetSet: Identifiable, Equatable, Sendable {
     public let targetReps: Int?
     /// 這組做完的休息秒數；nil＝沒設。
     public let restSec: Int?
+    /// 這個 targetWeight 數字的來源（14c 顯示算式用）；Training 不認識 Plan 的表達式型別，
+    /// 由 App 層 adapter 把 Plan 的 `WeightSourceInfo` 映射成這個。
+    public let weightSource: TargetWeightSource?
 
     public init(
         id: UUID,
@@ -59,7 +67,8 @@ public struct PlannedTargetSet: Identifiable, Equatable, Sendable {
         setIndex: Int,
         targetWeight: Weight?,
         targetReps: Int?,
-        restSec: Int?
+        restSec: Int?,
+        weightSource: TargetWeightSource? = nil
     ) {
         self.id = id
         self.exerciseId = exerciseId
@@ -69,6 +78,48 @@ public struct PlannedTargetSet: Identifiable, Equatable, Sendable {
         self.targetWeight = targetWeight
         self.targetReps = targetReps
         self.restSec = restSec
+        self.weightSource = weightSource
+    }
+}
+
+/// 材料化那一刻 targetWeight 怎麼算出來的快照（14c）。跟 Plan 的 `WeightSourceInfo` 一一對應，
+/// 只是換一層型別，讓 Training 不用 import PlanDomain。
+public struct TargetWeightSource: Equatable, Sendable {
+    public enum Kind: Equatable, Sendable { case none, absolute, relativeToLast, percentOf1RM }
+
+    public let kind: Kind
+    public let percent: Double?
+    /// `.percentOf1RM` 當時查到的能力值(1RM)；nil＝當時還沒設，算不出來。
+    public let abilityValue: Weight?
+    public let delta: Weight?
+    /// `.relativeToLast` 當時查到的上次重量；nil＝當時沒有上次紀錄，算不出來。
+    public let lastWeight: Weight?
+    public let intensityFactor: Double
+
+    public init(
+        kind: Kind,
+        percent: Double? = nil,
+        abilityValue: Weight? = nil,
+        delta: Weight? = nil,
+        lastWeight: Weight? = nil,
+        intensityFactor: Double
+    ) {
+        self.kind = kind
+        self.percent = percent
+        self.abilityValue = abilityValue
+        self.delta = delta
+        self.lastWeight = lastWeight
+        self.intensityFactor = intensityFactor
+    }
+
+    /// 算不出確定公斤（沒設表達式，或查無上次紀錄/能力值）。
+    public var isUnresolved: Bool {
+        switch kind {
+        case .none: return true
+        case .absolute: return false
+        case .relativeToLast: return lastWeight == nil
+        case .percentOf1RM: return abilityValue == nil
+        }
     }
 }
 

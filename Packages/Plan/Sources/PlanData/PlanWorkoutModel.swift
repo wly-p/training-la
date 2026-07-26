@@ -55,6 +55,8 @@ final class PlanSetModel {
     var targetWeightUnitRaw: String?
     var targetReps: Int?
     var restSec: Int?
+    /// `WeightSourceInfo` 的 JSON 快照（14c 用，見 `WeightSourceInfoCoding`）；只有材料化排課才有值。
+    var weightSourceJSON: String?
     var planWorkout: PlanWorkoutModel?
 
     init(
@@ -66,7 +68,8 @@ final class PlanSetModel {
         targetWeightValue: Double?,
         targetWeightUnitRaw: String?,
         targetReps: Int?,
-        restSec: Int?
+        restSec: Int?,
+        weightSourceJSON: String? = nil
     ) {
         self.id = id
         self.exerciseId = exerciseId
@@ -77,6 +80,7 @@ final class PlanSetModel {
         self.targetWeightUnitRaw = targetWeightUnitRaw
         self.targetReps = targetReps
         self.restSec = restSec
+        self.weightSourceJSON = weightSourceJSON
     }
 }
 
@@ -126,7 +130,8 @@ extension PlanSetModel {
             targetWeightValue: encoded.value,
             targetWeightUnitRaw: encoded.unit,
             targetReps: set.targetReps,
-            restSec: set.restSec
+            restSec: set.restSec,
+            weightSourceJSON: WeightSourceInfoCoding.encode(set.weightSource)
         )
     }
 
@@ -140,7 +145,8 @@ extension PlanSetModel {
                 kind: targetWeightKindRaw, value: targetWeightValue, unitRaw: targetWeightUnitRaw
             ),
             targetReps: targetReps,
-            restSec: restSec
+            restSec: restSec,
+            weightSource: WeightSourceInfoCoding.decode(weightSourceJSON)
         )
     }
 }

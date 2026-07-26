@@ -65,6 +65,8 @@ public struct PlanSet: Identifiable, Equatable, Sendable {
     public var targetWeight: WeightExpression?
     public var targetReps: Int?
     public var restSec: Int?
+    /// 材料化那一刻的重量來源快照（14c 顯示算式用）；spec 層（範本/循環/長期編輯中）的 set 恆為 nil。
+    public var weightSource: WeightSourceInfo?
 
     public init(
         id: UUID,
@@ -73,7 +75,8 @@ public struct PlanSet: Identifiable, Equatable, Sendable {
         setIndex: Int,
         targetWeight: WeightExpression?,
         targetReps: Int?,
-        restSec: Int? = nil
+        restSec: Int? = nil,
+        weightSource: WeightSourceInfo? = nil
     ) {
         self.id = id
         self.exerciseId = exerciseId
@@ -82,6 +85,7 @@ public struct PlanSet: Identifiable, Equatable, Sendable {
         self.targetWeight = targetWeight
         self.targetReps = targetReps
         self.restSec = restSec
+        self.weightSource = weightSource
     }
 }
 

@@ -40,7 +40,50 @@ public protocol AbilityValueLookup: Sendable {
     func abilityValue(exerciseId: UUID) async throws -> Weight?
 }
 
-/// 投影/實例化收斂：把重量表達式算成確定公斤。
+/// 材料化那一刻「這個數字怎麼來的」快照（14c 用）。跟 `targetWeight` 一起鎖死——
+/// 之後改 1RM／強度基準／補新的訓練紀錄，都不會回頭改這份說明（見 91-weight-model.md §5）。
+public struct WeightSourceInfo: Equatable, Sendable, Codable {
+    public enum Kind: String, Sendable, Codable { case none, absolute, relativeToLast, percentOf1RM }
+
+    public let kind: Kind
+    /// `.percentOf1RM` 的百分比數字。
+    public let percent: Double?
+    /// `.percentOf1RM` 當時查到的能力值(1RM)；nil＝當時還沒設，算不出來。
+    public let abilityValue: Weight?
+    /// `.relativeToLast` 的增減量。
+    public let delta: Weight?
+    /// `.relativeToLast` 當時查到的上次重量；nil＝當時沒有上次紀錄，算不出來。
+    public let lastWeight: Weight?
+    public let intensityFactor: Double
+
+    public init(
+        kind: Kind,
+        percent: Double? = nil,
+        abilityValue: Weight? = nil,
+        delta: Weight? = nil,
+        lastWeight: Weight? = nil,
+        intensityFactor: Double
+    ) {
+        self.kind = kind
+        self.percent = percent
+        self.abilityValue = abilityValue
+        self.delta = delta
+        self.lastWeight = lastWeight
+        self.intensityFactor = intensityFactor
+    }
+
+    /// 算不出確定公斤（沒設表達式，或查無上次紀錄/能力值）。
+    public var isUnresolved: Bool {
+        switch kind {
+        case .none: return true
+        case .absolute: return false
+        case .relativeToLast: return lastWeight == nil
+        case .percentOf1RM: return abilityValue == nil
+        }
+    }
+}
+
+/// 投影/實例化收斂：把重量表達式算成確定公斤，同時記下這個數字的來源（給 14c 顯示算式）。
 /// 絕對值／%1RM／相對上次先各自算出 base，套 `intensityFactor` 後再依器材遞增單位向下取整
 /// （順序不能換：倍率套在 base 之後、取整之前，見 91-weight-model.md §5）。
 /// 查不到能力值或歷史 ＝ nil（空白待填，不猜一個數字塞進去）。
@@ -51,25 +94,30 @@ func resolveWeightExpression(
     exerciseId: UUID,
     lastPerformedLookup: any LastPerformedWeightLookup,
     abilityValueLookup: any AbilityValueLookup
-) async throws -> WeightExpression? {
+) async throws -> (expression: WeightExpression?, source: WeightSourceInfo) {
     let base: Weight?
+    let source: WeightSourceInfo
     switch expression {
     case nil:
         base = nil
+        source = WeightSourceInfo(kind: .none, intensityFactor: intensityFactor)
     case .absolute(let weight):
         base = weight
+        source = WeightSourceInfo(kind: .absolute, intensityFactor: intensityFactor)
     case .percentOf1RM(let percent):
-        guard let ability = try await abilityValueLookup.abilityValue(exerciseId: exerciseId) else { return nil }
-        base = Weight(value: ability.value * percent / 100, unit: ability.unit)
+        let ability = try await abilityValueLookup.abilityValue(exerciseId: exerciseId)
+        base = ability.map { Weight(value: $0.value * percent / 100, unit: $0.unit) }
+        source = WeightSourceInfo(kind: .percentOf1RM, percent: percent, abilityValue: ability, intensityFactor: intensityFactor)
     case .relativeToLast(let delta):
-        guard let last = try await lastPerformedLookup.lastPerformedWeight(exerciseId: exerciseId) else { return nil }
-        base = last.metTarget ? Weight(value: last.weight.value + delta.value, unit: last.weight.unit) : last.weight
+        let last = try await lastPerformedLookup.lastPerformedWeight(exerciseId: exerciseId)
+        base = last.map { $0.metTarget ? Weight(value: $0.weight.value + delta.value, unit: $0.weight.unit) : $0.weight }
+        source = WeightSourceInfo(kind: .relativeToLast, delta: delta, lastWeight: last?.weight, intensityFactor: intensityFactor)
     }
-    guard let base else { return nil }
+    guard let base else { return (nil, source) }
     let step = weightStep > 0 ? weightStep : 1
     let raw = base.value * intensityFactor
     let stepped = (raw / step).rounded(.down) * step
-    return .absolute(Weight(value: max(0, stepped), unit: base.unit))
+    return (.absolute(Weight(value: max(0, stepped), unit: base.unit)), source)
 }
 
 /// 把一份 spec 的 sets（可能帶未收斂表達式）投影成材料化的 `PlanSet` 陣列（一律 `.absolute` 或 nil）。
@@ -86,7 +134,7 @@ func resolvedPlanSets(
     let stepByExercise = Dictionary(uniqueKeysWithValues: catalog.map { ($0.id, $0.equipment.weightStep) })
     var result: [PlanSet] = []
     for set in sourceSets {
-        let resolved = try await resolveWeightExpression(
+        let (resolved, source) = try await resolveWeightExpression(
             set.targetWeight,
             weightStep: stepByExercise[set.exerciseId] ?? 1,
             intensityFactor: intensityFactor,
@@ -101,7 +149,8 @@ func resolvedPlanSets(
             setIndex: set.setIndex,
             targetWeight: resolved,
             targetReps: set.targetReps,
-            restSec: set.restSec
+            restSec: set.restSec,
+            weightSource: source
         ))
     }
     return result
