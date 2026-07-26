@@ -50,7 +50,7 @@ final class EditDeleteWorkoutUITests: XCTestCase {
         XCTAssertTrue(app.staticTexts[exerciseName].waitForExistence(timeout: 5))
 
         app.tabBars.buttons["訓練"].tap()
-        app.buttons["開始訓練"].tap()
+        app.buttons["自由訓練 · 邊練邊加動作"].tap()
         let pickerTitle = app.navigationBars["選擇動作"]
         if !pickerTitle.waitForExistence(timeout: 3) {
             app.buttons["加入動作"].tap()
@@ -72,6 +72,6 @@ final class EditDeleteWorkoutUITests: XCTestCase {
         XCTAssertTrue(saveButton.waitForExistence(timeout: 5))
         app.buttons["💪"].firstMatch.tap()
         saveButton.tap()
-        XCTAssertTrue(app.buttons["開始訓練"].waitForExistence(timeout: 5))
+        XCTAssertTrue(app.buttons["自由訓練 · 邊練邊加動作"].waitForExistence(timeout: 5))
     }
 }

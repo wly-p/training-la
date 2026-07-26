@@ -1,7 +1,8 @@
 import XCTest
 
 /// 循環課表（可多組並行，設計稿 12a）：動作庫建一個含動作的範本 → 循環「+」直接開建立頁
-/// （新增／編輯同一頁）→ 打名字 → 從範本加入 → 訓練首頁顯示該組「今天輪到 X」→ 開始循環進入記錄。
+/// （新增／編輯同一頁）→ 打名字 → 從範本加入 → 訓練首頁「隨時可做」卡出現該組今天的 workout
+/// → 開始循環進入記錄。
 final class RotationFlowUITests: XCTestCase {
     @MainActor
     func testBuildRotationThenStartFromHome() throws {
@@ -44,10 +45,10 @@ final class RotationFlowUITests: XCTestCase {
         XCTAssertTrue(app.staticTexts["推日"].waitForExistence(timeout: 5))
         app.buttons["儲存"].tap()
 
-        // 訓練首頁：出現該組「今天輪到 推日」＋ 開始
+        // 訓練首頁：「隨時可做」卡標題顯示今天輪到的 workout 名（推日）
         app.tabBars.buttons["訓練"].tap()
         XCTAssertTrue(app.staticTexts["推日"].waitForExistence(timeout: 5))
-        app.buttons["開始今天的循環"].tap()
+        app.buttons["開始循環"].tap()
 
         // 記錄畫面：自動選到循環的動作（臥推）
         XCTAssertTrue(app.navigationBars["臥推"].waitForExistence(timeout: 5))

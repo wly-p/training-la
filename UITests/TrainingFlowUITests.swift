@@ -19,7 +19,7 @@ final class TrainingFlowUITests: XCTestCase {
 
         // 2. 開始訓練 → 自動彈出選動作（保險起見沒彈出就手動點「加入動作」）
         app.tabBars.buttons["訓練"].tap()
-        app.buttons["開始訓練"].tap()
+        app.buttons["自由訓練 · 邊練邊加動作"].tap()
         let pickerTitle = app.navigationBars["選擇動作"]
         if !pickerTitle.waitForExistence(timeout: 3) {
             app.buttons["加入動作"].tap()
@@ -45,7 +45,7 @@ final class TrainingFlowUITests: XCTestCase {
         saveButton.tap()
 
         // 5. 回到訓練首頁：場次已結束，重新顯示「開始訓練」
-        XCTAssertTrue(app.buttons["開始訓練"].waitForExistence(timeout: 5))
+        XCTAssertTrue(app.buttons["自由訓練 · 邊練邊加動作"].waitForExistence(timeout: 5))
 
         // 6. 歷史頁「按日期」看得到這場，點進去看得到動作
         app.tabBars.buttons["歷史"].tap()

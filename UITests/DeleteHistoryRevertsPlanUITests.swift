@@ -1,7 +1,7 @@
 import XCTest
 
 /// #2 迴歸：照課表訓練完成後刪除該場歷史紀錄 → 對應排課應還原為未完成
-/// （訓練首頁重新出現「照課表開始」）。
+/// （訓練首頁重新出現「開始」）。
 final class DeleteHistoryRevertsPlanUITests: XCTestCase {
     @MainActor
     func testDeleteHistoryRevertsPlanStatus() throws {
@@ -32,9 +32,9 @@ final class DeleteHistoryRevertsPlanUITests: XCTestCase {
         app.buttons["儲存"].tap()
         XCTAssertTrue(app.staticTexts["推日"].waitForExistence(timeout: 5))
 
-        // 訓練：照課表開始 → 完成一組 → 結束存檔
+        // 訓練：開始 → 完成一組 → 結束存檔
         app.tabBars.buttons["訓練"].tap()
-        let startFromPlan = app.buttons["照課表開始"]
+        let startFromPlan = app.buttons["開始"]
         XCTAssertTrue(startFromPlan.waitForExistence(timeout: 5))
         startFromPlan.tap()
         let completeButton = app.buttons["完成此組"]
@@ -61,8 +61,8 @@ final class DeleteHistoryRevertsPlanUITests: XCTestCase {
         XCTAssertTrue(confirm.waitForExistence(timeout: 5))
         confirm.tap()
 
-        // 排課還原為未完成 → 訓練首頁又出現「照課表開始」
+        // 排課還原為未完成 → 訓練首頁又出現「開始」
         app.tabBars.buttons["訓練"].tap()
-        XCTAssertTrue(app.buttons["照課表開始"].waitForExistence(timeout: 5))
+        XCTAssertTrue(app.buttons["開始"].waitForExistence(timeout: 5))
     }
 }

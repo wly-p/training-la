@@ -23,10 +23,10 @@ final class ScheduleFlowUITests: XCTestCase {
         app.buttons["儲存"].tap()
         XCTAssertTrue(app.staticTexts["推日"].waitForExistence(timeout: 5))
 
-        // 訓練首頁：出現今日排課卡 + 照課表開始
+        // 訓練首頁：出現今日排課卡 + 開始
         app.tabBars.buttons["訓練"].tap()
         XCTAssertTrue(app.staticTexts["推日"].waitForExistence(timeout: 5))
-        app.buttons["照課表開始"].tap()
+        app.buttons["開始"].tap()
 
         // 記錄畫面：自動選到第一個課表動作（臥推）並顯示目標
         XCTAssertTrue(app.navigationBars["臥推"].waitForExistence(timeout: 5))

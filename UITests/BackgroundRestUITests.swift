@@ -41,8 +41,8 @@ final class BackgroundRestUITests: XCTestCase {
 
         // 照課表訓練，完成一組 → 進入休息
         app.tabBars.buttons["訓練"].tap()
-        XCTAssertTrue(app.buttons["照課表開始"].waitForExistence(timeout: 5))
-        app.buttons["照課表開始"].tap()
+        XCTAssertTrue(app.buttons["開始"].waitForExistence(timeout: 5))
+        app.buttons["開始"].tap()
         let completeButton = app.buttons["完成此組"]
         XCTAssertTrue(completeButton.waitForExistence(timeout: 5))
         completeButton.tap()

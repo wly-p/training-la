@@ -165,6 +165,7 @@ struct AppDependencies {
                 TrainingHomeViewModel(
                     startWorkout: StartWorkout(repository: workoutRepository),
                     resumeWorkout: ResumeWorkout(repository: workoutRepository),
+                    recentWorkouts: RecentWorkouts(repository: workoutRepository),
                     plannedProvider: plannedProvider
                 )
             },

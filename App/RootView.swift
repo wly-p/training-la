@@ -39,7 +39,8 @@ struct RootView: View {
         TabView(selection: $selection) {
             TrainingHomeView(
                 viewModel: trainingHomeViewModel,
-                makeActiveWorkoutViewModel: dependencies.makeActiveWorkoutViewModel
+                makeActiveWorkoutViewModel: dependencies.makeActiveWorkoutViewModel,
+                openSchedule: { selection = 2 }
             )
             // tab 文字走 App target 自帶的 Localizable.xcstrings（在 main bundle，Label 預設查 main，
             // 不需 bundle: 參數）；隨根部注入的 \.locale 即時切換。

@@ -9,6 +9,7 @@ private actor MockHomeWorkoutRepo: WorkoutRepository {
     var stored: [UUID: Workout] = [:]
     var active: Workout?
     var saveError: Error?
+    var finished: [Workout] = []
 
     func save(_ workout: Workout) async throws {
         if let saveError { throw saveError }
@@ -18,7 +19,7 @@ private actor MockHomeWorkoutRepo: WorkoutRepository {
     func delete(id: UUID) async throws { stored[id] = nil }
     func activeWorkout() async throws -> Workout? { active }
     func lastPerformance(exerciseId: UUID, excludingWorkout: UUID?) async throws -> [WorkoutSet] { [] }
-    func finishedWorkouts() async throws -> [Workout] { [] }
+    func finishedWorkouts() async throws -> [Workout] { finished }
     func exerciseHistory(exerciseId: UUID) async throws -> [ExerciseSetRecord] { [] }
     func usesExercise(_ exerciseId: UUID) async throws -> Bool { false }
 }
@@ -185,4 +186,76 @@ struct TrainingHomeViewModelTests {
 private extension MockHomeWorkoutRepo {
     func setActive(_ workout: Workout?) { active = workout }
     func setSaveError(_ error: Error) { saveError = error }
+    func setFinished(_ workouts: [Workout]) { finished = workouts }
+}
+
+@MainActor
+struct TrainingHomeWeekSummaryTests {
+    /// 2026/7/26 是週日；週一到週日應該是 7/20～7/26。
+    private let monday = DayDate(year: 2026, month: 7, day: 20)
+    private let today = DayDate(year: 2026, month: 7, day: 26)
+
+    private func workout(day: DayDate, minutes: Int) -> Workout {
+        let start = Date(timeIntervalSince1970: 0)
+        return Workout(id: UUID(), day: day, startedAt: start, endedAt: start.addingTimeInterval(Double(minutes) * 60))
+    }
+
+    @Test func weekSummaryCountsOnlySessionsWithinMondayToSunday() {
+        let finished = [
+            workout(day: today, minutes: 40),                      // 這週：週日
+            workout(day: monday, minutes: 30),                     // 這週：週一
+            workout(day: monday.adding(days: -1), minutes: 999),   // 上週日，不算
+        ]
+
+        let summary = TrainingHomeViewModel.weekSummary(from: finished, today: today)
+
+        #expect(summary.sessionCount == 2)
+        #expect(summary.totalMinutes == 70)
+        #expect(summary.days.count == 7)
+        #expect(summary.days.first?.date == monday)
+        #expect(summary.days.last?.date == today)
+    }
+
+    @Test func weekSummaryMarksCompletedAndTodayCorrectly() {
+        let finished = [workout(day: monday, minutes: 10)]
+
+        let summary = TrainingHomeViewModel.weekSummary(from: finished, today: today)
+
+        #expect(summary.days.first { $0.date == monday }?.completed == true)
+        #expect(summary.days.first { $0.date == today }?.isToday == true)
+        #expect(summary.days.filter(\.completed).count == 1)
+    }
+
+    @Test func refreshPopulatesLastSessionNameFromBlueprint() async {
+        let repo = MockHomeWorkoutRepo()
+        let planWorkoutId = UUID()
+        let workout = Workout(id: UUID(), day: today, planWorkoutId: planWorkoutId,
+                               startedAt: Date(), endedAt: Date())
+        await repo.setFinished([workout])
+        let plan = PlannedWorkoutBlueprint(planWorkoutId: planWorkoutId, name: "胸日", targets: [])
+        let vm = TrainingHomeViewModel(
+            startWorkout: StartWorkout(repository: repo),
+            resumeWorkout: ResumeWorkout(repository: repo),
+            recentWorkouts: RecentWorkouts(repository: repo),
+            plannedProvider: MockPlannedProvider(plan: plan)
+        )
+
+        await vm.refresh()
+
+        #expect(vm.lastSession?.name == "胸日")
+        #expect(vm.weekSummary != nil)
+    }
+
+    @Test func refreshLeavesLastSessionNilWhenNeverTrained() async {
+        let repo = MockHomeWorkoutRepo()
+        let vm = TrainingHomeViewModel(
+            startWorkout: StartWorkout(repository: repo),
+            resumeWorkout: ResumeWorkout(repository: repo),
+            recentWorkouts: RecentWorkouts(repository: repo)
+        )
+
+        await vm.refresh()
+
+        #expect(vm.lastSession == nil)
+    }
 }

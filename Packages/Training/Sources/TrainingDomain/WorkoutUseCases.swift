@@ -122,3 +122,16 @@ public struct LastPerformance: Sendable {
         try await repository.lastPerformance(exerciseId: exerciseId, excludingWorkout: excludingWorkout)
     }
 }
+
+/// 已完成場次（新到舊）：訓練首頁「本週」統計＋「重複上次」用。
+public struct RecentWorkouts: Sendable {
+    private let repository: any WorkoutRepository
+
+    public init(repository: any WorkoutRepository) {
+        self.repository = repository
+    }
+
+    public func callAsFunction() async throws -> [Workout] {
+        try await repository.finishedWorkouts()
+    }
+}
