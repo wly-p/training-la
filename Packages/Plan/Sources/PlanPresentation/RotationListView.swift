@@ -8,7 +8,6 @@ import SwiftUI
 /// 不自帶 NavigationStack：由動作庫 tab 共用的 NavigationStack 承載（見 App/RootView 的 LibraryTabView）。
 public struct RotationListView: View {
     @Bindable private var viewModel: RotationListViewModel
-    private let makeEditor: @MainActor (UUID) -> RotationEditorViewModel
     private let makeDetail: @MainActor (UUID) -> RotationDetailViewModel
     private let createToken: Int
     @Environment(\.locale) private var locale
@@ -19,12 +18,10 @@ public struct RotationListView: View {
 
     public init(
         viewModel: RotationListViewModel,
-        makeEditor: @escaping @MainActor (UUID) -> RotationEditorViewModel,
         makeDetail: @escaping @MainActor (UUID) -> RotationDetailViewModel,
         createToken: Int = 0
     ) {
         self.viewModel = viewModel
-        self.makeEditor = makeEditor
         self.makeDetail = makeDetail
         self.createToken = createToken
     }
@@ -68,15 +65,35 @@ public struct RotationListView: View {
             RotationDetailView(viewModel: makeDetail(id))
         }
         .navigationDestination(for: RotationEditRoute.self) { route in
-            // 詳情頁「編輯」→ 編輯器。value-based＋祖層 destination，避免 factory VM 競態（drill-in 陷阱）。
-            RotationEditorView(viewModel: makeEditor(route.id))
+            // 編輯：直接把清單裡已載入的 Rotation 物件交給編輯頁（同 TemplateFormView 的作法），
+            // 不再依 id 另外非同步查一次——整類 drill-in async race 問題就不會發生
+            // （見 memory nav-drill-in-pitfall）。
+            if let rotation = viewModel.rotations.first(where: { $0.id == route.id }) {
+                RotationEditorView(
+                    target: .edit(rotation),
+                    templates: viewModel.templates,
+                    name: viewModel.name(for:),
+                    onSubmit: { name, workouts, _, _ in
+                        await viewModel.update(id: rotation.id, name: name, workouts: workouts)
+                    },
+                    onDelete: { await viewModel.delete(id: rotation.id) }
+                )
+            }
         }
         .task { await viewModel.load() }
+        // 從 Detail／Editor 返回也要刷新（那些頁面各自改完資料，這裡的清單快照要跟上）。
+        .onAppear { Task { await viewModel.load() } }
         .onChange(of: createToken) { creating = true }
         .sheet(isPresented: $creating) {
-            RotationNameFormView(titleKey: "rotation.list.new") { name in
-                await viewModel.create(name: name)
-            }
+            RotationEditorView(
+                target: .create,
+                templates: viewModel.templates,
+                name: viewModel.name(for:),
+                onSubmit: { name, workouts, isActive, cursor in
+                    await viewModel.create(name: name, workouts: workouts, isActive: isActive, cursor: cursor)
+                },
+                onDelete: {}
+            )
         }
         .sheet(item: $renaming) { rotation in
             RotationNameFormView(titleKey: "rotation.rename", name: rotation.name) { name in

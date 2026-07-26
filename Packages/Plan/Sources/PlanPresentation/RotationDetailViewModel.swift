@@ -4,7 +4,8 @@ import PlanDomain
 import SharedKernel
 
 /// 循環詳情頁（設計稿 8a）的 VM：狀態卡（輪數/已完成次數/範本 capsule）、組成清單、
-/// 管理動作（跳到下一個範本／重設輪次／停用／刪除）。編輯內容走 RotationEditorViewModel。
+/// 管理動作（跳到下一個範本／重設輪次／停用／刪除）。編輯內容走 `RotationEditorView`
+/// （直接吃 `Rotation` 物件，見 `RotationListView` 的 ancestor `navigationDestination`）。
 @MainActor
 @Observable
 public final class RotationDetailViewModel {

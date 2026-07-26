@@ -32,16 +32,17 @@ public struct CreateProgram: Sendable {
     }
 
     @discardableResult
-    public func callAsFunction(name: String, cycleLength: Int = 7) async throws -> Program {
+    public func callAsFunction(name: String, cycleLength: Int = 7, days: [Int: WorkoutSpec] = [:]) async throws -> Program {
         let validName = try validatedProgramName(name)
         let orderIndex = (try await repository.all().map(\.orderIndex).max() ?? -1) + 1
         let timestamp = now()
+        let length = max(1, cycleLength)
         let program = Program(
             id: makeID(),
             name: validName,
             orderIndex: orderIndex,
-            cycleLength: max(1, cycleLength),
-            days: [:],
+            cycleLength: length,
+            days: days.filter { (0..<length).contains($0.key) },
             createdAt: timestamp,
             updatedAt: timestamp
         )

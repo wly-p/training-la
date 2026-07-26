@@ -3,32 +3,94 @@ import PlanDomain
 import SharedKernel
 import SwiftUI
 
-/// 單一長期課表的內容編輯器（設計稿 9c）：套 `EditScaffold`。
-/// 本地草稿（名稱／週期天數／每天安排）只在按「儲存」時一次寫回；「總長度」chips 純畫面用，
-/// 只決定下方預覽格要畫幾輪，不寫進 Domain（`Program.cycleLength` 才是真正的「週期」）。
-/// 不自帶 NavigationStack：由動作庫 tab 共用的 NavigationStack push 進來。
+/// 長期課表編輯（設計稿 9c/12b）：套 `EditScaffold`。每天指派一個範本或「休息」——透過共用
+/// `PickerSheet` 單選，不再是自由拼裝內容（`WorkoutSpecFormView` 已移除）。
+/// 直接吃 `Program` 物件（同 `RotationEditorView`/`TemplateFormView` precedent），不用 id 非同步查。
+///
+/// **新增模式的三態**（12b，僅 `.create` 才有）：格子分「已指派」／「已設休息」／「未指派」——
+/// 後者是使用者還沒決定過的格，跟「休息」不同，用虛線圈標示；下一個要填的格會反白指路；
+/// 存檔前必須全部決定過（`還有 N 格未指派 · 填完才能儲存`）。編輯既有課表沒有這個狀態——
+/// 已存過的資料，缺席一律視為「休息」（沿用 9c 原本語意），不會出現虛線格。
 public struct ProgramEditorView: View {
-    @Bindable private var viewModel: ProgramEditorViewModel
-    @Environment(\.dismiss) private var dismiss
-    @Environment(\.locale) private var locale
+    public enum Target {
+        case create
+        case edit(Program)
+    }
 
-    @State private var draftName = ""
-    @State private var draftCycleLength = 7
-    @State private var draftDays: [Int: WorkoutSpec] = [:]
+    let target: Target
+    let templates: [WorkoutTemplate]
+    let name: (UUID) -> String
+    let onSubmit: (String, Int, [Int: WorkoutSpec]) async -> Void
+    let onDelete: () async -> Void
+
+    @Environment(\.dismiss) private var dismiss
+    @State private var draftName: String
+    @State private var draftCycleLength: Int
+    @State private var draftDays: [Int: WorkoutSpec]
+    /// 新增模式：使用者已經決定過（指派範本或設休息）的天數索引。編輯模式不使用（永遠視為全部已決定）。
+    @State private var touchedDays: Set<Int> = []
 
     @State private var previewTotalLength = 28
     @State private var isCustomTotalLength = false
     @State private var showCycleLengthEditor = false
-    @State private var editingDay: EditingDay?
+    @State private var pickingDay: EditingDay?
     @State private var showDeleteConfirm = false
 
-    public init(viewModel: ProgramEditorViewModel) {
-        self.viewModel = viewModel
+    private let initialName: String
+    private let initialCycleLength: Int
+    private let initialDays: [Int: WorkoutSpec]
+
+    public init(
+        target: Target,
+        templates: [WorkoutTemplate],
+        name: @escaping (UUID) -> String,
+        onSubmit: @escaping (String, Int, [Int: WorkoutSpec]) async -> Void,
+        onDelete: @escaping () async -> Void = {}
+    ) {
+        self.target = target
+        self.templates = templates
+        self.name = name
+        self.onSubmit = onSubmit
+        self.onDelete = onDelete
+        switch target {
+        case .create:
+            initialName = ""
+            initialCycleLength = 7
+            initialDays = [:]
+        case .edit(let program):
+            initialName = program.name
+            initialCycleLength = program.cycleLength
+            initialDays = program.days
+        }
+        _draftName = State(initialValue: initialName)
+        _draftCycleLength = State(initialValue: initialCycleLength)
+        _draftDays = State(initialValue: initialDays)
+        _previewTotalLength = State(initialValue: [10, 14, 28].first { $0 >= initialCycleLength } ?? initialCycleLength)
+    }
+
+    private var isCreating: Bool {
+        if case .create = target { true } else { false }
+    }
+
+    private var unassignedCount: Int {
+        guard isCreating else { return 0 }
+        return (0..<draftCycleLength).filter { !touchedDays.contains($0) }.count
+    }
+
+    private var nextUntouchedDay: Int? {
+        guard isCreating else { return nil }
+        return (0..<draftCycleLength).first { !touchedDays.contains($0) }
     }
 
     private var canSave: Bool {
-        !draftName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
-            && (draftName != viewModel.name || draftCycleLength != viewModel.cycleLength || draftDays != viewModel.days)
+        guard !draftName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else { return false }
+        if isCreating { return unassignedCount == 0 }
+        return draftName != initialName || draftCycleLength != initialCycleLength || draftDays != initialDays
+    }
+
+    /// 最近用過的範本（依 `updatedAt` 新到舊，取前 5）：picker 的「最近用過」分組。
+    private var recentTemplateIds: [UUID] {
+        templates.sorted { $0.updatedAt > $1.updatedAt }.prefix(5).map(\.id)
     }
 
     public var body: some View {
@@ -41,47 +103,31 @@ public struct ProgramEditorView: View {
             onCancel: { dismiss() },
             onSave: {
                 Task {
-                    if await viewModel.save(name: draftName, cycleLength: draftCycleLength, days: draftDays) {
-                        dismiss()
-                    }
+                    await onSubmit(draftName, draftCycleLength, draftDays)
+                    dismiss()
                 }
             }
         ) {
             totalLengthSection
             cycleSection
             previewSection
-            deleteSection
-        }
-        .task {
-            await viewModel.load()
-            draftName = viewModel.name
-            draftCycleLength = viewModel.cycleLength
-            draftDays = viewModel.days
-            previewTotalLength = [10, 14, 28].first { $0 >= draftCycleLength } ?? draftCycleLength
-        }
-        .sheet(item: $editingDay) { editing in
-            let index = editing.index
-            let existing = draftDays[index]
-            WorkoutSpecFormView(
-                titleKey: "program.dayEdit",
-                name: existing?.name ?? "",
-                drafts: existing.map { draftsFromBlocks($0.blocks) } ?? [],
-                catalog: viewModel.catalog,
-                templates: viewModel.templates
-            ) { name, drafts in
-                draftDays[index] = WorkoutSpec(id: existing?.id ?? UUID(), name: name, sets: PlanSet.make(from: drafts))
+            if !isCreating {
+                deleteSection
             }
         }
-        .alert(
-            localText("plan.error"),
-            isPresented: Binding(
-                get: { viewModel.errorMessage != nil },
-                set: { if !$0 { viewModel.dismissError() } }
+        .onChange(of: draftCycleLength) { _, newValue in
+            touchedDays = touchedDays.filter { $0 < newValue }
+        }
+        .sheet(item: $pickingDay) { editing in
+            let index = editing.index
+            PickerSheet(
+                title: Text(verbatim: String(localized: "program.picker.title", bundle: .module)),
+                searchPrompt: localText("rotation.picker.searchPrompt"),
+                allItems: dayPickerItems,
+                recentItemIds: recentTemplateIds,
+                selection: .single(onSelect: { item in assignDay(index, item) }),
+                labels: PlanPickerLabels.standard
             )
-        ) {
-            Button(role: .cancel) {} label: { localText("plan.ok") }
-        } message: {
-            Text(viewModel.errorMessage ?? "")
         }
         .tlConfirmationDialog(
             isPresented: $showDeleteConfirm,
@@ -93,10 +139,19 @@ public struct ProgramEditorView: View {
             confirmIdentifier: "confirmDeleteProgramFromEditor",
             onConfirm: {
                 Task {
-                    if await viewModel.delete() { dismiss() }
+                    await onDelete()
+                    dismiss()
                 }
             }
         )
+    }
+
+    private var dayPickerItems: [DayAssignmentPickerItem] {
+        let rest = DayAssignmentPickerItem.rest(
+            title: String(localized: "program.day.setRest", bundle: .module),
+            subtitle: String(localized: "program.picker.restSubtitle", bundle: .module)
+        )
+        return [rest] + templates.map { DayAssignmentPickerItem.template($0, name: name) }
     }
 
     // MARK: - 總長度（畫面用，決定預覽格畫幾輪，不進 Domain）
@@ -139,11 +194,11 @@ public struct ProgramEditorView: View {
     }
 
     private func totalLengthLabel(_ n: Int) -> String {
-        String(localized: "program.totalLength.days \(n)", bundle: .module, locale: locale)
+        String(localized: "program.totalLength.days \(n)", bundle: .module)
     }
 
     private var customTotalLengthLabel: String {
-        String(localized: "program.totalLength.custom", bundle: .module, locale: locale)
+        String(localized: "program.totalLength.custom", bundle: .module)
     }
 
     // MARK: - 週期（真正的 Domain 欄位：cycleLength／days）
@@ -174,35 +229,59 @@ public struct ProgramEditorView: View {
         }
     }
 
+    private enum DayCellState { case assigned, rest, unassigned }
+
+    private func cellState(_ day: Int) -> DayCellState {
+        guard isCreating, !touchedDays.contains(day) else {
+            return draftDays[day] != nil ? .assigned : .rest
+        }
+        return .unassigned
+    }
+
     private func dayRow(_ index: Int) -> some View {
         let spec = draftDays[index]
+        let state = cellState(index)
+        let isNext = index == nextUntouchedDay
         return ListRow(
-            title: spec.map { Text(verbatim: $0.name) } ?? localText("program.day.rest"),
-            subtitle: spec.map { Text(PlanFormatting.summary($0, name: viewModel.name(for:), language: AppLanguage(locale: locale))) },
+            title: rowTitle(state: state, isNext: isNext, spec: spec),
+            subtitle: spec.map { Text(PlanFormatting.exerciseNamesSummary($0, name: name)) },
             showChevron: true,
-            onTap: { editingDay = EditingDay(index: index) },
-            leading: { indexBadge(index + 1, rest: spec == nil) }
+            onTap: { pickingDay = EditingDay(index: index) },
+            leading: { indexBadge(index + 1, state: state, isNext: isNext) }
         )
-        .contextMenu {
-            if spec != nil {
-                Button(role: .destructive) {
-                    draftDays[index] = nil
-                } label: {
-                    Label { localText("program.day.setRest") } icon: { Image(systemName: "moon.zzz") }
-                }
+        .background(isNext ? TLColor.accent.opacity(0.07) : Color.clear)
+    }
+
+    private func rowTitle(state: DayCellState, isNext: Bool, spec: WorkoutSpec?) -> Text {
+        if isNext { return localText("program.day.nextPrompt") }
+        switch state {
+        case .assigned: return spec.map { Text(verbatim: $0.name) } ?? localText("program.day.rest")
+        case .rest: return localText("program.day.rest")
+        case .unassigned: return localText("program.day.unassigned")
+        }
+    }
+
+    @ViewBuilder
+    private func indexBadge(_ n: Int, state: DayCellState, isNext: Bool) -> some View {
+        if state == .unassigned && !isNext {
+            ZStack {
+                Circle()
+                    .strokeBorder(TLColor.text.opacity(0.22), style: StrokeStyle(lineWidth: 1, dash: [3, 3]))
+                Text(verbatim: "\(n)")
+                    .font(TLFont.display(15))
+                    .foregroundStyle(TLColor.neutral400)
+            }
+            .frame(width: TLSize.badge, height: TLSize.badge)
+        } else {
+            CircleBadge(fill: isNext ? TLColor.accent : (state == .rest ? TLColor.neutral200 : TLColor.accent200)) {
+                Text(verbatim: "\(n)")
+                    .font(TLFont.display(15))
+                    .foregroundStyle(isNext ? TLColor.bg : (state == .rest ? TLColor.neutral500 : TLColor.accent800))
             }
         }
     }
 
-    private func indexBadge(_ n: Int, rest: Bool) -> some View {
-        CircleBadge(fill: rest ? TLColor.neutral200 : TLColor.accent200) {
-            Text(verbatim: "\(n)")
-                .font(TLFont.display(15))
-                .foregroundStyle(rest ? TLColor.neutral500 : TLColor.accent800)
-        }
-    }
-
-    // MARK: - 預覽格（7 欄 × N 列，填色＝訓練日）
+    // MARK: - 預覽格（7 欄 × N 列，填色＝訓練日；新增模式未指派格畫虛線）
 
     private var rounds: Int {
         max(1, Int((Double(previewTotalLength) / Double(max(1, draftCycleLength))).rounded()))
@@ -232,27 +311,48 @@ public struct ProgramEditorView: View {
             ForEach(0..<draftCycleLength, id: \.self) { day in
                 VStack(spacing: 4) {
                     ForEach(0..<rounds, id: \.self) { _ in
-                        RoundedRectangle(cornerRadius: 5, style: .continuous)
-                            .fill(draftDays[day] != nil ? TLColor.accent : TLColor.neutral100)
-                            .frame(width: 18, height: 18)
+                        previewCell(cellState(day))
                     }
                 }
             }
         }
     }
 
-    private var previewSummary: Text {
-        let restCount = draftCycleLength - practiceCountPerCycle
-        return localText("program.preview.cycle \(draftCycleLength)")
-            + Text(verbatim: " · ")
-            + localText("program.preview.split \(practiceCountPerCycle) \(restCount)")
-            + Text(verbatim: " · ")
-            + localText("program.preview.repeat \(rounds)")
-            + Text(verbatim: " = ")
-            + localText("program.preview.total \(rounds * draftCycleLength) \(rounds * practiceCountPerCycle)")
+    @ViewBuilder
+    private func previewCell(_ state: DayCellState) -> some View {
+        switch state {
+        case .assigned:
+            RoundedRectangle(cornerRadius: 5, style: .continuous)
+                .fill(TLColor.accent)
+                .frame(width: 18, height: 18)
+        case .rest:
+            RoundedRectangle(cornerRadius: 5, style: .continuous)
+                .fill(TLColor.neutral100)
+                .frame(width: 18, height: 18)
+        case .unassigned:
+            RoundedRectangle(cornerRadius: 5, style: .continuous)
+                .strokeBorder(TLColor.text.opacity(0.22), style: StrokeStyle(lineWidth: 1, dash: [2, 2]))
+                .frame(width: 18, height: 18)
+        }
     }
 
-    // MARK: - 刪除
+    @ViewBuilder
+    private var previewSummary: some View {
+        if unassignedCount > 0 {
+            localText("program.preview.unassigned \(unassignedCount)")
+        } else {
+            let restCount = draftCycleLength - practiceCountPerCycle
+            localText("program.preview.cycle \(draftCycleLength)")
+                + Text(verbatim: " · ")
+                + localText("program.preview.split \(practiceCountPerCycle) \(restCount)")
+                + Text(verbatim: " · ")
+                + localText("program.preview.repeat \(rounds)")
+                + Text(verbatim: " = ")
+                + localText("program.preview.total \(rounds * draftCycleLength) \(rounds * practiceCountPerCycle)")
+        }
+    }
+
+    // MARK: - 刪除（僅編輯模式）
 
     private var deleteSection: some View {
         TLGroup {
@@ -263,6 +363,28 @@ public struct ProgramEditorView: View {
             )
         }
         .accessibilityIdentifier("deleteProgramButton")
+    }
+
+    // MARK: - 指派
+
+    private func assignDay(_ index: Int, _ item: DayAssignmentPickerItem) {
+        switch item {
+        case .rest:
+            draftDays[index] = nil
+        case .template(let id, _, _):
+            guard let template = templates.first(where: { $0.id == id }) else { return }
+            draftDays[index] = WorkoutSpec(
+                name: template.name,
+                sets: template.sets.map { set in
+                    PlanSet(
+                        id: UUID(), exerciseId: set.exerciseId, exerciseIndex: set.exerciseIndex,
+                        setIndex: set.setIndex, targetWeight: set.targetWeight, targetReps: set.targetReps,
+                        restSec: set.restSec
+                    )
+                }
+            )
+        }
+        touchedDays.insert(index)
     }
 }
 

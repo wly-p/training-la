@@ -44,6 +44,7 @@ public struct TemplateListView: View {
             TemplateFormView(
                 target: target.formTarget,
                 catalog: viewModel.catalog,
+                recentExerciseIds: recentExerciseIds,
                 onSubmit: { name, sets in
                     switch target {
                     case .create:
@@ -70,6 +71,20 @@ public struct TemplateListView: View {
         } message: {
             Text(viewModel.errorMessage ?? "")
         }
+    }
+
+    /// 「最近用過」的動作（picker 用）：跨所有範本，依範本 `updatedAt` 新到舊取不重複的動作 id，取前 5。
+    private var recentExerciseIds: [UUID] {
+        var seen: Set<UUID> = []
+        var result: [UUID] = []
+        for template in viewModel.templates.sorted(by: { $0.updatedAt > $1.updatedAt }) {
+            for block in template.blocks where !seen.contains(block.exerciseId) {
+                seen.insert(block.exerciseId)
+                result.append(block.exerciseId)
+                if result.count >= 5 { return result }
+            }
+        }
+        return result
     }
 
     private func row(_ template: WorkoutTemplate) -> some View {

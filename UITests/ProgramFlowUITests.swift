@@ -1,7 +1,8 @@
 import XCTest
 
-/// 長期課表（N 天週期 + 投影）：動作庫建立一份課表 → 指定第 1 天的 workout →
-/// 課表 tab 套用（起始日＝今天）→ 當日詳情出現投影「推日」＋「加入這天」。
+/// 長期課表（N 天週期 + 投影，設計稿 12b）：動作庫建一個含動作的範本 → 長期「+」直接開建立頁 →
+/// 打名字 → 逐天指派範本或「休息」（新增模式必須全部決定過才能儲存）→ 課表 tab 套用（起始日＝今天）
+/// → 當日詳情出現投影「推日」＋「加入這天」。
 final class ProgramFlowUITests: XCTestCase {
     @MainActor
     func testBuildProgramThenApplyShowsProjection() throws {
@@ -18,37 +19,44 @@ final class ProgramFlowUITests: XCTestCase {
         app.buttons["儲存"].tap()
         XCTAssertTrue(app.staticTexts["臥推"].waitForExistence(timeout: 5))
 
-        // 動作庫 → 「長期」分段 → 新增一份長期課表
-        app.buttons["長期"].tap()
-        let newProgram = app.buttons["libraryAddButton"]
-        XCTAssertTrue(newProgram.waitForExistence(timeout: 5))
-        newProgram.tap()
-        let programName = app.textFields["名稱（例：PPL）"]
-        XCTAssertTrue(programName.waitForExistence(timeout: 5))
-        programName.tap(); programName.typeText("測試課表")
+        // 範本分段：建一個含臥推的課表範本（長期現在每天指派的是範本，見設計稿 12b）
+        app.buttons["範本"].tap()
+        app.buttons["libraryAddButton"].tap()
+        let templateName = app.textFields["範本名稱"]
+        XCTAssertTrue(templateName.waitForExistence(timeout: 5))
+        templateName.tap(); templateName.typeText("推日")
+        app.buttons["從動作庫加入"].tap()
+        app.staticTexts["臥推"].firstMatch.tap()
+        app.buttons["加入 1 個動作"].tap()
         app.buttons["儲存"].tap()
+        XCTAssertTrue(app.staticTexts["推日"].waitForExistence(timeout: 5))
 
-        // 點進課表 → 詳情頁 → 編輯 → 指定第 1 天的 workout
-        let programRow = app.staticTexts["測試課表"]
-        XCTAssertTrue(programRow.waitForExistence(timeout: 5))
-        programRow.tap()
-        let editButton = app.buttons["編輯"]
-        XCTAssertTrue(editButton.waitForExistence(timeout: 5))
-        editButton.tap()
-        let firstDay = app.staticTexts["休息"].firstMatch
-        XCTAssertTrue(firstDay.waitForExistence(timeout: 5))
-        firstDay.tap()
-        let workoutName = app.textFields["名稱（例：推日）"]
-        XCTAssertTrue(workoutName.waitForExistence(timeout: 5))
-        workoutName.tap(); workoutName.typeText("推日")
-        app.buttons["加入動作"].tap()
-        let pick = app.staticTexts["臥推"].firstMatch
+        // 長期分段：「+」直接開建立頁 → 打名字
+        app.buttons["長期"].tap()
+        app.buttons["libraryAddButton"].tap()
+        let programTitle = app.textFields["名稱（例：PPL）"]
+        XCTAssertTrue(programTitle.waitForExistence(timeout: 5))
+        programTitle.tap(); programTitle.typeText("測試課表")
+
+        // 第 1 天指派範本；預設週期 7 天，新增模式要全部決定過才能儲存——其餘 6 天設為休息。
+        // 每次決定完，「下一個要填的格」會反白出現同一句提示文字，重複點它即可逐天推進。
+        let nextPrompt = app.staticTexts["選一個範本，或設為休息"]
+        XCTAssertTrue(nextPrompt.waitForExistence(timeout: 5))
+        nextPrompt.tap()
+        let pick = app.staticTexts["推日"].firstMatch
         XCTAssertTrue(pick.waitForExistence(timeout: 5))
         pick.tap()
-        // 「編輯這天」表單自己的儲存（跟外層編輯頁的儲存同名，用 navigationBar 鎖定這顆）。
-        app.navigationBars.buttons["儲存"].tap()
         XCTAssertTrue(app.staticTexts["推日"].waitForExistence(timeout: 5))
-        // 編輯頁是本地草稿，要按頁面自己的「儲存」才真正寫回。
+
+        for _ in 0..<6 {
+            let prompt = app.staticTexts["選一個範本，或設為休息"]
+            XCTAssertTrue(prompt.waitForExistence(timeout: 5))
+            prompt.tap()
+            let rest = app.staticTexts["設為休息"]
+            XCTAssertTrue(rest.waitForExistence(timeout: 5))
+            rest.tap()
+        }
+
         app.buttons["儲存"].tap()
 
         // 課表 tab → 套用長期課表（起始日預設今天、模式預設重複）

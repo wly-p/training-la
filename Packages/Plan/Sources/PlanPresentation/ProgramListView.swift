@@ -7,7 +7,6 @@ import SwiftUI
 /// 進行中／進度／今天由**真實 assignment**（`viewModel.progressByProgram`）決定；點卡進詳情頁 8a。
 public struct ProgramListView: View {
     @Bindable private var viewModel: ProgramListViewModel
-    private let makeEditor: @MainActor (UUID) -> ProgramEditorViewModel
     private let makeDetail: @MainActor (UUID) -> ProgramDetailViewModel
     private let createToken: Int
     @Environment(\.locale) private var locale
@@ -15,12 +14,10 @@ public struct ProgramListView: View {
 
     public init(
         viewModel: ProgramListViewModel,
-        makeEditor: @escaping @MainActor (UUID) -> ProgramEditorViewModel,
         makeDetail: @escaping @MainActor (UUID) -> ProgramDetailViewModel,
         createToken: Int = 0
     ) {
         self.viewModel = viewModel
-        self.makeEditor = makeEditor
         self.makeDetail = makeDetail
         self.createToken = createToken
     }
@@ -59,14 +56,34 @@ public struct ProgramListView: View {
             ProgramDetailView(viewModel: makeDetail(id))
         }
         .navigationDestination(for: ProgramEditRoute.self) { route in
-            ProgramEditorView(viewModel: makeEditor(route.id))
+            // 編輯：直接把清單裡已載入的 Program 物件交給編輯頁，不再依 id 非同步查一次
+            // （同 RotationEditorView 的作法，見 memory nav-drill-in-pitfall）。
+            if let program = viewModel.programs.first(where: { $0.id == route.id }) {
+                ProgramEditorView(
+                    target: .edit(program),
+                    templates: viewModel.templates,
+                    name: viewModel.name(for:),
+                    onSubmit: { name, cycleLength, days in
+                        await viewModel.update(id: program.id, name: name, cycleLength: cycleLength, days: days)
+                    },
+                    onDelete: { await viewModel.delete(id: program.id) }
+                )
+            }
         }
         .task { await viewModel.load() }
+        // 從 Detail／Editor 返回也要刷新（那些頁面各自改完資料，這裡的清單快照要跟上）。
+        .onAppear { Task { await viewModel.load() } }
         .onChange(of: createToken) { creating = true }
         .sheet(isPresented: $creating) {
-            ProgramCreateFormView { name, cycleLength in
-                await viewModel.create(name: name, cycleLength: cycleLength)
-            }
+            ProgramEditorView(
+                target: .create,
+                templates: viewModel.templates,
+                name: viewModel.name(for:),
+                onSubmit: { name, cycleLength, days in
+                    await viewModel.create(name: name, cycleLength: cycleLength, days: days)
+                },
+                onDelete: {}
+            )
         }
         .alert(
             localText("plan.error"),
@@ -212,53 +229,5 @@ public struct ProgramListView: View {
         }
         .frame(maxWidth: .infinity)
         .padding(.vertical, 40)
-    }
-}
-
-/// 建立長期課表：名稱 + 週期天數。
-private struct ProgramCreateFormView: View {
-    let onSubmit: (String, Int) async -> Void
-
-    @Environment(\.dismiss) private var dismiss
-    @State private var name = ""
-    @State private var cycleLength = 7
-
-    var body: some View {
-        NavigationStack {
-            Form {
-                Section {
-                    TextField("", text: $name, prompt: localText("program.name.placeholder"))
-                }
-                Section {
-                    Stepper(value: $cycleLength, in: 1...60) {
-                        HStack {
-                            localText("program.cycleLength")
-                            Spacer()
-                            Text(verbatim: "\(cycleLength)")
-                                .foregroundStyle(.secondary)
-                        }
-                    }
-                } footer: {
-                    localText("program.cycleLength.hint")
-                }
-            }
-            .navigationTitle(localText("program.list.new"))
-            #if os(iOS)
-            .navigationBarTitleDisplayMode(.inline)
-            #endif
-            .toolbar {
-                ToolbarItem(placement: .cancellationAction) {
-                    Button { dismiss() } label: { localText("plan.cancel") }
-                }
-                ToolbarItem(placement: .confirmationAction) {
-                    Button {
-                        Task { await onSubmit(name, cycleLength); dismiss() }
-                    } label: {
-                        localText("plan.save")
-                    }
-                    .disabled(name.trimmingCharacters(in: .whitespaces).isEmpty)
-                }
-            }
-        }
     }
 }

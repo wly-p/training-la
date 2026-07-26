@@ -4,7 +4,8 @@ import PlanDomain
 import SharedKernel
 
 /// 長期詳情頁（設計稿 8a 長期變體）的 VM：進度（day / 週期天數 / 今天）、每天安排清單、
-/// 管理動作（重設進度＝回 D1／停用＝刪 assignment／刪除計畫）。編輯走 ProgramEditorViewModel。
+/// 管理動作（重設進度＝回 D1／停用＝刪 assignment／刪除計畫）。編輯走 `ProgramEditorView`
+/// （直接吃 `Program` 物件，見 `ProgramListView` 的 ancestor `navigationDestination`）。
 @MainActor
 @Observable
 public final class ProgramDetailViewModel {

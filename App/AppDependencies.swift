@@ -27,10 +27,8 @@ struct AppDependencies {
     let makePlanScheduleViewModel: @MainActor () -> PlanScheduleViewModel
     let makeTemplateListViewModel: @MainActor () -> TemplateListViewModel
     let makeRotationListViewModel: @MainActor () -> RotationListViewModel
-    let makeRotationEditorViewModel: @MainActor (_ rotationId: UUID) -> RotationEditorViewModel
     let makeRotationDetailViewModel: @MainActor (_ rotationId: UUID) -> RotationDetailViewModel
     let makeProgramListViewModel: @MainActor () -> ProgramListViewModel
-    let makeProgramEditorViewModel: @MainActor (_ programId: UUID) -> ProgramEditorViewModel
     let makeProgramDetailViewModel: @MainActor (_ programId: UUID) -> ProgramDetailViewModel
     /// `onErased`：清除成功後由 App 層觸發整個畫面重建（回到全新初始狀態）。
     let makeSettingsViewModel: @MainActor (_ onErased: @escaping @MainActor () -> Void) -> SettingsViewModel
@@ -219,16 +217,8 @@ struct AppDependencies {
                     listRotations: ListRotations(repository: rotationRepository),
                     createRotation: CreateRotation(repository: rotationRepository),
                     renameRotation: RenameRotation(repository: rotationRepository),
-                    setRotationActive: SetRotationActive(repository: rotationRepository),
-                    deleteRotation: DeleteRotation(repository: rotationRepository)
-                )
-            },
-            makeRotationEditorViewModel: { rotationId in
-                RotationEditorViewModel(
-                    rotationId: rotationId,
-                    getRotation: GetRotation(repository: rotationRepository),
-                    renameRotation: RenameRotation(repository: rotationRepository),
                     saveRotationWorkouts: SaveRotationWorkouts(repository: rotationRepository),
+                    setRotationActive: SetRotationActive(repository: rotationRepository),
                     deleteRotation: DeleteRotation(repository: rotationRepository),
                     listTemplates: ListTemplates(repository: templateRepository),
                     exerciseCatalog: planCatalog
@@ -254,25 +244,15 @@ struct AppDependencies {
                         assignmentRepository: programAssignmentRepository
                     ),
                     createProgram: CreateProgram(repository: programRepository),
-                    deleteProgram: DeleteProgram(
-                        programRepository: programRepository,
-                        assignmentRepository: programAssignmentRepository
-                    ),
-                    applyProgram: ApplyProgram(repository: programAssignmentRepository),
-                    today: { DayDate(Date()) }
-                )
-            },
-            makeProgramEditorViewModel: { programId in
-                ProgramEditorViewModel(
-                    programId: programId,
-                    getProgram: GetProgram(repository: programRepository),
                     updateProgram: UpdateProgram(repository: programRepository),
                     deleteProgram: DeleteProgram(
                         programRepository: programRepository,
                         assignmentRepository: programAssignmentRepository
                     ),
+                    applyProgram: ApplyProgram(repository: programAssignmentRepository),
                     listTemplates: ListTemplates(repository: templateRepository),
-                    exerciseCatalog: planCatalog
+                    exerciseCatalog: planCatalog,
+                    today: { DayDate(Date()) }
                 )
             },
             makeProgramDetailViewModel: { programId in

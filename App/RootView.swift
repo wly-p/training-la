@@ -46,10 +46,8 @@ struct RootView: View {
                 exerciseViewModel: exerciseListViewModel,
                 templateViewModel: templateListViewModel,
                 rotationListViewModel: rotationListViewModel,
-                makeRotationEditor: dependencies.makeRotationEditorViewModel,
                 makeRotationDetail: dependencies.makeRotationDetailViewModel,
                 programListViewModel: programListViewModel,
-                makeProgramEditor: dependencies.makeProgramEditorViewModel,
                 makeProgramDetail: dependencies.makeProgramDetailViewModel
             )
             .tabItem { Label("tab.exercises", systemImage: "books.vertical") }
@@ -88,10 +86,8 @@ private struct LibraryTabView: View {
     let exerciseViewModel: ExerciseListViewModel
     let templateViewModel: TemplateListViewModel
     let rotationListViewModel: RotationListViewModel
-    let makeRotationEditor: @MainActor (UUID) -> RotationEditorViewModel
     let makeRotationDetail: @MainActor (UUID) -> RotationDetailViewModel
     let programListViewModel: ProgramListViewModel
-    let makeProgramEditor: @MainActor (UUID) -> ProgramEditorViewModel
     let makeProgramDetail: @MainActor (UUID) -> ProgramDetailViewModel
 
     private enum Mode: Hashable { case exercises, templates, rotation, program }
@@ -177,9 +173,9 @@ private struct LibraryTabView: View {
         case .templates:
             TemplateListView(viewModel: templateViewModel, createToken: createToken)
         case .rotation:
-            RotationListView(viewModel: rotationListViewModel, makeEditor: makeRotationEditor, makeDetail: makeRotationDetail, createToken: createToken)
+            RotationListView(viewModel: rotationListViewModel, makeDetail: makeRotationDetail, createToken: createToken)
         case .program:
-            ProgramListView(viewModel: programListViewModel, makeEditor: makeProgramEditor, makeDetail: makeProgramDetail, createToken: createToken)
+            ProgramListView(viewModel: programListViewModel, makeDetail: makeProgramDetail, createToken: createToken)
         }
     }
 }

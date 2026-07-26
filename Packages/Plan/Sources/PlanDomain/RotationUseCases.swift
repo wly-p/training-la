@@ -15,7 +15,8 @@ public struct GetRotation: Sendable {
     public func callAsFunction(id: UUID) async throws -> Rotation? { try await repository.get(id: id) }
 }
 
-/// 建立一組新的（空）循環課表，預設啟用，附到清單末端。
+/// 建立一組新的循環課表，內容（範本順序）／啟用狀態／起始游標一次帶入
+/// （設計稿 12a：新增與編輯同一頁，建立時多一個「建立後」群組）。
 public struct CreateRotation: Sendable {
     private let repository: any RotationRepository
     private let makeID: @Sendable () -> UUID
@@ -29,10 +30,17 @@ public struct CreateRotation: Sendable {
     }
 
     @discardableResult
-    public func callAsFunction(name: String) async throws -> Rotation {
+    public func callAsFunction(
+        name: String,
+        workouts: [WorkoutSpec] = [],
+        isActive: Bool = true,
+        cursor: Int = 0
+    ) async throws -> Rotation {
         let validName = try validatedRotationName(name)
         let orderIndex = (try await repository.all().map(\.orderIndex).max() ?? -1) + 1
-        let rotation = Rotation(id: makeID(), name: validName, orderIndex: orderIndex)
+        let rotation = Rotation(
+            id: makeID(), name: validName, workouts: workouts, cursor: cursor, isActive: isActive, orderIndex: orderIndex
+        )
         try await repository.save(rotation)
         return rotation
     }

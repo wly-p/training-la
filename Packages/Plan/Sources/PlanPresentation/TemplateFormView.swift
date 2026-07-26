@@ -15,6 +15,8 @@ struct TemplateFormView: View {
 
     let target: Target
     let catalog: [PlanCatalogExercise]
+    /// 最近用過的動作 id（picker 的「最近用過」分組；由呼叫端算好傳入，見 TemplateListView）。
+    let recentExerciseIds: [UUID]
     let onSubmit: (String, [PlanSet]) async -> Void
     let onDelete: () async -> Void
 
@@ -24,16 +26,19 @@ struct TemplateFormView: View {
     @State private var expandedExerciseIndex: Int?
     @State private var editingSet: EditingSet?
     @State private var pickingExercise = false
+    @State private var selectedExerciseIds: Set<UUID> = []
     @State private var showDeleteConfirm = false
 
     init(
         target: Target,
         catalog: [PlanCatalogExercise],
+        recentExerciseIds: [UUID] = [],
         onSubmit: @escaping (String, [PlanSet]) async -> Void,
         onDelete: @escaping () async -> Void = {}
     ) {
         self.target = target
         self.catalog = catalog
+        self.recentExerciseIds = recentExerciseIds
         self.onSubmit = onSubmit
         self.onDelete = onDelete
         switch target {
@@ -79,9 +84,20 @@ struct TemplateFormView: View {
             }
         }
         .sheet(isPresented: $pickingExercise) {
-            ExercisePickerSheet(catalog: catalog) { exercise in
-                addExercise(exercise)
-            }
+            PickerSheet(
+                title: Text(verbatim: String(localized: "plan.addExercise", bundle: .module)),
+                searchPrompt: localText("plan.searchExercises"),
+                allItems: catalog.map(ExercisePickerItem.init),
+                recentItemIds: recentExerciseIds,
+                filters: MuscleGroup.allCases.map { PickerSheetFilterChip(id: $0.rawValue, label: $0.displayName) },
+                matchesFilter: { item, filter in item.exercise.muscleGroup.rawValue == filter.id },
+                selection: .multiple(
+                    selectedIds: $selectedExerciseIds,
+                    confirmLabel: { count in localText("template.picker.addCount \(count)") },
+                    onConfirm: addSelectedExercises
+                ),
+                labels: PlanPickerLabels.standard
+            )
         }
         .sheet(item: $editingSet) { editing in
             if let index = draftSets.firstIndex(where: { $0.id == editing.setId }) {
@@ -310,13 +326,19 @@ struct TemplateFormView: View {
 
     // MARK: - 草稿操作
 
-    private func addExercise(_ exercise: PlanCatalogExercise) {
-        let newIndex = blocks.count
-        let sets = (0..<3).map { i in
-            PlanSet(id: UUID(), exerciseId: exercise.id, exerciseIndex: newIndex, setIndex: i, targetWeight: nil, targetReps: 10, restSec: 60)
+    /// 多選加入：選中的動作各自新增一個區塊（3 組、次數 10、休息 60 秒的預設值），接在清單最後——
+    /// 跟設計稿「加入的動作出現在『從動作庫加入』正上方」一致。`selectedExerciseIds` 是 Set（無序），
+    /// 用 catalog 原本的順序枚舉取代，順序至少是穩定、可預期的。
+    private func addSelectedExercises() {
+        var newIndex = blocks.count
+        for exercise in catalog where selectedExerciseIds.contains(exercise.id) {
+            let sets = (0..<3).map { i in
+                PlanSet(id: UUID(), exerciseId: exercise.id, exerciseIndex: newIndex, setIndex: i, targetWeight: nil, targetReps: 10, restSec: 60)
+            }
+            draftSets.append(contentsOf: sets)
+            newIndex += 1
         }
-        draftSets.append(contentsOf: sets)
-        expandedExerciseIndex = newIndex
+        selectedExerciseIds = []
     }
 
     private func moveBlock(_ index: Int, direction: Int) {
@@ -578,53 +600,3 @@ private struct SetEditSheet: View {
     }
 }
 
-/// 從動作庫挑一個加進範本（設計稿：清單最後一列「從動作庫加入」）。
-private struct ExercisePickerSheet: View {
-    let catalog: [PlanCatalogExercise]
-    let onSelect: (PlanCatalogExercise) -> Void
-
-    @Environment(\.dismiss) private var dismiss
-    @State private var searchText = ""
-
-    private var visible: [PlanCatalogExercise] {
-        guard !searchText.isEmpty else { return catalog }
-        return catalog.filter { $0.name.localizedStandardContains(searchText) }
-    }
-
-    var body: some View {
-        NavigationStack {
-            List(visible) { exercise in
-                Button {
-                    onSelect(exercise)
-                    dismiss()
-                } label: {
-                    HStack {
-                        Text(verbatim: exercise.name)
-                        Spacer()
-                        Text(verbatim: exercise.muscleGroup.displayName)
-                            .font(.caption)
-                            .foregroundStyle(.secondary)
-                    }
-                    .contentShape(Rectangle())
-                }
-                .buttonStyle(.plain)
-            }
-            .searchable(text: $searchText, prompt: localText("plan.searchExercises"))
-            .navigationTitle(localText("plan.addExercise"))
-            .toolbar {
-                ToolbarItem(placement: .cancellationAction) {
-                    Button { dismiss() } label: { localText("plan.cancel") }
-                }
-            }
-            .overlay {
-                if catalog.isEmpty {
-                    ContentUnavailableView {
-                        Label { localText("plan.emptyLibrary") } icon: { Image(systemName: "books.vertical") }
-                    } description: {
-                        localText("plan.emptyLibrary.hint")
-                    }
-                }
-            }
-        }
-    }
-}
