@@ -9,6 +9,10 @@ public struct ActiveWorkoutView: View {
     @Environment(\.scenePhase) private var scenePhase
     @State private var showsExercisePicker = false
     @State private var showsFinishSheet = false
+    /// 長按「本場動作」列（13e）選到的目標；非 nil → 彈出中途改課選單。
+    @State private var midWorkoutEditTarget: SessionExercise?
+    /// 選單裡「換一個動作」點下去後要換的舊動作 id；非 nil → 開選動作 sheet。
+    @State private var replacingExerciseId: UUID?
 
     public init(viewModel: ActiveWorkoutViewModel) {
         self.viewModel = viewModel
@@ -79,6 +83,28 @@ public struct ActiveWorkoutView: View {
             .sheet(isPresented: $showsExercisePicker) {
                 ExercisePickerView(catalog: viewModel.catalog) { exercise in
                     Task { await viewModel.select(exerciseId: exercise.id) }
+                }
+            }
+            .confirmationDialog(
+                Text(verbatim: midWorkoutEditTarget?.name ?? ""),
+                isPresented: Binding(
+                    get: { midWorkoutEditTarget != nil },
+                    set: { if !$0 { midWorkoutEditTarget = nil } }
+                ),
+                titleVisibility: .visible
+            ) {
+                midWorkoutEditMenu
+            } message: {
+                localText("training.edit.hint")
+            }
+            .sheet(isPresented: Binding(
+                get: { replacingExerciseId != nil },
+                set: { if !$0 { replacingExerciseId = nil } }
+            )) {
+                if let oldId = replacingExerciseId {
+                    ExercisePickerView(catalog: viewModel.catalog) { newExercise in
+                        Task { await viewModel.replaceExercise(oldId, with: newExercise.id) }
+                    }
                 }
             }
             .sheet(isPresented: $showsFinishSheet) {
@@ -368,6 +394,11 @@ public struct ActiveWorkoutView: View {
             // 本場動作：一份順序清單，涵蓋已完成／進行中（高亮）／做一半／未開始。
             // 點任一列＝切到那個動作（高亮就地移動，不會有東西「不見」）；
             // 未開始的列可長按拖拉調整順序（無需編輯模式）。
+            //
+            // 13e 中途改課設計稿寫「長按這一列」開選單，但這一列已經是 List 的 onMove 拖曳
+            // 目標（長按＝進入拖曳）——兩個手勢搶同一個「長按」會互相干擾、行為不穩定。改用
+            // 列尾的「…」鈕當入口：一樣是「手指已經在這一列上」，不用跳到右上角選單，
+            // 但不會跟既有的拖曳排序手勢衝突。
             Section {
                 ForEach(viewModel.sessionSequence) { exercise in
                     Button {
@@ -386,6 +417,17 @@ public struct ActiveWorkoutView: View {
                                     .foregroundStyle(.secondary)
                                     .monospacedDigit()
                             }
+                            // .borderless（而非預設樣式）：跟 undo 鍵同一個理由——這格是巢狀在
+                            // 一個大範圍 Button 裡的控制項，預設樣式會讓點擊范圍互相搶奪。
+                            Button {
+                                midWorkoutEditTarget = exercise
+                            } label: {
+                                Image(systemName: "ellipsis.circle")
+                                    .foregroundStyle(.secondary)
+                            }
+                            .buttonStyle(.borderless)
+                            .accessibilityLabel(localText("training.edit.menu"))
+                            .accessibilityIdentifier("activeWorkout.midWorkoutEdit")
                         }
                         .contentShape(Rectangle())
                     }
@@ -563,6 +605,50 @@ public struct ActiveWorkoutView: View {
             return "\(exercise.doneSetCount)/\(exercise.plannedSetCount)"
         }
         return exercise.doneSetCount > 0 ? "\(exercise.doneSetCount)" : nil
+    }
+
+    /// 13e 中途改課選單內容：換動作／加減組／跳過／移除，都只影響今天這一場。
+    /// 加減組／跳過只對課表動作（`isPlanned`）有意義；移除只在還沒開始（沒有任何記錄）時開放。
+    @ViewBuilder private var midWorkoutEditMenu: some View {
+        if let exercise = midWorkoutEditTarget {
+            Button {
+                replacingExerciseId = exercise.id
+            } label: {
+                localText("training.edit.replace")
+            }
+            if exercise.isPlanned {
+                Button {
+                    viewModel.addPlannedSet(for: exercise.id)
+                } label: {
+                    Text(verbatim: String(
+                        format: String(localized: "training.edit.addSet %lld %lld", bundle: .module),
+                        exercise.plannedSetCount, exercise.plannedSetCount + 1
+                    ))
+                }
+                if exercise.plannedSetCount > exercise.doneSetCount {
+                    Button {
+                        viewModel.removePlannedSet(for: exercise.id)
+                    } label: {
+                        Text(verbatim: String(
+                            format: String(localized: "training.edit.removeSet %lld %lld", bundle: .module),
+                            exercise.plannedSetCount, max(exercise.doneSetCount, exercise.plannedSetCount - 1)
+                        ))
+                    }
+                }
+                Button {
+                    Task { await viewModel.skipRemainingSets(for: exercise.id) }
+                } label: {
+                    localText("training.edit.skipExercise")
+                }
+            }
+            if exercise.doneSetCount == 0 {
+                Button(role: .destructive) {
+                    viewModel.removeFromSession(exerciseId: exercise.id)
+                } label: {
+                    localText("training.edit.removeFromSession")
+                }
+            }
+        }
     }
 
     /// 「下一組」預覽（當前 section footer）：不用翻課表就知道接下來做什麼。

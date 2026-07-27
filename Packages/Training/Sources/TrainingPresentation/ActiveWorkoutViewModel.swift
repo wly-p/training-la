@@ -193,14 +193,26 @@ public final class ActiveWorkoutViewModel {
         return counts
     }
 
-    /// 各課表動作的目標組數。
+    /// 各課表動作的目標組數（課表原定，未套 13e 的本場覆寫）。
     private var plannedSetCounts: [UUID: Int] {
         Dictionary(uniqueKeysWithValues: (blueprint?.exercises ?? []).map { ($0.exerciseId, $0.setCount) })
     }
 
+    /// 中途改課（13e）「再加一組／少做一組」的本場覆寫；只在這個 session 記憶體內有效，
+    /// 不落地回課表範本／排課——跟 `reorderedPlan` 同一個既定模式（訓練中的臨時調整本來就
+    /// 不該動範本，見 91-weight-model.md §5／01-training.md「臨時調整不污染範本」）。
+    private var setCountOverrides: [UUID: Int] = [:]
+    /// 中途改課「從這場移除」；只允許還沒開始（沒有任何記錄）的動作，同樣只在本場有效。
+    private var removedExerciseIds: Set<UUID> = []
+
+    /// 這個動作本場實際的目標組數：有 13e 覆寫就用覆寫值，否則沿用課表原定。
+    private func effectivePlannedSetCount(_ exerciseId: UUID) -> Int {
+        setCountOverrides[exerciseId] ?? plannedSetCounts[exerciseId] ?? 0
+    }
+
     /// 課表動作是否「做滿」（做一半不算做完）。
     private func isPlannedExerciseFullyDone(_ id: UUID) -> Bool {
-        let planned = plannedSetCounts[id] ?? 0
+        let planned = effectivePlannedSetCount(id)
         guard planned > 0 else { return false }
         return (doneSetCounts[id] ?? 0) >= planned
     }
@@ -240,15 +252,14 @@ public final class ActiveWorkoutViewModel {
     /// 每列帶狀態（已完成／進行中／做一半／未開始）＋已做/課表組數，供訓練畫面一份清單呈現。
     public var sessionSequence: [SessionExercise] {
         let doneCounts = doneSetCounts
-        let plannedCounts = plannedSetCounts
 
-        var ids = plannedOrderIds
+        var ids = plannedOrderIds.filter { !removedExerciseIds.contains($0) }
         for block in workout.blocks where !ids.contains(block.exerciseId) { ids.append(block.exerciseId) }
         if let current = currentExerciseId, !ids.contains(current) { ids.append(current) }
 
         return ids.map { id in
             let done = doneCounts[id] ?? 0
-            let planned = plannedCounts[id] ?? 0
+            let planned = effectivePlannedSetCount(id)
             let status: SessionExercise.Status
             if id == currentExerciseId {
                 status = .current
@@ -357,6 +368,53 @@ public final class ActiveWorkoutViewModel {
         await appendSet(status: .skipped)
     }
 
+    // MARK: - 中途改課（13e）：長按本場動作列的五個操作，都只影響今天這一場，不動範本。
+
+    /// 「再加一組」：目標組數 +1（只影響還沒做的部分）。新加的那組沒有課表目標，
+    /// 組表「目標」欄自然顯示待填，使用者自己輸入——不猜一個數字塞進去。
+    public func addPlannedSet(for exerciseId: UUID) {
+        setCountOverrides[exerciseId] = effectivePlannedSetCount(exerciseId) + 1
+    }
+
+    /// 「少做一組」：目標組數 −1，但不會低於已經做掉的組數，避免跟已記錄的組矛盾
+    /// （3 組已做 3 組時，這個操作沒有效果）。
+    public func removePlannedSet(for exerciseId: UUID) {
+        let done = doneSetCounts[exerciseId] ?? 0
+        setCountOverrides[exerciseId] = max(done, effectivePlannedSetCount(exerciseId) - 1)
+    }
+
+    /// 「跳過這個動作」：還沒做的組依序記為 `.skipped`，直到補滿目標組數——記為「未做」，
+    /// 仍留在這場紀錄裡（跟「從這場移除」的差別）。重用既有 `select`/`skipCurrentSet`，
+    /// 不另寫一套記錄邏輯，資料一致性照舊由 `appendSet` 保證。
+    public func skipRemainingSets(for exerciseId: UUID) async {
+        if currentExerciseId != exerciseId {
+            await select(exerciseId: exerciseId)
+        }
+        while currentBlockSets.count < effectivePlannedSetCount(exerciseId) {
+            await skipCurrentSet()
+        }
+    }
+
+    /// 「換一個動作」：先把這個動作剩下沒做的組跳過（已完成的組保留在原動作名下），
+    /// 再選新動作接著做——用「跳過」＋「像臨時加練一樣開始新動作」組合出「換動作」的效果，
+    /// 不用另外設計「新動作沿用舊目標重量」這種容易出錯的搬遷邏輯；新動作走既有的
+    /// 「上次紀錄」預填，跟平常加練一致。
+    public func replaceExercise(_ exerciseId: UUID, with newExerciseId: UUID) async {
+        await skipRemainingSets(for: exerciseId)
+        await select(exerciseId: newExerciseId)
+    }
+
+    /// 「從這場移除」：只允許還沒開始（沒有任何記錄）的動作；不寫入任何 WorkoutSet——跟
+    /// 「跳過」不同，跳過會留下 skipped 紀錄，移除則什麼都不留。只在本場 session 記憶體內
+    /// 有效：離開又恢復這場時，這個動作會依原課表重新出現（跟 `reorderedPlan` 同一個既定取捨）。
+    public func removeFromSession(exerciseId: UUID) {
+        guard (doneSetCounts[exerciseId] ?? 0) == 0 else { return }
+        removedExerciseIds.insert(exerciseId)
+        if currentExerciseId == exerciseId {
+            currentExerciseId = nil
+        }
+    }
+
     /// 復原剛記錄的那一組（撤銷誤按的「完成此組」/「跳過此組」）。
     /// 連帶取消因完成而起的休息倒數與完成卡片，並允許該動作的完成卡片之後重新觸發。
     public func undoLastSet() async {
@@ -397,8 +455,8 @@ public final class ActiveWorkoutViewModel {
 
     /// append 後檢查：剛好做滿課表組數 → 觸發完成卡片（每動作一次）。
     private func maybeTriggerExerciseComplete() {
-        guard let id = currentExerciseId, let blueprint else { return }
-        let planned = blueprint.exercises.first { $0.exerciseId == id }?.setCount ?? 0
+        guard let id = currentExerciseId else { return }
+        let planned = effectivePlannedSetCount(id)
         guard planned > 0, !completionShownFor.contains(id) else { return }
         if currentBlockSets.count == planned {
             completionShownFor.insert(id)
