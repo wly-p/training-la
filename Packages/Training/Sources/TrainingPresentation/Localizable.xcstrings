@@ -962,6 +962,118 @@
         }
       }
     },
+    "training.rest.adjust %lld": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%+lld sec"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%+lld 秒"
+          }
+        }
+      }
+    },
+    "training.rest.doneOfTotal %lld %lld": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Set %1$lld done · %2$lld total"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "第%1$lld組 完成 · 共%2$lld組"
+          }
+        }
+      }
+    },
+    "training.rest.lastReps %lld": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Last set: %lld reps"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "上一組做了%lld次"
+          }
+        }
+      }
+    },
+    "training.rest.next %lld": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Up Next · Set %lld"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "接下來 · 第%lld組"
+          }
+        }
+      }
+    },
+    "training.rest.startEarly %lld": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Start Set %lld Early"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "提早開始第%lld組"
+          }
+        }
+      }
+    },
+    "training.rest.tapHint": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tap the card to adjust this set's weight/reps before the timer ends."
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "點卡片可先改這組的重量／次數，不必等計時結束。"
+          }
+        }
+      }
+    },
+    "training.rest.targetReps %lld": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Target %lld reps"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "目標%lld次"
+          }
+        }
+      }
+    },
     "training.restOver": {
       "localizations": {
         "en": {

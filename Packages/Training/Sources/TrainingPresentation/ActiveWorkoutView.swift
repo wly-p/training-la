@@ -17,7 +17,14 @@ public struct ActiveWorkoutView: View {
     public var body: some View {
         NavigationStack {
             Group {
-                if let exerciseId = viewModel.currentExerciseId {
+                if let exerciseId = viewModel.currentExerciseId, viewModel.restRemaining != nil {
+                    // 休息是獨立狀態，不是角落的小計時器（13c）：整個畫面讓給它，不是疊在組表上的小條。
+                    // 條件故意不含 !restEnded——倒數歸零那一刻要讓「休息結束」彈窗蓋在這層上面，
+                    // 若這裡同時把畫面切回 recordingContent，跟 alert 的 isPresented 在同一個 transaction
+                    // 搶著改畫面，SwiftUI 有時會把剛觸發的 alert 吞掉不顯示。等使用者按了彈窗、
+                    // dismissRest() 清空 restRemaining，才真正切回組表。
+                    restFullScreen(exerciseId: exerciseId)
+                } else if let exerciseId = viewModel.currentExerciseId {
                     recordingContent(exerciseId: exerciseId)
                 } else {
                     emptyState
@@ -59,11 +66,6 @@ public struct ActiveWorkoutView: View {
                     viewModel.enterForeground()
                 } else {
                     viewModel.suspendRestTicking()
-                }
-            }
-            .safeAreaInset(edge: .bottom) {
-                if viewModel.restRemaining != nil, !viewModel.restEnded {
-                    restBar
                 }
             }
             .alert(localText("training.restOver"), isPresented: Binding(
@@ -196,29 +198,143 @@ public struct ActiveWorkoutView: View {
         }
     }
 
-    private var restBar: some View {
-        HStack(spacing: 16) {
-            Button {
-                viewModel.adjustRest(-15)
-            } label: {
-                Image(systemName: "minus.circle.fill").font(.title2)
+    /// 休息中全螢幕（13c）：休息是獨立狀態，不是角落的小計時器，這 90 秒沒別的事可做，
+    /// 畫面就該以它為主角。計時不擋操作——「接下來」卡片可先調整下一組的重量/次數，
+    /// 底部按鈕可提早開始，不用等倒數。
+    private func restFullScreen(exerciseId: UUID) -> some View {
+        let doneCount = viewModel.currentBlockSets.count
+        return ScrollView {
+            VStack(alignment: .leading, spacing: 20) {
+                // 動作名已經是 navigationTitle（native 大標題），這裡不重複，只加課表進度 kicker。
+                if let plannedCount = viewModel.blueprint?.exercises.first(where: { $0.exerciseId == exerciseId })?.setCount {
+                    Text(verbatim: String(
+                        format: String(localized: "training.rest.doneOfTotal %lld %lld", bundle: .module),
+                        doneCount, plannedCount
+                    ))
+                    .font(.footnote.weight(.semibold))
+                    .foregroundStyle(TLColor.accent600)
+                }
+                restTimerBlock
+                nextSetCard
+                Spacer(minLength: 0)
+                Button {
+                    viewModel.dismissRest()
+                } label: {
+                    Text(verbatim: String(
+                        format: String(localized: "training.rest.startEarly %lld", bundle: .module), doneCount + 1
+                    ))
+                }
+                .buttonStyle(.tlPrimary)
             }
-            VStack(spacing: 0) {
-                localText("training.resting").font(.caption).foregroundStyle(.secondary)
-                Text(restClock(viewModel.restRemaining ?? 0))
-                    .font(.title.bold().monospacedDigit())
-            }
-            .frame(maxWidth: .infinity)
-            Button {
-                viewModel.adjustRest(15)
-            } label: {
-                Image(systemName: "plus.circle.fill").font(.title2)
-            }
-            Button { viewModel.dismissRest() } label: { localText("training.skipRest") }
-                .font(.subheadline)
+            .padding(TLSpace.page)
         }
-        .padding()
-        .background(.regularMaterial)
+        .background(TLColor.bg.ignoresSafeArea())
+    }
+
+    private var restTimerBlock: some View {
+        let remaining = viewModel.restRemaining ?? 0
+        return VStack(spacing: 16) {
+            localText("training.resting")
+                .font(TLFont.zh(TLFont.kicker, .semibold))
+                .tracking(TLFont.kickerTracking)
+                .textCase(.uppercase)
+                .foregroundStyle(TLColor.accent800)
+            Text(verbatim: restClock(remaining))
+                .font(TLFont.display(56))
+                .foregroundStyle(TLColor.accent900)
+            ProgressView(value: restProgress)
+                .tint(TLColor.accent700)
+            localText("training.restTimer")
+                .font(.caption)
+                .foregroundStyle(TLColor.accent700)
+            HStack(spacing: 10) {
+                restPill(String(format: String(localized: "training.rest.adjust %lld", bundle: .module), 30)) {
+                    viewModel.adjustRest(30)
+                }
+                restPill(String(format: String(localized: "training.rest.adjust %lld", bundle: .module), -30)) {
+                    viewModel.adjustRest(-30)
+                }
+                Button {
+                    viewModel.dismissRest()
+                } label: {
+                    localText("training.skipRest")
+                        .frame(maxWidth: .infinity)
+                }
+                .buttonStyle(.tlPrimary)
+                .frame(maxWidth: .infinity)
+            }
+        }
+        .padding(TLSpace.rowInset)
+        .frame(maxWidth: .infinity)
+        .background(TLColor.accent200)
+        .clipShape(RoundedRectangle(cornerRadius: TLRadius.container, style: .continuous))
+    }
+
+    /// 進度條：剩餘 / 這段休息的起始總長，隨時間往 1 走（1＝快結束）。
+    private var restProgress: Double {
+        guard let remaining = viewModel.restRemaining, let total = viewModel.restTotalSeconds, total > 0 else { return 1 }
+        return 1 - (Double(remaining) / Double(total))
+    }
+
+    private func restPill(_ title: String, action: @escaping () -> Void) -> some View {
+        Button(action: action) {
+            Text(verbatim: title)
+                .font(.footnote.weight(.semibold))
+                .foregroundStyle(TLColor.accent800)
+                .padding(.horizontal, 14)
+                .padding(.vertical, 10)
+                .frame(maxWidth: .infinity)
+                .background(TLColor.bg)
+                .clipShape(Capsule())
+        }
+        .buttonStyle(.plain)
+    }
+
+    /// 「接下來·第N組」卡：休息中提早看到、也能先調——目標次數/上一組實際次數/重量，
+    /// 重量沿用 draftWeightValue（appendSet 後 prefillDraft 已經預填好下一組的值）。
+    private var nextSetCard: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            Text(verbatim: String(
+                format: String(localized: "training.rest.next %lld", bundle: .module),
+                viewModel.currentBlockSets.count + 1
+            ))
+            .font(.caption)
+            .foregroundStyle(TLColor.neutral500)
+
+            HStack(alignment: .top) {
+                VStack(alignment: .leading, spacing: 4) {
+                    if let exerciseId = viewModel.currentExerciseId {
+                        Text(verbatim: viewModel.name(for: exerciseId))
+                            .font(.headline)
+                    }
+                    HStack(spacing: 6) {
+                        if let targetReps = viewModel.currentTarget?.targetReps {
+                            Text(verbatim: String(format: String(localized: "training.rest.targetReps %lld", bundle: .module), targetReps))
+                        }
+                        if let lastReps = viewModel.currentBlockSets.last?.reps {
+                            Text(verbatim: String(format: String(localized: "training.rest.lastReps %lld", bundle: .module), lastReps))
+                        }
+                    }
+                    .font(.footnote)
+                    .foregroundStyle(TLColor.neutral600)
+                }
+                Spacer()
+                Text(verbatim: "\(WeightDisplay.value(viewModel.draftWeightValue)) \(viewModel.draftWeightUnit.rawValue)")
+                    .font(TLFont.display(28))
+                    .foregroundStyle(TLColor.text)
+            }
+            HStack(spacing: 8) {
+                restPill("−\(viewModel.draftWeightUnit == .kg ? "2.5" : "5")") { viewModel.bumpWeight(-1) }
+                restPill("+\(viewModel.draftWeightUnit == .kg ? "2.5" : "5")") { viewModel.bumpWeight(1) }
+            }
+            localText("training.rest.tapHint")
+                .font(.caption2)
+                .foregroundStyle(TLColor.neutral500)
+        }
+        .padding(TLSpace.rowInset)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(TLColor.neutral100)
+        .clipShape(RoundedRectangle(cornerRadius: TLRadius.container, style: .continuous))
     }
 
     private func restClock(_ seconds: Int) -> String {

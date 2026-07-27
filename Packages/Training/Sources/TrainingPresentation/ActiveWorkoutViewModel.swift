@@ -45,8 +45,10 @@ public final class ActiveWorkoutViewModel {
     private var restTask: Task<Void, Never>?
     /// 休息倒數的結束時間點；剩餘秒數一律由它與現在時間換算，背景期間也不失準。
     private var restEndDate: Date?
-    /// 目前這段休息的「完整秒數」（起始設定值，非剩餘）；供調整時換算並套用到後續組。
+    /// 目前這段休息的「完整秒數」（起始設定值，非剩餘）；供調整時換算並套用到後續組，
+    /// 也給 13c 全螢幕的進度條算比例（`restRemaining / restTotalSeconds`）用。
     private var restSeconds: Int?
+    public var restTotalSeconds: Int? { restSeconds }
     /// 目前這段休息屬於哪個動作；調整休息時據此把新值套用到該動作後續各組。
     private var restExerciseId: UUID?
     /// 訓練中手動調整過的休息秒數（按動作記）；有值就蓋過課表原定 restSec，套用到該動作後續各組。
