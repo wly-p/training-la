@@ -109,11 +109,17 @@ public struct ActiveWorkoutView: View {
             }
             .sheet(isPresented: $showsFinishSheet) {
                 FinishWorkoutSheet(
-                    durationMinutes: viewModel.durationMinutes,
-                    totalSets: viewModel.totalSetCount
-                ) { feeling, note in
-                    await viewModel.finish(feeling: feeling, note: note)
-                }
+                    workout: viewModel.workout,
+                    workoutName: viewModel.blueprint?.name,
+                    exerciseName: { viewModel.name(for: $0) },
+                    detectPersonalRecords: { await viewModel.detectPersonalRecordsForThisSession() },
+                    onFinish: { feeling, note in
+                        await viewModel.finish(feeling: feeling, note: note)
+                    },
+                    onDiscard: {
+                        await viewModel.discardCurrentWorkout()
+                    }
+                )
             }
         }
         // 動作完成卡片：用 overlay 而非 sheet，避免與其他 sheet 疊放衝突，

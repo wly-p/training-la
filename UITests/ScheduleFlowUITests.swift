@@ -61,7 +61,7 @@ final class ScheduleFlowUITests: XCTestCase {
 
         // 結束
         app.buttons["結束訓練"].tap()
-        let saveButton = app.buttons["儲存並結束"]
+        let saveButton = app.buttons["完成並存檔"]
         XCTAssertTrue(saveButton.waitForExistence(timeout: 5))
         saveButton.tap()
 

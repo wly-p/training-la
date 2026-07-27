@@ -46,9 +46,9 @@ final class DeleteHistoryRevertsPlanUITests: XCTestCase {
         completeButton.tap()
         XCTAssertTrue(app.staticTexts["第1組"].waitForExistence(timeout: 5))
         app.buttons["結束訓練"].tap()
-        let saveButton = app.buttons["儲存並結束"]
+        let saveButton = app.buttons["完成並存檔"]
         XCTAssertTrue(saveButton.waitForExistence(timeout: 5))
-        app.buttons["💪"].firstMatch.tap()
+        app.buttons["很硬"].firstMatch.tap()
         saveButton.tap()
 
         // 排課已 done → 訓練首頁不再有今日排課

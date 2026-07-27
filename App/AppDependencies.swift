@@ -181,6 +181,7 @@ struct AppDependencies {
                     finishWorkout: FinishWorkout(repository: workoutRepository, planProgress: planProgress),
                     discardWorkout: DiscardWorkout(repository: workoutRepository),
                     lastPerformance: LastPerformance(repository: workoutRepository),
+                    detectPersonalRecords: DetectPersonalRecords(repository: workoutRepository),
                     exerciseCatalog: catalog,
                     plannedProvider: plannedProvider,
                     reminder: reminder

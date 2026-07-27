@@ -1,82 +1,260 @@
+import DesignSystem
+import SharedKernel
 import SwiftUI
+import TrainingDomain
 
+/// 完成摘要（13a）：練了多久、做了多少、有沒有達標——只回答這三件事，不做慶祝動畫頁。
 struct FinishWorkoutSheet: View {
-    let durationMinutes: Int
-    let totalSets: Int
+    let workout: Workout
+    let workoutName: String?
+    let exerciseName: (UUID) -> String
+    let detectPersonalRecords: () async -> [ExercisePRAnnouncement]
     let onFinish: (Int?, String) async -> Void
+    let onDiscard: () async -> Void
 
     @Environment(\.dismiss) private var dismiss
     @State private var feeling: Int?
     @State private var note = ""
+    @State private var showsNoteField = false
+    @State private var personalRecords: [ExercisePRAnnouncement] = []
+    @State private var showsDiscardConfirm = false
 
-    private let feelingOptions: [(value: Int, emoji: String)] = [
-        (1, "😫"), (2, "😕"), (3, "😐"), (4, "🙂"), (5, "💪"),
-    ]
+    private var exerciseSummaries: [FinishSummaryFormatting.ExerciseSummary] {
+        FinishSummaryFormatting.exerciseSummaries(workout.blocks, nameLookup: exerciseName)
+    }
+
+    private var achievedCount: (achieved: Int, total: Int) {
+        FinishSummaryFormatting.achievedSetCount(workout.sets)
+    }
+
+    private var totalVolume: Double { FinishSummaryFormatting.totalVolume(workout.sets) }
+    private var targetVolume: Double { FinishSummaryFormatting.targetVolume(workout.sets) }
+
+    private var durationMinutes: Int {
+        guard let start = workout.startedAt else { return 0 }
+        return max(0, Int(Date().timeIntervalSince(start) / 60))
+    }
 
     var body: some View {
         NavigationStack {
-            Form {
-                Section {
-                    HStack {
-                        Label {
-                            localText("training.minutes \(durationMinutes)")
-                        } icon: {
-                            Image(systemName: "clock")
-                        }
-                        Spacer()
-                        Label {
-                            localText("training.setsTotal \(totalSets)")
-                        } icon: {
-                            Image(systemName: "checklist")
-                        }
+            ScrollView {
+                VStack(alignment: .leading, spacing: TLSpace.section) {
+                    header
+                    statsCard
+                    if let pr = personalRecords.first {
+                        prBanner(pr)
                     }
-                    .foregroundStyle(.secondary)
-                }
-                Section {
-                    HStack(spacing: 0) {
-                        ForEach(feelingOptions, id: \.value) { option in
-                            Button {
-                                feeling = feeling == option.value ? nil : option.value
-                            } label: {
-                                Text(option.emoji)
-                                    .font(.system(size: 30))
-                                    .frame(maxWidth: .infinity)
-                                    .opacity(feeling == nil || feeling == option.value ? 1 : 0.3)
-                            }
-                            .buttonStyle(.plain)
-                        }
+                    exerciseList
+                    feelingSection
+                    if showsNoteField {
+                        TextField("", text: $note, prompt: localText("training.notes.placeholder"), axis: .vertical)
+                            .padding(TLSpace.rowInset)
+                            .background(TLColor.neutral100)
+                            .clipShape(RoundedRectangle(cornerRadius: TLRadius.inner, style: .continuous))
                     }
-                    .padding(.vertical, 4)
-                } header: {
-                    localText("training.howFeel")
+                    Button {
+                        // 不自己 dismiss()：外層 ActiveWorkoutView 監聽 viewModel.isDismissed
+                        // 變化後會 dismiss 自己（連同這個 nested sheet 一起關閉）。若這裡也搶著
+                        // dismiss 一次，兩層 sheet 幾乎同時關閉會讓其中一層的關閉動畫卡住、
+                        // 殘留在畫面上擋住底下的 TabView（跟 13c 的 alert race 是同一類問題）。
+                        // 存檔失敗時 isDismissed 不會變 true，sheet 也就正確地留著讓使用者看到錯誤。
+                        Task {
+                            await onFinish(feeling, note)
+                        }
+                    } label: {
+                        localText("training.finish.saveAndFinish")
+                    }
+                    .buttonStyle(.tlPrimary)
+
+                    Button(role: .destructive) {
+                        showsDiscardConfirm = true
+                    } label: {
+                        localText("training.finish.discard")
+                    }
+                    .buttonStyle(.tlDestructiveText)
+                    .frame(maxWidth: .infinity)
                 }
-                Section {
-                    TextField(
-                        "",
-                        text: $note,
-                        prompt: localText("training.notes.placeholder"),
-                        axis: .vertical
-                    )
-                } header: {
-                    localText("training.notes")
-                }
+                .padding(TLSpace.page)
+                .padding(.bottom, 20)
             }
-            .navigationTitle(localText("training.thisWorkout"))
+            .background(TLColor.bg.ignoresSafeArea())
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button { dismiss() } label: { localText("training.keepGoing") }
                 }
-                ToolbarItem(placement: .confirmationAction) {
-                    Button {
-                        Task {
-                            await onFinish(feeling, note)
-                            dismiss()
-                        }
-                    } label: {
-                        localText("training.saveFinish")
+            }
+            .task {
+                personalRecords = await detectPersonalRecords()
+            }
+            .confirmationDialog(
+                localText("training.finish.discardConfirmTitle"),
+                isPresented: $showsDiscardConfirm,
+                titleVisibility: .visible
+            ) {
+                Button(role: .destructive) {
+                    // 同上——不自己 dismiss()，交給外層監聽 isDismissed 統一處理。
+                    Task {
+                        await onDiscard()
                     }
+                } label: {
+                    localText("training.finish.discardConfirm")
                 }
             }
         }
+    }
+
+    // MARK: - 標頭：狀態(kicker)／名詞(主標)／時間(副行)，不要合成一句。
+
+    private var header: some View {
+        VStack(alignment: .leading, spacing: TLSpace.gapS) {
+            localText("training.finish.title")
+                .font(TLFont.zh(TLFont.kicker, .semibold))
+                .tracking(TLFont.kickerTracking)
+                .textCase(.uppercase)
+                .foregroundStyle(TLColor.accent700)
+            Text(verbatim: workoutName ?? String(localized: "training.free", bundle: .module))
+                .font(TLFont.zh(30, .bold))
+                .foregroundStyle(TLColor.text)
+            Text(verbatim: subtitleTimeRange)
+                .font(.footnote)
+                .foregroundStyle(TLColor.neutral600)
+        }
+    }
+
+    private var subtitleTimeRange: String {
+        guard let start = workout.startedAt else { return "" }
+        let timeFormatter = DateFormatter()
+        timeFormatter.dateFormat = "HH:mm"
+        let weekday = Calendar.current.shortWeekdaySymbols[workout.day.weekdayNumber - 1]
+        return "\(workout.day.month)/\(workout.day.day)（\(weekday)） · \(timeFormatter.string(from: start))–\(timeFormatter.string(from: Date()))"
+    }
+
+    // MARK: - 數字卡
+
+    private var statsCard: some View {
+        VStack(spacing: 12) {
+            HStack {
+                statNumber(String(durationMinutes), label: "training.finish.minutes")
+                Spacer()
+                statNumber(WeightDisplay.value(totalVolume), label: "training.finish.totalVolume")
+                Spacer()
+                statNumber("\(achievedCount.achieved)/\(achievedCount.total)", label: "training.finish.achievedSets")
+            }
+            if targetVolume > 0 {
+                ProgressView(value: min(totalVolume / targetVolume, 1))
+                    .tint(TLColor.accent700)
+                Text(verbatim: String(
+                    format: String(localized: "training.finish.volumeGoal %@ %@", bundle: .module),
+                    WeightDisplay.value(targetVolume), String(format: "%.0f%%", totalVolume / targetVolume * 100)
+                ))
+                .font(.footnote)
+                .foregroundStyle(TLColor.neutral600)
+            }
+        }
+        .padding(TLSpace.rowInset)
+        .frame(maxWidth: .infinity)
+        .background(TLColor.neutral300)
+        .clipShape(RoundedRectangle(cornerRadius: TLRadius.container, style: .continuous))
+    }
+
+    private func statNumber(_ value: String, label: String.LocalizationValue) -> some View {
+        VStack(alignment: .leading, spacing: 2) {
+            Text(verbatim: value)
+                .font(TLFont.display(30))
+                .foregroundStyle(TLColor.text)
+            Text(String(localized: label, bundle: .module))
+                .font(.caption2)
+                .foregroundStyle(TLColor.neutral600)
+        }
+    }
+
+    // MARK: - PR 條：全 App 唯一「值得高興」的訊號，沒有就整條不出現，不寫「今天沒有新紀錄」。
+
+    private func prBanner(_ pr: ExercisePRAnnouncement) -> some View {
+        let name = exerciseName(pr.exerciseId)
+        let weightText = WeightDisplay.weight(pr.weight)
+        let text: String
+        switch pr.kind {
+        case .newRepsAtWeight:
+            text = String(format: String(localized: "training.finish.pr.newReps %@ %@ %lld", bundle: .module), name, weightText, pr.reps)
+        case .newWeightAtReps:
+            text = String(format: String(localized: "training.finish.pr.newWeight %@ %@ %lld", bundle: .module), name, weightText, pr.reps)
+        }
+        return Label {
+            Text(verbatim: text)
+        } icon: {
+            Image(systemName: "trophy.fill")
+        }
+        .font(.subheadline.weight(.semibold))
+        .foregroundStyle(TLColor.sage800)
+        .padding(TLSpace.rowInset)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(TLColor.sage200)
+        .clipShape(RoundedRectangle(cornerRadius: TLRadius.inner, style: .continuous))
+    }
+
+    // MARK: - 這場做了什麼
+
+    private var exerciseList: some View {
+        VStack(alignment: .leading, spacing: TLSpace.gapS) {
+            localText("training.finish.whatYouDid")
+                .font(TLFont.zh(TLFont.kicker, .semibold))
+                .tracking(TLFont.kickerTracking)
+                .textCase(.uppercase)
+                .foregroundStyle(TLColor.neutral500)
+            TLGroup {
+                ForEach(exerciseSummaries) { summary in
+                    ListRow(
+                        title: Text(verbatim: summary.name),
+                        subtitle: Text(verbatim: String(
+                            format: String(localized: "training.finish.exerciseSets %lld %@", bundle: .module),
+                            summary.setCount, summary.weightRange
+                        )),
+                        trailing: { achievementBadge(summary.allAchieved) }
+                    )
+                }
+            }
+        }
+    }
+
+    @ViewBuilder private func achievementBadge(_ allAchieved: Bool?) -> some View {
+        switch allAchieved {
+        case true:
+            Image(systemName: "checkmark.circle.fill").foregroundStyle(TLColor.sage700)
+        case false:
+            Image(systemName: "circle").foregroundStyle(TLColor.neutral400)
+        case nil:
+            EmptyView()
+        }
+    }
+
+    // MARK: - 感覺如何（選填）
+
+    private var feelingSection: some View {
+        VStack(alignment: .leading, spacing: TLSpace.gapS) {
+            localText("training.howFeel")
+                .font(.footnote)
+                .foregroundStyle(TLColor.neutral500)
+            HStack(spacing: 8) {
+                feelingChip(value: 1, label: "training.finish.feeling.easy")
+                feelingChip(value: 3, label: "training.finish.feeling.justRight")
+                feelingChip(value: 5, label: "training.finish.feeling.hard")
+                SelectableChip(
+                    String(localized: "training.finish.addNote", bundle: .module),
+                    isSelected: showsNoteField,
+                    selectedFill: TLColor.accent, selectedText: TLColor.bg,
+                    onTap: { showsNoteField.toggle() }
+                )
+            }
+        }
+    }
+
+    private func feelingChip(value: Int, label: String.LocalizationValue) -> some View {
+        SelectableChip(
+            String(localized: label, bundle: .module),
+            isSelected: feeling == value,
+            selectedFill: TLColor.accent, selectedText: TLColor.bg,
+            onTap: { feeling = feeling == value ? nil : value }
+        )
     }
 }

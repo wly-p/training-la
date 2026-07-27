@@ -39,9 +39,9 @@ final class TrainingFlowUITests: XCTestCase {
 
         // 4. 結束 → 選感受 → 儲存
         app.buttons["結束訓練"].tap()
-        let saveButton = app.buttons["儲存並結束"]
+        let saveButton = app.buttons["完成並存檔"]
         XCTAssertTrue(saveButton.waitForExistence(timeout: 5))
-        app.buttons["💪"].firstMatch.tap()
+        app.buttons["很硬"].firstMatch.tap()
         saveButton.tap()
 
         // 5. 回到訓練首頁：場次已結束，重新顯示「開始訓練」

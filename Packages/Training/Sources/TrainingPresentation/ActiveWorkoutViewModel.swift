@@ -77,6 +77,7 @@ public final class ActiveWorkoutViewModel {
     private let finishWorkout: FinishWorkout
     private let discardWorkout: DiscardWorkout
     private let lastPerformance: LastPerformance
+    private let detectPersonalRecords: DetectPersonalRecords?
     private let exerciseCatalog: any ExerciseCatalog
     private let plannedProvider: (any PlannedWorkoutProvider)?
     /// 目前時間來源（可注入以測試背景經過時間）。
@@ -90,6 +91,7 @@ public final class ActiveWorkoutViewModel {
         finishWorkout: FinishWorkout,
         discardWorkout: DiscardWorkout,
         lastPerformance: LastPerformance,
+        detectPersonalRecords: DetectPersonalRecords? = nil,
         exerciseCatalog: any ExerciseCatalog,
         plannedProvider: (any PlannedWorkoutProvider)? = nil,
         reminder: any RestEndReminding = NoopRestEndReminding(),
@@ -100,6 +102,7 @@ public final class ActiveWorkoutViewModel {
         self.finishWorkout = finishWorkout
         self.discardWorkout = discardWorkout
         self.lastPerformance = lastPerformance
+        self.detectPersonalRecords = detectPersonalRecords
         self.exerciseCatalog = exerciseCatalog
         self.plannedProvider = plannedProvider
         self.reminder = reminder
@@ -595,6 +598,25 @@ public final class ActiveWorkoutViewModel {
         dismissRest()
         do {
             try await finishWorkout(workout, overallFeeling: feeling, note: note)
+            isDismissed = true
+        } catch {
+            errorMessage = .training("training.error.saveFailed \(error.localizedDescription)")
+        }
+    }
+
+    /// 完成摘要（13a）用：查這場目前為止的 PR。可以在「結束訓練」sheet 開啟、正式送出
+    /// 「完成並存檔」之前呼叫——不要求 workout 已經 finish/save。
+    public func detectPersonalRecordsForThisSession() async -> [ExercisePRAnnouncement] {
+        guard let detectPersonalRecords else { return [] }
+        return (try? await detectPersonalRecords(workout)) ?? []
+    }
+
+    /// 「捨棄這場」（13a）：整場（含已記錄的組）直接刪掉；跟 `leave()`「空場次才自動丟」不同——
+    /// 這裡是使用者主動放棄已經有紀錄的一場，呼叫端要先二次確認過。
+    public func discardCurrentWorkout() async {
+        dismissRest()
+        do {
+            try await discardWorkout(id: workout.id)
             isDismissed = true
         } catch {
             errorMessage = .training("training.error.saveFailed \(error.localizedDescription)")

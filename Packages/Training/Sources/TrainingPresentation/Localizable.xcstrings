@@ -370,6 +370,278 @@
         }
       }
     },
+    "training.finish.achievedSets": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "sets on target"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "達標組數"
+          }
+        }
+      }
+    },
+    "training.finish.addNote": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Add a Note"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "加註記"
+          }
+        }
+      }
+    },
+    "training.finish.discard": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Discard This Session"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "捨棄這場"
+          }
+        }
+      }
+    },
+    "training.finish.discardConfirm": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Discard (can't be undone)"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "捨棄這場（無法復原）"
+          }
+        }
+      }
+    },
+    "training.finish.discardConfirmTitle": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Discard this workout?"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "捨棄這場訓練？"
+          }
+        }
+      }
+    },
+    "training.finish.exerciseSets %lld %@": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$lld sets · %2$@ kg"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$lld 組 · %2$@ kg"
+          }
+        }
+      }
+    },
+    "training.finish.feeling.easy": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Easy"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "輕鬆"
+          }
+        }
+      }
+    },
+    "training.finish.feeling.hard": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hard"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "很硬"
+          }
+        }
+      }
+    },
+    "training.finish.feeling.justRight": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Just Right"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "剛好"
+          }
+        }
+      }
+    },
+    "training.finish.minutes": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "minutes"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "分鐘"
+          }
+        }
+      }
+    },
+    "training.finish.pr.newReps %@ %@ %lld": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ %2$@ × %3$lld — new rep record at this weight"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ %2$@ × %3$lld —— 這個重量的新次數紀錄"
+          }
+        }
+      }
+    },
+    "training.finish.pr.newWeight %@ %@ %lld": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ %2$@ × %3$lld — new weight record at this rep count"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ %2$@ × %3$lld —— 這個次數的新重量紀錄"
+          }
+        }
+      }
+    },
+    "training.finish.saveAndFinish": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Finish & Save"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "完成並存檔"
+          }
+        }
+      }
+    },
+    "training.finish.title": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Workout Complete"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "訓練完成"
+          }
+        }
+      }
+    },
+    "training.finish.totalVolume": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "total volume kg"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "總量 kg"
+          }
+        }
+      }
+    },
+    "training.finish.volumeGoal %@ %@": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Target %1$@ kg · %2$@ reached"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "目標總量 %1$@ kg · 達成 %2$@"
+          }
+        }
+      }
+    },
+    "training.finish.whatYouDid": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "What You Did"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "這場做了什麼"
+          }
+        }
+      }
+    },
     "training.free": {
       "localizations": {
         "en": {
@@ -754,22 +1026,6 @@
         }
       }
     },
-    "training.minutes %lld": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "%lld min"
-          }
-        },
-        "zh-Hant": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "%lld 分鐘"
-          }
-        }
-      }
-    },
     "training.nextExercise": {
       "localizations": {
         "en": {
@@ -814,22 +1070,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "今天沒有排課"
-          }
-        }
-      }
-    },
-    "training.notes": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Notes"
-          }
-        },
-        "zh-Hant": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "備註"
           }
         }
       }
@@ -1266,22 +1506,6 @@
         }
       }
     },
-    "training.saveFinish": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Save & Finish"
-          }
-        },
-        "zh-Hant": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "儲存並結束"
-          }
-        }
-      }
-    },
     "training.searchExercises": {
       "localizations": {
         "en": {
@@ -1326,22 +1550,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "第%lld組"
-          }
-        }
-      }
-    },
-    "training.setsTotal %lld": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "%lld sets"
-          }
-        },
-        "zh-Hant": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "共 %lld 組"
           }
         }
       }
@@ -1502,22 +1710,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "目標"
-          }
-        }
-      }
-    },
-    "training.thisWorkout": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "This Workout"
-          }
-        },
-        "zh-Hant": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "本次訓練"
           }
         }
       }
