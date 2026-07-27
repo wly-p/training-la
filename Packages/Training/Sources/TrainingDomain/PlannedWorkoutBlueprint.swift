@@ -6,12 +6,16 @@ import SharedKernel
 public struct PlannedWorkoutBlueprint: Equatable, Sendable {
     public let planWorkoutId: UUID
     public let name: String?
+    /// 開練前預覽（14c）頂部 kicker：循環/長期課表的週期定位，如「推拉腿 · 第 7 輪 · 第 1 天」
+    /// 或「恢復期 · D 4」。由 App adapter 依課表來源組好餵進來；範本/自由訓練沒有週期定位＝nil。
+    public let kicker: String?
     /// 依 (exerciseIndex, setIndex) 排序的目標佇列。
     public let targets: [PlannedTargetSet]
 
-    public init(planWorkoutId: UUID, name: String?, targets: [PlannedTargetSet]) {
+    public init(planWorkoutId: UUID, name: String?, kicker: String? = nil, targets: [PlannedTargetSet]) {
         self.planWorkoutId = planWorkoutId
         self.name = name
+        self.kicker = kicker
         self.targets = targets
     }
 

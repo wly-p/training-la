@@ -74,6 +74,7 @@ public struct TrainingHomeView: View {
             .sheet(item: $viewModel.pendingStart) { pending in
                 TrainingPreviewSheet(
                     blueprint: pending.blueprint,
+                    comparison: pending.comparison,
                     onStart: { Task { await viewModel.confirmPendingStart() } },
                     onAdjustOnce: openSchedule,
                     onEditTemplate: openLibrary

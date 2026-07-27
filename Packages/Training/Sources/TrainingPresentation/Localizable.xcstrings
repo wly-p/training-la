@@ -13,6 +13,22 @@
     "💪" : {
 
     },
+    "training.active.kicker %lld" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Training · %lld min"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "訓練中 · %lld 分"
+          }
+        }
+      }
+    },
     "training.active.title" : {
       "localizations" : {
         "en" : {
@@ -30,6 +46,7 @@
       }
     },
     "training.addAnother" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -1080,7 +1097,7 @@
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "感受如何？"
+            "value" : "感覺如何 · 選填"
           }
         }
       }
@@ -1326,6 +1343,7 @@
       }
     },
     "training.preview.exerciseSetCount %lld %lld" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -1337,6 +1355,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "%1$lld 個動作 · %2$lld 組"
+          }
+        }
+      }
+    },
+    "training.preview.exerciseSetCountDuration %lld %lld %lld" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$lld exercises · %2$lld sets · ~%3$lld min"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$lld 個動作 · %2$lld 組 · 約 %3$lld 分"
           }
         }
       }
@@ -1417,6 +1451,70 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "開始訓練"
+          }
+        }
+      }
+    },
+    "training.preview.vsLast" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "vs last time"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "和上次比"
+          }
+        }
+      }
+    },
+    "training.preview.vsLast.mainLift %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Main lift %1$@"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "主項 %1$@"
+          }
+        }
+      }
+    },
+    "training.preview.vsLast.same" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "same"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "持平"
+          }
+        }
+      }
+    },
+    "training.preview.vsLast.summary %@ %lld %lld" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Last %1$@ · hit %2$lld/%3$lld sets"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "上次 %1$@ · 達標 %2$lld/%3$lld 組"
           }
         }
       }
@@ -1822,6 +1920,7 @@
       }
     },
     "training.sessionExercises" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -1913,6 +2012,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "實際"
+          }
+        }
+      }
+    },
+    "training.table.currentSet" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Current set"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "現在這組"
           }
         }
       }
@@ -2013,6 +2128,22 @@
         }
       }
     },
+    "training.tempExtra" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Extra Exercise"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "臨時加練"
+          }
+        }
+      }
+    },
     "training.todaysPlan" : {
       "localizations" : {
         "en" : {
@@ -2062,6 +2193,7 @@
       }
     },
     "training.unit" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -2089,6 +2221,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "接下來：%@"
+          }
+        }
+      }
+    },
+    "training.upNext.section" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Up next · long-press to swap"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "接下來 · 長按可換動作"
           }
         }
       }

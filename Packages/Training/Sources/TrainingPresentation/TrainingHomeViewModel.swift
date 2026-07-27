@@ -25,6 +25,31 @@ public struct PendingStart: Identifiable, Sendable {
     public let id = UUID()
     public let source: Source
     public let blueprint: PlannedWorkoutBlueprint
+    /// 「和上次比」灰卡（14c）；查不到上一場相同主項的紀錄＝nil，卡片不出現。
+    public let comparison: LastWorkoutComparison?
+
+    public init(source: Source, blueprint: PlannedWorkoutBlueprint, comparison: LastWorkoutComparison? = nil) {
+        self.source = source
+        self.blueprint = blueprint
+        self.comparison = comparison
+    }
+}
+
+/// 「和上次比」（14c 底部灰卡）：上次做這個主項是哪天、那場達標幾組、主項這次比上次增減多少。
+/// 讓「開始」這個決定有依據，不是鼓勵語。
+public struct LastWorkoutComparison: Equatable, Sendable {
+    public let date: DayDate
+    public let achievedSets: Int
+    public let totalSets: Int
+    /// 主項（第一個動作）這次目標重量 − 上次最重的一組(done)；nil＝其一算不出，不顯示增減。
+    public let mainLiftDeltaKg: Double?
+
+    public init(date: DayDate, achievedSets: Int, totalSets: Int, mainLiftDeltaKg: Double?) {
+        self.date = date
+        self.achievedSets = achievedSets
+        self.totalSets = totalSets
+        self.mainLiftDeltaKg = mainLiftDeltaKg
+    }
 }
 
 /// 訓練首頁「重複上次」列：最近一場已完成場次的摘要。
@@ -68,6 +93,8 @@ public final class TrainingHomeViewModel {
     public private(set) var weekSummary: WeekTrainingSummary?
     /// 最近一場已完成場次（「重複上次」列）；nil＝完全沒練過。
     public private(set) var lastSession: RecentSessionSummary?
+    /// 已完成場次快取（最近在前）；供開練前預覽「和上次比」同步試算，不用再打一次 repo。
+    private var recentFinished: [Workout] = []
     /// 非 nil → 呈現記錄畫面。
     public var recording: Workout?
     /// 非 nil → 呈現開練前預覽 sheet（13d）。
@@ -148,6 +175,7 @@ public final class TrainingHomeViewModel {
 
     private func refreshRecentWorkouts() async throws {
         let finished = try await recentWorkouts?() ?? []
+        recentFinished = finished
         weekSummary = Self.weekSummary(from: finished, today: today())
         if let latest = finished.first {
             var name: String?
@@ -245,17 +273,35 @@ public final class TrainingHomeViewModel {
     /// 點「今天指定」卡：today's plan 已經材料化好了，直接拿現成的藍圖預覽，不用再問一次 Plan。
     public func previewPlan() {
         guard let plan = todaysPlan else { return }
-        pendingStart = PendingStart(source: .plan, blueprint: plan)
+        pendingStart = PendingStart(source: .plan, blueprint: plan,
+                                    comparison: Self.lastComparison(for: plan, among: recentFinished))
     }
 
     /// 點「隨時可做」卡：用不落地、不動游標的 `previewRotation` 試算，跟「開始循環」分開。
     public func previewRotation(id: UUID) async {
         do {
             guard let blueprint = try await plannedProvider?.previewRotation(id: id) else { return }
-            pendingStart = PendingStart(source: .rotation(id), blueprint: blueprint)
+            pendingStart = PendingStart(source: .rotation(id), blueprint: blueprint,
+                                        comparison: Self.lastComparison(for: blueprint, among: recentFinished))
         } catch {
             errorMessage = .training("training.error.loadStatus \(error.localizedDescription)")
         }
+    }
+
+    /// 「和上次比」試算（14c）：在已完成場次裡找最近一場「有做到這個主項（第一個動作）」的，
+    /// 回它的日期、達標組數，以及主項這次目標重量 − 上次最重一組(done) 的增減。
+    /// 純函式（吃現成資料），方便單元測試；不碰實例狀態，標 nonisolated 讓測試/非主執行緒也能呼叫。
+    nonisolated static func lastComparison(for blueprint: PlannedWorkoutBlueprint, among finished: [Workout]) -> LastWorkoutComparison? {
+        guard let mainExerciseId = blueprint.exercises.first?.exerciseId,
+              let last = finished.first(where: { $0.blocks.contains { $0.exerciseId == mainExerciseId } })
+        else { return nil }
+        let counts = FinishSummaryFormatting.achievedSetCount(last.sets)
+        let thisWeight = blueprint.targets.first { $0.exerciseId == mainExerciseId }?.targetWeight?.value
+        let lastWeight = last.blocks.first { $0.exerciseId == mainExerciseId }?
+            .sets.filter { $0.status == .done }.map { $0.weight.value }.max()
+        let delta: Double? = if let thisWeight, let lastWeight { thisWeight - lastWeight } else { nil }
+        return LastWorkoutComparison(date: last.day, achievedSets: counts.achieved,
+                                     totalSets: counts.total, mainLiftDeltaKg: delta)
     }
 
     public func dismissPendingStart() {

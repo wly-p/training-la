@@ -193,6 +193,23 @@
         }
       }
     },
+    "preview.kicker.rotation %@ %lld %lld" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$@ · Round %2$lld · Day %3$lld"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$@ · 第 %2$lld 輪 · 第 %3$lld 天"
+          }
+        }
+      }
+    },
     "tab.exercises" : {
       "localizations" : {
         "en" : {

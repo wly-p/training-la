@@ -51,12 +51,26 @@ struct PlanProviderAdapter: PlannedWorkoutProvider {
 
     func previewRotation(id: UUID) async throws -> PlannedWorkoutBlueprint? {
         guard let plan = try await previewRotationUseCase(id: id) else { return nil }
-        return try await blueprint(from: plan)
+        // kicker 用「當前游標」的定位（預覽的是這一張，還沒前進）。
+        let kicker = try await rotationKicker(id: id)
+        return try await blueprint(from: plan, kicker: kicker)
     }
 
     func startRotation(id: UUID) async throws -> PlannedWorkoutBlueprint? {
+        // 先取定位再開始——StartRotation 會把游標往前推，定位必須反映「這一張」而非下一張。
+        let kicker = try await rotationKicker(id: id)
         guard let plan = try await startRotationUseCase(id: id, date: today()) else { return nil }
-        return try await blueprint(from: plan)
+        return try await blueprint(from: plan, kicker: kicker)
+    }
+
+    /// 循環課表的週期定位「推拉腿 · 第 N 輪 · 第 M 天」（14c kicker）；查不到回 nil。
+    private func rotationKicker(id: UUID) async throws -> String? {
+        guard let rotation = try await listRotations().first(where: { $0.id == id }),
+              !rotation.workouts.isEmpty else { return nil }
+        return String(
+            format: String(localized: "preview.kicker.rotation %@ %lld %lld"),
+            rotation.name, rotation.roundsCompleted + 1, rotation.cursor + 1
+        )
     }
 
     func activeRestDay() async throws -> RestDayInfo? {
@@ -68,7 +82,7 @@ struct PlanProviderAdapter: PlannedWorkoutProvider {
         )
     }
 
-    private func blueprint(from plan: PlanWorkout) async throws -> PlannedWorkoutBlueprint {
+    private func blueprint(from plan: PlanWorkout, kicker: String? = nil) async throws -> PlannedWorkoutBlueprint {
         let names = Dictionary(uniqueKeysWithValues:
             try await listExercises(muscleGroup: nil).map { ($0.id, $0.name) })
         let targets = plan.sets.map { set in
@@ -85,7 +99,7 @@ struct PlanProviderAdapter: PlannedWorkoutProvider {
                 weightSource: set.weightSource.map(Self.mapWeightSource)
             )
         }
-        return PlannedWorkoutBlueprint(planWorkoutId: plan.id, name: plan.name, targets: targets)
+        return PlannedWorkoutBlueprint(planWorkoutId: plan.id, name: plan.name, kicker: kicker, targets: targets)
     }
 
     /// Plan 的 `WeightSourceInfo` → Training 的 `TargetWeightSource`（14c）：換一層型別，

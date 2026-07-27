@@ -132,17 +132,24 @@ struct FinishWorkoutSheet: View {
     // MARK: - 數字卡
 
     private var statsCard: some View {
-        VStack(spacing: 12) {
-            HStack {
-                statNumber(String(durationMinutes), label: "training.finish.minutes")
+        VStack(alignment: .leading, spacing: 12) {
+            HStack(alignment: .firstTextBaseline) {
+                statNumber(String(durationMinutes), label: "training.finish.minutes", alignment: .leading)
                 Spacer()
-                statNumber(WeightDisplay.value(totalVolume), label: "training.finish.totalVolume")
+                statNumber(WeightDisplay.value(totalVolume), label: "training.finish.totalVolume", alignment: .center)
                 Spacer()
-                statNumber("\(achievedCount.achieved)/\(achievedCount.total)", label: "training.finish.achievedSets")
+                achievedStat
             }
             if targetVolume > 0 {
-                ProgressView(value: min(totalVolume / targetVolume, 1))
-                    .tint(TLColor.accent700)
+                // 6pt 圓角進度條（neutral-200 軌 ＋ 赭紅填），取代偏細的原生 ProgressView。
+                GeometryReader { geo in
+                    ZStack(alignment: .leading) {
+                        Capsule().fill(TLColor.neutral200)
+                        Capsule().fill(TLColor.accent)
+                            .frame(width: geo.size.width * min(totalVolume / targetVolume, 1))
+                    }
+                }
+                .frame(height: 6)
                 Text(verbatim: String(
                     format: String(localized: "training.finish.volumeGoal %@ %@", bundle: .module),
                     WeightDisplay.value(targetVolume), String(format: "%.0f%%", totalVolume / targetVolume * 100)
@@ -152,17 +159,36 @@ struct FinishWorkoutSheet: View {
             }
         }
         .padding(TLSpace.rowInset)
-        .frame(maxWidth: .infinity)
+        .frame(maxWidth: .infinity, alignment: .leading)
         .background(TLColor.neutral300)
         .clipShape(RoundedRectangle(cornerRadius: TLRadius.container, style: .continuous))
     }
 
-    private func statNumber(_ value: String, label: String.LocalizationValue) -> some View {
-        VStack(alignment: .leading, spacing: 2) {
+    private func statNumber(
+        _ value: String, label: String.LocalizationValue, alignment: HorizontalAlignment
+    ) -> some View {
+        VStack(alignment: alignment, spacing: 2) {
             Text(verbatim: value)
-                .font(TLFont.display(30))
+                .font(TLFont.display(34))
                 .foregroundStyle(TLColor.text)
             Text(String(localized: label, bundle: .module))
+                .font(.caption2)
+                .foregroundStyle(TLColor.neutral600)
+        }
+    }
+
+    /// 達標組數：分子 34pt、分母縮小（`12/13` 的 `/13`），對齊右欄。
+    private var achievedStat: some View {
+        VStack(alignment: .trailing, spacing: 2) {
+            HStack(alignment: .firstTextBaseline, spacing: 0) {
+                Text(verbatim: "\(achievedCount.achieved)")
+                    .font(TLFont.display(34))
+                Text(verbatim: "/\(achievedCount.total)")
+                    .font(TLFont.display(20))
+                    .foregroundStyle(TLColor.neutral500)
+            }
+            .foregroundStyle(TLColor.text)
+            Text(String(localized: "training.finish.achievedSets", bundle: .module))
                 .font(.caption2)
                 .foregroundStyle(TLColor.neutral600)
         }
@@ -204,14 +230,22 @@ struct FinishWorkoutSheet: View {
                 .foregroundStyle(TLColor.neutral500)
             TLGroup {
                 ForEach(exerciseSummaries) { summary in
-                    ListRow(
-                        title: Text(verbatim: summary.name),
-                        subtitle: Text(verbatim: String(
+                    HStack(spacing: TLSpace.gapM) {
+                        Text(verbatim: summary.name)
+                            .font(TLFont.zh(TLFont.rowTitle, .semibold))
+                            .foregroundStyle(TLColor.text)
+                        Spacer(minLength: TLSpace.gapS)
+                        // 組數·重量放右側（Caprasimo 數字），貼著達標勾號——不再當名稱下的副標。
+                        Text(verbatim: String(
                             format: String(localized: "training.finish.exerciseSets %lld %@", bundle: .module),
                             summary.setCount, summary.weightRange
-                        )),
-                        trailing: { achievementBadge(summary.allAchieved) }
-                    )
+                        ))
+                        .font(TLFont.display(15))
+                        .foregroundStyle(TLColor.neutral600)
+                        achievementBadge(summary.allAchieved)
+                    }
+                    .padding(.horizontal, TLSpace.rowInset)
+                    .padding(.vertical, 14)
                 }
             }
         }
