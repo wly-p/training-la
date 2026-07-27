@@ -1,8 +1,11 @@
+import DesignSystem
 import PlanDomain
 import SharedKernel
 import SwiftUI
 
-/// 套用長期課表到月曆：選課表 + 起始日 + 模式（跑一次/重複）。也可停用已套用的。
+/// 套用長期課表到月曆（課表「+」→ 長期）：選課表 ＋ 起始日 ＋ 模式（跑一次／重複），也可停用已套用的。
+/// 套動作庫同一套 DesignSystem 元件（`TLGroup`／`ListRow`／`TLSegmentedControl`／`.tlPrimary`），
+/// 取代原生 `Form`。這頁沒有可編輯的「名稱」，故不套 `EditScaffold`，改自訂頂列。
 struct ProgramApplyView: View {
     let programs: [Program]
     let assignments: [ProgramAssignment]
@@ -35,50 +38,84 @@ struct ProgramApplyView: View {
     }
 
     var body: some View {
-        NavigationStack {
-            Form {
-                if programs.isEmpty {
-                    Section {
-                        localText("program.apply.none").foregroundStyle(.secondary)
-                    }
-                } else {
-                    applySection
+        VStack(spacing: 0) {
+            HStack {
+                Button { dismiss() } label: {
+                    localText("plan.close")
+                        .font(TLFont.zh(15.5, .medium))
+                        .foregroundStyle(TLColor.neutral600)
                 }
-                if !assignments.isEmpty {
-                    activeSection
-                }
+                Spacer()
             }
-            .navigationTitle(localText("plan.applyProgram"))
-            #if os(iOS)
-            .navigationBarTitleDisplayMode(.inline)
-            #endif
-            .toolbar {
-                ToolbarItem(placement: .cancellationAction) {
-                    Button { dismiss() } label: { localText("plan.close") }
+            .padding(.horizontal, TLSpace.page)
+            .padding(.top, 14)
+            .padding(.bottom, 6)
+
+            ScrollView {
+                VStack(alignment: .leading, spacing: TLSpace.section) {
+                    localText("plan.applyProgram")
+                        .font(TLFont.zh(TLFont.pageTitle, .bold))
+                        .foregroundStyle(TLColor.text)
+
+                    if programs.isEmpty {
+                        localText("program.apply.none")
+                            .font(TLFont.zh(TLFont.rowSub, .regular))
+                            .foregroundStyle(TLColor.neutral500)
+                    } else {
+                        applyForm
+                    }
+                    if !assignments.isEmpty {
+                        activeSection
+                    }
                 }
+                .padding(.horizontal, TLSpace.page)
+                .padding(.top, TLSpace.gapL)
+                .padding(.bottom, 40)
             }
         }
+        .background(TLColor.bg.ignoresSafeArea())
     }
 
-    private var applySection: some View {
-        Section {
-            Picker(selection: $selectedProgramId) {
-                ForEach(programs) { program in
-                    Text(verbatim: program.name).tag(Optional(program.id))
+    private var applyForm: some View {
+        VStack(alignment: .leading, spacing: TLSpace.section) {
+            EditSection(localText("program.apply.pick")) {
+                TLGroup {
+                    ForEach(programs) { program in
+                        ListRow(
+                            title: Text(verbatim: program.name),
+                            onTap: { selectedProgramId = program.id },
+                            leading: { CheckBadge(isChecked: selectedProgramId == program.id) }
+                        )
+                    }
                 }
-            } label: {
-                localText("program.apply.pick")
             }
-            DatePicker(selection: $startDate, displayedComponents: .date) {
-                localText("program.apply.startDate")
+
+            EditSection(localText("program.apply.startDate")) {
+                TLGroup {
+                    HStack {
+                        localText("program.apply.startDate")
+                            .font(TLFont.zh(TLFont.rowTitle))
+                            .foregroundStyle(TLColor.text)
+                        Spacer()
+                        DatePicker("", selection: $startDate, displayedComponents: .date)
+                            .labelsHidden()
+                            .tint(TLColor.accent)
+                    }
+                    .padding(.horizontal, TLSpace.rowInset)
+                    .frame(minHeight: TLSize.row)
+                }
             }
-            Picker(selection: $mode) {
-                localText("program.mode.repeating").tag(ProgramRunMode.repeating)
-                localText("program.mode.once").tag(ProgramRunMode.once)
-            } label: {
-                localText("program.apply.mode")
+
+            EditSection(localText("program.apply.mode")) {
+                TLSegmentedControl(
+                    selection: $mode,
+                    options: [
+                        .init(ProgramRunMode.repeating, localText("program.mode.repeating")),
+                        .init(ProgramRunMode.once, localText("program.mode.once")),
+                    ]
+                )
             }
-            .pickerStyle(.segmented)
+
             Button {
                 guard let id = selectedProgramId else { return }
                 Task {
@@ -86,38 +123,45 @@ struct ProgramApplyView: View {
                     dismiss()
                 }
             } label: {
-                localText("program.apply.confirm")
+                localText("program.apply.confirm").frame(maxWidth: .infinity)
             }
+            .buttonStyle(.tlPrimary)
             .disabled(selectedProgramId == nil)
-        } footer: {
+
             localText("program.apply.hint")
+                .font(TLFont.zh(TLFont.rowSub, .regular))
+                .foregroundStyle(TLColor.neutral500)
         }
     }
 
     private var activeSection: some View {
-        Section {
-            ForEach(assignments) { assignment in
-                HStack {
-                    VStack(alignment: .leading, spacing: 2) {
-                        Text(verbatim: programName(assignment)).font(.subheadline)
-                        HStack(spacing: 6) {
-                            Text(verbatim: assignment.startDate.isoString)
-                            localText(assignment.mode == .repeating ? "program.mode.repeating" : "program.mode.once")
+        EditSection(localText("program.apply.activeHeader")) {
+            TLGroup {
+                ForEach(assignments) { assignment in
+                    HStack(spacing: TLSpace.gapM) {
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text(verbatim: programName(assignment))
+                                .font(TLFont.zh(TLFont.rowTitle, .semibold))
+                                .foregroundStyle(TLColor.text)
+                            (Text(verbatim: assignment.startDate.isoString + " · ")
+                                + localText(assignment.mode == .repeating ? "program.mode.repeating" : "program.mode.once"))
+                                .font(TLFont.zh(TLFont.rowSub, .regular))
+                                .foregroundStyle(TLColor.neutral500)
                         }
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
+                        Spacer(minLength: TLSpace.gapS)
+                        Button(role: .destructive) {
+                            Task { await onStop(assignment.id) }
+                        } label: {
+                            localText("program.apply.stop")
+                                .font(TLFont.zh(TLFont.rowSub, .semibold))
+                                .foregroundStyle(TLColor.danger700)
+                        }
+                        .buttonStyle(.plain)
                     }
-                    Spacer()
-                    Button(role: .destructive) {
-                        Task { await onStop(assignment.id) }
-                    } label: {
-                        localText("program.apply.stop")
-                    }
-                    .buttonStyle(.borderless)
+                    .padding(.horizontal, TLSpace.rowInset)
+                    .frame(minHeight: TLSize.rowWithSub)
                 }
             }
-        } header: {
-            localText("program.apply.activeHeader")
         }
     }
 }

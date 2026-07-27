@@ -34,7 +34,7 @@ actor MockAssignmentRepository: ProgramAssignmentRepository {
 private func spec(_ name: String, exercise: UUID = UUID()) -> WorkoutSpec {
     WorkoutSpec(name: name, sets: [
         PlanSet(id: UUID(), exerciseId: exercise, exerciseIndex: 0, setIndex: 0,
-                targetWeight: Weight(value: 60, unit: .kg), targetReps: 8, restSec: 60),
+                targetWeight: .absolute(Weight(value: 60, unit: .kg)), targetReps: 8, restSec: 60),
     ])
 }
 
@@ -129,6 +129,25 @@ struct ProjectScheduleTests {
         )
         #expect(projected.isEmpty)
     }
+
+    @Test func resolvesIntensityFactorWithSlotOverrideAndProgramFallback() async throws {
+        let programRepo = MockProgramRepository()
+        let assignRepo = MockAssignmentRepository()
+        let planRepo = MockPlanWorkoutRepository()
+        let pid = UUID()
+        var overriddenSlot = spec("推")
+        overriddenSlot.intensityFactor = 0.8   // 這一格覆寫
+        var prog = program(id: pid, cycleLength: 3, days: [0: overriddenSlot, 2: spec("拉")])
+        prog.intensityFactor = 0.9              // 課表預設，無覆寫的格子繼承這個
+        await programRepo.seed(prog)
+        let aid = UUID()
+        await assignRepo.seed(ProgramAssignment(id: aid, programId: pid, startDate: start, mode: .repeating))
+
+        let projected = try await makeProject(programRepo, assignRepo, planRepo)(from: start, to: start.adding(days: 2), today: start)
+
+        #expect(projected.first { $0.spec.name == "推" }?.intensityFactor == 0.8)
+        #expect(projected.first { $0.spec.name == "拉" }?.intensityFactor == 0.9)
+    }
 }
 
 // MARK: - 補登
@@ -139,7 +158,11 @@ struct ReconcileProgramAssignmentsTests {
         _ assignRepo: MockAssignmentRepository,
         _ planRepo: MockPlanWorkoutRepository
     ) -> ReconcileProgramAssignments {
-        ReconcileProgramAssignments(programRepository: programRepo, assignmentRepository: assignRepo, planRepository: planRepo)
+        ReconcileProgramAssignments(
+            programRepository: programRepo, assignmentRepository: assignRepo, planRepository: planRepo,
+            exerciseCatalog: MockPlanExerciseCatalog(), lastPerformedWeightLookup: MockLastPerformedWeightLookup(),
+            abilityValueLookup: MockAbilityValueLookup()
+        )
     }
 
     @Test func materializesPastDaysAsNotStarted() async throws {
@@ -195,5 +218,43 @@ struct ReconcileProgramAssignmentsTests {
 
         #expect(created == 0)
         #expect(try await planRepo.all().isEmpty)
+    }
+
+    @Test func appliesProgramIntensityFactorWhenMaterializing() async throws {
+        let programRepo = MockProgramRepository()
+        let assignRepo = MockAssignmentRepository()
+        let planRepo = MockPlanWorkoutRepository()
+        let pid = UUID()
+        var prog = program(id: pid, cycleLength: 1, days: [0: spec("推")])
+        prog.intensityFactor = 0.5
+        await programRepo.seed(prog)
+        let aid = UUID()
+        await assignRepo.seed(ProgramAssignment(id: aid, programId: pid, startDate: start, mode: .repeating))
+
+        _ = try await makeReconcile(programRepo, assignRepo, planRepo)(today: start.adding(days: 1))
+
+        // spec("推") 目標 60kg × 0.5 = 30kg（catalog 空、預設遞增單位 1）。
+        let plan = try await planRepo.all().first
+        #expect(plan?.sets.first?.targetWeight == .absolute(Weight(value: 30, unit: .kg)))
+    }
+}
+
+struct SetProgramIntensityFactorTests {
+    @Test func updatesIntensityFactor() async throws {
+        let repo = MockProgramRepository()
+        let pid = UUID()
+        await repo.seed(program(id: pid, cycleLength: 1, days: [0: spec("推")]))
+
+        try await SetProgramIntensityFactor(repository: repo)(id: pid, intensityFactor: 0.85)
+
+        #expect(try await repo.get(id: pid)?.intensityFactor == 0.85)
+    }
+
+    @Test func missingProgramThrowsNotFound() async throws {
+        let repo = MockProgramRepository()
+        let id = UUID()
+        await #expect(throws: ProgramRepositoryError.notFound(id: id)) {
+            try await SetProgramIntensityFactor(repository: repo)(id: id, intensityFactor: 0.85)
+        }
     }
 }

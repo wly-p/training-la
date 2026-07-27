@@ -32,16 +32,23 @@ public struct CreateProgram: Sendable {
     }
 
     @discardableResult
-    public func callAsFunction(name: String, cycleLength: Int = 7) async throws -> Program {
+    public func callAsFunction(
+        name: String,
+        cycleLength: Int = 7,
+        days: [Int: WorkoutSpec] = [:],
+        intensityFactor: Double = 1.0
+    ) async throws -> Program {
         let validName = try validatedProgramName(name)
         let orderIndex = (try await repository.all().map(\.orderIndex).max() ?? -1) + 1
         let timestamp = now()
+        let length = max(1, cycleLength)
         let program = Program(
             id: makeID(),
             name: validName,
             orderIndex: orderIndex,
-            cycleLength: max(1, cycleLength),
-            days: [:],
+            cycleLength: length,
+            days: days.filter { (0..<length).contains($0.key) },
+            intensityFactor: intensityFactor,
             createdAt: timestamp,
             updatedAt: timestamp
         )
@@ -63,7 +70,9 @@ public struct UpdateProgram: Sendable {
         self.now = now
     }
 
-    public func callAsFunction(id: UUID, name: String, cycleLength: Int, days: [Int: WorkoutSpec]) async throws {
+    public func callAsFunction(
+        id: UUID, name: String, cycleLength: Int, days: [Int: WorkoutSpec], intensityFactor: Double? = nil
+    ) async throws {
         guard var program = try await repository.get(id: id) else {
             throw ProgramRepositoryError.notFound(id: id)
         }
@@ -72,6 +81,30 @@ public struct UpdateProgram: Sendable {
         program.cycleLength = length
         // 縮短週期時，丟掉落在範圍外的日子。
         program.days = days.filter { (0..<length).contains($0.key) }
+        if let intensityFactor { program.intensityFactor = intensityFactor }
+        program.updatedAt = now()
+        try await repository.save(program)
+    }
+}
+
+/// 設定長期課表的強度倍率（14b：計畫層一個數字，格子的覆寫值不受影響）。
+public struct SetProgramIntensityFactor: Sendable {
+    private let repository: any ProgramRepository
+    private let now: @Sendable () -> Date
+
+    public init(
+        repository: any ProgramRepository,
+        now: @escaping @Sendable () -> Date = { Date() }
+    ) {
+        self.repository = repository
+        self.now = now
+    }
+
+    public func callAsFunction(id: UUID, intensityFactor: Double) async throws {
+        guard var program = try await repository.get(id: id) else {
+            throw ProgramRepositoryError.notFound(id: id)
+        }
+        program.intensityFactor = intensityFactor
         program.updatedAt = now()
         try await repository.save(program)
     }
@@ -134,6 +167,124 @@ public struct DeleteProgramAssignment: Sendable {
     public func callAsFunction(id: UUID) async throws { try await repository.delete(id: id) }
 }
 
+/// 一份長期課表「此刻」的進度（動作庫長期分頁進行中卡／詳情頁用）。
+/// day＝從起始日算起的第幾天（1-based，對週期取模）；totalDays＝週期天數（目前模型的最佳可用長度）；
+/// todayWorkoutName＝今天排的 workout 名（nil＝休息日）。
+public struct ProgramProgress: Equatable, Sendable {
+    public let assignmentId: UUID
+    public let day: Int
+    public let totalDays: Int
+    public let todayWorkoutName: String?
+    public init(assignmentId: UUID, day: Int, totalDays: Int, todayWorkoutName: String?) {
+        self.assignmentId = assignmentId
+        self.day = day
+        self.totalDays = totalDays
+        self.todayWorkoutName = todayWorkoutName
+    }
+}
+
+/// 查某份長期課表此刻的進度（取它第一筆 assignment）。無 assignment＝nil（＝未啟用）。
+public struct GetProgramProgress: Sendable {
+    private let programRepository: any ProgramRepository
+    private let assignmentRepository: any ProgramAssignmentRepository
+
+    public init(
+        programRepository: any ProgramRepository,
+        assignmentRepository: any ProgramAssignmentRepository
+    ) {
+        self.programRepository = programRepository
+        self.assignmentRepository = assignmentRepository
+    }
+
+    public func callAsFunction(programId: UUID, today: DayDate) async throws -> ProgramProgress? {
+        guard let program = try await programRepository.get(id: programId),
+              let assignment = try await assignmentRepository.all().first(where: { $0.programId == programId })
+        else { return nil }
+        let cycleDay = assignment.cycleDay(for: today, cycleLength: program.cycleLength)
+        // cycleDay nil（起始日之前／once 已結束）→ day 夾在範圍內顯示。
+        let dayIndex = cycleDay ?? 0
+        return ProgramProgress(
+            assignmentId: assignment.id,
+            day: dayIndex + 1,
+            totalDays: program.cycleLength,
+            todayWorkoutName: program.workout(dayIndex: dayIndex)?.name
+        )
+    }
+}
+
+/// 訓練首頁「今天休息」空狀態（13f 左）用：今天是哪份長期課表的休息日、下一個訓練日是哪天/叫什麼。
+public struct ProgramRestDayInfo: Equatable, Sendable {
+    public let programName: String
+    /// 下一個訓練日；nil＝這份套用之後都不會再有訓練日了（once 模式已經跑完週期，且往後沒有訓練日）。
+    public let nextWorkoutDate: DayDate?
+    public let nextWorkoutName: String?
+
+    public init(programName: String, nextWorkoutDate: DayDate?, nextWorkoutName: String?) {
+        self.programName = programName
+        self.nextWorkoutDate = nextWorkoutDate
+        self.nextWorkoutName = nextWorkoutName
+    }
+}
+
+/// 掃過所有啟用中的長期課表套用，找「今天剛好是休息日」的第一筆。循環課表(Rotation)天生沒有
+/// 休息日概念（永遠算「隨時可做」，見 92-known-gaps.md），不在這裡處理。
+public struct GetActiveRestDay: Sendable {
+    private let programRepository: any ProgramRepository
+    private let assignmentRepository: any ProgramAssignmentRepository
+    private let today: @Sendable () -> DayDate
+
+    public init(
+        programRepository: any ProgramRepository,
+        assignmentRepository: any ProgramAssignmentRepository,
+        today: @escaping @Sendable () -> DayDate = { DayDate(Date()) }
+    ) {
+        self.programRepository = programRepository
+        self.assignmentRepository = assignmentRepository
+        self.today = today
+    }
+
+    public func callAsFunction() async throws -> ProgramRestDayInfo? {
+        let todayDate = today()
+        for assignment in try await assignmentRepository.all() {
+            guard let program = try await programRepository.get(id: assignment.programId) else { continue }
+            guard let cycleDay = assignment.cycleDay(for: todayDate, cycleLength: program.cycleLength) else { continue }
+            guard program.workout(dayIndex: cycleDay) == nil else { continue }   // 今天有排課，不是休息日
+            let next = Self.nextWorkout(program: program, assignment: assignment, afterCycleDay: cycleDay, afterDate: todayDate)
+            return ProgramRestDayInfo(programName: program.name, nextWorkoutDate: next?.date, nextWorkoutName: next?.spec.name)
+        }
+        return nil
+    }
+
+    /// 從 afterCycleDay 的下一天開始找第一個排了 workout 的日子。once 模式最多找到週期結束；
+    /// repeating 模式最多繞一圈（整輪都休息理論上不會發生，這裡保底防呆回 nil，不會無限繞）。
+    private static func nextWorkout(
+        program: Program, assignment: ProgramAssignment, afterCycleDay: Int, afterDate: DayDate
+    ) -> (date: DayDate, spec: WorkoutSpec)? {
+        let limit = assignment.mode == .once ? program.cycleLength - afterCycleDay - 1 : program.cycleLength
+        guard limit > 0 else { return nil }
+        for step in 1...limit {
+            let cycleDay = (afterCycleDay + step) % program.cycleLength
+            if let spec = program.workout(dayIndex: cycleDay) {
+                return (afterDate.adding(days: step), spec)
+            }
+        }
+        return nil
+    }
+}
+
+/// 重設長期課表進度（詳情頁「重設進度 → 回到 D1」）：把 assignment 起始日移到今天、清補登游標。
+public struct ResetProgramProgress: Sendable {
+    private let repository: any ProgramAssignmentRepository
+    public init(repository: any ProgramAssignmentRepository) { self.repository = repository }
+
+    public func callAsFunction(programId: UUID, today: DayDate) async throws {
+        guard var assignment = try await repository.all().first(where: { $0.programId == programId }) else { return }
+        assignment.startDate = today
+        assignment.lastReconciledDate = nil
+        try await repository.save(assignment)
+    }
+}
+
 // MARK: - 投影（未來，不入 DB）
 
 /// 一則未來投影：某天、某套用、排定的 workout。
@@ -143,13 +294,20 @@ public struct ProjectedWorkout: Identifiable, Equatable, Sendable {
     public let programId: UUID
     public let programName: String
     public let spec: WorkoutSpec
+    /// 已解出的強度倍率（`spec.intensityFactor ?? program.intensityFactor`），
+    /// 落地時直接用，不用再查一次 program。
+    public let intensityFactor: Double
 
-    public init(date: DayDate, assignmentId: UUID, programId: UUID, programName: String, spec: WorkoutSpec) {
+    public init(
+        date: DayDate, assignmentId: UUID, programId: UUID, programName: String, spec: WorkoutSpec,
+        intensityFactor: Double = 1.0
+    ) {
         self.date = date
         self.assignmentId = assignmentId
         self.programId = programId
         self.programName = programName
         self.spec = spec
+        self.intensityFactor = intensityFactor
     }
 
     public var id: String { "\(assignmentId.uuidString)-\(date.isoString)" }
@@ -196,7 +354,8 @@ public struct ProjectSchedule: Sendable {
                    !materialized.contains(AssignmentDay(assignmentId: assignment.id, date: day)) {
                     result.append(ProjectedWorkout(
                         date: day, assignmentId: assignment.id, programId: program.id,
-                        programName: program.name, spec: spec
+                        programName: program.name, spec: spec,
+                        intensityFactor: spec.intensityFactor ?? program.intensityFactor
                     ))
                 }
                 day = day.adding(days: 1)
@@ -207,16 +366,25 @@ public struct ProjectSchedule: Sendable {
 }
 
 /// 把一則投影落地成當天的真實排課（未開始）。使用者從月曆某天「加入這天」時用。
-/// 冪等：同 (assignment, date) 已有真實紀錄就不重複建。
+/// 冪等：同 (assignment, date) 已有真實紀錄就不重複建。長期 spec 的重量表達式在這裡收斂。
 public struct MaterializeProjectedWorkout: Sendable {
     private let planRepository: any PlanWorkoutRepository
+    private let exerciseCatalog: any PlanExerciseCatalog
+    private let lastPerformedWeightLookup: any LastPerformedWeightLookup
+    private let abilityValueLookup: any AbilityValueLookup
     private let makeID: @Sendable () -> UUID
 
     public init(
         planRepository: any PlanWorkoutRepository,
+        exerciseCatalog: any PlanExerciseCatalog,
+        lastPerformedWeightLookup: any LastPerformedWeightLookup,
+        abilityValueLookup: any AbilityValueLookup,
         makeID: @escaping @Sendable () -> UUID = { UUID() }
     ) {
         self.planRepository = planRepository
+        self.exerciseCatalog = exerciseCatalog
+        self.lastPerformedWeightLookup = lastPerformedWeightLookup
+        self.abilityValueLookup = abilityValueLookup
         self.makeID = makeID
     }
 
@@ -225,17 +393,11 @@ public struct MaterializeProjectedWorkout: Sendable {
         let onDate = try await planRepository.onDate(projected.date)
         if onDate.contains(where: { $0.assignmentId == projected.assignmentId }) { return nil }
         let orderIndex = (onDate.map(\.orderIndex).max() ?? -1) + 1
-        let sets = projected.spec.sets.map { set in
-            PlanSet(
-                id: makeID(),
-                exerciseId: set.exerciseId,
-                exerciseIndex: set.exerciseIndex,
-                setIndex: set.setIndex,
-                targetWeight: set.targetWeight,
-                targetReps: set.targetReps,
-                restSec: set.restSec
-            )
-        }
+        let catalog = try await exerciseCatalog.exercises()
+        let sets = try await resolvedPlanSets(
+            from: projected.spec.sets, catalog: catalog, intensityFactor: projected.intensityFactor,
+            lastPerformedLookup: lastPerformedWeightLookup, abilityValueLookup: abilityValueLookup, makeID: makeID
+        )
         let plan = PlanWorkout(
             id: makeID(),
             name: projected.spec.name.isEmpty ? nil : projected.spec.name,
@@ -260,17 +422,26 @@ public struct ReconcileProgramAssignments: Sendable {
     private let programRepository: any ProgramRepository
     private let assignmentRepository: any ProgramAssignmentRepository
     private let planRepository: any PlanWorkoutRepository
+    private let exerciseCatalog: any PlanExerciseCatalog
+    private let lastPerformedWeightLookup: any LastPerformedWeightLookup
+    private let abilityValueLookup: any AbilityValueLookup
     private let makeID: @Sendable () -> UUID
 
     public init(
         programRepository: any ProgramRepository,
         assignmentRepository: any ProgramAssignmentRepository,
         planRepository: any PlanWorkoutRepository,
+        exerciseCatalog: any PlanExerciseCatalog,
+        lastPerformedWeightLookup: any LastPerformedWeightLookup,
+        abilityValueLookup: any AbilityValueLookup,
         makeID: @escaping @Sendable () -> UUID = { UUID() }
     ) {
         self.programRepository = programRepository
         self.assignmentRepository = assignmentRepository
         self.planRepository = planRepository
+        self.exerciseCatalog = exerciseCatalog
+        self.lastPerformedWeightLookup = lastPerformedWeightLookup
+        self.abilityValueLookup = abilityValueLookup
         self.makeID = makeID
     }
 
@@ -282,6 +453,7 @@ public struct ReconcileProgramAssignments: Sendable {
             (try await programRepository.all()).map { ($0.id, $0) },
             uniquingKeysWith: { first, _ in first }
         )
+        let catalog = try await exerciseCatalog.exercises()
         let existing = try await planRepository.all()
         var materialized = Set(
             existing.compactMap { plan in
@@ -307,7 +479,11 @@ public struct ReconcileProgramAssignments: Sendable {
                    !materialized.contains(key) {
                     let order = nextOrderIndex[day, default: 0]
                     nextOrderIndex[day] = order + 1
-                    try await planRepository.save(makePlan(from: spec, on: day, assignmentId: assignment.id, orderIndex: order))
+                    let plan = try await makePlan(
+                        from: spec, on: day, assignmentId: assignment.id, orderIndex: order, catalog: catalog,
+                        intensityFactor: spec.intensityFactor ?? program.intensityFactor
+                    )
+                    try await planRepository.save(plan)
                     materialized.insert(key)
                     created += 1
                 }
@@ -320,18 +496,14 @@ public struct ReconcileProgramAssignments: Sendable {
         return created
     }
 
-    private func makePlan(from spec: WorkoutSpec, on date: DayDate, assignmentId: UUID, orderIndex: Int) -> PlanWorkout {
-        let sets = spec.sets.map { set in
-            PlanSet(
-                id: makeID(),
-                exerciseId: set.exerciseId,
-                exerciseIndex: set.exerciseIndex,
-                setIndex: set.setIndex,
-                targetWeight: set.targetWeight,
-                targetReps: set.targetReps,
-                restSec: set.restSec
-            )
-        }
+    private func makePlan(
+        from spec: WorkoutSpec, on date: DayDate, assignmentId: UUID, orderIndex: Int, catalog: [PlanCatalogExercise],
+        intensityFactor: Double
+    ) async throws -> PlanWorkout {
+        let sets = try await resolvedPlanSets(
+            from: spec.sets, catalog: catalog, intensityFactor: intensityFactor,
+            lastPerformedLookup: lastPerformedWeightLookup, abilityValueLookup: abilityValueLookup, makeID: makeID
+        )
         return PlanWorkout(
             id: makeID(),
             name: spec.name.isEmpty ? nil : spec.name,

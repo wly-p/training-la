@@ -1,3 +1,4 @@
+import DesignSystem
 import SharedKernel
 import SpecDomain
 import SwiftUI
@@ -5,69 +6,82 @@ import SwiftUI
 public struct ExerciseListView: View {
     @Bindable private var viewModel: ExerciseListViewModel
     @State private var editingTarget: FormTarget?
+    /// 分組方式（純前端呈現，不動 VM 的 `filter`）。
+    @State private var grouping: Grouping = .muscle
+    /// 由動作庫殼頁首「+」轉發：值一變就開建立表單（見 App/RootView 的 LibraryTabView）。
+    private let createToken: Int
 
-    public init(viewModel: ExerciseListViewModel) {
+    public init(viewModel: ExerciseListViewModel, createToken: Int = 0) {
         self.viewModel = viewModel
+        self.createToken = createToken
     }
+
+    private enum Grouping: Hashable { case muscle, equipment, frequent, all }
 
     // 不自帶 NavigationStack：嵌在動作庫 tab 共用的 NavigationStack 內（見 App/RootView 的 LibraryTabView）。
     public var body: some View {
-        List {
-            // chips 放進 List 當 Section header（不是 .safeAreaInset）：List 的 section header
-            // 本來就有「捲動時釘在頂端」的原生行為，效果跟 safeAreaInset 一樣；差別在於它現在是
-            // List 自己 scroll view 的一部分，不是另一個跟 List 競爭的獨立 ScrollView——
-            // 後者會干擾 NavigationStack 大標題的捲動偵測，導致大標題視覺上空白（見對應 bug ticket）。
-            Section {
-                ForEach(viewModel.visibleExercises) { exercise in
-                    Button {
-                        editingTarget = .edit(exercise)
-                    } label: {
-                        row(for: exercise)
-                    }
-                    .buttonStyle(.plain)
-                    .swipeActions(edge: .trailing) {
-                        Button(role: .destructive) {
-                            Task { await viewModel.remove(id: exercise.id) }
-                        } label: {
-                            localText("spec.delete")
+        VStack(spacing: 0) {
+            TLSearchField(text: $viewModel.searchText, placeholder: localText("spec.searchExercises"))
+                .padding(.horizontal, TLSpace.page)
+                .padding(.bottom, TLSpace.gapM)
+
+            TLSegmentedControl(selection: $grouping, options: [
+                .init(.muscle, localText("spec.muscleGroup")),
+                .init(.equipment, localText("spec.equipment")),
+                .init(.frequent, localText("spec.group.frequent")),
+                .init(.all, localText("spec.all")),
+            ])
+            .padding(.horizontal, TLSpace.page)
+            .padding(.bottom, TLSpace.gapM)
+
+            ScrollView {
+                if viewModel.visibleExercises.isEmpty {
+                    emptyState
+                        .padding(.horizontal, TLSpace.page)
+                        .padding(.top, TLSpace.gapL)
+                } else {
+                    LazyVStack(alignment: .leading, spacing: TLSpace.section) {
+                        ForEach(sections, id: \.id) { section in
+                            VStack(alignment: .leading, spacing: 0) {
+                                if let header = section.header {
+                                    SectionHeader(header)
+                                }
+                                TLGroup {
+                                    ForEach(section.exercises) { exercise in
+                                        row(for: exercise)
+                                    }
+                                }
+                            }
                         }
                     }
-                }
-            } header: {
-                filterChips
-            }
-        }
-        .searchable(text: $viewModel.searchText, prompt: localText("spec.searchExercises"))
-        .toolbar {
-            ToolbarItem(placement: .primaryAction) {
-                Button {
-                    editingTarget = .create
-                } label: {
-                    Label { localText("spec.new") } icon: { Image(systemName: "plus") }
+                    .padding(.horizontal, TLSpace.page)
+                    .padding(.top, TLSpace.gapS)
+                    .padding(.bottom, 40)
                 }
             }
         }
-        .overlay {
-            if viewModel.visibleExercises.isEmpty {
-                ContentUnavailableView {
-                    Label { localText("spec.empty") } icon: { Image(systemName: "dumbbell") }
-                } description: {
-                    localText("spec.empty.hint")
-                }
-            }
-        }
-        .task {
-            await viewModel.load()
-        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .background(TLColor.bg)
+        .task { await viewModel.load() }
+        .onChange(of: createToken) { editingTarget = .create }
         .sheet(item: $editingTarget) { target in
-            ExerciseFormView(target: target) { name, muscleGroup, equipment, description in
-                switch target {
-                case .create:
-                    await viewModel.add(name: name, muscleGroup: muscleGroup, equipment: equipment, description: description)
-                case .edit(let exercise):
-                    await viewModel.edit(id: exercise.id, name: name, muscleGroup: muscleGroup, equipment: equipment, description: description)
+            ExerciseFormView(
+                target: target,
+                loadUsages: { await viewModel.usages(of: $0) },
+                onSubmit: { name, muscleGroup, equipment, description in
+                    switch target {
+                    case .create:
+                        await viewModel.add(name: name, muscleGroup: muscleGroup, equipment: equipment, description: description)
+                    case .edit(let exercise):
+                        await viewModel.edit(id: exercise.id, name: name, muscleGroup: muscleGroup, equipment: equipment, description: description)
+                    }
+                },
+                onDelete: {
+                    if case .edit(let exercise) = target {
+                        await viewModel.remove(id: exercise.id)
+                    }
                 }
-            }
+            )
         }
         .alert(
             localText("spec.error"),
@@ -82,62 +96,91 @@ public struct ExerciseListView: View {
         }
     }
 
+    // MARK: - 列
+
     private func row(for exercise: Exercise) -> some View {
-        HStack {
-            VStack(alignment: .leading, spacing: 2) {
-                // 動作名、器材、備註都是 DB / enum 資料（verbatim）
-                Text(verbatim: exercise.name)
+        ListRow(
+            title: Text(verbatim: exercise.name),
+            showChevron: true,
+            onTap: { editingTarget = .edit(exercise) },
+            leading: {
+                // 肌群縮寫圓章（sage）。displayName 可能多字（功能性訓練／核心），圓章取前二字。
+                CircleBadge(muscle: String(exercise.muscleGroup.displayName.prefix(2)))
+            },
+            trailing: {
+                // 器材名是 enum 資料（verbatim）；右側 meta 小灰字。
                 Text(verbatim: exercise.equipment.displayName)
-                    .font(.footnote)
-                    .foregroundStyle(.secondary)
-                if let description = exercise.description {
-                    Text(verbatim: description)
-                        .font(.footnote)
-                        .foregroundStyle(.secondary)
-                        .lineLimit(1)
-                }
+                    .font(TLFont.zh(TLFont.rowTitle))
+                    .foregroundStyle(TLColor.neutral500)
             }
-            Spacer()
-            Text(verbatim: exercise.muscleGroup.displayName)
-                .font(.caption)
-                .padding(.horizontal, 8)
-                .padding(.vertical, 3)
-                .background(.quaternary, in: Capsule())
+        )
+        .contextMenu {
+            Button(role: .destructive) {
+                Task { await viewModel.remove(id: exercise.id) }
+            } label: {
+                Label { localText("spec.delete") } icon: { Image(systemName: "trash") }
+            }
         }
-        .contentShape(Rectangle())
     }
 
-    private var filterChips: some View {
-        ScrollView(.horizontal, showsIndicators: false) {
-            HStack(spacing: 8) {
-                // 「全部」本地化；肌群是 enum 資料（verbatim，不做）
-                chip(title: localText("spec.all"), isSelected: viewModel.filter == nil) {
-                    await viewModel.setFilter(nil)
-                }
-                ForEach(MuscleGroup.allCases, id: \.self) { group in
-                    chip(title: Text(verbatim: group.displayName), isSelected: viewModel.filter == group) {
-                        await viewModel.setFilter(group)
-                    }
-                }
-            }
-            .padding(.horizontal)
-            .padding(.vertical, 8)
+    private var emptyState: some View {
+        VStack(spacing: 8) {
+            localText("spec.empty")
+                .font(TLFont.zh(16, .bold))
+                .foregroundStyle(TLColor.text)
+            localText("spec.empty.hint")
+                .font(TLFont.zh(12.5, .regular))
+                .foregroundStyle(TLColor.neutral600)
+                .multilineTextAlignment(.center)
         }
-        .background(.bar)
+        .frame(maxWidth: .infinity)
+        .padding(.vertical, 40)
     }
 
-    private func chip(title: Text, isSelected: Bool, action: @escaping () async -> Void) -> some View {
-        Button {
-            Task { await action() }
-        } label: {
-            title
-                .font(.subheadline)
-                .padding(.horizontal, 12)
-                .padding(.vertical, 6)
-                .background(isSelected ? AnyShapeStyle(.tint) : AnyShapeStyle(.quaternary), in: Capsule())
-                .foregroundStyle(isSelected ? .white : .primary)
+    // MARK: - 分組（純前端）
+
+    private struct Section: Identifiable {
+        let id: String
+        let header: Text?
+        let exercises: [Exercise]
+    }
+
+    private var sections: [Section] {
+        let items = viewModel.visibleExercises
+        switch grouping {
+        case .muscle:
+            return MuscleGroup.allCases.compactMap { group in
+                let matched = items.filter { $0.muscleGroup == group }
+                guard !matched.isEmpty else { return nil }
+                return Section(
+                    id: "m-\(group.rawValue)",
+                    header: sectionHeader(group.displayName, matched.count),
+                    exercises: matched
+                )
+            }
+        case .equipment:
+            return Equipment.allCases.compactMap { equip in
+                let matched = items.filter { $0.equipment == equip }
+                guard !matched.isEmpty else { return nil }
+                return Section(
+                    id: "e-\(equip.rawValue)",
+                    header: sectionHeader(equip.displayName, matched.count),
+                    exercises: matched
+                )
+            }
+        case .frequent:
+            // TODO 假資料：目前無「使用頻率」資料（Domain/Data 未實作），暫取清單前段當「常用」。
+            // 接上使用頻率統計後改成真正依次數排序。
+            let frequent = Array(items.prefix(8))
+            return [Section(id: "frequent", header: nil, exercises: frequent)]
+        case .all:
+            return [Section(id: "all", header: nil, exercises: items)]
         }
-        .buttonStyle(.plain)
+    }
+
+    /// 區塊標題「胸 · 4」：組名為 enum 資料（verbatim）＋數量。
+    private func sectionHeader(_ name: String, _ count: Int) -> Text {
+        Text(verbatim: name) + Text(verbatim: " · \(count)")
     }
 }
 

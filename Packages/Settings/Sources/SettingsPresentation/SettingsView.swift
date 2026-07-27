@@ -12,12 +12,21 @@ public struct SettingsView: View {
     /// 重量單位＝**佔位**（Domain/Data 尚無使用者偏好，見設計 handoff 決策）：
     /// 顯示 kg|lb 分段控制但不寫回、不持久化。TODO：之後接 WeightUnit 偏好 Storing 再綁上去。
     @State private var weightUnitPlaceholder = "kg"
+    /// 「我的能力值」畫面住在 Ability package（Presentation-to-Presentation 不互相 import，
+    /// 靠 App 層組裝時注入這個 view builder，型別抹成 AnyView）。nil＝不顯示這一列
+    /// （例如 SwiftUI 預覽或還沒接 Ability 的情境）。
+    private let abilityDestination: (() -> AnyView)?
 
-    private enum SettingsRoute: Hashable { case theme, language, icon }
+    private enum SettingsRoute: Hashable { case theme, language, icon, ability }
 
-    public init(viewModel: SettingsViewModel, appVersion: String? = nil) {
+    public init(
+        viewModel: SettingsViewModel,
+        appVersion: String? = nil,
+        abilityDestination: (() -> AnyView)? = nil
+    ) {
         self.viewModel = viewModel
         self.appVersion = appVersion
+        self.abilityDestination = abilityDestination
     }
 
     public var body: some View {
@@ -28,6 +37,9 @@ public struct SettingsView: View {
 
                     VStack(alignment: .leading, spacing: TLSpace.section) {
                         appearanceSection
+                        if abilityDestination != nil {
+                            abilitySection
+                        }
                         restReminderSection
                         dataSection
                         versionFooter
@@ -139,6 +151,22 @@ public struct SettingsView: View {
         }
     }
 
+    // MARK: - 能力值
+
+    /// 落點暫定（見 05-settings.md B 節：「它不是設定，這一點待你決定」），先掛在這裡。
+    private var abilitySection: some View {
+        VStack(alignment: .leading, spacing: 0) {
+            SectionHeader(localText("settings.ability.section"))
+            TLGroup {
+                SettingsRow(
+                    localText("settings.ability.title"),
+                    showChevron: true,
+                    onTap: { route = .ability }
+                )
+            }
+        }
+    }
+
     // MARK: - 資料
 
     private var dataSection: some View {
@@ -212,6 +240,10 @@ public struct SettingsView: View {
                 onSelect: { viewModel.icon = $0; route = nil },
                 onBack: { route = nil }
             )
+        case .ability:
+            if let abilityDestination {
+                abilityDestination()
+            }
         }
     }
 }

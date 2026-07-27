@@ -15,7 +15,8 @@ public struct GetRotation: Sendable {
     public func callAsFunction(id: UUID) async throws -> Rotation? { try await repository.get(id: id) }
 }
 
-/// 建立一組新的（空）循環課表，預設啟用，附到清單末端。
+/// 建立一組新的循環課表，內容（範本順序）／啟用狀態／起始游標一次帶入
+/// （設計稿 12a：新增與編輯同一頁，建立時多一個「建立後」群組）。
 public struct CreateRotation: Sendable {
     private let repository: any RotationRepository
     private let makeID: @Sendable () -> UUID
@@ -29,10 +30,19 @@ public struct CreateRotation: Sendable {
     }
 
     @discardableResult
-    public func callAsFunction(name: String) async throws -> Rotation {
+    public func callAsFunction(
+        name: String,
+        workouts: [WorkoutSpec] = [],
+        isActive: Bool = true,
+        cursor: Int = 0,
+        intensityFactor: Double = 1.0
+    ) async throws -> Rotation {
         let validName = try validatedRotationName(name)
         let orderIndex = (try await repository.all().map(\.orderIndex).max() ?? -1) + 1
-        let rotation = Rotation(id: makeID(), name: validName, orderIndex: orderIndex)
+        let rotation = Rotation(
+            id: makeID(), name: validName, workouts: workouts, cursor: cursor, isActive: isActive,
+            orderIndex: orderIndex, intensityFactor: intensityFactor
+        )
         try await repository.save(rotation)
         return rotation
     }
@@ -67,7 +77,21 @@ public struct SaveRotationWorkouts: Sendable {
     }
 }
 
-/// 啟用／停用某組循環；**停用時游標歸零**（下次啟用從第一張重來）。
+/// 設定循環的強度倍率（14b：計畫層一個數字，整包覆寫，格子的覆寫值不受影響）。
+public struct SetRotationIntensityFactor: Sendable {
+    private let repository: any RotationRepository
+    public init(repository: any RotationRepository) { self.repository = repository }
+
+    public func callAsFunction(id: UUID, intensityFactor: Double) async throws {
+        guard var rotation = try await repository.get(id: id) else {
+            throw RotationRepositoryError.notFound(id: id)
+        }
+        rotation.intensityFactor = intensityFactor
+        try await repository.save(rotation)
+    }
+}
+
+/// 啟用／停用某組循環；**停用時保留游標與次數**（設計稿 8b：「停在第 N 輪」，再啟用從原處續）。
 public struct SetRotationActive: Sendable {
     private let repository: any RotationRepository
     public init(repository: any RotationRepository) { self.repository = repository }
@@ -77,7 +101,34 @@ public struct SetRotationActive: Sendable {
             throw RotationRepositoryError.notFound(id: id)
         }
         rotation.isActive = isActive
-        if !isActive { rotation.cursor = 0 }
+        try await repository.save(rotation)
+    }
+}
+
+/// 手動跳到下一個範本（詳情頁「跳到下一個範本」）：只移游標，**不計入次數**。
+public struct AdvanceRotation: Sendable {
+    private let repository: any RotationRepository
+    public init(repository: any RotationRepository) { self.repository = repository }
+
+    public func callAsFunction(id: UUID) async throws {
+        guard let rotation = try await repository.get(id: id) else {
+            throw RotationRepositoryError.notFound(id: id)
+        }
+        try await repository.save(rotation.advanced())
+    }
+}
+
+/// 重設輪次（詳情頁「重設輪次 → 回到第 1 輪」）：游標歸零、次數歸零。
+public struct ResetRotation: Sendable {
+    private let repository: any RotationRepository
+    public init(repository: any RotationRepository) { self.repository = repository }
+
+    public func callAsFunction(id: UUID) async throws {
+        guard var rotation = try await repository.get(id: id) else {
+            throw RotationRepositoryError.notFound(id: id)
+        }
+        rotation.cursor = 0
+        rotation.completedCount = 0
         try await repository.save(rotation)
     }
 }
@@ -92,35 +143,40 @@ public struct DeleteRotation: Sendable {
 public struct StartRotation: Sendable {
     private let rotationRepository: any RotationRepository
     private let planRepository: any PlanWorkoutRepository
+    private let exerciseCatalog: any PlanExerciseCatalog
+    private let lastPerformedWeightLookup: any LastPerformedWeightLookup
+    private let abilityValueLookup: any AbilityValueLookup
     private let makeID: @Sendable () -> UUID
 
     public init(
         rotationRepository: any RotationRepository,
         planRepository: any PlanWorkoutRepository,
+        exerciseCatalog: any PlanExerciseCatalog,
+        lastPerformedWeightLookup: any LastPerformedWeightLookup,
+        abilityValueLookup: any AbilityValueLookup,
         makeID: @escaping @Sendable () -> UUID = { UUID() }
     ) {
         self.rotationRepository = rotationRepository
         self.planRepository = planRepository
+        self.exerciseCatalog = exerciseCatalog
+        self.lastPerformedWeightLookup = lastPerformedWeightLookup
+        self.abilityValueLookup = abilityValueLookup
         self.makeID = makeID
     }
 
-    /// 回傳建立的當日排課；找不到循環或空循環回 nil。
+    /// 回傳建立的當日排課；找不到循環或空循環回 nil。循環 spec 的重量表達式在這裡收斂
+    /// （強度倍率：格子覆寫 `spec.intensityFactor` 優先於循環的 `rotation.intensityFactor`）。
     @discardableResult
     public func callAsFunction(id: UUID, date: DayDate) async throws -> PlanWorkout? {
         guard let rotation = try await rotationRepository.get(id: id),
               let spec = rotation.current else { return nil }
         let orderIndex = (try await planRepository.onDate(date).map(\.orderIndex).max() ?? -1) + 1
-        let sets = spec.sets.map { set in
-            PlanSet(
-                id: makeID(),
-                exerciseId: set.exerciseId,
-                exerciseIndex: set.exerciseIndex,
-                setIndex: set.setIndex,
-                targetWeight: set.targetWeight,
-                targetReps: set.targetReps,
-                restSec: set.restSec
-            )
-        }
+        let catalog = try await exerciseCatalog.exercises()
+        let sets = try await resolvedPlanSets(
+            from: spec.sets, catalog: catalog,
+            intensityFactor: spec.intensityFactor ?? rotation.intensityFactor,
+            lastPerformedLookup: lastPerformedWeightLookup, abilityValueLookup: abilityValueLookup, makeID: makeID
+        )
         let plan = PlanWorkout(
             id: makeID(),
             name: spec.name.isEmpty ? nil : spec.name,
@@ -131,8 +187,54 @@ public struct StartRotation: Sendable {
             sets: sets
         )
         try await planRepository.save(plan)
-        try await rotationRepository.save(rotation.advanced())
+        // 開始一張＝次數 +1、游標往下（詳情頁「已完成 N 次訓練」「N 輪」由此累計）。
+        var next = rotation.advanced()
+        next.completedCount += 1
+        try await rotationRepository.save(next)
         return plan
+    }
+}
+
+/// 開始前預覽（13d）：用現在的能力值／上次紀錄試算今天這張會是什麼樣子——
+/// 純讀取，不寫入、不動游標／累計次數。真正「開始」還是要走 `StartRotation`，
+/// 兩者刻意分開：預覽階段使用者可能只是看看就關掉，不該讓循環往下走一輪。
+public struct PreviewRotationWorkout: Sendable {
+    private let rotationRepository: any RotationRepository
+    private let exerciseCatalog: any PlanExerciseCatalog
+    private let lastPerformedWeightLookup: any LastPerformedWeightLookup
+    private let abilityValueLookup: any AbilityValueLookup
+
+    public init(
+        rotationRepository: any RotationRepository,
+        exerciseCatalog: any PlanExerciseCatalog,
+        lastPerformedWeightLookup: any LastPerformedWeightLookup,
+        abilityValueLookup: any AbilityValueLookup
+    ) {
+        self.rotationRepository = rotationRepository
+        self.exerciseCatalog = exerciseCatalog
+        self.lastPerformedWeightLookup = lastPerformedWeightLookup
+        self.abilityValueLookup = abilityValueLookup
+    }
+
+    /// 回傳試算結果（未落地的 `PlanWorkout` 形狀，只借用它的欄位給呼叫端組 blueprint）；
+    /// 找不到循環或空循環回 nil。
+    public func callAsFunction(id: UUID) async throws -> PlanWorkout? {
+        guard let rotation = try await rotationRepository.get(id: id),
+              let spec = rotation.current else { return nil }
+        let catalog = try await exerciseCatalog.exercises()
+        let sets = try await resolvedPlanSets(
+            from: spec.sets, catalog: catalog,
+            intensityFactor: spec.intensityFactor ?? rotation.intensityFactor,
+            lastPerformedLookup: lastPerformedWeightLookup, abilityValueLookup: abilityValueLookup,
+            makeID: { UUID() }
+        )
+        return PlanWorkout(
+            id: UUID(),
+            name: spec.name.isEmpty ? nil : spec.name,
+            date: DayDate(Date()),
+            orderIndex: 0,
+            sets: sets
+        )
     }
 }
 

@@ -16,17 +16,27 @@ public final class ExerciseListViewModel {
     private let createExercise: CreateExercise
     private let updateExercise: UpdateExercise
     private let deleteExercise: DeleteExercise
+    /// 「被使用於」名稱反查（編輯頁 9a 護欄）；nil＝不顯示（例如未 wire 的測試）。
+    private let usageListing: (any ExerciseUsageListing)?
 
     public init(
         listExercises: ListExercises,
         createExercise: CreateExercise,
         updateExercise: UpdateExercise,
-        deleteExercise: DeleteExercise
+        deleteExercise: DeleteExercise,
+        usageListing: (any ExerciseUsageListing)? = nil
     ) {
         self.listExercises = listExercises
         self.createExercise = createExercise
         self.updateExercise = updateExercise
         self.deleteExercise = deleteExercise
+        self.usageListing = usageListing
+    }
+
+    /// 查某動作被哪些範本/循環/長期使用（編輯頁載入時呼叫）。未 wire 時回空。
+    public func usages(of exerciseId: UUID) async -> [ExerciseUsageRef] {
+        guard let usageListing else { return [] }
+        return (try? await usageListing.usages(exerciseId: exerciseId)) ?? []
     }
 
     public var visibleExercises: [Exercise] {

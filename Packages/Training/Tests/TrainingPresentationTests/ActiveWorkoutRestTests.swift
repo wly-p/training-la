@@ -32,7 +32,9 @@ private struct MockPlanProvider: PlannedWorkoutProvider {
     func templates() async throws -> [PlannedTemplateSummary] { [] }
     func instantiate(templateId: UUID) async throws -> PlannedWorkoutBlueprint? { blueprint }
     func activeRotations() async throws -> [PlannedRotationSummary] { [] }
+    func previewRotation(id: UUID) async throws -> PlannedWorkoutBlueprint? { blueprint }
     func startRotation(id: UUID) async throws -> PlannedWorkoutBlueprint? { blueprint }
+    func activeRestDay() async throws -> RestDayInfo? { nil }
 }
 
 @MainActor

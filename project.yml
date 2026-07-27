@@ -40,6 +40,8 @@ packages:
     path: Packages/Settings
   Reminders:
     path: Packages/Reminders
+  Ability:
+    path: Packages/Ability
 targets:
   TrainingLa:
     type: application
@@ -67,6 +69,8 @@ targets:
         products: [SettingsPresentation]
       - package: Reminders
         products: [RemindersDomain, RemindersKit]
+      - package: Ability
+        products: [AbilityDomain, AbilityData, AbilityPresentation]
       - package: SharedKernel
       - package: DesignSystem
     settings:

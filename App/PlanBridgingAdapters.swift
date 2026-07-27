@@ -1,3 +1,4 @@
+import AbilityDomain
 import Foundation
 import PlanDomain
 import SharedKernel
@@ -14,7 +15,9 @@ struct PlanProviderAdapter: PlannedWorkoutProvider {
     let listTemplates: ListTemplates
     let instantiateTemplate: InstantiateTemplate
     let listRotations: ListRotations
+    let previewRotationUseCase: PreviewRotationWorkout
     let startRotationUseCase: StartRotation
+    let getActiveRestDay: GetActiveRestDay
     let today: @Sendable () -> DayDate
     let listExercises: ListExercises
 
@@ -46,12 +49,40 @@ struct PlanProviderAdapter: PlannedWorkoutProvider {
             }
     }
 
-    func startRotation(id: UUID) async throws -> PlannedWorkoutBlueprint? {
-        guard let plan = try await startRotationUseCase(id: id, date: today()) else { return nil }
-        return try await blueprint(from: plan)
+    func previewRotation(id: UUID) async throws -> PlannedWorkoutBlueprint? {
+        guard let plan = try await previewRotationUseCase(id: id) else { return nil }
+        // kicker 用「當前游標」的定位（預覽的是這一張，還沒前進）。
+        let kicker = try await rotationKicker(id: id)
+        return try await blueprint(from: plan, kicker: kicker)
     }
 
-    private func blueprint(from plan: PlanWorkout) async throws -> PlannedWorkoutBlueprint {
+    func startRotation(id: UUID) async throws -> PlannedWorkoutBlueprint? {
+        // 先取定位再開始——StartRotation 會把游標往前推，定位必須反映「這一張」而非下一張。
+        let kicker = try await rotationKicker(id: id)
+        guard let plan = try await startRotationUseCase(id: id, date: today()) else { return nil }
+        return try await blueprint(from: plan, kicker: kicker)
+    }
+
+    /// 循環課表的週期定位「推拉腿 · 第 N 輪 · 第 M 天」（14c kicker）；查不到回 nil。
+    private func rotationKicker(id: UUID) async throws -> String? {
+        guard let rotation = try await listRotations().first(where: { $0.id == id }),
+              !rotation.workouts.isEmpty else { return nil }
+        return String(
+            format: String(localized: "preview.kicker.rotation %@ %lld %lld"),
+            rotation.name, rotation.roundsCompleted + 1, rotation.cursor + 1
+        )
+    }
+
+    func activeRestDay() async throws -> RestDayInfo? {
+        guard let info = try await getActiveRestDay() else { return nil }
+        return RestDayInfo(
+            programName: info.programName,
+            nextWorkoutDate: info.nextWorkoutDate,
+            nextWorkoutName: info.nextWorkoutName
+        )
+    }
+
+    private func blueprint(from plan: PlanWorkout, kicker: String? = nil) async throws -> PlannedWorkoutBlueprint {
         let names = Dictionary(uniqueKeysWithValues:
             try await listExercises(muscleGroup: nil).map { ($0.id, $0.name) })
         let targets = plan.sets.map { set in
@@ -61,12 +92,35 @@ struct PlanProviderAdapter: PlannedWorkoutProvider {
                 exerciseName: names[set.exerciseId] ?? "動作",
                 exerciseIndex: set.exerciseIndex,
                 setIndex: set.setIndex,
-                targetWeight: set.targetWeight,
+                // 材料化後的 PlanWorkout.sets 一律 .absolute（投影用例保證），這裡解成確定公斤。
+                targetWeight: set.targetWeight?.resolvedWeight,
                 targetReps: set.targetReps,
-                restSec: set.restSec
+                restSec: set.restSec,
+                weightSource: set.weightSource.map(Self.mapWeightSource)
             )
         }
-        return PlannedWorkoutBlueprint(planWorkoutId: plan.id, name: plan.name, targets: targets)
+        return PlannedWorkoutBlueprint(planWorkoutId: plan.id, name: plan.name, kicker: kicker, targets: targets)
+    }
+
+    /// Plan 的 `WeightSourceInfo` → Training 的 `TargetWeightSource`（14c）：換一層型別，
+    /// 讓 Training 不用認識 Plan 的表達式型別，數值本身原封不動地搬過去。
+    private static func mapWeightSource(_ info: WeightSourceInfo) -> TargetWeightSource {
+        switch info.kind {
+        case .none:
+            return TargetWeightSource(kind: .none, intensityFactor: info.intensityFactor)
+        case .absolute:
+            return TargetWeightSource(kind: .absolute, base: info.base, intensityFactor: info.intensityFactor)
+        case .relativeToLast:
+            return TargetWeightSource(
+                kind: .relativeToLast, delta: info.delta, lastWeight: info.lastWeight,
+                intensityFactor: info.intensityFactor
+            )
+        case .percentOf1RM:
+            return TargetWeightSource(
+                kind: .percentOf1RM, percent: info.percent, abilityValue: info.abilityValue,
+                intensityFactor: info.intensityFactor
+            )
+        }
     }
 }
 
@@ -79,13 +133,37 @@ struct PlanProgressAdapter: PlanProgressRecorder {
     }
 }
 
+/// Plan 的「上次實際練的重量」port ← Training 的 WorkoutRepository.lastPerformance。
+/// 讓「相對上次」表達式在投影收斂時查得到真實訓練紀錄（不是 Plan 自己的目標值）。
+/// `metTarget`：那組的目標次數快照 vs 實際次數——沒有快照（臨時加練）視為達標，維持舊行為。
+struct LastPerformedWeightLookupAdapter: LastPerformedWeightLookup {
+    let workoutRepository: any WorkoutRepository
+
+    func lastPerformedWeight(exerciseId: UUID) async throws -> LastPerformedSet? {
+        let sets = try await workoutRepository.lastPerformance(exerciseId: exerciseId, excludingWorkout: nil)
+        guard let best = sets.max(by: { $0.weight.value < $1.weight.value }) else { return nil }
+        let metTarget = best.targetReps.map { best.reps >= $0 } ?? true
+        return LastPerformedSet(weight: best.weight, metTarget: metTarget)
+    }
+}
+
+/// Plan 的「能力值(1RM)」port ← Ability 的 GetAbilityValue。讓 `%1RM` 表達式在投影收斂時
+/// 查得到使用者的能力值（Plan package 不依賴 Ability，經由這個 App 層 adapter 接線）。
+struct AbilityValueLookupAdapter: AbilityValueLookup {
+    let getAbilityValue: GetAbilityValue
+
+    func abilityValue(exerciseId: UUID) async throws -> Weight? {
+        try await getAbilityValue(exerciseId: exerciseId)?.value
+    }
+}
+
 /// Plan 的動作庫 port ← Spec 的 ListExercises。
 struct PlanCatalogAdapter: PlanExerciseCatalog {
     let listExercises: ListExercises
 
     func exercises() async throws -> [PlanCatalogExercise] {
         try await listExercises(muscleGroup: nil).map {
-            PlanCatalogExercise(id: $0.id, name: $0.name, muscleGroup: $0.muscleGroup)
+            PlanCatalogExercise(id: $0.id, name: $0.name, muscleGroup: $0.muscleGroup, equipment: $0.equipment)
         }
     }
 }
@@ -105,5 +183,29 @@ struct ExerciseUsageChecker: ExerciseUsageChecking {
         if try await templateRepository.usesExercise(exerciseId) { return true }
         if try await rotationRepository.usesExercise(exerciseId) { return true }
         return try await programRepository.usesExercise(exerciseId)
+    }
+}
+
+/// Spec 的「被使用於」名稱清單 port ← Plan 的範本／循環／長期（編輯頁 9a 護欄）。
+/// 只看 spec 層（範本/循環/長期）—— 訓練紀錄是過去的事、不是「還在用」，不列入護欄。
+struct ExerciseUsageLister: ExerciseUsageListing {
+    let templateRepository: any WorkoutTemplateRepository
+    let rotationRepository: any RotationRepository
+    let programRepository: any ProgramRepository
+
+    func usages(exerciseId: UUID) async throws -> [ExerciseUsageRef] {
+        var refs: [ExerciseUsageRef] = []
+        for t in try await templateRepository.all() where t.sets.contains(where: { $0.exerciseId == exerciseId }) {
+            refs.append(ExerciseUsageRef(id: t.id, name: t.name, kind: .template))
+        }
+        for r in try await rotationRepository.all()
+        where r.workouts.contains(where: { $0.sets.contains(where: { $0.exerciseId == exerciseId }) }) {
+            refs.append(ExerciseUsageRef(id: r.id, name: r.name, kind: .rotation))
+        }
+        for p in try await programRepository.all()
+        where p.days.values.contains(where: { $0.sets.contains(where: { $0.exerciseId == exerciseId }) }) {
+            refs.append(ExerciseUsageRef(id: p.id, name: p.name, kind: .program))
+        }
+        return refs
     }
 }

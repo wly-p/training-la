@@ -1,7 +1,10 @@
+import DesignSystem
 import HistoryDomain
 import SharedKernel
 import SwiftUI
 
+/// 歷史分頁（設計稿 7b）：依日期（月份分組清單）／依動作（清單→單一動作趨勢圖，見
+/// `ExerciseHistoryView`——清單頁本身不放圖表）。
 public struct HistoryView: View {
     @Bindable private var viewModel: HistoryViewModel
     @Environment(\.locale) private var locale
@@ -12,23 +15,37 @@ public struct HistoryView: View {
 
     public var body: some View {
         NavigationStack {
-            Group {
-                switch viewModel.mode {
-                case .byDate: byDate
-                case .byExercise: byExercise
+            ScrollView {
+                VStack(alignment: .leading, spacing: 0) {
+                    PageHeader(localText("history.title"))
+                    TLSegmentedControl(
+                        selection: $viewModel.mode,
+                        options: [
+                            .init(.byDate, localText("history.byDate")),
+                            .init(.byExercise, localText("history.byExercise")),
+                        ]
+                    )
+                    .padding(.top, TLSpace.gapM)
+
+                    Group {
+                        switch viewModel.mode {
+                        case .byDate: byDate
+                        case .byExercise: byExercise
+                        }
+                    }
+                    .padding(.top, TLSpace.section)
                 }
+                .padding(.horizontal, TLSpace.page)
+                .padding(.bottom, 40)
             }
-            .navigationTitle(localText("history.title"))
-            .safeAreaInset(edge: .top, spacing: 0) {
-                Picker(selection: $viewModel.mode) {
-                    localText("history.byDate").tag(HistoryMode.byDate)
-                    localText("history.byExercise").tag(HistoryMode.byExercise)
-                } label: {
-                    localText("history.viewBy")
+            .background(TLColor.bg.ignoresSafeArea())
+            #if os(iOS)
+            .toolbar(.hidden, for: .navigationBar)
+            #endif
+            .navigationDestination(for: UUID.self) { exerciseId in
+                if let option = viewModel.exerciseOptions.first(where: { $0.id == exerciseId }) {
+                    ExerciseHistoryView(option: option, loadSessions: { await viewModel.sessions(for: exerciseId) })
                 }
-                .pickerStyle(.segmented)
-                .padding()
-                .background(.bar)
             }
             .task { await viewModel.load() }
             .alert(
@@ -47,79 +64,113 @@ public struct HistoryView: View {
 
     // MARK: - 按日期
 
+    private var freeTrainingLabel: String { String(localized: "history.freeTraining", bundle: .module) }
+
+    private var monthGroups: [(key: MonthKey, workouts: [HistoryWorkoutSummary])] {
+        let filtered = viewModel.filteredWorkouts(freeTrainingLabel: freeTrainingLabel)
+        let grouped = Dictionary(grouping: filtered) { MonthKey(year: $0.day.year, month: $0.day.month) }
+        return grouped.sorted { $0.key > $1.key }.map { ($0.key, $0.value) }
+    }
+
     @ViewBuilder private var byDate: some View {
         if viewModel.workouts.isEmpty {
-            ContentUnavailableView {
-                Label { localText("history.empty") } icon: { Image(systemName: "calendar") }
-            } description: {
-                localText("history.empty.hint")
-            }
+            EmptyState(
+                systemImage: "calendar",
+                title: String(localized: "history.empty", bundle: .module),
+                message: String(localized: "history.empty.hint", bundle: .module)
+            )
         } else {
-            List(viewModel.workouts) { summary in
-                NavigationLink {
-                    WorkoutDetailView(summary: summary, makeViewModel: viewModel.makeDetailViewModel(for: summary.id))
-                } label: {
-                    VStack(alignment: .leading, spacing: 4) {
-                        Text(HistoryFormatting.dayLabel(summary.day, locale: locale)).font(.headline)
-                        HStack(spacing: 6) {
-                            if let minutes = summary.durationMinutes {
-                                localText("history.minutesShort \(minutes)")
-                            }
-                            localText("history.setsCount \(summary.totalSets)")
-                            localText("history.exerciseCount \(summary.exerciseCount)")
-                            if !HistoryFormatting.feeling(summary.overallFeeling).isEmpty {
-                                Text(HistoryFormatting.feeling(summary.overallFeeling))
-                            }
-                        }
-                        .font(.footnote)
-                        .foregroundStyle(.secondary)
-                    }
+            VStack(alignment: .leading, spacing: TLSpace.section) {
+                TLSearchField(text: $viewModel.searchText, placeholder: localText("history.search.placeholder"))
+                ForEach(monthGroups, id: \.key) { group in
+                    monthSection(group.key, group.workouts)
                 }
             }
         }
+    }
+
+    private func monthSection(_ key: MonthKey, _ workouts: [HistoryWorkoutSummary]) -> some View {
+        let totalMinutes = workouts.compactMap(\.durationMinutes).reduce(0, +)
+        return VStack(alignment: .leading, spacing: 0) {
+            HStack(alignment: .firstTextBaseline) {
+                Text(HistoryFormatting.monthLabel(month: key.month) + " · ")
+                    + localText("history.monthCount \(workouts.count)")
+                Spacer()
+                localText("history.monthDuration \(totalMinutes / 60) \(totalMinutes % 60)")
+            }
+            .font(TLFont.zh(TLFont.kicker, .semibold))
+            .tracking(TLFont.kickerTracking)
+            .foregroundStyle(TLColor.neutral500)
+            .padding(.bottom, 8)
+            TLGroup {
+                ForEach(workouts) { summary in
+                    workoutRow(summary)
+                }
+            }
+        }
+    }
+
+    private func workoutRow(_ summary: HistoryWorkoutSummary) -> some View {
+        NavigationLink {
+            WorkoutDetailView(summary: summary, makeViewModel: viewModel.makeDetailViewModel(for: summary.id))
+        } label: {
+            ListRow(
+                title: summary.name.map { Text(verbatim: $0) } ?? Text(verbatim: freeTrainingLabel),
+                subtitle: Text(daySummaryLine(summary)),
+                showChevron: true,
+                leading: {
+                    VStack(spacing: 1) {
+                        Text(verbatim: "\(summary.day.day)")
+                            .font(TLFont.display(19))
+                            .foregroundStyle(TLColor.text)
+                        Text(verbatim: HistoryFormatting.weekdayAbbrev(summary.day, locale: locale))
+                            .font(TLFont.zh(9.5, .medium))
+                            .foregroundStyle(TLColor.neutral500)
+                    }
+                    .frame(width: 40)
+                }
+            )
+        }
+        .buttonStyle(.plain)
+    }
+
+    private func daySummaryLine(_ summary: HistoryWorkoutSummary) -> String {
+        var parts = [String(localized: "history.exerciseCount \(summary.exerciseCount)", bundle: .module)]
+        parts.append(String(localized: "history.setsCount \(summary.totalSets)", bundle: .module))
+        if let minutes = summary.durationMinutes {
+            parts.append(String(localized: "history.minutesShort \(minutes)", bundle: .module))
+        }
+        return parts.joined(separator: " · ")
     }
 
     // MARK: - 按動作
 
     @ViewBuilder private var byExercise: some View {
         if viewModel.exerciseOptions.isEmpty {
-            ContentUnavailableView {
-                Label { localText("history.empty") } icon: { Image(systemName: "chart.line.uptrend.xyaxis") }
-            } description: {
-                localText("history.empty.hint")
-            }
+            EmptyState(
+                systemImage: "chart.line.uptrend.xyaxis",
+                title: String(localized: "history.empty", bundle: .module),
+                message: String(localized: "history.empty.hint", bundle: .module)
+            )
         } else {
-            List {
-                Section {
-                    Picker(selection: $viewModel.selectedExerciseId) {
-                        ForEach(viewModel.exerciseOptions) { option in
-                            // 動作名是 DB 資料（verbatim）
-                            Text(verbatim: option.name).tag(Optional(option.id))
-                        }
-                    } label: {
-                        localText("history.exercise")
-                    }
-                    HStack {
-                        localText("history.trained")
-                        Spacer()
-                        localText("history.timesCount \(viewModel.selectedExerciseSessionCount)")
-                            .foregroundStyle(.secondary)
-                    }
-                }
-                Section {
-                    ForEach(viewModel.sessions) { session in
-                        HStack {
-                            Text(HistoryFormatting.dayLabel(session.day, locale: locale))
-                                .font(.subheadline)
-                            Spacer()
-                            Text(HistoryFormatting.summary(of: session.sets))
-                                .font(.subheadline)
-                                .foregroundStyle(.secondary)
-                                .monospacedDigit()
-                        }
+            TLGroup {
+                ForEach(viewModel.exerciseOptions) { option in
+                    NavigationLink(value: option.id) {
+                        ListRow(
+                            title: Text(verbatim: option.name),
+                            subtitle: Text(option.muscleGroup.displayName),
+                            showChevron: true,
+                            leading: { CircleBadge(muscle: String(option.muscleGroup.displayName.prefix(1))) }
+                        )
                     }
                 }
             }
         }
     }
+}
+
+private struct MonthKey: Hashable, Comparable {
+    let year: Int
+    let month: Int
+    static func < (lhs: MonthKey, rhs: MonthKey) -> Bool { (lhs.year, lhs.month) < (rhs.year, rhs.month) }
 }
