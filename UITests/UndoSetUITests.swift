@@ -22,7 +22,7 @@ final class UndoSetUITests: XCTestCase {
         // 2. 開始訓練 → 選動作
         app.buttons["訓練"].tap()
         app.buttons["自由訓練 · 邊練邊加動作"].tap()
-        let pickerTitle = app.navigationBars["選擇動作"]
+        let pickerTitle = app.staticTexts["選擇動作"]
         if !pickerTitle.waitForExistence(timeout: 3) {
             app.buttons["加入動作"].tap()
             XCTAssertTrue(pickerTitle.waitForExistence(timeout: 5))

@@ -255,6 +255,7 @@
       }
     },
     "training.emptyLibrary" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -271,6 +272,7 @@
       }
     },
     "training.emptyLibrary.hint" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -1262,6 +1264,54 @@
         }
       }
     },
+    "training.picker.all" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "All"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "全部"
+          }
+        }
+      }
+    },
+    "training.picker.matchCount %lld" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld matches"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld 個相符"
+          }
+        }
+      }
+    },
+    "training.picker.recent" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Recent"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "最近用過"
+          }
+        }
+      }
+    },
     "training.pickToStart" : {
       "localizations" : {
         "en" : {
@@ -1274,6 +1324,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "選一個動作開始"
+          }
+        }
+      }
+    },
+    "training.pickToStart.hint" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pick an exercise to start logging"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "從動作庫挑一個動作開始記錄"
           }
         }
       }

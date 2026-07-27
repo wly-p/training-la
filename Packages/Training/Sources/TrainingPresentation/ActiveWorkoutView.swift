@@ -86,7 +86,7 @@ public struct ActiveWorkoutView: View {
                 localText("training.restOver.message")
             }
             .sheet(isPresented: $showsExercisePicker) {
-                ExercisePickerView(catalog: viewModel.catalog) { exercise in
+                exercisePicker { exercise in
                     Task { await viewModel.select(exerciseId: exercise.id) }
                 }
             }
@@ -107,7 +107,7 @@ public struct ActiveWorkoutView: View {
                 set: { if !$0 { replacingExerciseId = nil } }
             )) {
                 if let oldId = replacingExerciseId {
-                    ExercisePickerView(catalog: viewModel.catalog) { newExercise in
+                    exercisePicker { newExercise in
                         Task { await viewModel.replaceExercise(oldId, with: newExercise.id) }
                     }
                 }
@@ -225,16 +225,31 @@ public struct ActiveWorkoutView: View {
         }
     }
 
+    /// 訓練中挑動作 sheet（自由訓練加動作／13e 換動作共用）：跟課表/範本加動作同一套 PickerSheet，
+    /// 單選、肌群 filter、點一列即回呼。
+    private func exercisePicker(onSelect: @escaping (CatalogExercise) -> Void) -> some View {
+        PickerSheet(
+            title: localText("training.chooseExercise"),
+            searchPrompt: localText("training.searchExercises"),
+            allItems: viewModel.catalog.map(ExercisePickerItem.init),
+            filters: MuscleGroup.allCases.map { PickerSheetFilterChip(id: $0.rawValue, label: $0.displayName) },
+            matchesFilter: { item, filter in item.exercise.muscleGroup.rawValue == filter.id },
+            selection: .single { item in onSelect(item.exercise) },
+            labels: TrainingPickerLabels.standard
+        )
+    }
+
     private var emptyState: some View {
-        ContentUnavailableView {
-            Label {
-                localText("training.pickToStart")
-            } icon: {
-                Image(systemName: "dumbbell")
-            }
-        } actions: {
-            Button { showsExercisePicker = true } label: { localText("training.addExercise") }
-                .buttonStyle(.borderedProminent)
+        ZStack {
+            TLColor.bg.ignoresSafeArea()
+            EmptyState(
+                systemImage: "dumbbell",
+                title: String(localized: "training.pickToStart", bundle: .module),
+                message: String(localized: "training.pickToStart.hint", bundle: .module),
+                actionTitle: String(localized: "training.addExercise", bundle: .module),
+                action: { showsExercisePicker = true }
+            )
+            .padding(.horizontal, TLSpace.page)
         }
     }
 
