@@ -87,6 +87,54 @@
         }
       }
     },
+    "history.col.actual" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Actual"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "實際"
+          }
+        }
+      }
+    },
+    "history.col.exercise" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Exercise"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "動作"
+          }
+        }
+      }
+    },
+    "history.col.target" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Target"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "目標"
+          }
+        }
+      }
+    },
     "history.delete" : {
       "localizations" : {
         "en" : {
@@ -147,6 +195,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "刪除整場紀錄"
+          }
+        }
+      }
+    },
+    "history.detail.kicker" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Single session · summary"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "單次訓練 · 達成摘要"
           }
         }
       }
@@ -535,7 +599,24 @@
         }
       }
     },
+    "history.setComparison" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Set-by-set"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "逐組對照"
+          }
+        }
+      }
+    },
     "history.setIndex %lld" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -547,6 +628,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "第%lld組"
+          }
+        }
+      }
+    },
+    "history.setN %lld" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Set %lld"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "組 %lld"
           }
         }
       }
@@ -617,6 +714,7 @@
       }
     },
     "history.status" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -681,6 +779,7 @@
       }
     },
     "history.target %@ %lld" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -741,6 +840,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "總量"
+          }
+        }
+      }
+    },
+    "history.volumeActualTarget" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Volume actual / target"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "總量 實際 / 目標"
           }
         }
       }
