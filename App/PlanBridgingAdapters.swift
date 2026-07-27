@@ -17,6 +17,7 @@ struct PlanProviderAdapter: PlannedWorkoutProvider {
     let listRotations: ListRotations
     let previewRotationUseCase: PreviewRotationWorkout
     let startRotationUseCase: StartRotation
+    let getActiveRestDay: GetActiveRestDay
     let today: @Sendable () -> DayDate
     let listExercises: ListExercises
 
@@ -56,6 +57,15 @@ struct PlanProviderAdapter: PlannedWorkoutProvider {
     func startRotation(id: UUID) async throws -> PlannedWorkoutBlueprint? {
         guard let plan = try await startRotationUseCase(id: id, date: today()) else { return nil }
         return try await blueprint(from: plan)
+    }
+
+    func activeRestDay() async throws -> RestDayInfo? {
+        guard let info = try await getActiveRestDay() else { return nil }
+        return RestDayInfo(
+            programName: info.programName,
+            nextWorkoutDate: info.nextWorkoutDate,
+            nextWorkoutName: info.nextWorkoutName
+        )
     }
 
     private func blueprint(from plan: PlanWorkout) async throws -> PlannedWorkoutBlueprint {

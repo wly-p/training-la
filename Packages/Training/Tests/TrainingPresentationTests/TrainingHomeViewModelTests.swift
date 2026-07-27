@@ -33,14 +33,23 @@ private actor MockPlannedProvider: PlannedWorkoutProvider {
     let plan: PlannedWorkoutBlueprint?
     var templateList: [PlannedTemplateSummary] = []
     var rotationList: [PlannedRotationSummary] = []
+    var restDay: RestDayInfo?
     /// 呼叫紀錄：驗證預覽階段不該碰 startRotation（不動游標），只有 confirm 才碰。
     private(set) var previewRotationCallCount = 0
     private(set) var startRotationCallCount = 0
+    /// 呼叫紀錄：驗證有「今天指定」排課時不該再查休息日（兩者互斥）。
+    private(set) var activeRestDayCallCount = 0
 
-    init(plan: PlannedWorkoutBlueprint?, templateList: [PlannedTemplateSummary] = [], rotationList: [PlannedRotationSummary] = []) {
+    init(
+        plan: PlannedWorkoutBlueprint?,
+        templateList: [PlannedTemplateSummary] = [],
+        rotationList: [PlannedRotationSummary] = [],
+        restDay: RestDayInfo? = nil
+    ) {
         self.plan = plan
         self.templateList = templateList
         self.rotationList = rotationList
+        self.restDay = restDay
     }
 
     func todaysPlan() async throws -> PlannedWorkoutBlueprint? { plan }
@@ -56,6 +65,10 @@ private actor MockPlannedProvider: PlannedWorkoutProvider {
         startRotationCallCount += 1
         return plan
     }
+    func activeRestDay() async throws -> RestDayInfo? {
+        activeRestDayCallCount += 1
+        return restDay
+    }
 }
 
 private struct ThrowingPlannedProvider: PlannedWorkoutProvider {
@@ -67,6 +80,7 @@ private struct ThrowingPlannedProvider: PlannedWorkoutProvider {
     func activeRotations() async throws -> [PlannedRotationSummary] { throw Failure() }
     func previewRotation(id: UUID) async throws -> PlannedWorkoutBlueprint? { throw Failure() }
     func startRotation(id: UUID) async throws -> PlannedWorkoutBlueprint? { throw Failure() }
+    func activeRestDay() async throws -> RestDayInfo? { throw Failure() }
 }
 
 @MainActor
@@ -142,6 +156,37 @@ struct TrainingHomeViewModelTests {
         await vm.refresh()
 
         #expect(vm.rotations.map(\.currentName) == ["推日"])
+    }
+
+    @Test func refreshPopulatesRestDayWhenNoTodaysPlan() async {
+        let repo = MockHomeWorkoutRepo()
+        let restDay = RestDayInfo(programName: "推拉腿", nextWorkoutDate: DayDate(year: 2026, month: 7, day: 28), nextWorkoutName: "腿日")
+        let vm = TrainingHomeViewModel(
+            startWorkout: StartWorkout(repository: repo),
+            resumeWorkout: ResumeWorkout(repository: repo),
+            plannedProvider: MockPlannedProvider(plan: nil, restDay: restDay)
+        )
+
+        await vm.refresh()
+
+        #expect(vm.restDay == restDay)
+    }
+
+    @Test func refreshSkipsRestDayQueryWhenTodaysPlanExists() async {
+        let repo = MockHomeWorkoutRepo()
+        let plan = PlannedWorkoutBlueprint(planWorkoutId: UUID(), name: "推日", targets: [])
+        let restDay = RestDayInfo(programName: "推拉腿", nextWorkoutDate: nil, nextWorkoutName: nil)
+        let provider = MockPlannedProvider(plan: plan, restDay: restDay)
+        let vm = TrainingHomeViewModel(
+            startWorkout: StartWorkout(repository: repo),
+            resumeWorkout: ResumeWorkout(repository: repo),
+            plannedProvider: provider
+        )
+
+        await vm.refresh()
+
+        #expect(vm.restDay == nil)
+        #expect(await provider.activeRestDayCallCount == 0)
     }
 
     @Test func startFromRotationCarriesPlanWorkoutId() async {

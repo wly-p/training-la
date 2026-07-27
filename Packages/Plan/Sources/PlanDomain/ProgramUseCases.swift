@@ -212,6 +212,66 @@ public struct GetProgramProgress: Sendable {
     }
 }
 
+/// 訓練首頁「今天休息」空狀態（13f 左）用：今天是哪份長期課表的休息日、下一個訓練日是哪天/叫什麼。
+public struct ProgramRestDayInfo: Equatable, Sendable {
+    public let programName: String
+    /// 下一個訓練日；nil＝這份套用之後都不會再有訓練日了（once 模式已經跑完週期，且往後沒有訓練日）。
+    public let nextWorkoutDate: DayDate?
+    public let nextWorkoutName: String?
+
+    public init(programName: String, nextWorkoutDate: DayDate?, nextWorkoutName: String?) {
+        self.programName = programName
+        self.nextWorkoutDate = nextWorkoutDate
+        self.nextWorkoutName = nextWorkoutName
+    }
+}
+
+/// 掃過所有啟用中的長期課表套用，找「今天剛好是休息日」的第一筆。循環課表(Rotation)天生沒有
+/// 休息日概念（永遠算「隨時可做」，見 92-known-gaps.md），不在這裡處理。
+public struct GetActiveRestDay: Sendable {
+    private let programRepository: any ProgramRepository
+    private let assignmentRepository: any ProgramAssignmentRepository
+    private let today: @Sendable () -> DayDate
+
+    public init(
+        programRepository: any ProgramRepository,
+        assignmentRepository: any ProgramAssignmentRepository,
+        today: @escaping @Sendable () -> DayDate = { DayDate(Date()) }
+    ) {
+        self.programRepository = programRepository
+        self.assignmentRepository = assignmentRepository
+        self.today = today
+    }
+
+    public func callAsFunction() async throws -> ProgramRestDayInfo? {
+        let todayDate = today()
+        for assignment in try await assignmentRepository.all() {
+            guard let program = try await programRepository.get(id: assignment.programId) else { continue }
+            guard let cycleDay = assignment.cycleDay(for: todayDate, cycleLength: program.cycleLength) else { continue }
+            guard program.workout(dayIndex: cycleDay) == nil else { continue }   // 今天有排課，不是休息日
+            let next = Self.nextWorkout(program: program, assignment: assignment, afterCycleDay: cycleDay, afterDate: todayDate)
+            return ProgramRestDayInfo(programName: program.name, nextWorkoutDate: next?.date, nextWorkoutName: next?.spec.name)
+        }
+        return nil
+    }
+
+    /// 從 afterCycleDay 的下一天開始找第一個排了 workout 的日子。once 模式最多找到週期結束；
+    /// repeating 模式最多繞一圈（整輪都休息理論上不會發生，這裡保底防呆回 nil，不會無限繞）。
+    private static func nextWorkout(
+        program: Program, assignment: ProgramAssignment, afterCycleDay: Int, afterDate: DayDate
+    ) -> (date: DayDate, spec: WorkoutSpec)? {
+        let limit = assignment.mode == .once ? program.cycleLength - afterCycleDay - 1 : program.cycleLength
+        guard limit > 0 else { return nil }
+        for step in 1...limit {
+            let cycleDay = (afterCycleDay + step) % program.cycleLength
+            if let spec = program.workout(dayIndex: cycleDay) {
+                return (afterDate.adding(days: step), spec)
+            }
+        }
+        return nil
+    }
+}
+
 /// 重設長期課表進度（詳情頁「重設進度 → 回到 D1」）：把 assignment 起始日移到今天、清補登游標。
 public struct ResetProgramProgress: Sendable {
     private let repository: any ProgramAssignmentRepository

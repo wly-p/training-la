@@ -48,6 +48,10 @@ public struct TrainingHomeView: View {
                                 .padding(.horizontal, TLSpace.page)
                                 .padding(.top, TLSpace.section)
                         }
+                    } else if let restDay = viewModel.restDay {
+                        restDaySection(restDay)
+                            .padding(.horizontal, TLSpace.page)
+                            .padding(.top, TLSpace.section)
                     } else {
                         noPlanSection
                             .padding(.horizontal, TLSpace.page)
@@ -116,7 +120,11 @@ public struct TrainingHomeView: View {
 
     private var hasAnyPlan: Bool { viewModel.todaysPlan != nil || !viewModel.rotations.isEmpty }
 
-    private var headerTitle: Text { localText("training.home.title") }
+    private var headerTitle: Text {
+        if hasAnyPlan { return localText("training.home.title") }
+        if viewModel.restDay != nil { return localText("training.home.restDay.title") }
+        return localText("training.home.title.none")
+    }
 
     private var headerKicker: Text {
         let language = AppLanguage(locale: locale)
@@ -471,7 +479,67 @@ public struct TrainingHomeView: View {
         return localText("training.home.weekSessionsLabel") + Text(verbatim: " · \(duration)")
     }
 
-    // MARK: - 完全沒排課（13f 右；休息日尚未實作，見 92-known-gaps）
+    // MARK: - 今天休息（13f 左）
+
+    private func restDaySection(_ restDay: RestDayInfo) -> some View {
+        VStack(alignment: .leading, spacing: TLSpace.section) {
+            VStack(alignment: .leading, spacing: TLSpace.gapM) {
+                ZStack {
+                    Circle().fill(Color.white)
+                    Image(systemName: "moon.stars.fill")
+                        .font(.system(size: 22, weight: .medium))
+                        .foregroundStyle(TLColor.sage700)
+                }
+                .frame(width: 52, height: 52)
+
+                // 課表名是使用者資料（verbatim），套進本地化模板組成整句。
+                Text(verbatim: String(
+                    format: String(localized: "training.home.restDay.headline %@", bundle: .module),
+                    restDay.programName
+                ))
+                .font(TLFont.zh(16, .bold))
+                .foregroundStyle(TLColor.text)
+
+                Text(verbatim: nextWorkoutText(restDay))
+                    .font(TLFont.zh(12.5, .regular))
+                    .foregroundStyle(TLColor.sage800)
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .padding(.horizontal, TLSpace.page)
+            .padding(.vertical, 22)
+            .background(TLColor.sage200)
+            .clipShape(RoundedRectangle(cornerRadius: TLRadius.container, style: .continuous))
+
+            // 設計稿另外畫了「把明天的腿日挪到今天」（改動 Program 排程的寫入操作），
+            // 這次範圍只做「讀取並顯示休息日狀態」，先不做，誠實留白而非遺漏。
+            TLGroup {
+                orRow(
+                    icon: "flame.fill", iconColor: TLColor.accent700,
+                    title: localText("training.home.restDay.startAnyway"), titleColor: TLColor.accent700,
+                    trailing: nil,
+                    onTap: { Task { await viewModel.startFree() } }
+                )
+            }
+
+            if let weekSummary = viewModel.weekSummary {
+                weekSection(weekSummary)
+            }
+        }
+    }
+
+    /// 下一個訓練日文案：明天/未來某天有排課就報日期＋名稱；once 模式已經跑完週期就誠實說沒有了。
+    private func nextWorkoutText(_ restDay: RestDayInfo) -> String {
+        guard let date = restDay.nextWorkoutDate, let name = restDay.nextWorkoutName else {
+            return String(localized: "training.home.restDay.noMoreWorkouts", bundle: .module)
+        }
+        if date == DayDate(Date()).adding(days: 1) {
+            return String(format: String(localized: "training.home.restDay.nextWorkoutTomorrow %@", bundle: .module), name)
+        }
+        let dateText = "\(date.month)/\(date.day)"
+        return String(format: String(localized: "training.home.restDay.nextWorkoutLater %@ %@", bundle: .module), dateText, name)
+    }
+
+    // MARK: - 完全沒排課（13f 右）
 
     private var noPlanSection: some View {
         VStack(alignment: .leading, spacing: TLSpace.section) {

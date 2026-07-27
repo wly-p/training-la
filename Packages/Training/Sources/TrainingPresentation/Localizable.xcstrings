@@ -818,6 +818,102 @@
         }
       }
     },
+    "training.home.restDay.headline %@": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "“%@” — today is a rest day."
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "「%@」今天是休息日。"
+          }
+        }
+      }
+    },
+    "training.home.restDay.nextWorkoutLater %@ %@": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ is “%@.”"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ 是「%@」。"
+          }
+        }
+      }
+    },
+    "training.home.restDay.nextWorkoutTomorrow %@": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tomorrow is “%@.”"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "明天是「%@」。"
+          }
+        }
+      }
+    },
+    "training.home.restDay.noMoreWorkouts": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No more workout days are scheduled ahead on this program."
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "這份課表接下來沒有排定的訓練日了。"
+          }
+        }
+      }
+    },
+    "training.home.restDay.startAnyway": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Still want to train · Do a quick session"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "還是想練 · 隨手練一場"
+          }
+        }
+      }
+    },
+    "training.home.restDay.title": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Rest Day"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "今天休息"
+          }
+        }
+      }
+    },
     "training.home.setsCount %lld": {
       "localizations": {
         "en": {
@@ -894,6 +990,22 @@
           "stringUnit": {
             "state": "translated",
             "value": "今天練什麼"
+          }
+        }
+      }
+    },
+    "training.home.title.none": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Today"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "今天"
           }
         }
       }

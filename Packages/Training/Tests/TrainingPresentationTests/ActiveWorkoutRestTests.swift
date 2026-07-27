@@ -34,6 +34,7 @@ private struct MockPlanProvider: PlannedWorkoutProvider {
     func activeRotations() async throws -> [PlannedRotationSummary] { [] }
     func previewRotation(id: UUID) async throws -> PlannedWorkoutBlueprint? { blueprint }
     func startRotation(id: UUID) async throws -> PlannedWorkoutBlueprint? { blueprint }
+    func activeRestDay() async throws -> RestDayInfo? { nil }
 }
 
 @MainActor

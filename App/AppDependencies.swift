@@ -147,6 +147,9 @@ struct AppDependencies {
                 exerciseCatalog: planCatalog, lastPerformedWeightLookup: lastPerformedWeightLookup,
                 abilityValueLookup: abilityValueLookup
             ),
+            getActiveRestDay: GetActiveRestDay(
+                programRepository: programRepository, assignmentRepository: programAssignmentRepository
+            ),
             today: { DayDate(Date()) },
             listExercises: ListExercises(repository: exerciseRepository)
         )

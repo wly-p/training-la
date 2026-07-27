@@ -62,6 +62,8 @@ public final class TrainingHomeViewModel {
     public private(set) var templates: [PlannedTemplateSummary] = []
     /// 啟用中的循環課表（每組今天輪到哪張）；可多組並行。
     public private(set) var rotations: [PlannedRotationSummary] = []
+    /// 今天剛好是某份長期課表的休息日（13f 左）；只在完全沒有「今天指定」排課時才有意義。
+    public private(set) var restDay: RestDayInfo?
     /// 本週次數/時長/7 天完成狀態。
     public private(set) var weekSummary: WeekTrainingSummary?
     /// 最近一場已完成場次（「重複上次」列）；nil＝完全沒練過。
@@ -114,6 +116,8 @@ public final class TrainingHomeViewModel {
             todaysPlan = try await plannedProvider?.todaysPlan()
             templates = try await plannedProvider?.templates() ?? []
             rotations = try await plannedProvider?.activeRotations() ?? []
+            // 休息日跟「今天指定」排課互斥，todaysPlan 有值時不用查。
+            restDay = todaysPlan == nil ? try await plannedProvider?.activeRestDay() : nil
             try await refreshRecentWorkouts()
             errorMessage = nil
         } catch {

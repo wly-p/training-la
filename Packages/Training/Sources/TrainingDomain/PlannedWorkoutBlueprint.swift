@@ -153,6 +153,20 @@ public struct PlannedRotationSummary: Identifiable, Equatable, Sendable {
     }
 }
 
+/// 訓練首頁「今天休息」空狀態（13f 左）用：今天是哪份長期課表的休息日、下一個訓練日是哪天/叫什麼。
+public struct RestDayInfo: Equatable, Sendable {
+    public let programName: String
+    /// 下一個訓練日；nil＝這份套用之後都不會再有訓練日了（once 模式已經跑完週期，且往後沒有訓練日）。
+    public let nextWorkoutDate: DayDate?
+    public let nextWorkoutName: String?
+
+    public init(programName: String, nextWorkoutDate: DayDate?, nextWorkoutName: String?) {
+        self.programName = programName
+        self.nextWorkoutDate = nextWorkoutDate
+        self.nextWorkoutName = nextWorkoutName
+    }
+}
+
 /// port：今天的排課（給訓練首頁的排課卡）＋ 依 id 找回藍圖（恢復進行中場次用）
 /// ＋ 課表範本清單／依範本實例化成當日排課藍圖（「選範本開始」用）。
 public protocol PlannedWorkoutProvider: Sendable {
@@ -168,6 +182,8 @@ public protocol PlannedWorkoutProvider: Sendable {
     func previewRotation(id: UUID) async throws -> PlannedWorkoutBlueprint?
     /// 開始某組循環今天的 workout：建立當日排課、游標往下一張，回傳其藍圖。
     func startRotation(id: UUID) async throws -> PlannedWorkoutBlueprint?
+    /// 今天是否剛好是某份長期課表的休息日（13f 左）；只掃長期課表，循環課表沒有休息日概念。
+    func activeRestDay() async throws -> RestDayInfo?
 }
 
 /// port：訓練結束時回報排課進度（App 接到 Plan domain 的標記完成）。
