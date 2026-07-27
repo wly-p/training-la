@@ -309,6 +309,7 @@
       }
     },
     "plan.edit" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -375,6 +376,7 @@
       }
     },
     "plan.emptyLibrary" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -391,6 +393,7 @@
       }
     },
     "plan.emptyLibrary.hint" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -616,6 +619,7 @@
       }
     },
     "plan.rest" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -627,6 +631,38 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "休息"
+          }
+        }
+      }
+    },
+    "plan.restNone" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No rest"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "不設休息"
+          }
+        }
+      }
+    },
+    "plan.restSeconds %lld" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Rest %lld s"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "休息 %lld 秒"
           }
         }
       }
@@ -663,7 +699,24 @@
         }
       }
     },
+    "plan.searchTemplates" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Search templates"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "搜尋範本"
+          }
+        }
+      }
+    },
     "plan.sec" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -680,6 +733,7 @@
       }
     },
     "plan.sec.optional" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -728,6 +782,7 @@
       }
     },
     "plan.target" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {

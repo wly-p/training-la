@@ -96,9 +96,15 @@ public struct PlanScheduleView: View {
                 }
             }
             .sheet(isPresented: $pickingTemplate) {
-                TemplatePickerView(templates: viewModel.templates) { template in
-                    Task { await viewModel.addFromTemplate(templateId: template.id, on: viewModel.selectedDate) }
-                }
+                PickerSheet(
+                    title: localText("plan.addFromTemplate"),
+                    searchPrompt: localText("plan.searchTemplates"),
+                    allItems: viewModel.templates.map { TemplatePickerItem(template: $0, name: viewModel.name(for:)) },
+                    selection: .single { item in
+                        Task { await viewModel.addFromTemplate(templateId: item.id, on: viewModel.selectedDate) }
+                    },
+                    labels: PlanPickerLabels.standard
+                )
             }
             .sheet(isPresented: $applyingProgram) {
                 ProgramApplyView(
@@ -281,44 +287,6 @@ private struct MonthViewSheet: View {
             }
         }
         .presentationDetents([.medium])
-    }
-}
-
-/// 選課表範本加到某天。
-private struct TemplatePickerView: View {
-    let templates: [WorkoutTemplate]
-    let onSelect: (WorkoutTemplate) -> Void
-
-    @Environment(\.dismiss) private var dismiss
-
-    var body: some View {
-        NavigationStack {
-            List(templates) { template in
-                Button {
-                    onSelect(template)
-                    dismiss()
-                } label: {
-                    Text(verbatim: template.name)
-                        .contentShape(Rectangle())
-                }
-                .buttonStyle(.plain)
-            }
-            .navigationTitle(localText("plan.addFromTemplate"))
-            .toolbar {
-                ToolbarItem(placement: .cancellationAction) {
-                    Button { dismiss() } label: { localText("plan.cancel") }
-                }
-            }
-            .overlay {
-                if templates.isEmpty {
-                    ContentUnavailableView {
-                        Label { localText("template.empty") } icon: { Image(systemName: "square.stack.3d.up") }
-                    } description: {
-                        localText("template.empty.hint")
-                    }
-                }
-            }
-        }
     }
 }
 

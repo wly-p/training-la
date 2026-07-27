@@ -66,9 +66,11 @@ final class ExerciseCompletionUITests: XCTestCase {
     }
 
     @MainActor private func addExerciseToPlan(_ app: XCUIApplication, name: String) {
+        // 空白排課表單改用新版 PickerSheet（多選）：點名字選取 → 按「加入 1 個動作」確認。
         app.buttons["加入動作"].tap()
         let pick = app.staticTexts[name].firstMatch
         XCTAssertTrue(pick.waitForExistence(timeout: 5))
         pick.tap()
+        app.buttons["加入 1 個動作"].tap()
     }
 }

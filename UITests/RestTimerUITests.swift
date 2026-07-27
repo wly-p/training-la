@@ -29,11 +29,14 @@ final class RestTimerUITests: XCTestCase {
         let pick = app.staticTexts["臥推"].firstMatch
         XCTAssertTrue(pick.waitForExistence(timeout: 5))
         pick.tap()
+        app.buttons["加入 1 個動作"].tap()
 
-        let restField = app.textFields["秒（可留空）"]
-        XCTAssertTrue(restField.waitForExistence(timeout: 5))
-        restField.tap()
-        restField.typeText("2") // 空欄位，直接輸入 2 秒
+        // 新版：點動作列開編輯 sheet，把休息從預設 0（不設）加到 15 秒（stepper 15 秒一階，按 ＋ 一次）。
+        app.staticTexts["臥推"].firstMatch.tap()
+        let restStepper = app.steppers["draftRestStepper"]
+        XCTAssertTrue(restStepper.waitForExistence(timeout: 5))
+        restStepper.buttons.element(boundBy: 1).tap()
+        app.buttons["完成"].tap()
         app.buttons["儲存"].tap()
         XCTAssertTrue(app.staticTexts["休息測試"].waitForExistence(timeout: 5))
 
@@ -52,9 +55,9 @@ final class RestTimerUITests: XCTestCase {
         // 休息倒數條出現
         XCTAssertTrue(app.staticTexts["休息中"].waitForExistence(timeout: 3))
 
-        // 時間到 → 彈窗
+        // 時間到 → 彈窗（休息 15 秒，放寬 timeout）
         let popup = app.staticTexts["休息結束"]
-        XCTAssertTrue(popup.waitForExistence(timeout: 8))
+        XCTAssertTrue(popup.waitForExistence(timeout: 20))
         app.buttons["開始下一組"].tap()
 
         // 彈窗關閉、可繼續記下一組

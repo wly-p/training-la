@@ -29,6 +29,7 @@ final class DeleteHistoryRevertsPlanUITests: XCTestCase {
         let pick = app.staticTexts["臥推"].firstMatch
         XCTAssertTrue(pick.waitForExistence(timeout: 5))
         pick.tap()
+        app.buttons["加入 1 個動作"].tap()
         app.buttons["儲存"].tap()
         XCTAssertTrue(app.staticTexts["推日"].waitForExistence(timeout: 5))
 

@@ -32,10 +32,14 @@ final class BackgroundRestUITests: XCTestCase {
         let pick = app.staticTexts["臥推"].firstMatch
         XCTAssertTrue(pick.waitForExistence(timeout: 5))
         pick.tap()
-        let restField = app.textFields["秒（可留空）"]
-        XCTAssertTrue(restField.waitForExistence(timeout: 5))
-        restField.tap()
-        restField.typeText("5")
+        app.buttons["加入 1 個動作"].tap()
+
+        // 新版：點動作列開編輯 sheet，把休息從預設 0（不設）加到 15 秒（stepper 15 秒一階，按 ＋ 一次）。
+        app.staticTexts["臥推"].firstMatch.tap()
+        let restStepper = app.steppers["draftRestStepper"]
+        XCTAssertTrue(restStepper.waitForExistence(timeout: 5))
+        restStepper.buttons.element(boundBy: 1).tap()
+        app.buttons["完成"].tap()
         app.buttons["儲存"].tap()
         XCTAssertTrue(app.staticTexts["背景測試"].waitForExistence(timeout: 5))
 
@@ -52,9 +56,9 @@ final class BackgroundRestUITests: XCTestCase {
         completeButton.tap()
         XCTAssertTrue(app.staticTexts["休息中"].waitForExistence(timeout: 3))
 
-        // 切到背景，待超過休息時間（5 秒）再切回
+        // 切到背景，待超過休息時間（15 秒）再切回
         XCUIDevice.shared.press(.home)
-        Thread.sleep(forTimeInterval: 7)
+        Thread.sleep(forTimeInterval: 17)
         app.activate()
 
         // 切回前景後：休息已結束（沒有被暫停）→ 出現「休息結束」彈窗
