@@ -11,7 +11,7 @@ final class EditDeleteWorkoutUITests: XCTestCase {
         recordOneWorkout(app, exerciseName: "深蹲")
 
         // 進歷史「按日期」→ 點該場
-        app.tabBars.buttons["歷史"].tap()
+        app.buttons["歷史"].tap()
         let dateRow = app.staticTexts.matching(NSPredicate(format: "label CONTAINS '個動作'")).firstMatch
         XCTAssertTrue(dateRow.waitForExistence(timeout: 5))
         dateRow.tap()
@@ -40,7 +40,7 @@ final class EditDeleteWorkoutUITests: XCTestCase {
     /// 建一個動作、記兩組、結束存檔（複用 happy path 的步驟）。
     @MainActor
     private func recordOneWorkout(_ app: XCUIApplication, exerciseName: String) {
-        app.tabBars.buttons["動作庫"].tap()
+        app.buttons["動作庫"].tap()
         app.buttons["libraryAddButton"].tap()
         let nameField = app.textFields["名稱（例：臥推）"]
         XCTAssertTrue(nameField.waitForExistence(timeout: 5))
@@ -49,7 +49,7 @@ final class EditDeleteWorkoutUITests: XCTestCase {
         app.buttons["儲存"].tap()
         XCTAssertTrue(app.staticTexts[exerciseName].waitForExistence(timeout: 5))
 
-        app.tabBars.buttons["訓練"].tap()
+        app.buttons["訓練"].tap()
         app.buttons["自由訓練 · 邊練邊加動作"].tap()
         let pickerTitle = app.navigationBars["選擇動作"]
         if !pickerTitle.waitForExistence(timeout: 3) {

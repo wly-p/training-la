@@ -43,9 +43,6 @@ struct RootView: View {
                 openSchedule: { selection = 2 },
                 openLibrary: { selection = 1 }
             )
-            // tab 文字走 App target 自帶的 Localizable.xcstrings（在 main bundle，Label 預設查 main，
-            // 不需 bundle: 參數）；隨根部注入的 \.locale 即時切換。
-            .tabItem { Label("tab.training", systemImage: "figure.strengthtraining.traditional") }
             .tag(0)
             LibraryTabView(
                 exerciseViewModel: exerciseListViewModel,
@@ -55,21 +52,31 @@ struct RootView: View {
                 programListViewModel: programListViewModel,
                 makeProgramDetail: dependencies.makeProgramDetailViewModel
             )
-            .tabItem { Label("tab.exercises", systemImage: "books.vertical") }
             .tag(1)
             PlanScheduleView(viewModel: planScheduleViewModel)
-                .tabItem { Label("tab.plan", systemImage: "calendar") }
                 .tag(2)
             HistoryView(viewModel: historyViewModel)
-                .tabItem { Label("tab.history", systemImage: "chart.line.uptrend.xyaxis") }
                 .tag(3)
             SettingsView(
                 viewModel: settingsViewModel,
                 appVersion: AppVersion.displayString(infoDictionary: Bundle.main.infoDictionary ?? [:]),
                 abilityDestination: { AnyView(AbilityListView(viewModel: abilityListViewModel)) }
             )
-            .tabItem { Label("tab.settings", systemImage: "gearshape") }
             .tag(4)
+        }
+        // 原生分頁列換成自訂 TLTabBar（00-overview.md 分頁列樣式：平放無膠囊底＋赭紅底線指示），
+        // 隱藏原生 chrome、改用 safeAreaInset 疊自訂列——TabView 本身的分頁保留(state 不因切換重建)。
+        .toolbar(.hidden, for: .tabBar)
+        .safeAreaInset(edge: .bottom, spacing: 0) {
+            // tab 文字走 App target 自帶的 Localizable.xcstrings（在 main bundle，Text 預設查 main，
+            // 不需 bundle: 參數）；隨根部注入的 \.locale 即時切換。
+            TLTabBar(selection: $selection, items: [
+                .init(0, systemImage: "figure.strengthtraining.traditional", label: Text("tab.training")),
+                .init(1, systemImage: "books.vertical", label: Text("tab.exercises")),
+                .init(2, systemImage: "calendar", label: Text("tab.plan")),
+                .init(3, systemImage: "chart.line.uptrend.xyaxis", label: Text("tab.history")),
+                .init(4, systemImage: "gearshape", label: Text("tab.settings")),
+            ])
         }
         // 主題套在根部：設定 tab 一改，整個 App 立即換色
         .preferredColorScheme(settingsViewModel.theme.colorScheme)

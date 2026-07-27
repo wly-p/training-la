@@ -11,7 +11,7 @@ final class RotationFlowUITests: XCTestCase {
         app.launch()
 
         // 動作庫：建動作
-        app.tabBars.buttons["動作庫"].tap()
+        app.buttons["動作庫"].tap()
         app.buttons["libraryAddButton"].tap()
         let nameField = app.textFields["名稱（例：臥推）"]
         XCTAssertTrue(nameField.waitForExistence(timeout: 5))
@@ -46,7 +46,7 @@ final class RotationFlowUITests: XCTestCase {
         app.buttons["儲存"].tap()
 
         // 訓練首頁：「隨時可做」卡標題顯示今天輪到的 workout 名（推日）
-        app.tabBars.buttons["訓練"].tap()
+        app.buttons["訓練"].tap()
         XCTAssertTrue(app.staticTexts["推日"].waitForExistence(timeout: 5))
         app.buttons["開始循環"].tap()
         // 13d 開練前預覽 sheet：確認開始才真正落地

@@ -11,7 +11,7 @@ final class ScheduleFlowUITests: XCTestCase {
         addExercise(app, name: "深蹲")
 
         // 課表：新增一個含兩個動作、當日（預設今天）的排課
-        app.tabBars.buttons["課表"].tap()
+        app.buttons["課表"].tap()
         app.buttons["新增排課"].tap()
         app.buttons["空白建立"].tap()  // 「+」選單 → 空白建立
         let planName = app.textFields["名稱（例：推日）"]
@@ -24,7 +24,7 @@ final class ScheduleFlowUITests: XCTestCase {
         XCTAssertTrue(app.staticTexts["推日"].waitForExistence(timeout: 5))
 
         // 訓練首頁：出現今日排課卡 + 開始
-        app.tabBars.buttons["訓練"].tap()
+        app.buttons["訓練"].tap()
         XCTAssertTrue(app.staticTexts["推日"].waitForExistence(timeout: 5))
         app.buttons["開始"].tap()
         // 13d 開練前預覽 sheet：確認開始才真正落地
@@ -66,7 +66,7 @@ final class ScheduleFlowUITests: XCTestCase {
         saveButton.tap()
 
         // 歷史詳情有兩個動作區塊 + 目標快照
-        app.tabBars.buttons["歷史"].tap()
+        app.buttons["歷史"].tap()
         let dateRow = app.staticTexts.matching(NSPredicate(format: "label CONTAINS '個動作'")).firstMatch
         XCTAssertTrue(dateRow.waitForExistence(timeout: 5))
         dateRow.tap()
@@ -78,7 +78,7 @@ final class ScheduleFlowUITests: XCTestCase {
     // MARK: - Helpers
 
     @MainActor private func addExercise(_ app: XCUIApplication, name: String) {
-        app.tabBars.buttons["動作庫"].tap()
+        app.buttons["動作庫"].tap()
         app.buttons["libraryAddButton"].tap()
         let field = app.textFields["名稱（例：臥推）"]
         XCTAssertTrue(field.waitForExistence(timeout: 5))

@@ -10,7 +10,7 @@ final class UndoSetUITests: XCTestCase {
         app.launch()
 
         // 1. 動作庫建一個動作
-        app.tabBars.buttons["動作庫"].tap()
+        app.buttons["動作庫"].tap()
         app.buttons["libraryAddButton"].tap()
         let nameField = app.textFields["名稱（例：臥推）"]
         XCTAssertTrue(nameField.waitForExistence(timeout: 5))
@@ -20,7 +20,7 @@ final class UndoSetUITests: XCTestCase {
         XCTAssertTrue(app.staticTexts["臥推"].waitForExistence(timeout: 5))
 
         // 2. 開始訓練 → 選動作
-        app.tabBars.buttons["訓練"].tap()
+        app.buttons["訓練"].tap()
         app.buttons["自由訓練 · 邊練邊加動作"].tap()
         let pickerTitle = app.navigationBars["選擇動作"]
         if !pickerTitle.waitForExistence(timeout: 3) {
@@ -61,7 +61,7 @@ final class UndoSetUITests: XCTestCase {
         addExercise(app, name: "深蹲")
 
         // 課表：臥推 + 深蹲（各預設 3 組）
-        app.tabBars.buttons["課表"].tap()
+        app.buttons["課表"].tap()
         app.buttons["新增排課"].tap()
         app.buttons["空白建立"].tap()  // 「+」選單 → 空白建立
         let planName = app.textFields["名稱（例：推日）"]
@@ -73,7 +73,7 @@ final class UndoSetUITests: XCTestCase {
         app.buttons["儲存"].tap()
         XCTAssertTrue(app.staticTexts["推日"].waitForExistence(timeout: 5))
 
-        app.tabBars.buttons["訓練"].tap()
+        app.buttons["訓練"].tap()
         XCTAssertTrue(app.buttons["開始"].waitForExistence(timeout: 5))
         app.buttons["開始"].tap()
         // 13d 開練前預覽 sheet：確認開始才真正落地
@@ -106,7 +106,7 @@ final class UndoSetUITests: XCTestCase {
     // MARK: - Helpers
 
     @MainActor private func addExercise(_ app: XCUIApplication, name: String) {
-        app.tabBars.buttons["動作庫"].tap()
+        app.buttons["動作庫"].tap()
         app.buttons["libraryAddButton"].tap()
         let field = app.textFields["名稱（例：臥推）"]
         XCTAssertTrue(field.waitForExistence(timeout: 5))

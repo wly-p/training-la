@@ -11,7 +11,7 @@ final class TemplateImportUITests: XCTestCase {
         app.launch()
 
         // 動作庫：建兩個動作
-        app.tabBars.buttons["動作庫"].tap()
+        app.buttons["動作庫"].tap()
         for name in ["臥推", "深蹲"] {
             app.buttons["libraryAddButton"].tap()
             let nameField = app.textFields["名稱（例：臥推）"]

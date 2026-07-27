@@ -11,7 +11,7 @@ final class ProgramFlowUITests: XCTestCase {
         app.launch()
 
         // 動作庫：建動作
-        app.tabBars.buttons["動作庫"].tap()
+        app.buttons["動作庫"].tap()
         app.buttons["libraryAddButton"].tap()
         let nameField = app.textFields["名稱（例：臥推）"]
         XCTAssertTrue(nameField.waitForExistence(timeout: 5))
@@ -60,7 +60,7 @@ final class ProgramFlowUITests: XCTestCase {
         app.buttons["儲存"].tap()
 
         // 課表 tab → 套用長期課表（起始日預設今天、模式預設重複）
-        app.tabBars.buttons["課表"].tap()
+        app.buttons["課表"].tap()
         app.buttons["新增排課"].tap()
         let applyMenuItem = app.buttons["套用長期課表"]
         XCTAssertTrue(applyMenuItem.waitForExistence(timeout: 5))

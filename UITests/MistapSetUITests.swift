@@ -14,7 +14,7 @@ final class MistapSetUITests: XCTestCase {
         app.launch()
 
         // 1. 動作庫建一個動作
-        app.tabBars.buttons["動作庫"].tap()
+        app.buttons["動作庫"].tap()
         app.buttons["libraryAddButton"].tap()
         let nameField = app.textFields["名稱（例：臥推）"]
         XCTAssertTrue(nameField.waitForExistence(timeout: 5))
@@ -24,7 +24,7 @@ final class MistapSetUITests: XCTestCase {
         XCTAssertTrue(app.staticTexts["臥推"].waitForExistence(timeout: 5))
 
         // 2. 開始訓練 → 選動作 → 進入記錄面板
-        app.tabBars.buttons["訓練"].tap()
+        app.buttons["訓練"].tap()
         app.buttons["自由訓練 · 邊練邊加動作"].tap()
         let pickerTitle = app.navigationBars["選擇動作"]
         if !pickerTitle.waitForExistence(timeout: 3) {

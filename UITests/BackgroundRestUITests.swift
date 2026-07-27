@@ -11,7 +11,7 @@ final class BackgroundRestUITests: XCTestCase {
         app.launch()
 
         // 動作庫建一個動作
-        app.tabBars.buttons["動作庫"].tap()
+        app.buttons["動作庫"].tap()
         app.buttons["libraryAddButton"].tap()
         let nameField = app.textFields["名稱（例：臥推）"]
         XCTAssertTrue(nameField.waitForExistence(timeout: 5))
@@ -21,7 +21,7 @@ final class BackgroundRestUITests: XCTestCase {
         XCTAssertTrue(app.staticTexts["臥推"].waitForExistence(timeout: 5))
 
         // 課表：休息設 5 秒
-        app.tabBars.buttons["課表"].tap()
+        app.buttons["課表"].tap()
         app.buttons["新增排課"].tap()
         app.buttons["空白建立"].tap()  // 「+」選單 → 空白建立
         let planName = app.textFields["名稱（例：推日）"]
@@ -40,7 +40,7 @@ final class BackgroundRestUITests: XCTestCase {
         XCTAssertTrue(app.staticTexts["背景測試"].waitForExistence(timeout: 5))
 
         // 照課表訓練，完成一組 → 進入休息
-        app.tabBars.buttons["訓練"].tap()
+        app.buttons["訓練"].tap()
         XCTAssertTrue(app.buttons["開始"].waitForExistence(timeout: 5))
         app.buttons["開始"].tap()
         // 13d 開練前預覽 sheet：確認開始才真正落地

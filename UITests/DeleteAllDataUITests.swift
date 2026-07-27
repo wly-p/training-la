@@ -8,7 +8,7 @@ final class DeleteAllDataUITests: XCTestCase {
         app.launch()
 
         // 先建一筆資料
-        app.tabBars.buttons["動作庫"].tap()
+        app.buttons["動作庫"].tap()
         app.buttons["libraryAddButton"].tap()
         let nameField = app.textFields["名稱（例：臥推）"]
         XCTAssertTrue(nameField.waitForExistence(timeout: 5))
@@ -18,7 +18,7 @@ final class DeleteAllDataUITests: XCTestCase {
         XCTAssertTrue(app.staticTexts["臥推"].waitForExistence(timeout: 5))
 
         // 設定 → 刪除所有資料 → 二次確認
-        app.tabBars.buttons["設定"].tap()
+        app.buttons["設定"].tap()
         let deleteButton = app.buttons["deleteAllDataButton"]
         XCTAssertTrue(deleteButton.waitForExistence(timeout: 5))
         deleteButton.tap()
@@ -30,7 +30,7 @@ final class DeleteAllDataUITests: XCTestCase {
         confirm.tap()
 
         // 畫面重建後，回動作庫應該已清空（剛建的「臥推」不見了）
-        let exercisesTab = app.tabBars.buttons["動作庫"]
+        let exercisesTab = app.buttons["動作庫"]
         XCTAssertTrue(exercisesTab.waitForExistence(timeout: 5))
         exercisesTab.tap()
         XCTAssertFalse(

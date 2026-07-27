@@ -7,7 +7,7 @@ final class ExerciseListUITests: XCTestCase {
         app.launchArguments = ["--uitest-inmemory"] // 乾淨的 in-memory store
         app.launch()
 
-        app.tabBars.buttons["動作庫"].tap()
+        app.buttons["動作庫"].tap()
         app.buttons["libraryAddButton"].tap()
 
         let nameField = app.textFields["名稱（例：臥推）"]
