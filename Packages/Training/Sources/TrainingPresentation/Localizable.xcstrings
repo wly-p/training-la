@@ -1490,18 +1490,194 @@
         }
       }
     },
-    "training.resume": {
+    "training.resume.continue": {
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Resume Workout"
+            "value": "Continue"
           }
         },
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "繼續上次訓練"
+            "value": "繼續訓練"
+          }
+        }
+      }
+    },
+    "training.resume.continueRemaining %lld": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Continue — %lld Sets Left"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "繼續練完剩下 %lld 組"
+          }
+        }
+      }
+    },
+    "training.resume.dataStaysPut %lld": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "All %lld recorded sets are safe no matter which option you pick."
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已記錄的 %lld 組都在，不會因為選哪一個而消失。"
+          }
+        }
+      }
+    },
+    "training.resume.description %@ %@": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "“%1$@” started at %2$@, no activity since."
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "「%1$@」從 %2$@ 開始，之後沒有動作。"
+          }
+        }
+      }
+    },
+    "training.resume.discard": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Discard Entire Session"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "捨棄整場"
+          }
+        }
+      }
+    },
+    "training.resume.discardConfirm": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Discard (can't be undone)"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "捨棄整場（無法復原）"
+          }
+        }
+      }
+    },
+    "training.resume.discardConfirmTitle": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Discard this entire session?"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "捨棄整場訓練？"
+          }
+        }
+      }
+    },
+    "training.resume.endNow": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "End It, Save as Before"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "結束它，存成之前的紀錄"
+          }
+        }
+      }
+    },
+    "training.resume.overnightTitle": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Yesterday's session is still open"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "昨天那場還開著"
+          }
+        }
+      }
+    },
+    "training.resume.recordedSets": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "sets recorded"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已記錄組數"
+          }
+        }
+      }
+    },
+    "training.resume.remainingSets": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "sets remaining"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "尚未做的組"
+          }
+        }
+      }
+    },
+    "training.resume.sameDayTitle": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This session isn't finished yet"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "還沒結束這一場"
           }
         }
       }
@@ -1758,22 +1934,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "復原上一組"
-          }
-        }
-      }
-    },
-    "training.unfinished": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "You have an unfinished workout"
-          }
-        },
-        "zh-Hant": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "有一場訓練還沒結束"
           }
         }
       }

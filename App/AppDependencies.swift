@@ -171,6 +171,8 @@ struct AppDependencies {
                     startWorkout: StartWorkout(repository: workoutRepository),
                     resumeWorkout: ResumeWorkout(repository: workoutRepository),
                     recentWorkouts: RecentWorkouts(repository: workoutRepository),
+                    finishWorkout: FinishWorkout(repository: workoutRepository, planProgress: planProgress),
+                    discardWorkout: DiscardWorkout(repository: workoutRepository),
                     plannedProvider: plannedProvider
                 )
             },

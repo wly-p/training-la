@@ -17,7 +17,12 @@ private actor MockHomeWorkoutRepo: WorkoutRepository {
     }
     func get(id: UUID) async throws -> Workout? { stored[id] }
     func delete(id: UUID) async throws { stored[id] = nil }
-    func activeWorkout() async throws -> Workout? { active }
+    /// 從 `stored` 動態查，不是直接回傳 `active` 這個固定值——這樣 `finishWorkout`/`discardWorkout`
+    /// 對 `stored` 的實際改動（save 出 isFinished、或 delete 掉）才會反映在下一次 `refresh()`。
+    func activeWorkout() async throws -> Workout? {
+        guard let active, let current = stored[active.id], !current.isFinished else { return nil }
+        return current
+    }
     func lastPerformance(exerciseId: UUID, excludingWorkout: UUID?) async throws -> [WorkoutSet] { [] }
     func finishedWorkouts() async throws -> [Workout] { finished }
     func exerciseHistory(exerciseId: UUID) async throws -> [ExerciseSetRecord] { [] }
@@ -290,10 +295,130 @@ struct TrainingHomeViewModelTests {
         #expect(vm.pendingStart == nil)
         #expect(vm.recording == nil)
     }
+
+    // MARK: - 13b 中斷後恢復
+
+    @Test func resumeSummaryMarksOvernightWhenWorkoutDayIsNotToday() async {
+        let repo = MockHomeWorkoutRepo()
+        let yesterday = DayDate(year: 2026, month: 7, day: 26)
+        let today = DayDate(year: 2026, month: 7, day: 27)
+        let active = Workout(id: UUID(), day: yesterday, startedAt: Date(timeIntervalSince1970: 0))
+        await repo.setActive(active)
+        let vm = TrainingHomeViewModel(
+            startWorkout: StartWorkout(repository: repo),
+            resumeWorkout: ResumeWorkout(repository: repo),
+            today: { today }
+        )
+
+        await vm.refresh()
+
+        #expect(vm.resumeSummary?.isOvernight == true)
+    }
+
+    @Test func resumeSummaryNotOvernightWhenSameDay() async {
+        let repo = MockHomeWorkoutRepo()
+        let today = DayDate(year: 2026, month: 7, day: 27)
+        let active = Workout(id: UUID(), day: today, startedAt: Date())
+        await repo.setActive(active)
+        let vm = TrainingHomeViewModel(
+            startWorkout: StartWorkout(repository: repo),
+            resumeWorkout: ResumeWorkout(repository: repo),
+            today: { today }
+        )
+
+        await vm.refresh()
+
+        #expect(vm.resumeSummary?.isOvernight == false)
+    }
+
+    @Test func resumeSummaryComputesRemainingSetsFromBlueprint() async {
+        let repo = MockHomeWorkoutRepo()
+        let planWorkoutId = UUID()
+        let exerciseId = UUID()
+        let active = Workout(
+            id: UUID(), day: DayDate(year: 2026, month: 7, day: 27), planWorkoutId: planWorkoutId,
+            startedAt: Date(),
+            sets: [WorkoutSet(id: UUID(), exerciseId: exerciseId, exerciseIndex: 0, setIndex: 0,
+                              weight: Weight(value: 60, unit: .kg), reps: 8)]
+        )
+        await repo.setActive(active)
+        let targets = (0..<3).map { i in
+            PlannedTargetSet(id: UUID(), exerciseId: exerciseId, exerciseName: "臥推",
+                             exerciseIndex: 0, setIndex: i, targetWeight: Weight(value: 60, unit: .kg),
+                             targetReps: 8, restSec: nil)
+        }
+        let blueprint = PlannedWorkoutBlueprint(planWorkoutId: planWorkoutId, name: "推日", targets: targets)
+        let vm = TrainingHomeViewModel(
+            startWorkout: StartWorkout(repository: repo),
+            resumeWorkout: ResumeWorkout(repository: repo),
+            plannedProvider: MockPlannedProvider(plan: blueprint)
+        )
+
+        await vm.refresh()
+
+        #expect(vm.resumeSummary?.name == "推日")
+        #expect(vm.resumeSummary?.recordedSetCount == 1)
+        #expect(vm.resumeSummary?.remainingSetCount == 2)
+    }
+
+    @Test func resumeSummaryRemainingSetsNilForFreeTraining() async {
+        let repo = MockHomeWorkoutRepo()
+        let active = Workout(id: UUID(), day: DayDate(year: 2026, month: 7, day: 27), startedAt: Date())
+        await repo.setActive(active)
+        let vm = TrainingHomeViewModel(
+            startWorkout: StartWorkout(repository: repo),
+            resumeWorkout: ResumeWorkout(repository: repo)
+        )
+
+        await vm.refresh()
+
+        #expect(vm.resumeSummary?.remainingSetCount == nil)
+    }
+
+    @Test func endResumableNowFinishesAndClearsResumable() async {
+        let repo = MockHomeWorkoutRepo()
+        let active = Workout(id: UUID(), day: DayDate(year: 2026, month: 7, day: 27), startedAt: Date())
+        await repo.setActive(active)
+        let vm = TrainingHomeViewModel(
+            startWorkout: StartWorkout(repository: repo),
+            resumeWorkout: ResumeWorkout(repository: repo),
+            finishWorkout: FinishWorkout(repository: repo)
+        )
+        await vm.refresh()
+        #expect(vm.resumable != nil)
+
+        await vm.endResumableNow()
+
+        #expect(vm.resumable == nil)
+        #expect(vm.resumeSummary == nil)
+        let saved = (try? await repo.get(id: active.id)) ?? nil
+        #expect(saved?.isFinished == true)
+    }
+
+    @Test func discardResumableDeletesAndClearsResumable() async {
+        let repo = MockHomeWorkoutRepo()
+        let active = Workout(id: UUID(), day: DayDate(year: 2026, month: 7, day: 27), startedAt: Date())
+        await repo.setActive(active)
+        let vm = TrainingHomeViewModel(
+            startWorkout: StartWorkout(repository: repo),
+            resumeWorkout: ResumeWorkout(repository: repo),
+            discardWorkout: DiscardWorkout(repository: repo)
+        )
+        await vm.refresh()
+
+        await vm.discardResumable()
+
+        #expect(vm.resumable == nil)
+        let stillThere = try? await repo.get(id: active.id)
+        #expect((stillThere ?? nil) == nil)
+    }
 }
 
 private extension MockHomeWorkoutRepo {
-    func setActive(_ workout: Workout?) { active = workout }
+    func setActive(_ workout: Workout?) {
+        active = workout
+        if let workout { stored[workout.id] = workout }
+    }
     func setSaveError(_ error: Error) { saveError = error }
     func setFinished(_ workouts: [Workout]) { finished = workouts }
 }

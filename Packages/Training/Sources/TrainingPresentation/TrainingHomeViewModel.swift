@@ -36,11 +36,26 @@ public struct RecentSessionSummary: Equatable, Sendable {
     public let setCount: Int
 }
 
+/// 中斷後恢復（13b）：有未結束場次時，一次性對話框用的摘要。
+public struct ResumeSummary: Equatable, Sendable {
+    public let workout: Workout
+    /// 範本/排課名；nil＝自由訓練。
+    public let name: String?
+    public let recordedSetCount: Int
+    /// 還沒做的組數；nil＝自由訓練（沒有課表組數概念，不知道「剩幾組」）。
+    public let remainingSetCount: Int?
+    public let elapsedMinutes: Int
+    /// 不是今天開始的（隔夜）；決定「結束它」／「繼續」哪個當預設主按鈕。
+    public let isOvernight: Bool
+}
+
 @MainActor
 @Observable
 public final class TrainingHomeViewModel {
     /// 有進行中的場次可以繼續。
     public private(set) var resumable: Workout?
+    /// `resumable` 非 nil 時的摘要（13b 對話框用）。
+    public private(set) var resumeSummary: ResumeSummary?
     /// 今天的排課（照課表訓練的來源）。
     public private(set) var todaysPlan: PlannedWorkoutBlueprint?
     /// 可套用的課表範本（「選範本開始」的來源）。
@@ -66,26 +81,36 @@ public final class TrainingHomeViewModel {
     private let startWorkout: StartWorkout
     private let resumeWorkout: ResumeWorkout
     private let recentWorkouts: RecentWorkouts?
+    private let finishWorkout: FinishWorkout?
+    private let discardWorkout: DiscardWorkout?
     private let plannedProvider: (any PlannedWorkoutProvider)?
     private let today: @Sendable () -> DayDate
+    private let now: @Sendable () -> Date
 
     public init(
         startWorkout: StartWorkout,
         resumeWorkout: ResumeWorkout,
         recentWorkouts: RecentWorkouts? = nil,
+        finishWorkout: FinishWorkout? = nil,
+        discardWorkout: DiscardWorkout? = nil,
         plannedProvider: (any PlannedWorkoutProvider)? = nil,
-        today: @escaping @Sendable () -> DayDate = { DayDate(Date()) }
+        today: @escaping @Sendable () -> DayDate = { DayDate(Date()) },
+        now: @escaping @Sendable () -> Date = { Date() }
     ) {
         self.startWorkout = startWorkout
         self.resumeWorkout = resumeWorkout
         self.recentWorkouts = recentWorkouts
+        self.finishWorkout = finishWorkout
+        self.discardWorkout = discardWorkout
         self.plannedProvider = plannedProvider
         self.today = today
+        self.now = now
     }
 
     public func refresh() async {
         do {
             resumable = try await resumeWorkout()
+            await refreshResumeSummary()
             todaysPlan = try await plannedProvider?.todaysPlan()
             templates = try await plannedProvider?.templates() ?? []
             rotations = try await plannedProvider?.activeRotations() ?? []
@@ -94,6 +119,27 @@ public final class TrainingHomeViewModel {
         } catch {
             errorMessage = .training("training.error.loadStatus \(error.localizedDescription)")
         }
+    }
+
+    private func refreshResumeSummary() async {
+        guard let workout = resumable else {
+            resumeSummary = nil
+            return
+        }
+        var name: String?
+        var remaining: Int?
+        if let planWorkoutId = workout.planWorkoutId,
+           let blueprint = try? await plannedProvider?.blueprint(planWorkoutId: planWorkoutId) {
+            name = blueprint.name
+            let plannedTotal = blueprint.exercises.reduce(0) { $0 + $1.setCount }
+            remaining = max(0, plannedTotal - workout.sets.count)
+        }
+        let elapsedMinutes = workout.startedAt.map { max(0, Int(now().timeIntervalSince($0) / 60)) } ?? 0
+        resumeSummary = ResumeSummary(
+            workout: workout, name: name, recordedSetCount: workout.sets.count,
+            remainingSetCount: remaining, elapsedMinutes: elapsedMinutes,
+            isOvernight: workout.day != today()
+        )
     }
 
     private func refreshRecentWorkouts() async throws {
@@ -164,6 +210,30 @@ public final class TrainingHomeViewModel {
 
     public func resume() {
         recording = resumable
+    }
+
+    /// 「結束它，存成之前的紀錄」（13b）：直接標記完成，不進記錄畫面。時間戳只能用「現在」——
+    /// WorkoutSet 目前沒有逐組時間戳，沒有『最後一組實際記錄時間』這個資料可用，
+    /// 這是唯一不編造歷史時間的誠實做法。
+    public func endResumableNow() async {
+        guard let workout = resumable, let finishWorkout else { return }
+        do {
+            _ = try await finishWorkout(workout, overallFeeling: nil, note: nil)
+            await refresh()
+        } catch {
+            errorMessage = .training("training.error.saveFailed \(error.localizedDescription)")
+        }
+    }
+
+    /// 「捨棄整場」（13b）：整場（含已記錄的組）直接刪掉；呼叫端要先二次確認過。
+    public func discardResumable() async {
+        guard let workout = resumable, let discardWorkout else { return }
+        do {
+            try await discardWorkout(id: workout.id)
+            await refresh()
+        } catch {
+            errorMessage = .training("training.error.saveFailed \(error.localizedDescription)")
+        }
     }
 
     // MARK: - 開練前預覽（13d）

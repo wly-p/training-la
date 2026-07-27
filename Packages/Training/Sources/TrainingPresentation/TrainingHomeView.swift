@@ -34,11 +34,7 @@ public struct TrainingHomeView: View {
                 VStack(alignment: .leading, spacing: 0) {
                     PageHeader(headerTitle, kicker: headerKicker)
 
-                    if viewModel.resumable != nil {
-                        resumableSection
-                            .padding(.horizontal, TLSpace.page)
-                            .padding(.top, TLSpace.section)
-                    } else if hasAnyPlan {
+                    if hasAnyPlan {
                         carousel
                             .padding(.top, TLSpace.section)
                         if cards.count > 1 {
@@ -105,6 +101,15 @@ public struct TrainingHomeView: View {
                 Text(viewModel.errorMessage ?? "")
             }
         }
+        // 中斷後恢復（13b）：用 overlay 蓋滿全螢幕（跟 ActiveWorkoutView 的完成卡片同一個模式），
+        // 不用 .sheet——這是「一次性攔截」的對話框，不是可以滑掉的內容頁，且避免跟其他
+        // sheet（開練前預覽等）疊放時的 dismiss race。
+        .overlay {
+            if let summary = viewModel.resumeSummary {
+                resumeDialog(summary)
+            }
+        }
+        .animation(.spring(duration: 0.3), value: viewModel.resumeSummary != nil)
     }
 
     // MARK: - Header
@@ -133,22 +138,119 @@ public struct TrainingHomeView: View {
 
     // MARK: - 續練
 
-    private var resumableSection: some View {
-        VStack(spacing: 14) {
-            localText("training.unfinished")
-                .font(TLFont.zh(TLFont.rowTitle, .semibold))
-                .foregroundStyle(TLColor.text)
-            Button {
-                viewModel.resume()
-            } label: {
-                localText("training.resume")
+    // MARK: - 中斷後恢復（13b）
+
+    @State private var showsDiscardResumableConfirm = false
+
+    /// 置中對話框：昨天/今天那場還開著。隔夜（>看 day 是否為今天）「結束它」當預設主按鈕；
+    /// 當天中斷則「繼續」當預設——同一份 layout，只是主／次按鈕角色對調。
+    private func resumeDialog(_ summary: ResumeSummary) -> some View {
+        ZStack {
+            Color.black.opacity(0.35).ignoresSafeArea()
+            VStack(alignment: .leading, spacing: 16) {
+                Text(summary.isOvernight
+                    ? String(localized: "training.resume.overnightTitle", bundle: .module)
+                    : String(localized: "training.resume.sameDayTitle", bundle: .module))
+                    .font(TLFont.zh(20, .bold))
+                    .foregroundStyle(TLColor.text)
+                Text(verbatim: resumeDescription(summary))
+                    .font(.footnote)
+                    .foregroundStyle(TLColor.neutral600)
+
+                VStack(spacing: 10) {
+                    HStack {
+                        statNumber("\(summary.recordedSetCount)", label: "training.resume.recordedSets")
+                        Spacer()
+                        if let remaining = summary.remainingSetCount {
+                            statNumber("\(remaining)", label: "training.resume.remainingSets")
+                            Spacer()
+                        }
+                        statNumber("\(summary.elapsedMinutes)", label: "training.finish.minutes")
+                    }
+                    Text(verbatim: String(
+                        format: String(localized: "training.resume.dataStaysPut %lld", bundle: .module),
+                        summary.recordedSetCount
+                    ))
+                    .font(.caption2)
+                    .foregroundStyle(TLColor.neutral600)
+                }
+                .padding(TLSpace.rowInset)
+                .background(TLColor.neutral300)
+                .clipShape(RoundedRectangle(cornerRadius: TLRadius.inner, style: .continuous))
+
+                resumeActions(summary)
             }
-            .buttonStyle(.tlPrimary)
+            .padding(TLSpace.page)
+            .background(TLColor.neutral100)
+            .clipShape(RoundedRectangle(cornerRadius: TLRadius.container, style: .continuous))
+            .tlShadow(TLShadow.lg)
+            .padding(.horizontal, TLSpace.page)
         }
-        .padding(TLSpace.rowInset)
-        .frame(maxWidth: .infinity)
-        .background(TLColor.neutral100)
-        .clipShape(RoundedRectangle(cornerRadius: TLRadius.container, style: .continuous))
+        .confirmationDialog(
+            localText("training.resume.discardConfirmTitle"),
+            isPresented: $showsDiscardResumableConfirm,
+            titleVisibility: .visible
+        ) {
+            Button(role: .destructive) {
+                Task { await viewModel.discardResumable() }
+            } label: {
+                localText("training.resume.discardConfirm")
+            }
+        }
+    }
+
+    private func resumeDescription(_ summary: ResumeSummary) -> String {
+        guard let start = summary.workout.startedAt else { return "" }
+        let formatter = DateFormatter()
+        formatter.dateFormat = "HH:mm"
+        let name = summary.name ?? String(localized: "training.free", bundle: .module)
+        return String(
+            format: String(localized: "training.resume.description %@ %@", bundle: .module),
+            name, formatter.string(from: start)
+        )
+    }
+
+    private func statNumber(_ value: String, label: String.LocalizationValue) -> some View {
+        VStack(alignment: .leading, spacing: 2) {
+            Text(verbatim: value)
+                .font(TLFont.display(26))
+                .foregroundStyle(TLColor.text)
+            Text(String(localized: label, bundle: .module))
+                .font(.caption2)
+                .foregroundStyle(TLColor.neutral600)
+        }
+    }
+
+    @ViewBuilder private func resumeActions(_ summary: ResumeSummary) -> some View {
+        let endButton = Button {
+            Task { await viewModel.endResumableNow() }
+        } label: {
+            localText("training.resume.endNow")
+        }
+        let continueButton = Button {
+            viewModel.resume()
+        } label: {
+            if let remaining = summary.remainingSetCount {
+                Text(verbatim: String(format: String(localized: "training.resume.continueRemaining %lld", bundle: .module), remaining))
+            } else {
+                localText("training.resume.continue")
+            }
+        }
+        VStack(spacing: 10) {
+            if summary.isOvernight {
+                endButton.buttonStyle(.tlPrimary)
+                continueButton.buttonStyle(.tlSecondary)
+            } else {
+                continueButton.buttonStyle(.tlPrimary)
+                endButton.buttonStyle(.tlSecondary)
+            }
+            Button {
+                showsDiscardResumableConfirm = true
+            } label: {
+                localText("training.resume.discard")
+            }
+            .buttonStyle(.tlDestructiveText)
+        }
     }
 
     // MARK: - 卡片捲軸
