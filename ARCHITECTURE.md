@@ -76,12 +76,14 @@ Packages/
       SpecPresentationTests/ ← ViewModel 注 mock repo/port 測
   Plan/       (同結構：PlanWorkout → PlanSet)
   Training/   (同結構：Workout → WorkoutSet)
+  Ability/    (同結構：AbilityValue，一動作一筆能力值；見下方資料模型)
   History/    (讀多，可只有 Domain + Presentation)
   Settings/   (只有 Presentation：主題、App 圖示、提醒偏好)
   Reminders/  ← 通知/提醒中樞（非 domain，是跨 domain 的共用能力）
     Sources/
       RemindersDomain/    ← 純邏輯：偏好、channel ports、dispatcher（可被任何 domain import）
       RemindersKit/       ← 平台實作：UN 本地通知、系統音、UserDefaults（只有 App 接線時 import）
+  DesignSystem/           ← 共用 UI 元件與 design token（無 domain 邏輯，故無 Tests/）
 ```
 
 相依方向：`SpecData → SpecDomain`、`SpecPresentation → SpecDomain`、`SpecDomain → SharedKernel`。
@@ -130,7 +132,7 @@ Training 的休息倒數不認識任何提醒手段，只呼叫 `RestEndRemindin
 
 三類測試，各自獨立：
 
-1. **Unit test**：七個 package（SharedKernel/Spec/Training/Plan/History/Settings/Reminders）各自的 `Tests/`，用 Swift Testing（`import Testing`）。
+1. **Unit test**：八個 package（SharedKernel/Spec/Training/Plan/History/Settings/Reminders/Ability）各自的 `Tests/`，用 Swift Testing（`import Testing`）。DesignSystem 沒有 `Tests/`——純 UI 元件，無邏輯可測。
    - `*DomainTests`：UseCase 注 mock repository，純邏輯測，秒級、免模擬器。
    - `*DataTests`：Repository 用 in-memory SwiftData 測。
    - `*PresentationTests`：ViewModel 注 mock repository/port 測。
@@ -200,8 +202,14 @@ Workout 一次訓練場次（aggregate root，Training 模組）
         fromPlanSetId?,               // 空 = 臨時加練 / 未照課表
         targetWeight?, targetReps?    // 目標快照，課表事後被改也不影響
    （衍生視圖：ExerciseBlock，依 exerciseIndex 分組）
+
+AbilityValue 能力值（Ability 模組）─ 使用者的 1RM／訓練最大值
+  exerciseId(即 id), value: {value, unit}, source(manual|estimated), updatedAt
 ```
 
+- **能力值是「你的」不是「動作的」**：以 `exerciseId` 為唯一身分，一動作一筆、upsert 語意，
+  不是歷史 log。所以它不屬於 Spec（動作定義）也不屬於 Plan（排程），自成一個 domain。
+  來源可為手動填入或依最近訓練紀錄推算（`SuggestAbilityValue`）。
 - **紀錄可脫離課表**：`WorkoutSet.fromPlanSetId` 可為空。
 - `Workout → WorkoutSet` 與 `PlanWorkout → PlanSet` 各自是一棵樹；`(exerciseIndex, setIndex)` 定位一組，兩棵樹用同一組 index 對齊「目標 vs 實際」。
 - **v0 App 沒有「Plan（菜單）」這層聚合**：`PlanWorkout` 目前都是獨立排課（對應 API 的 `plan_id = null`），尚未實作把多個 `PlanWorkout` 收進一個 `Plan` 底下的 UI/流程——這是待補的差距，見 [`PROJECT_OVERVIEW.md`](./PROJECT_OVERVIEW.md) §8-4。

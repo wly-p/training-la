@@ -15,6 +15,31 @@
 Training La helps you schedule what to train, log every set as you go, and look back at how a lift has
 progressed over time — no account, no backend, no network required. All data lives on-device.
 
+## Screenshots
+
+<table>
+  <tr>
+    <td width="33%"><img src="docs/img/today.jpeg" alt="Today's workout"></td>
+    <td width="33%"><img src="docs/img/schedule.jpeg" alt="Schedule"></td>
+    <td width="33%"><img src="docs/img/plan-preview.jpeg" alt="Workout preview before starting"></td>
+  </tr>
+  <tr>
+    <td align="center"><b>Today</b><br>Pick the scheduled workout, repeat the last one, or start freestyle</td>
+    <td align="center"><b>Schedule</b><br>Plan workouts by date, week by week</td>
+    <td align="center"><b>Before you start</b><br>Weights pre-filled from your last session and 1RM, still editable</td>
+  </tr>
+  <tr>
+    <td><img src="docs/img/logging.jpeg" alt="Logging a set"></td>
+    <td><img src="docs/img/rest-timer.jpeg" alt="Rest timer"></td>
+    <td><img src="docs/img/history.jpeg" alt="Session history"></td>
+  </tr>
+  <tr>
+    <td align="center"><b>Logging</b><br>Set-by-set, with target vs. actual side by side</td>
+    <td align="center"><b>Rest timer</b><br>Adjust or skip; edit the next set while it counts down</td>
+    <td align="center"><b>History</b><br>Every set of a past session, compared against its target</td>
+  </tr>
+</table>
+
 ## Features
 
 - **Exercise library** — build your own catalog of movements (name, muscle group, equipment) and
@@ -40,9 +65,11 @@ planned for v1).
 ## Architecture
 
 Training La follows **Clean Architecture**, split into one local Swift Package per domain
-(`Spec`, `Plan`, `Training`, `History`, `Settings`), each with its own `Domain` / `Data` /
-`Presentation` layers. The domain layer is plain Swift with no framework imports, so business
-logic can be unit-tested without SwiftUI, SwiftData, or a simulator. See
+(`Spec`, `Plan`, `Training`, `Ability`, `History`, `Settings`), each with its own `Domain` /
+`Data` / `Presentation` layers, alongside three shared packages (`SharedKernel` for cross-domain
+value types, `Reminders` for notification ports and their platform implementation, and
+`DesignSystem` for shared UI components). The domain layer is plain Swift with no framework
+imports, so business logic can be unit-tested without SwiftUI, SwiftData, or a simulator. See
 [`ARCHITECTURE.md`](./ARCHITECTURE.md) for the full breakdown, including the data model and
 cross-domain boundaries.
 
@@ -74,7 +101,7 @@ Then pick the **TrainingLa-Dev** scheme and run.
 ## Testing
 
 ```sh
-make test-unit    # unit tests for all 6 packages (swift test, no simulator needed)
+make test-unit    # unit tests for all 8 packages (swift test, no simulator needed)
 make test-uitest  # UI tests, on a simulator
 make test-e2e     # against a real backend — not applicable yet in v0, placeholder for now
 make test         # test-unit + test-uitest
