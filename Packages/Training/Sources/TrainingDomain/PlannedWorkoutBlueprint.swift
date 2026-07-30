@@ -6,12 +6,16 @@ import SharedKernel
 public struct PlannedWorkoutBlueprint: Equatable, Sendable {
     public let planWorkoutId: UUID
     public let name: String?
+    /// 開練前預覽（14c）頂部 kicker：循環/長期課表的週期定位，如「推拉腿 · 第 7 輪 · 第 1 天」
+    /// 或「恢復期 · D 4」。由 App adapter 依課表來源組好餵進來；範本/自由訓練沒有週期定位＝nil。
+    public let kicker: String?
     /// 依 (exerciseIndex, setIndex) 排序的目標佇列。
     public let targets: [PlannedTargetSet]
 
-    public init(planWorkoutId: UUID, name: String?, targets: [PlannedTargetSet]) {
+    public init(planWorkoutId: UUID, name: String?, kicker: String? = nil, targets: [PlannedTargetSet]) {
         self.planWorkoutId = planWorkoutId
         self.name = name
+        self.kicker = kicker
         self.targets = targets
     }
 
@@ -37,6 +41,11 @@ public struct PlannedWorkoutBlueprint: Equatable, Sendable {
             .dropFirst(position)
             .first
     }
+
+    /// 這份排課套用的強度倍率（同一份排課的所有組共用同一個值）；1.0＝基準，UI 不顯示膠囊。
+    public var intensityFactor: Double {
+        targets.compactMap { $0.weightSource?.intensityFactor }.first ?? 1.0
+    }
 }
 
 public struct PlannedTargetSet: Identifiable, Equatable, Sendable {
@@ -50,6 +59,9 @@ public struct PlannedTargetSet: Identifiable, Equatable, Sendable {
     public let targetReps: Int?
     /// 這組做完的休息秒數；nil＝沒設。
     public let restSec: Int?
+    /// 這個 targetWeight 數字的來源（14c 顯示算式用）；Training 不認識 Plan 的表達式型別，
+    /// 由 App 層 adapter 把 Plan 的 `WeightSourceInfo` 映射成這個。
+    public let weightSource: TargetWeightSource?
 
     public init(
         id: UUID,
@@ -59,7 +71,8 @@ public struct PlannedTargetSet: Identifiable, Equatable, Sendable {
         setIndex: Int,
         targetWeight: Weight?,
         targetReps: Int?,
-        restSec: Int?
+        restSec: Int?,
+        weightSource: TargetWeightSource? = nil
     ) {
         self.id = id
         self.exerciseId = exerciseId
@@ -69,6 +82,52 @@ public struct PlannedTargetSet: Identifiable, Equatable, Sendable {
         self.targetWeight = targetWeight
         self.targetReps = targetReps
         self.restSec = restSec
+        self.weightSource = weightSource
+    }
+}
+
+/// 材料化那一刻 targetWeight 怎麼算出來的快照（14c）。跟 Plan 的 `WeightSourceInfo` 一一對應，
+/// 只是換一層型別，讓 Training 不用 import PlanDomain。
+public struct TargetWeightSource: Equatable, Sendable {
+    public enum Kind: Equatable, Sendable { case none, absolute, relativeToLast, percentOf1RM }
+
+    public let kind: Kind
+    /// `.absolute` 套用強度倍率之前的原始公斤數（14c 算式「120 kg × 75%」的 120）。
+    public let base: Weight?
+    public let percent: Double?
+    /// `.percentOf1RM` 當時查到的能力值(1RM)；nil＝當時還沒設，算不出來。
+    public let abilityValue: Weight?
+    public let delta: Weight?
+    /// `.relativeToLast` 當時查到的上次重量；nil＝當時沒有上次紀錄，算不出來。
+    public let lastWeight: Weight?
+    public let intensityFactor: Double
+
+    public init(
+        kind: Kind,
+        base: Weight? = nil,
+        percent: Double? = nil,
+        abilityValue: Weight? = nil,
+        delta: Weight? = nil,
+        lastWeight: Weight? = nil,
+        intensityFactor: Double
+    ) {
+        self.kind = kind
+        self.base = base
+        self.percent = percent
+        self.abilityValue = abilityValue
+        self.delta = delta
+        self.lastWeight = lastWeight
+        self.intensityFactor = intensityFactor
+    }
+
+    /// 算不出確定公斤（沒設表達式，或查無上次紀錄/能力值）。
+    public var isUnresolved: Bool {
+        switch kind {
+        case .none: return true
+        case .absolute: return false
+        case .relativeToLast: return lastWeight == nil
+        case .percentOf1RM: return abilityValue == nil
+        }
     }
 }
 
@@ -98,6 +157,20 @@ public struct PlannedRotationSummary: Identifiable, Equatable, Sendable {
     }
 }
 
+/// 訓練首頁「今天休息」空狀態（13f 左）用：今天是哪份長期課表的休息日、下一個訓練日是哪天/叫什麼。
+public struct RestDayInfo: Equatable, Sendable {
+    public let programName: String
+    /// 下一個訓練日；nil＝這份套用之後都不會再有訓練日了（once 模式已經跑完週期，且往後沒有訓練日）。
+    public let nextWorkoutDate: DayDate?
+    public let nextWorkoutName: String?
+
+    public init(programName: String, nextWorkoutDate: DayDate?, nextWorkoutName: String?) {
+        self.programName = programName
+        self.nextWorkoutDate = nextWorkoutDate
+        self.nextWorkoutName = nextWorkoutName
+    }
+}
+
 /// port：今天的排課（給訓練首頁的排課卡）＋ 依 id 找回藍圖（恢復進行中場次用）
 /// ＋ 課表範本清單／依範本實例化成當日排課藍圖（「選範本開始」用）。
 public protocol PlannedWorkoutProvider: Sendable {
@@ -109,8 +182,12 @@ public protocol PlannedWorkoutProvider: Sendable {
     func instantiate(templateId: UUID) async throws -> PlannedWorkoutBlueprint?
     /// 目前啟用中、且有內容的循環課表（每組今天輪到哪張）；可多組並行。
     func activeRotations() async throws -> [PlannedRotationSummary]
+    /// 開始前預覽（13d）：試算今天這組循環會是什麼樣子，不落地、不動游標。
+    func previewRotation(id: UUID) async throws -> PlannedWorkoutBlueprint?
     /// 開始某組循環今天的 workout：建立當日排課、游標往下一張，回傳其藍圖。
     func startRotation(id: UUID) async throws -> PlannedWorkoutBlueprint?
+    /// 今天是否剛好是某份長期課表的休息日（13f 左）；只掃長期課表，循環課表沒有休息日概念。
+    func activeRestDay() async throws -> RestDayInfo?
 }
 
 /// port：訓練結束時回報排課進度（App 接到 Plan domain 的標記完成）。

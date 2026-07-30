@@ -7,6 +7,8 @@ import SharedKernel
 public struct HistoryWorkoutSummary: Identifiable, Equatable, Sendable {
     public let id: UUID
     public let day: DayDate
+    /// 照哪份排課做的名稱；nil＝自由訓練（沒有對應排課）。設計稿 7b 的列主標。
+    public let name: String?
     public let exerciseCount: Int
     public let totalSets: Int
     public let overallFeeling: Int?
@@ -15,6 +17,7 @@ public struct HistoryWorkoutSummary: Identifiable, Equatable, Sendable {
     public init(
         id: UUID,
         day: DayDate,
+        name: String? = nil,
         exerciseCount: Int,
         totalSets: Int,
         overallFeeling: Int?,
@@ -22,6 +25,7 @@ public struct HistoryWorkoutSummary: Identifiable, Equatable, Sendable {
     ) {
         self.id = id
         self.day = day
+        self.name = name
         self.exerciseCount = exerciseCount
         self.totalSets = totalSets
         self.overallFeeling = overallFeeling

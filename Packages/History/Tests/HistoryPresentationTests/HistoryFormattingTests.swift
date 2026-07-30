@@ -50,4 +50,68 @@ struct HistoryFormattingTests {
         let en = HistoryFormatting.dayLabel(DayDate(year: 2026, month: 1, day: 1), locale: Locale(identifier: "en"))
         #expect(en.contains("Thu"))
     }
+
+    // MARK: - 達標判定（91-weight-model.md §6）
+
+    private func setWithTarget(
+        weight: Double, reps: Int, targetWeight: Double?, targetReps: Int?, status: WorkoutSetStatus = .done
+    ) -> HistorySetLine {
+        HistorySetLine(
+            id: UUID(), setIndex: 0, weight: Weight(value: weight, unit: .kg), reps: reps, status: status,
+            targetWeight: targetWeight.map { Weight(value: $0, unit: .kg) }, targetReps: targetReps
+        )
+    }
+
+    @Test func achievedRequiresBothWeightAndRepsToMeetTarget() {
+        #expect(HistoryFormatting.achieved(setWithTarget(weight: 60, reps: 8, targetWeight: 60, targetReps: 8)) == true)
+        #expect(HistoryFormatting.achieved(setWithTarget(weight: 62.5, reps: 10, targetWeight: 60, targetReps: 8)) == true)
+        #expect(HistoryFormatting.achieved(setWithTarget(weight: 60, reps: 6, targetWeight: 60, targetReps: 8)) == false)
+        #expect(HistoryFormatting.achieved(setWithTarget(weight: 55, reps: 8, targetWeight: 60, targetReps: 8)) == false)
+    }
+
+    @Test func achievedIsNilWithoutTargetSnapshotOrWhenSkipped() {
+        #expect(HistoryFormatting.achieved(setWithTarget(weight: 60, reps: 8, targetWeight: nil, targetReps: nil)) == nil)
+        #expect(HistoryFormatting.achieved(setWithTarget(weight: 60, reps: 8, targetWeight: 60, targetReps: 8, status: .skipped)) == nil)
+    }
+
+    @Test func repsDeltaSignalsExceededOrShortfall() {
+        #expect(HistoryFormatting.repsDelta(setWithTarget(weight: 60, reps: 10, targetWeight: 60, targetReps: 8)) == 2)
+        #expect(HistoryFormatting.repsDelta(setWithTarget(weight: 60, reps: 6, targetWeight: 60, targetReps: 8)) == -2)
+        #expect(HistoryFormatting.repsDelta(setWithTarget(weight: 60, reps: 8, targetWeight: nil, targetReps: nil)) == nil)
+    }
+
+    @Test func achievedSetCountExcludesSkippedAndUntargetedSets() {
+        let blocks = [
+            HistoryBlock(id: 0, exerciseName: "臥推", sets: [
+                setWithTarget(weight: 60, reps: 8, targetWeight: 60, targetReps: 8),
+                setWithTarget(weight: 60, reps: 6, targetWeight: 60, targetReps: 8),
+                setWithTarget(weight: 60, reps: 8, targetWeight: 60, targetReps: 8, status: .skipped),
+                setWithTarget(weight: 20, reps: 8, targetWeight: nil, targetReps: nil), // 臨時加練，無目標
+            ]),
+        ]
+        let (achieved, total) = HistoryFormatting.achievedSetCount(blocks)
+        #expect(achieved == 1)
+        #expect(total == 2)   // 跳過的、沒有目標快照的都不進分母——那是「不適用」不是「沒達標」
+
+        // 整場都是臨時加練（沒有任何目標快照）→ total 為 0，UI 該把「達標」徽章整條藏起來。
+        let freeTraining = [HistoryBlock(id: 0, exerciseName: "深蹲", sets: [
+            setWithTarget(weight: 20, reps: 8, targetWeight: nil, targetReps: nil),
+        ])]
+        #expect(HistoryFormatting.achievedSetCount(freeTraining).total == 0)
+    }
+
+    @Test func totalVolumeOnlyReturnsTargetWhenEverySetHasOne() {
+        let complete = [HistoryBlock(id: 0, exerciseName: "臥推", sets: [
+            setWithTarget(weight: 60, reps: 8, targetWeight: 60, targetReps: 8),
+            setWithTarget(weight: 60, reps: 6, targetWeight: 60, targetReps: 8),
+        ])]
+        let (actual, target) = HistoryFormatting.totalVolume(complete)
+        #expect(actual == 840)
+        #expect(target == 960.0)
+
+        let partial = [HistoryBlock(id: 0, exerciseName: "自由加練", sets: [
+            setWithTarget(weight: 60, reps: 8, targetWeight: nil, targetReps: nil),
+        ])]
+        #expect(HistoryFormatting.totalVolume(partial).target == nil)
+    }
 }

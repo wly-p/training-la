@@ -55,4 +55,11 @@ extension DayDate {
     public func days(to other: DayDate) -> Int {
         Self.gregorian.dateComponents([.day], from: gregorianDate, to: other.gregorianDate).day!
     }
+
+    /// 星期幾（1=週日...7=週六，對齊 `Calendar.component(.weekday:)`）。給「這週」相關 UI 判斷用
+    /// （本週進度環等）。刻意不對外暴露底層 `Date` 換算本身（不加 public `asDate`）——
+    /// 各 package 已各自有同名 private 擴充，重複加會撞名產生 "ambiguous use" 編譯錯誤。
+    public var weekdayNumber: Int {
+        Self.gregorian.component(.weekday, from: gregorianDate)
+    }
 }

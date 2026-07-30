@@ -1,3 +1,4 @@
+import DesignSystem
 import SharedKernel
 import SwiftUI
 
@@ -5,156 +6,243 @@ public struct SettingsView: View {
     @Bindable private var viewModel: SettingsViewModel
     /// App 版號顯示字串（例："1.0.0 (1)"）；nil＝不顯示。
     private let appVersion: String?
-    @State private var showEraseConfirm = false
 
-    public init(viewModel: SettingsViewModel, appVersion: String? = nil) {
+    @State private var showEraseConfirm = false
+    @State private var route: SettingsRoute?
+    /// 重量單位＝**佔位**（Domain/Data 尚無使用者偏好，見設計 handoff 決策）：
+    /// 顯示 kg|lb 分段控制但不寫回、不持久化。TODO：之後接 WeightUnit 偏好 Storing 再綁上去。
+    @State private var weightUnitPlaceholder = "kg"
+    /// 「我的能力值」畫面住在 Ability package（Presentation-to-Presentation 不互相 import，
+    /// 靠 App 層組裝時注入這個 view builder，型別抹成 AnyView）。nil＝不顯示這一列
+    /// （例如 SwiftUI 預覽或還沒接 Ability 的情境）。
+    private let abilityDestination: (() -> AnyView)?
+
+    private enum SettingsRoute: Hashable { case theme, language, icon, ability }
+
+    public init(
+        viewModel: SettingsViewModel,
+        appVersion: String? = nil,
+        abilityDestination: (() -> AnyView)? = nil
+    ) {
         self.viewModel = viewModel
         self.appVersion = appVersion
+        self.abilityDestination = abilityDestination
     }
 
     public var body: some View {
         NavigationStack {
-            List {
-                Section {
-                    Picker(selection: $viewModel.theme) {
-                        ForEach(AppTheme.allCases) { theme in
-                            localText(theme.displayName).tag(theme)
+            ScrollView {
+                VStack(alignment: .leading, spacing: 0) {
+                    PageHeader(localText("settings.title"))
+
+                    VStack(alignment: .leading, spacing: TLSpace.section) {
+                        appearanceSection
+                        if abilityDestination != nil {
+                            abilitySection
                         }
-                    } label: {
-                        localText("settings.theme.title")
+                        restReminderSection
+                        dataSection
+                        versionFooter
                     }
-                    #if os(iOS)
-                    .pickerStyle(.navigationLink)
-                    #endif
-                } header: {
-                    localText("settings.appearance.section")
+                    .padding(.horizontal, TLSpace.page)
+                    .padding(.top, TLSpace.section)
                 }
-
-                Section {
-                    Picker(selection: $viewModel.icon) {
-                        ForEach(AppIcon.allCases) { icon in
-                            Label {
-                                localText(icon.displayName)
-                            } icon: {
-                                Image(icon.previewImageName)
-                                    .resizable()
-                                    .frame(width: 32, height: 32)
-                                    .clipShape(RoundedRectangle(cornerRadius: 7))
-                            }
-                            .tag(icon)
-                        }
-                    } label: {
-                        localText("settings.appIcon.title")
-                    }
-                    #if os(iOS)
-                    .pickerStyle(.navigationLink)
-                    #endif
-                } header: {
-                    localText("settings.appIcon.title")
-                }
-
-                Section {
-                    Picker(selection: $viewModel.language) {
-                        // 每個語言以「自己的母語名」呈現（nativeName 是固定字串、不本地化），
-                        // 這樣不論目前語言為何都認得。目前僅繁體中文，之後加語言會自動出現在清單。
-                        ForEach(AppLanguage.allCases) { language in
-                            Text(language.nativeName).tag(language)
-                        }
-                    } label: {
-                        localText("settings.language.title")
-                    }
-                    #if os(iOS)
-                    .pickerStyle(.navigationLink)
-                    #endif
-                } header: {
-                    localText("settings.language.title")
-                }
-
-                Section {
-                    Toggle(isOn: $viewModel.restReminder.popup) {
-                        localText("settings.restReminder.popup")
-                    }
-                    Toggle(isOn: $viewModel.restReminder.sound) {
-                        localText("settings.restReminder.sound")
-                    }
-                } header: {
-                    localText("settings.restReminder.foreground.header")
-                } footer: {
-                    localText("settings.restReminder.foreground.footer")
-                }
-
-                Section {
-                    Toggle(isOn: $viewModel.restReminder.backgroundNotification) {
-                        localText("settings.restReminder.background.toggle")
-                    }
-                } header: {
-                    localText("settings.restReminder.background.header")
-                } footer: {
-                    localText("settings.restReminder.background.footer")
-                }
-
-                Section {
-                    Button(role: .destructive) {
-                        showEraseConfirm = true
-                    } label: {
-                        HStack {
-                            localText("settings.eraseAll.button")
-                            if viewModel.isErasing {
-                                Spacer()
-                                ProgressView()
-                            }
-                        }
-                    }
-                    .disabled(viewModel.isErasing)
-                    .accessibilityIdentifier("deleteAllDataButton")
-                } header: {
-                    localText("settings.data.header")
-                } footer: {
-                    localText("settings.data.footer")
-                }
-
-                if let appVersion {
-                    Section {
-                        HStack {
-                            localText("settings.version.title")
-                            Spacer()
-                            Text(appVersion)
-                                .foregroundStyle(.secondary)
-                                .monospacedDigit()
-                                .accessibilityIdentifier("appVersion")
-                        }
-                    } header: {
-                        localText("settings.about.section")
-                    }
-                }
+                .padding(.bottom, 40)
             }
-            .navigationTitle(localText("settings.title"))
-            // 用 alert 不用 confirmationDialog：iOS 26 的 confirmationDialog 會以帶箭頭的 popover
-            // 呈現且錨點不在觸發按鈕上；alert 固定置中、無箭頭。
-            .alert(
-                localText("settings.eraseAll.confirm.title"),
-                isPresented: $showEraseConfirm
-            ) {
-                Button(role: .destructive) {
-                    Task { await viewModel.eraseAllData() }
-                } label: {
-                    localText("settings.eraseAll.button")
-                }
-                Button(role: .cancel) {} label: {
-                    localText("settings.common.cancel")
-                }
-            } message: {
-                localText("settings.eraseAll.confirm.message")
-            }
+            .background(TLColor.bg.ignoresSafeArea())
+            #if os(iOS)
+            .toolbar(.hidden, for: .navigationBar)
+            #endif
+            .navigationDestination(item: $route) { destination($0) }
+            .tlConfirmationDialog(
+                isPresented: $showEraseConfirm,
+                title: localText("settings.eraseAll.confirm.title"),
+                message: localText("settings.eraseAll.confirm.message"),
+                confirmLabel: localText("settings.eraseAll.button"),
+                cancelLabel: localText("settings.common.cancel"),
+                role: .destructive,
+                confirmIdentifier: "eraseConfirmButton",
+                onConfirm: { Task { await viewModel.eraseAllData() } }
+            )
             .alert(
                 localText("settings.eraseFailed.title"),
                 isPresented: $viewModel.eraseFailed
             ) {
-                Button(role: .cancel) {} label: {
-                    localText("settings.common.ok")
-                }
+                Button(role: .cancel) {} label: { localText("settings.common.ok") }
             } message: {
                 localText("settings.eraseFailed.message")
+            }
+        }
+    }
+
+    // MARK: - 外觀
+
+    private var appearanceSection: some View {
+        VStack(alignment: .leading, spacing: 0) {
+            SectionHeader(localText("settings.appearance.section"))
+            TLGroup {
+                SettingsRow(
+                    localText("settings.theme.title"),
+                    showChevron: true,
+                    accessibilityValue: localText(viewModel.theme.displayName),
+                    onTap: { route = .theme }
+                ) {
+                    SettingsValue(localText(viewModel.theme.displayName))
+                }
+                SettingsRow(
+                    localText("settings.language.title"),
+                    showChevron: true,
+                    accessibilityValue: Text(verbatim: viewModel.language.nativeName),
+                    onTap: { route = .language }
+                ) {
+                    SettingsValue(Text(verbatim: viewModel.language.nativeName))
+                }
+                SettingsRow(
+                    localText("settings.appIcon.title"),
+                    showChevron: true,
+                    accessibilityValue: localText(viewModel.icon.displayName),
+                    onTap: { route = .icon }
+                ) {
+                    Image(viewModel.icon.previewImageName)
+                        .resizable()
+                        .frame(width: 30, height: 30)
+                        .clipShape(RoundedRectangle(cornerRadius: 7, style: .continuous))
+                }
+                SettingsRow(localText("settings.weightUnit.title")) {
+                    TLSegmentedControl(
+                        selection: $weightUnitPlaceholder,
+                        options: [
+                            .init("kg", "kg"),
+                            .init("lb", "lb"),
+                        ]
+                    )
+                    .frame(width: 128)
+                }
+            }
+        }
+    }
+
+    // MARK: - 休息結束提醒
+
+    private var restReminderSection: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            VStack(alignment: .leading, spacing: 0) {
+                SectionHeader(localText("settings.restReminder.section"))
+                TLGroup {
+                    SettingsToggleRow(
+                        localText("settings.restReminder.popup"),
+                        isOn: $viewModel.restReminder.popup
+                    )
+                    SettingsToggleRow(
+                        localText("settings.restReminder.sound"),
+                        hint: localText("settings.restReminder.sound.hint"),
+                        isOn: $viewModel.restReminder.sound
+                    )
+                    SettingsToggleRow(
+                        localText("settings.restReminder.background.toggle"),
+                        isOn: $viewModel.restReminder.backgroundNotification
+                    )
+                }
+            }
+            localText("settings.restReminder.footer")
+                .font(TLFont.zh(TLFont.rowSub, .regular))
+                .foregroundStyle(TLColor.neutral500)
+                .padding(.horizontal, TLSpace.rowInset)
+        }
+    }
+
+    // MARK: - 能力值
+
+    /// 落點暫定（見 05-settings.md B 節：「它不是設定，這一點待你決定」），先掛在這裡。
+    private var abilitySection: some View {
+        VStack(alignment: .leading, spacing: 0) {
+            SectionHeader(localText("settings.ability.section"))
+            TLGroup {
+                SettingsRow(
+                    localText("settings.ability.title"),
+                    showChevron: true,
+                    onTap: { route = .ability }
+                )
+            }
+        }
+    }
+
+    // MARK: - 資料
+
+    private var dataSection: some View {
+        VStack(alignment: .leading, spacing: 0) {
+            SectionHeader(localText("settings.data.header"))
+            TLGroup {
+                // 匯出資料＝佔位、停用（Domain/Data 尚未實作，見設計 handoff 決策）。
+                SettingsRow(localText("settings.export.title"), showChevron: true) {
+                    EmptyView()
+                }
+                .opacity(0.4)
+                .allowsHitTesting(false)
+
+                SettingsRow(
+                    localText("settings.eraseAll.button"),
+                    role: .destructive,
+                    onTap: { if !viewModel.isErasing { showEraseConfirm = true } }
+                ) {
+                    if viewModel.isErasing { ProgressView() }
+                }
+                .accessibilityIdentifier("deleteAllDataButton")
+            }
+        }
+    }
+
+    // MARK: - 版號（設計稿未含；保留以免回退已上線功能與 UITest）
+
+    @ViewBuilder
+    private var versionFooter: some View {
+        if let appVersion {
+            Text(appVersion)
+                .font(TLFont.display(13))
+                .foregroundStyle(TLColor.neutral500)
+                .frame(maxWidth: .infinity, alignment: .center)
+                .accessibilityIdentifier("appVersion")
+        }
+    }
+
+    // MARK: - drill-in 目的地
+
+    @ViewBuilder
+    private func destination(_ destinationRoute: SettingsRoute) -> some View {
+        switch destinationRoute {
+        case .theme:
+            SettingsSelectionView(
+                title: localText("settings.theme.title"),
+                options: AppTheme.allCases,
+                current: viewModel.theme,
+                label: { localText($0.displayName) },
+                leadingImageName: nil,
+                onSelect: { viewModel.theme = $0; route = nil },
+                onBack: { route = nil }
+            )
+        case .language:
+            SettingsSelectionView(
+                title: localText("settings.language.title"),
+                options: AppLanguage.allCases,
+                current: viewModel.language,
+                label: { Text(verbatim: $0.nativeName) },
+                leadingImageName: nil,
+                onSelect: { viewModel.language = $0; route = nil },
+                onBack: { route = nil }
+            )
+        case .icon:
+            SettingsSelectionView(
+                title: localText("settings.appIcon.title"),
+                options: AppIcon.allCases,
+                current: viewModel.icon,
+                label: { localText($0.displayName) },
+                leadingImageName: { $0.previewImageName },
+                onSelect: { viewModel.icon = $0; route = nil },
+                onBack: { route = nil }
+            )
+        case .ability:
+            if let abilityDestination {
+                abilityDestination()
             }
         }
     }

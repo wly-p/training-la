@@ -23,17 +23,22 @@ actor MockWorkoutTemplateRepository: WorkoutTemplateRepository {
     }
 }
 
-struct CreateTemplateTests {
-    private func draft(_ setCount: Int = 3) -> ExerciseTargetDraft {
-        ExerciseTargetDraft(exerciseId: UUID(), setCount: setCount,
-                            targetWeight: Weight(value: 100, unit: .kg), targetReps: 5)
+/// 逐組編輯後直接建構 `[PlanSet]`（新版範本編輯器不再經過 `ExerciseTargetDraft`）。
+private func uniformBlock(exerciseIndex: Int, setCount: Int = 3, weight: Double = 100, reps: Int = 5) -> [PlanSet] {
+    (0..<setCount).map { setIndex in
+        PlanSet(
+            id: UUID(), exerciseId: UUID(), exerciseIndex: exerciseIndex, setIndex: setIndex,
+            targetWeight: .absolute(Weight(value: weight, unit: .kg)), targetReps: reps
+        )
     }
+}
 
+struct CreateTemplateTests {
     @Test func createExpandsDraftsAndDefaultsToUserSource() async throws {
         let repo = MockWorkoutTemplateRepository()
         let create = CreateTemplate(repository: repo)
 
-        let template = try await create(name: "推日範本", drafts: [draft(3), draft(2)])
+        let template = try await create(name: "推日範本", sets: uniformBlock(exerciseIndex: 0, setCount: 3) + uniformBlock(exerciseIndex: 1, setCount: 2))
 
         #expect(template.name == "推日範本")
         #expect(template.source == .user)
@@ -44,14 +49,14 @@ struct CreateTemplateTests {
     @Test func createTrimsAndRejectsEmptyName() async throws {
         let create = CreateTemplate(repository: MockWorkoutTemplateRepository())
         await #expect(throws: PlanWorkoutValidationError.emptyName) {
-            try await create(name: "   ", drafts: [draft()])
+            try await create(name: "   ", sets: uniformBlock(exerciseIndex: 0))
         }
     }
 
     @Test func createRejectsEmptyDrafts() async throws {
         let create = CreateTemplate(repository: MockWorkoutTemplateRepository())
         await #expect(throws: PlanWorkoutValidationError.empty) {
-            try await create(name: "空範本", drafts: [])
+            try await create(name: "空範本", sets: [])
         }
     }
 
@@ -59,8 +64,8 @@ struct CreateTemplateTests {
         let repo = MockWorkoutTemplateRepository()
         let create = CreateTemplate(repository: repo)
 
-        let first = try await create(name: "A", drafts: [draft()])
-        let second = try await create(name: "B", drafts: [draft()])
+        let first = try await create(name: "A", sets: uniformBlock(exerciseIndex: 0))
+        let second = try await create(name: "B", sets: uniformBlock(exerciseIndex: 0))
 
         #expect(first.orderIndex == 0)
         #expect(second.orderIndex == 1)
@@ -68,10 +73,6 @@ struct CreateTemplateTests {
 }
 
 struct UpdateTemplateTests {
-    private func draft() -> ExerciseTargetDraft {
-        ExerciseTargetDraft(exerciseId: UUID(), setCount: 2, targetWeight: Weight(value: 60, unit: .kg), targetReps: 8)
-    }
-
     @Test func updateReplacesNameAndSetsButKeepsSourceAndOrderIndex() async throws {
         let repo = MockWorkoutTemplateRepository()
         let original = WorkoutTemplate(id: UUID(), name: "舊", source: .official, orderIndex: 3,
@@ -79,12 +80,15 @@ struct UpdateTemplateTests {
         await repo.seed([original])
         let update = UpdateTemplate(repository: repo)
 
-        let updated = try await update(id: original.id, name: "新", drafts: [draft(), draft()])
+        let updated = try await update(
+            id: original.id, name: "新",
+            sets: uniformBlock(exerciseIndex: 0, setCount: 2, weight: 60, reps: 8) + uniformBlock(exerciseIndex: 1, setCount: 2, weight: 60, reps: 8)
+        )
 
         #expect(updated.name == "新")
         #expect(updated.source == .official)
         #expect(updated.orderIndex == 3)
-        #expect(updated.sets.count == 4)   // 2 drafts × setCount 2
+        #expect(updated.sets.count == 4)   // 2 動作 × 2 組
         #expect(updated.blocks.count == 2)
     }
 
@@ -92,7 +96,7 @@ struct UpdateTemplateTests {
         let repo = MockWorkoutTemplateRepository()
         let ghost = UUID()
         await #expect(throws: WorkoutTemplateRepositoryError.notFound(id: ghost)) {
-            try await UpdateTemplate(repository: repo)(id: ghost, name: "X", drafts: [draft()])
+            try await UpdateTemplate(repository: repo)(id: ghost, name: "X", sets: uniformBlock(exerciseIndex: 0))
         }
     }
 }
@@ -105,9 +109,9 @@ struct InstantiateTemplateTests {
             id: UUID(), name: "推日", source: .user, orderIndex: 0,
             sets: [
                 PlanSet(id: UUID(), exerciseId: UUID(), exerciseIndex: 0, setIndex: 0,
-                        targetWeight: Weight(value: 100, unit: .kg), targetReps: 5, restSec: 90),
+                        targetWeight: .absolute(Weight(value: 100, unit: .kg)), targetReps: 5, restSec: 90),
                 PlanSet(id: UUID(), exerciseId: UUID(), exerciseIndex: 1, setIndex: 0,
-                        targetWeight: Weight(value: 60, unit: .kg), targetReps: 8),
+                        targetWeight: .absolute(Weight(value: 60, unit: .kg)), targetReps: 8),
             ],
             createdAt: Date(), updatedAt: Date()
         )
@@ -118,7 +122,7 @@ struct InstantiateTemplateTests {
         let planRepo = MockPlanWorkoutRepository()
         let tpl = template()
         await templateRepo.seed([tpl])
-        let instantiate = InstantiateTemplate(templateRepository: templateRepo, planRepository: planRepo)
+        let instantiate = InstantiateTemplate(templateRepository: templateRepo, planRepository: planRepo, exerciseCatalog: MockPlanExerciseCatalog(), lastPerformedWeightLookup: MockLastPerformedWeightLookup(), abilityValueLookup: MockAbilityValueLookup())
 
         let plan = try await instantiate(templateId: tpl.id, date: today)
 
@@ -130,7 +134,7 @@ struct InstantiateTemplateTests {
         // 快照：set id 是新的，不等於範本的 set id
         #expect(Set(plan.sets.map(\.id)).isDisjoint(with: Set(tpl.sets.map(\.id))))
         // 目標值有被 copy 過來
-        #expect(plan.sets.first?.targetWeight == Weight(value: 100, unit: .kg))
+        #expect(plan.sets.first?.targetWeight == .absolute(Weight(value: 100, unit: .kg)))
         #expect(plan.sets.first?.restSec == 90)
         // 已存進 plan repository
         #expect(try await planRepo.get(id: plan.id) != nil)
@@ -142,7 +146,7 @@ struct InstantiateTemplateTests {
         let tpl = template()
         await templateRepo.seed([tpl])
         await planRepo.seed([PlanWorkout(id: UUID(), name: "先排的", date: today, orderIndex: 0)])
-        let instantiate = InstantiateTemplate(templateRepository: templateRepo, planRepository: planRepo)
+        let instantiate = InstantiateTemplate(templateRepository: templateRepo, planRepository: planRepo, exerciseCatalog: MockPlanExerciseCatalog(), lastPerformedWeightLookup: MockLastPerformedWeightLookup(), abilityValueLookup: MockAbilityValueLookup())
 
         let plan = try await instantiate(templateId: tpl.id, date: today)
 
@@ -153,10 +157,63 @@ struct InstantiateTemplateTests {
         let ghost = UUID()
         let instantiate = InstantiateTemplate(
             templateRepository: MockWorkoutTemplateRepository(),
-            planRepository: MockPlanWorkoutRepository()
+            planRepository: MockPlanWorkoutRepository(),
+            exerciseCatalog: MockPlanExerciseCatalog(),
+            lastPerformedWeightLookup: MockLastPerformedWeightLookup(),
+            abilityValueLookup: MockAbilityValueLookup()
         )
         await #expect(throws: WorkoutTemplateRepositoryError.notFound(id: ghost)) {
             try await instantiate(templateId: ghost, date: today)
+        }
+    }
+}
+
+struct DuplicateTemplateTests {
+    private func template() -> WorkoutTemplate {
+        WorkoutTemplate(
+            id: UUID(), name: "推日", source: .user, orderIndex: 0,
+            sets: [
+                PlanSet(id: UUID(), exerciseId: UUID(), exerciseIndex: 0, setIndex: 0,
+                        targetWeight: .absolute(Weight(value: 100, unit: .kg)), targetReps: 5, restSec: 90),
+            ],
+            createdAt: Date(), updatedAt: Date()
+        )
+    }
+
+    @Test func duplicateDeepCopiesSetsWithNewIdsAndSuffixedName() async throws {
+        let repo = MockWorkoutTemplateRepository()
+        let original = template()
+        await repo.seed([original])
+
+        let copy = try await DuplicateTemplate(repository: repo)(id: original.id)
+
+        #expect(copy.id != original.id)
+        #expect(copy.name == "推日 · 副本")
+        #expect(copy.sets.count == original.sets.count)
+        #expect(Set(copy.sets.map(\.id)).isDisjoint(with: Set(original.sets.map(\.id))))
+        #expect(copy.sets.first?.targetWeight == original.sets.first?.targetWeight)
+        // 兩份都存在、互相獨立
+        #expect(try await repo.all().count == 2)
+        #expect(try await repo.get(id: original.id) != nil)
+    }
+
+    @Test func duplicateIsIndependentFromOriginal() async throws {
+        let repo = MockWorkoutTemplateRepository()
+        let original = template()
+        await repo.seed([original])
+        let copy = try await DuplicateTemplate(repository: repo)(id: original.id)
+
+        try await UpdateTemplate(repository: repo)(id: copy.id, name: "改過的副本", sets: copy.sets)
+
+        let untouchedOriginal = try await repo.get(id: original.id)
+        #expect(untouchedOriginal?.name == "推日")
+    }
+
+    @Test func duplicateMissingTemplateThrowsNotFound() async throws {
+        let repo = MockWorkoutTemplateRepository()
+        let ghost = UUID()
+        await #expect(throws: WorkoutTemplateRepositoryError.notFound(id: ghost)) {
+            try await DuplicateTemplate(repository: repo)(id: ghost)
         }
     }
 }

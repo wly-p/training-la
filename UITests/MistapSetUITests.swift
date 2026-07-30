@@ -14,8 +14,8 @@ final class MistapSetUITests: XCTestCase {
         app.launch()
 
         // 1. 動作庫建一個動作
-        app.tabBars.buttons["動作庫"].tap()
-        app.buttons["新增動作"].tap()
+        app.buttons["動作庫"].tap()
+        app.buttons["libraryAddButton"].tap()
         let nameField = app.textFields["名稱（例：臥推）"]
         XCTAssertTrue(nameField.waitForExistence(timeout: 5))
         nameField.tap()
@@ -24,9 +24,9 @@ final class MistapSetUITests: XCTestCase {
         XCTAssertTrue(app.staticTexts["臥推"].waitForExistence(timeout: 5))
 
         // 2. 開始訓練 → 選動作 → 進入記錄面板
-        app.tabBars.buttons["訓練"].tap()
-        app.buttons["開始訓練"].tap()
-        let pickerTitle = app.navigationBars["選擇動作"]
+        app.buttons["訓練"].tap()
+        app.buttons["自由訓練 · 邊練邊加動作"].tap()
+        let pickerTitle = app.staticTexts["選擇動作"]
         if !pickerTitle.waitForExistence(timeout: 3) {
             app.buttons["加入動作"].tap()
             XCTAssertTrue(pickerTitle.waitForExistence(timeout: 5))
@@ -39,9 +39,9 @@ final class MistapSetUITests: XCTestCase {
         XCTAssertTrue(app.buttons["完成此組"].waitForExistence(timeout: 5))
         XCTAssertTrue(app.staticTexts["第1組"].waitForExistence(timeout: 5))
 
-        // 4. 點面板內的非控制項空白處（重量／次數標籤）——修復後不應觸發任何動作
-        app.staticTexts["重量"].tap()
-        app.staticTexts["次數"].tap()
+        // 4. 點面板內的非控制項（組表欄名「目標」「實際」）——不應觸發任何記錄動作
+        app.staticTexts["目標"].tap()
+        app.staticTexts["實際"].tap()
 
         // 5. 沒有被多記一組：header 仍停在「第1組」，不會出現「第2組」
         //    （修復前這裡會誤觸「跳過此組」多記一組，header 變「第2組」而失敗。）

@@ -4,6 +4,31 @@
     "" : {
 
     },
+    "%lld" : {
+
+    },
+    "🎉" : {
+
+    },
+    "💪" : {
+
+    },
+    "training.active.kicker %lld" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Training · %lld min"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "訓練中 · %lld 分"
+          }
+        }
+      }
+    },
     "training.active.title" : {
       "localizations" : {
         "en" : {
@@ -21,6 +46,7 @@
       }
     },
     "training.addAnother" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -84,6 +110,22 @@
         }
       }
     },
+    "training.chooseTemplate" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Choose a Template"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "選擇範本"
+          }
+        }
+      }
+    },
     "training.completeSet" : {
       "localizations" : {
         "en" : {
@@ -100,7 +142,120 @@
         }
       }
     },
+    "training.edit.addSet %lld %lld" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Add a Set (%1$lld→%2$lld)"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "再加一組（%1$lld→%2$lld 組）"
+          }
+        }
+      }
+    },
+    "training.edit.hint" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "These only affect today's session — templates stay unchanged."
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "以上都只影響今天這一場，範本不會被改。"
+          }
+        }
+      }
+    },
+    "training.edit.menu" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "More Options"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "更多操作"
+          }
+        }
+      }
+    },
+    "training.edit.removeFromSession" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Remove From This Session"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "從這場移除"
+          }
+        }
+      }
+    },
+    "training.edit.removeSet %lld %lld" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Remove a Set (%1$lld→%2$lld)"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "少做一組（%1$lld→%2$lld 組）"
+          }
+        }
+      }
+    },
+    "training.edit.replace" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Swap Exercise"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "換一個動作"
+          }
+        }
+      }
+    },
+    "training.edit.skipExercise" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Skip This Exercise"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "跳過這個動作"
+          }
+        }
+      }
+    },
     "training.emptyLibrary" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -117,6 +272,7 @@
       }
     },
     "training.emptyLibrary.hint" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -244,6 +400,278 @@
         }
       }
     },
+    "training.finish.achievedSets" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "sets on target"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "達標組數"
+          }
+        }
+      }
+    },
+    "training.finish.addNote" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Add a Note"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "加註記"
+          }
+        }
+      }
+    },
+    "training.finish.discard" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Discard This Session"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "捨棄這場"
+          }
+        }
+      }
+    },
+    "training.finish.discardConfirm" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Discard (can't be undone)"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "捨棄這場（無法復原）"
+          }
+        }
+      }
+    },
+    "training.finish.discardConfirmTitle" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Discard this workout?"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "捨棄這場訓練？"
+          }
+        }
+      }
+    },
+    "training.finish.exerciseSets %lld %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$lld sets · %2$@ kg"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$lld 組 · %2$@ kg"
+          }
+        }
+      }
+    },
+    "training.finish.feeling.easy" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Easy"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "輕鬆"
+          }
+        }
+      }
+    },
+    "training.finish.feeling.hard" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hard"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "很硬"
+          }
+        }
+      }
+    },
+    "training.finish.feeling.justRight" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Just Right"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "剛好"
+          }
+        }
+      }
+    },
+    "training.finish.minutes" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "minutes"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "分鐘"
+          }
+        }
+      }
+    },
+    "training.finish.pr.newReps %@ %@ %lld" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$@ %2$@ × %3$lld — new rep record at this weight"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$@ %2$@ × %3$lld —— 這個重量的新次數紀錄"
+          }
+        }
+      }
+    },
+    "training.finish.pr.newWeight %@ %@ %lld" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$@ %2$@ × %3$lld — new weight record at this rep count"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$@ %2$@ × %3$lld —— 這個次數的新重量紀錄"
+          }
+        }
+      }
+    },
+    "training.finish.saveAndFinish" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Finish & Save"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "完成並存檔"
+          }
+        }
+      }
+    },
+    "training.finish.title" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Workout Complete"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "訓練完成"
+          }
+        }
+      }
+    },
+    "training.finish.totalVolume" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "total volume kg"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "總量 kg"
+          }
+        }
+      }
+    },
+    "training.finish.volumeGoal %@ %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Target %1$@ kg · %2$@ reached"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "目標總量 %1$@ kg · 達成 %2$@"
+          }
+        }
+      }
+    },
+    "training.finish.whatYouDid" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "What You Did"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "這場做了什麼"
+          }
+        }
+      }
+    },
     "training.free" : {
       "localizations" : {
         "en" : {
@@ -260,18 +688,402 @@
         }
       }
     },
-    "training.home.title" : {
+    "training.home.activePlans %lld" : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Training"
+            "value" : "%lld plans in progress"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "訓練"
+            "value" : "%lld 個計畫進行中"
+          }
+        }
+      }
+    },
+    "training.home.anytime" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Anytime"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "隨時可做"
+          }
+        }
+      }
+    },
+    "training.home.enableProgramHint" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Enable a Rotation or Long-Term Program"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "啟用一個循環或長期計畫"
+          }
+        }
+      }
+    },
+    "training.home.exerciseSetCount %lld %lld" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$lld exercises · %2$lld sets"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$lld 個動作 · %2$lld 組"
+          }
+        }
+      }
+    },
+    "training.home.freeTrainingHint" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Add exercises as you go"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "邊練邊加動作"
+          }
+        }
+      }
+    },
+    "training.home.noPlanMessage" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "You don't have any active plan. Pick a template to start, or just train freely."
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "你目前沒有進行中的計畫。挑一份範本開始，或直接隨手練。"
+          }
+        }
+      }
+    },
+    "training.home.pickTemplateToStart" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pick a Template to Start"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "挑一份範本開始"
+          }
+        }
+      }
+    },
+    "training.home.recentlyTrained" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Recently Trained"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "最近練過"
+          }
+        }
+      }
+    },
+    "training.home.repeatLast" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Repeat Last"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "重複上次"
+          }
+        }
+      }
+    },
+    "training.home.repeatOnceMore" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Do It Again"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "再練一次"
+          }
+        }
+      }
+    },
+    "training.home.restDay.headline %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "“%@” — today is a rest day."
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "「%@」今天是休息日。"
+          }
+        }
+      }
+    },
+    "training.home.restDay.nextWorkoutLater %@ %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ is “%@.”"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ 是「%@」。"
+          }
+        }
+      }
+    },
+    "training.home.restDay.nextWorkoutTomorrow %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tomorrow is “%@.”"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "明天是「%@」。"
+          }
+        }
+      }
+    },
+    "training.home.restDay.noMoreWorkouts" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No more workout days are scheduled ahead on this program."
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "這份課表接下來沒有排定的訓練日了。"
+          }
+        }
+      }
+    },
+    "training.home.restDay.startAnyway" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Still want to train · Do a quick session"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "還是想練 · 隨手練一場"
+          }
+        }
+      }
+    },
+    "training.home.restDay.title" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Rest Day"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "今天休息"
+          }
+        }
+      }
+    },
+    "training.home.setsCount %lld" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld sets"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld 組"
+          }
+        }
+      }
+    },
+    "training.home.startCard" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Start"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "開始"
+          }
+        }
+      }
+    },
+    "training.home.startRotationCard" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Start Rotation"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "開始循環"
+          }
+        }
+      }
+    },
+    "training.home.thisWeek" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "This Week"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "本週"
+          }
+        }
+      }
+    },
+    "training.home.title" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "What to Train Today"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "今天練什麼"
+          }
+        }
+      }
+    },
+    "training.home.title.none" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Today"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "今天"
+          }
+        }
+      }
+    },
+    "training.home.todaySpecified" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Today"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "今天指定"
+          }
+        }
+      }
+    },
+    "training.home.weekDuration %lld %lld" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$lld h %2$lld m total"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "累計 %1$lld 小時 %2$lld 分"
+          }
+        }
+      }
+    },
+    "training.home.weekSessionsLabel" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "sessions"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "次訓練"
           }
         }
       }
@@ -287,7 +1099,7 @@
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "感受如何？"
+            "value" : "感覺如何 · 選填"
           }
         }
       }
@@ -356,22 +1168,6 @@
         }
       }
     },
-    "training.minutes %lld" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%lld min"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%lld 分鐘"
-          }
-        }
-      }
-    },
     "training.nextExercise" : {
       "localizations" : {
         "en" : {
@@ -416,22 +1212,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "今天沒有排課"
-          }
-        }
-      }
-    },
-    "training.notes" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Notes"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "備註"
           }
         }
       }
@@ -484,6 +1264,54 @@
         }
       }
     },
+    "training.picker.all" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "All"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "全部"
+          }
+        }
+      }
+    },
+    "training.picker.matchCount %lld" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld matches"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld 個相符"
+          }
+        }
+      }
+    },
+    "training.picker.recent" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Recent"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "最近用過"
+          }
+        }
+      }
+    },
     "training.pickToStart" : {
       "localizations" : {
         "en" : {
@@ -496,6 +1324,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "選一個動作開始"
+          }
+        }
+      }
+    },
+    "training.pickToStart.hint" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pick an exercise to start logging"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "從動作庫挑一個動作開始記錄"
           }
         }
       }
@@ -532,6 +1376,215 @@
         }
       }
     },
+    "training.preview.adjustOnce" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Adjust Just for Today"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "只調這一次"
+          }
+        }
+      }
+    },
+    "training.preview.editTemplate" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Edit Template"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "改範本"
+          }
+        }
+      }
+    },
+    "training.preview.exerciseSetCount %lld %lld" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$lld exercises · %2$lld sets"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$lld 個動作 · %2$lld 組"
+          }
+        }
+      }
+    },
+    "training.preview.exerciseSetCountDuration %lld %lld %lld" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$lld exercises · %2$lld sets · ~%3$lld min"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$lld 個動作 · %2$lld 組 · 約 %3$lld 分"
+          }
+        }
+      }
+    },
+    "training.preview.hint" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Weights are computed from your last record and 1RM. You can still adjust each set after starting."
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "重量已依上次紀錄與 1RM 換算。開始後仍可逐組改。"
+          }
+        }
+      }
+    },
+    "training.preview.intensity %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Intensity %@"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "強度 %@"
+          }
+        }
+      }
+    },
+    "training.preview.lockNotice" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Weights are locked in for today. Changing your 1RM or intensity baseline later won't affect this session."
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "重量已鎖定為今天的課表。之後改 1RM 或強度基準，都不會動到這一份。"
+          }
+        }
+      }
+    },
+    "training.preview.pending" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "TBD"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "待填"
+          }
+        }
+      }
+    },
+    "training.preview.start" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Start Workout"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "開始訓練"
+          }
+        }
+      }
+    },
+    "training.preview.vsLast" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "vs last time"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "和上次比"
+          }
+        }
+      }
+    },
+    "training.preview.vsLast.mainLift %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Main lift %1$@"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "主項 %1$@"
+          }
+        }
+      }
+    },
+    "training.preview.vsLast.same" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "same"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "持平"
+          }
+        }
+      }
+    },
+    "training.preview.vsLast.summary %@ %lld %lld" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Last %1$@ · hit %2$lld/%3$lld sets"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "上次 %1$@ · 達標 %2$lld/%3$lld 組"
+          }
+        }
+      }
+    },
     "training.reps" : {
       "localizations" : {
         "en" : {
@@ -544,6 +1597,134 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "次數"
+          }
+        }
+      }
+    },
+    "training.rest.adjust %lld" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%+lld sec"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%+lld 秒"
+          }
+        }
+      }
+    },
+    "training.rest.doneOfTotal %lld %lld" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Set %1$lld done · %2$lld total"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "第%1$lld組 完成 · 共%2$lld組"
+          }
+        }
+      }
+    },
+    "training.rest.lastReps %lld" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Last set: %lld reps"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "上一組做了%lld次"
+          }
+        }
+      }
+    },
+    "training.rest.next %lld" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Up Next · Set %lld"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "接下來 · 第%lld組"
+          }
+        }
+      }
+    },
+    "training.rest.startEarly %lld" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Start Set %lld Early"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "提早開始第%lld組"
+          }
+        }
+      }
+    },
+    "training.rest.tapHint" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tap the card to adjust this set's weight/reps before the timer ends."
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "點卡片可先改這組的重量／次數，不必等計時結束。"
+          }
+        }
+      }
+    },
+    "training.rest.targetReps %lld" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Target %lld reps"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "目標%lld次"
+          }
+        }
+      }
+    },
+    "training.resting" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Resting"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "休息中"
           }
         }
       }
@@ -596,66 +1777,194 @@
         }
       }
     },
-    "training.resting" : {
+    "training.resume.continue" : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Resting"
+            "value" : "Continue"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "休息中"
+            "value" : "繼續訓練"
           }
         }
       }
     },
-    "training.resume" : {
+    "training.resume.continueRemaining %lld" : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Resume Workout"
+            "value" : "Continue — %lld Sets Left"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "繼續上次訓練"
+            "value" : "繼續練完剩下 %lld 組"
           }
         }
       }
     },
-    "training.rotationNext" : {
+    "training.resume.dataStaysPut %lld" : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Up next:"
+            "value" : "All %lld recorded sets are safe no matter which option you pick."
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "今天輪到"
+            "value" : "已記錄的 %lld 組都在，不會因為選哪一個而消失。"
           }
         }
       }
     },
-    "training.saveFinish" : {
+    "training.resume.description %@ %@" : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Save & Finish"
+            "value" : "“%1$@” started at %2$@, no activity since."
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "儲存並結束"
+            "value" : "「%1$@」從 %2$@ 開始，之後沒有動作。"
+          }
+        }
+      }
+    },
+    "training.resume.discard" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Discard Entire Session"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "捨棄整場"
+          }
+        }
+      }
+    },
+    "training.resume.discardConfirm" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Discard (can't be undone)"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "捨棄整場（無法復原）"
+          }
+        }
+      }
+    },
+    "training.resume.discardConfirmTitle" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Discard this entire session?"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "捨棄整場訓練？"
+          }
+        }
+      }
+    },
+    "training.resume.endNow" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "End It, Save as Before"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "結束它，存成之前的紀錄"
+          }
+        }
+      }
+    },
+    "training.resume.overnightTitle" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Yesterday's session is still open"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "昨天那場還開著"
+          }
+        }
+      }
+    },
+    "training.resume.recordedSets" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "sets recorded"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已記錄組數"
+          }
+        }
+      }
+    },
+    "training.resume.remainingSets" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "sets remaining"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "尚未做的組"
+          }
+        }
+      }
+    },
+    "training.resume.sameDayTitle" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "This session isn't finished yet"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "還沒結束這一場"
           }
         }
       }
@@ -677,6 +1986,7 @@
       }
     },
     "training.sessionExercises" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -688,22 +1998,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "本場動作"
-          }
-        }
-      }
-    },
-    "training.setCountUnit %lld" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%lld sets"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%lld組"
           }
         }
       }
@@ -720,22 +2014,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "第%lld組"
-          }
-        }
-      }
-    },
-    "training.setsTotal %lld" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%lld sets"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "共 %lld 組"
           }
         }
       }
@@ -772,54 +2050,6 @@
         }
       }
     },
-    "training.start" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Start Workout"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "開始訓練"
-          }
-        }
-      }
-    },
-    "training.startFromPlan" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Start from Plan"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "照課表開始"
-          }
-        }
-      }
-    },
-    "training.startFromTemplate" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Start from Template"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "從課表範本開始"
-          }
-        }
-      }
-    },
     "training.startNextSet" : {
       "localizations" : {
         "en" : {
@@ -836,50 +2066,146 @@
         }
       }
     },
-    "training.startRotation" : {
+    "training.table.actual" : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Start Rotation"
+            "value" : "ACTUAL"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "開始今天的循環"
+            "value" : "實際"
           }
         }
       }
     },
-    "training.target %@" : {
+    "training.table.currentSet" : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Target: %@"
+            "value" : "Current set"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "目標：%@"
+            "value" : "現在這組"
           }
         }
       }
     },
-    "training.thisWorkout" : {
+    "training.table.prefilledFromTarget %@" : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "This Workout"
+            "value" : "Target %@ · prefilled"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "本次訓練"
+            "value" : "目標 %@ · 已預填"
+          }
+        }
+      }
+    },
+    "training.table.resetToTarget" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Reset to Target"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "回到目標"
+          }
+        }
+      }
+    },
+    "training.table.sameAsLast" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Same as Last"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "同上組"
+          }
+        }
+      }
+    },
+    "training.table.set" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "SET"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "組"
+          }
+        }
+      }
+    },
+    "training.table.setCount %lld" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld sets"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld 組"
+          }
+        }
+      }
+    },
+    "training.table.target" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "TARGET"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "目標"
+          }
+        }
+      }
+    },
+    "training.tempExtra" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Extra Exercise"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "臨時加練"
           }
         }
       }
@@ -932,23 +2258,8 @@
         }
       }
     },
-    "training.unfinished" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "You have an unfinished workout"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "有一場訓練還沒結束"
-          }
-        }
-      }
-    },
     "training.unit" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -980,6 +2291,22 @@
         }
       }
     },
+    "training.upNext.section" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Up next · long-press to swap"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "接下來 · 長按可換動作"
+          }
+        }
+      }
+    },
     "training.weight" : {
       "localizations" : {
         "en" : {
@@ -996,11 +2323,53 @@
         }
       }
     },
-    "🎉" : {
-
+    "training.weightSource.reason.noAbility" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "1RM not set yet"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "還沒設定 1RM"
+          }
+        }
+      }
     },
-    "💪" : {
-
+    "training.weightSource.reason.noLast" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No previous record"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "沒有上次紀錄"
+          }
+        }
+      }
+    },
+    "training.weightSource.reason.none" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No history yet, and 1RM isn't set"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "沒有紀錄，也還沒設 1RM"
+          }
+        }
+      }
     }
   },
   "version" : "1.0"

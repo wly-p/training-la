@@ -10,7 +10,8 @@ let package = Package(
         .library(name: "HistoryPresentation", targets: ["HistoryPresentation"]),
     ],
     dependencies: [
-        .package(path: "../SharedKernel")
+        .package(path: "../SharedKernel"),
+        .package(path: "../DesignSystem"),
     ],
     targets: [
         .target(
@@ -19,7 +20,10 @@ let package = Package(
         ),
         .target(
             name: "HistoryPresentation",
-            dependencies: ["HistoryDomain"],
+            dependencies: [
+                "HistoryDomain",
+                .product(name: "DesignSystem", package: "DesignSystem"),
+            ],
             resources: [.process("Localizable.xcstrings")]
         ),
         .testTarget(

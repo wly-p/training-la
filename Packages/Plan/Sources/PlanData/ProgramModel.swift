@@ -11,6 +11,8 @@ final class ProgramModel {
     var orderIndex: Int
     /// 週期天數；每天內容存在攤平的 slots 裡（缺 dayIndex＝該天休息）。
     var cycleLength: Int
+    /// 這份課表的強度倍率。新欄位；預設 1.0（未發佈、無 migration 需求）。
+    var intensityFactor: Double = 1.0
     var createdAt: Date
     var updatedAt: Date
     @Relationship(deleteRule: .cascade, inverse: \ProgramSlotModel.program)
@@ -18,13 +20,15 @@ final class ProgramModel {
 
     init(
         id: UUID, name: String, sourceRaw: String, orderIndex: Int,
-        cycleLength: Int, createdAt: Date, updatedAt: Date, slots: [ProgramSlotModel] = []
+        cycleLength: Int, intensityFactor: Double = 1.0, createdAt: Date, updatedAt: Date,
+        slots: [ProgramSlotModel] = []
     ) {
         self.id = id
         self.name = name
         self.sourceRaw = sourceRaw
         self.orderIndex = orderIndex
         self.cycleLength = cycleLength
+        self.intensityFactor = intensityFactor
         self.createdAt = createdAt
         self.updatedAt = updatedAt
         self.slots = slots
@@ -38,15 +42,21 @@ final class ProgramSlotModel {
     var dayIndex: Int
     var specId: UUID
     var name: String
+    /// 這一格的強度倍率覆寫；nil＝繼承課表的 `intensityFactor`。新欄位；預設 nil。
+    var intensityFactor: Double?
     var program: ProgramModel?
     @Relationship(deleteRule: .cascade, inverse: \ProgramSlotSetModel.slot)
     var sets: [ProgramSlotSetModel]
 
-    init(id: UUID, dayIndex: Int, specId: UUID, name: String, sets: [ProgramSlotSetModel] = []) {
+    init(
+        id: UUID, dayIndex: Int, specId: UUID, name: String, intensityFactor: Double? = nil,
+        sets: [ProgramSlotSetModel] = []
+    ) {
         self.id = id
         self.dayIndex = dayIndex
         self.specId = specId
         self.name = name
+        self.intensityFactor = intensityFactor
         self.sets = sets
     }
 }
@@ -57,6 +67,8 @@ final class ProgramSlotSetModel {
     var exerciseId: UUID
     var exerciseIndex: Int
     var setIndex: Int
+    /// "absolute" ／ "relativeToLast"；nil＝沒有目標重量。見 `WeightExpressionCoding`。
+    var targetWeightKindRaw: String?
     var targetWeightValue: Double?
     var targetWeightUnitRaw: String?
     var targetReps: Int?
@@ -65,12 +77,14 @@ final class ProgramSlotSetModel {
 
     init(
         id: UUID, exerciseId: UUID, exerciseIndex: Int, setIndex: Int,
-        targetWeightValue: Double?, targetWeightUnitRaw: String?, targetReps: Int?, restSec: Int?
+        targetWeightKindRaw: String?, targetWeightValue: Double?, targetWeightUnitRaw: String?,
+        targetReps: Int?, restSec: Int?
     ) {
         self.id = id
         self.exerciseId = exerciseId
         self.exerciseIndex = exerciseIndex
         self.setIndex = setIndex
+        self.targetWeightKindRaw = targetWeightKindRaw
         self.targetWeightValue = targetWeightValue
         self.targetWeightUnitRaw = targetWeightUnitRaw
         self.targetReps = targetReps
@@ -105,6 +119,7 @@ extension ProgramModel {
                 dayIndex: dayIndex,
                 specId: spec.id,
                 name: spec.name,
+                intensityFactor: spec.intensityFactor,
                 sets: spec.sets.map { ProgramSlotSetModel(from: $0) }
             )
         }
@@ -114,6 +129,7 @@ extension ProgramModel {
             sourceRaw: program.source.rawValue,
             orderIndex: program.orderIndex,
             cycleLength: program.cycleLength,
+            intensityFactor: program.intensityFactor,
             createdAt: program.createdAt,
             updatedAt: program.updatedAt,
             slots: slots
@@ -128,7 +144,8 @@ extension ProgramModel {
                 name: slot.name,
                 sets: slot.sets
                     .map { $0.toDomain() }
-                    .sorted { ($0.exerciseIndex, $0.setIndex) < ($1.exerciseIndex, $1.setIndex) }
+                    .sorted { ($0.exerciseIndex, $0.setIndex) < ($1.exerciseIndex, $1.setIndex) },
+                intensityFactor: slot.intensityFactor
             )
         }
         return Program(
@@ -138,6 +155,7 @@ extension ProgramModel {
             orderIndex: orderIndex,
             cycleLength: cycleLength,
             days: days,
+            intensityFactor: intensityFactor,
             createdAt: createdAt,
             updatedAt: updatedAt
         )
@@ -146,13 +164,15 @@ extension ProgramModel {
 
 extension ProgramSlotSetModel {
     convenience init(from set: PlanSet) {
+        let encoded = WeightExpressionCoding.encode(set.targetWeight)
         self.init(
             id: set.id,
             exerciseId: set.exerciseId,
             exerciseIndex: set.exerciseIndex,
             setIndex: set.setIndex,
-            targetWeightValue: set.targetWeight?.value,
-            targetWeightUnitRaw: set.targetWeight?.unit.rawValue,
+            targetWeightKindRaw: encoded.kind,
+            targetWeightValue: encoded.value,
+            targetWeightUnitRaw: encoded.unit,
             targetReps: set.targetReps,
             restSec: set.restSec
         )
@@ -164,9 +184,9 @@ extension ProgramSlotSetModel {
             exerciseId: exerciseId,
             exerciseIndex: exerciseIndex,
             setIndex: setIndex,
-            targetWeight: targetWeightValue.map {
-                Weight(value: $0, unit: WeightUnit(rawValue: targetWeightUnitRaw ?? "kg") ?? .kg)
-            },
+            targetWeight: WeightExpressionCoding.decode(
+                kind: targetWeightKindRaw, value: targetWeightValue, unitRaw: targetWeightUnitRaw
+            ),
             targetReps: targetReps,
             restSec: restSec
         )

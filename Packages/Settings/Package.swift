@@ -11,6 +11,7 @@ let package = Package(
     dependencies: [
         .package(path: "../Reminders"),
         .package(path: "../SharedKernel"),
+        .package(path: "../DesignSystem"),
     ],
     targets: [
         .target(
@@ -18,6 +19,7 @@ let package = Package(
             dependencies: [
                 .product(name: "RemindersDomain", package: "Reminders"),
                 .product(name: "SharedKernel", package: "SharedKernel"),
+                .product(name: "DesignSystem", package: "DesignSystem"),
             ],
             resources: [.process("Localizable.xcstrings")]
         ),

@@ -30,6 +30,66 @@ enum HistoryFormatting {
         return feelingEmojis[value] ?? ""
     }
 
+    /// 逐組對照的達標判定（91-weight-model.md §6）：實際 >= 目標重量 && 實際 >= 目標次數。
+    /// 沒有目標快照（臨時加練，或跳過沒做）＝nil，不顯示任何符號——那是資訊不是錯誤。
+    static func achieved(_ set: HistorySetLine) -> Bool? {
+        guard set.status == .done, let targetWeight = set.targetWeight, let targetReps = set.targetReps else {
+            return nil
+        }
+        return set.weight.value >= targetWeight.value && set.reps >= targetReps
+    }
+
+    /// 次數差異（達標時不用顯示）：正＝超出、負＝未達，給逐組對照表的「+1／−1」符號用。
+    static func repsDelta(_ set: HistorySetLine) -> Int? {
+        guard set.status == .done, let targetReps = set.targetReps else { return nil }
+        return set.reps - targetReps
+    }
+
+    /// 一場的達標組數／總組數。只算「能判定達標與否」的組——沒有目標快照的臨時加練
+    /// 不進分母：那不是「沒達標」，是「不適用」，混進去會讓「達標 0/1」這種假訊號出現。
+    /// 跳過的也不進分母（見 01-training.md 跳過≠移除，`achieved` 對 `.skipped` 已回 nil）。
+    static func achievedSetCount(_ blocks: [HistoryBlock]) -> (achieved: Int, total: Int) {
+        let evaluable = blocks.flatMap(\.sets).filter { achieved($0) != nil }
+        let achievedCount = evaluable.filter { achieved($0) == true }.count
+        return (achievedCount, evaluable.count)
+    }
+
+    /// 總量（實際 kg×次數）；目標總量只在「每一組都有目標快照」時才給，否則 nil
+    /// （只要有一組是 `relativeToLast` 查不到歷史或臨時加練，總量在投影/紀錄當下就不完整算不出來）。
+    static func totalVolume(_ blocks: [HistoryBlock]) -> (actual: Double, target: Double?) {
+        let doneSets = blocks.flatMap(\.sets).filter { $0.status == .done }
+        let actual = doneSets.reduce(0.0) { $0 + $1.weight.value * Double($1.reps) }
+        let targets = doneSets.compactMap { set -> Double? in
+            guard let tw = set.targetWeight, let tr = set.targetReps else { return nil }
+            return tw.value * Double(tr)
+        }
+        let target = targets.count == doneSets.count && !targets.isEmpty ? targets.reduce(0, +) : nil
+        return (actual, target)
+    }
+
+    /// 整數不帶小數、其餘去掉多餘 0（4280.0→"4280"、4280.5→"4280.5"）。
+    static func formatNumber(_ v: Double) -> String {
+        v == v.rounded() ? String(Int(v)) : String(v)
+    }
+
+    /// 列表列左側索引欄的星期縮寫（「一」「二」...／"Mon""Tue"...），單獨給日期數字旁配色用。
+    static func weekdayAbbrev(_ day: DayDate, locale: Locale) -> String {
+        var components = DateComponents()
+        components.year = day.year; components.month = day.month; components.day = day.day
+        var cal = Calendar(identifier: .gregorian)
+        cal.locale = locale
+        guard let date = cal.date(from: components) else { return "" }
+        let formatter = DateFormatter()
+        formatter.locale = locale
+        let weekday = cal.component(.weekday, from: date)
+        return formatter.veryShortWeekdaySymbols[(weekday - 1) % 7]
+    }
+
+    /// 月份分組標題的月份數字（「7 月」）。
+    static func monthLabel(month: Int) -> String {
+        String(format: "%d 月", month)
+    }
+
     /// 2026-07-09 → 繁中「7/9 (週三)」、英文「7/9 (Wed)」。星期依傳入的 `locale` 取當地縮寫，
     /// 由 View 傳 `@Environment(\.locale)`，切語言即時更新。
     static func dayLabel(_ day: DayDate, locale: Locale) -> String {

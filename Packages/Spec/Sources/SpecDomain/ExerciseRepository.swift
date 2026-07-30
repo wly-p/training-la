@@ -22,3 +22,22 @@ public enum ExerciseRepositoryError: Error, Equatable, Sendable {
 public protocol ExerciseUsageChecking: Sendable {
     func isUsed(exerciseId: UUID) async throws -> Bool
 }
+
+/// 引用某動作的一筆 spec（範本／循環／長期），供編輯頁「被使用於」護欄顯示（設計稿 9a）。
+public struct ExerciseUsageRef: Identifiable, Equatable, Sendable {
+    public enum Kind: Sendable { case template, rotation, program }
+    public let id: UUID
+    public let name: String
+    public let kind: Kind
+    public init(id: UUID, name: String, kind: Kind) {
+        self.id = id
+        self.name = name
+        self.kind = kind
+    }
+}
+
+/// 「這個動作被哪些 spec 用到」的名稱清單查詢 port（刪除前護欄）。
+/// 同 `ExerciseUsageChecking`：本地由 App 接到 Plan 的資料落實，未來走 API 換伺服器實作。
+public protocol ExerciseUsageListing: Sendable {
+    func usages(exerciseId: UUID) async throws -> [ExerciseUsageRef]
+}

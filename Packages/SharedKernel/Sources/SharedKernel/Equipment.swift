@@ -24,4 +24,16 @@ public enum Equipment: String, CaseIterable, Codable, Sendable {
         case .other: "其他"
         }
     }
+
+    /// 重量的預設遞增最小單位（kg）。這是器材的物理性質（槓片/啞鈴跳階），不是訓練安排。
+    /// 用於 ValuePicker 的 ±快捷、%1RM／相對上次收斂時的向下取整。（見 v3 設計 J 節）
+    public var weightStep: Double {
+        switch self {
+        case .barbell, .hexBar: 2.5
+        case .dumbbell: 2
+        case .kettlebell: 4
+        case .machine, .cable: 5
+        case .band, .bodyweight, .other: 1
+        }
+    }
 }

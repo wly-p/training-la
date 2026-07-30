@@ -20,7 +20,7 @@ struct SwiftDataPlanWorkoutRepositoryTests {
             id: UUID(), name: "推日", date: date, status: .notStarted, orderIndex: order,
             sets: (0..<sets).map {
                 PlanSet(id: UUID(), exerciseId: UUID(), exerciseIndex: 0, setIndex: $0,
-                        targetWeight: Weight(value: 100, unit: .kg), targetReps: 5)
+                        targetWeight: .absolute(Weight(value: 100, unit: .kg)), targetReps: 5)
             }
         )
     }
@@ -33,6 +33,28 @@ struct SwiftDataPlanWorkoutRepositoryTests {
         let fetched = try await repo.get(id: plan.id)
 
         #expect(fetched == plan)
+    }
+
+    /// 14c 顯示算式靠這份快照——確認它真的存進 SwiftData、不是每次重算（重算會被之後改掉的
+    /// 1RM／強度基準污染，見 91-weight-model.md §5「為什麼必須寫死」）。
+    @Test func saveThenGetRoundTripsWeightSource() async throws {
+        let repo = try makeRepository()
+        let exerciseId = UUID()
+        let source = WeightSourceInfo(
+            kind: .percentOf1RM, percent: 80,
+            abilityValue: Weight(value: 140, unit: .kg), intensityFactor: 0.75
+        )
+        var plan = planWorkout(date: DayDate(year: 2026, month: 7, day: 9), order: 0, sets: 1)
+        plan.sets = [
+            PlanSet(id: plan.sets[0].id, exerciseId: exerciseId, exerciseIndex: 0, setIndex: 0,
+                    targetWeight: .absolute(Weight(value: 82.5, unit: .kg)), targetReps: 8,
+                    weightSource: source),
+        ]
+
+        try await repo.save(plan)
+        let fetched = try await repo.get(id: plan.id)
+
+        #expect(fetched?.sets.first?.weightSource == source)
     }
 
     @Test func onDateFiltersByDay() async throws {

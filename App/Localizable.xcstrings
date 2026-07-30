@@ -1,6 +1,134 @@
 {
   "sourceLanguage" : "zh-Hant",
   "strings" : {
+    "library.add" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Add"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "新增"
+          }
+        }
+      }
+    },
+    "library.add.current" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Current tab"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "目前分頁"
+          }
+        }
+      }
+    },
+    "library.add.exercise.desc" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "A single exercise, e.g. bench press"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "單一動作，例如臥推"
+          }
+        }
+      }
+    },
+    "library.add.program.desc" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "A plan with a fixed length"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "有固定長度的計畫"
+          }
+        }
+      }
+    },
+    "library.add.rotation.desc" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Templates on rotation, no dates"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "範本輪替，不綁日期"
+          }
+        }
+      }
+    },
+    "library.add.subtitle" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Long-press \"+\" to jump here directly."
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "長按「＋」也可以直接跳到這裡。"
+          }
+        }
+      }
+    },
+    "library.add.template.desc" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "One workout · made of exercises"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "一次訓練的內容 · 由動作組成"
+          }
+        }
+      }
+    },
+    "library.add.title" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Add what"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "新增什麼"
+          }
+        }
+      }
+    },
     "library.exercises" : {
       "localizations" : {
         "en" : {
@@ -65,8 +193,24 @@
         }
       }
     },
-    "tab.exercises" : {
+    "preview.kicker.rotation %@ %lld %lld" : {
       "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$@ · Round %2$lld · Day %3$lld"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$@ · 第 %2$lld 輪 · 第 %3$lld 天"
+          }
+        }
+      }
+    },
+    "tab.exercises" : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -83,7 +227,6 @@
       }
     },
     "tab.history" : {
-      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -100,7 +243,6 @@
       }
     },
     "tab.plan" : {
-      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -117,7 +259,6 @@
       }
     },
     "tab.settings" : {
-      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -134,7 +275,6 @@
       }
     },
     "tab.training" : {
-      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {

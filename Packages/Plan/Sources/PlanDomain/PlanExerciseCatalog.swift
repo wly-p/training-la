@@ -10,10 +10,13 @@ public struct PlanCatalogExercise: Identifiable, Equatable, Sendable {
     public let id: UUID
     public let name: String
     public let muscleGroup: MuscleGroup
+    /// 器材決定重量遞增最小單位（`Equipment.weightStep`）——投影收斂「相對上次」時取整用。
+    public let equipment: Equipment
 
-    public init(id: UUID, name: String, muscleGroup: MuscleGroup) {
+    public init(id: UUID, name: String, muscleGroup: MuscleGroup, equipment: Equipment) {
         self.id = id
         self.name = name
         self.muscleGroup = muscleGroup
+        self.equipment = equipment
     }
 }

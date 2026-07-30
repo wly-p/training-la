@@ -7,9 +7,9 @@ final class SettingsUITests: XCTestCase {
         app.launchArguments = ["--uitest-inmemory"]
         app.launch()
 
-        app.tabBars.buttons["設定"].tap()
+        app.buttons["設定"].tap()
 
-        // 主題列（navigationLink picker）：點進去選「深色」
+        // 主題列（drill-in）：點進去選「深色」
         let themeRow = app.buttons["主題"]
         XCTAssertTrue(themeRow.waitForExistence(timeout: 5))
         themeRow.tap()
@@ -18,12 +18,9 @@ final class SettingsUITests: XCTestCase {
         XCTAssertTrue(darkOption.waitForExistence(timeout: 5))
         darkOption.tap()
 
-        // 確保回到設定根頁（不同 iOS 版本 navigationLink picker 選完不一定自動返回）
-        let settingsNav = app.navigationBars["設定"]
-        if !settingsNav.waitForExistence(timeout: 2) {
-            app.navigationBars.buttons.firstMatch.tap()
-            XCTAssertTrue(settingsNav.waitForExistence(timeout: 5))
-        }
+        // 選完自動返回設定根頁（PageHeader 大標題＝設定 staticText）
+        let title = app.staticTexts["設定"]
+        XCTAssertTrue(title.waitForExistence(timeout: 5))
 
         // 主題列的目前值 = 深色
         let row = app.buttons["主題"]
@@ -37,7 +34,7 @@ final class SettingsUITests: XCTestCase {
         app.launchArguments = ["--uitest-inmemory"]
         app.launch()
 
-        app.tabBars.buttons["設定"].tap()
+        app.buttons["設定"].tap()
 
         // 不假設起始值：app icon 是系統／安裝層級的持久狀態（`UIApplication.alternateIconName`），
         // 不會像 SwiftData 那樣被 `--uitest-inmemory` 重置，測試裝置上可能殘留上次選的 icon。
@@ -61,11 +58,9 @@ final class SettingsUITests: XCTestCase {
             confirm.tap()
         }
 
-        let settingsNav = app.navigationBars["設定"]
-        if !settingsNav.waitForExistence(timeout: 2) {
-            app.navigationBars.buttons.firstMatch.tap()
-            XCTAssertTrue(settingsNav.waitForExistence(timeout: 5))
-        }
+        // 選完自動返回設定根頁
+        let title = app.staticTexts["設定"]
+        XCTAssertTrue(title.waitForExistence(timeout: 5))
 
         let row = app.buttons["App 圖示"]
         XCTAssertTrue(row.waitForExistence(timeout: 5))
@@ -78,9 +73,9 @@ final class SettingsUITests: XCTestCase {
         app.launchArguments = ["--uitest-inmemory"]
         app.launch()
 
-        app.tabBars.buttons["設定"].tap()
+        app.buttons["設定"].tap()
 
-        // 語言列：navigationLink picker，值顯示目前語言的母語名（UI 測試固定 seed 繁中）
+        // 語言列：值顯示目前語言的母語名（UI 測試固定 seed 繁中）
         let row = app.buttons["語言"]
         XCTAssertTrue(row.waitForExistence(timeout: 5))
         XCTAssertEqual(row.value as? String, "繁體中文")
@@ -92,7 +87,7 @@ final class SettingsUITests: XCTestCase {
         app.launchArguments = ["--uitest-inmemory"]
         app.launch()
 
-        app.tabBars.buttons["設定"].tap()
+        app.buttons["設定"].tap()
 
         // 進語言列 → 選 English（選項以母語名呈現，切換前後都叫 "English"）
         let langRow = app.buttons["語言"]
@@ -102,22 +97,22 @@ final class SettingsUITests: XCTestCase {
         XCTAssertTrue(english.waitForExistence(timeout: 5))
         english.tap()
 
-        // 切語言觸發 .id(language) 重建：nav 堆疊重置回設定根頁、留在設定分頁。
-        // Settings 內容與大標題已英文化。
-        XCTAssertTrue(app.staticTexts["Appearance"].waitForExistence(timeout: 5))
-        XCTAssertTrue(app.navigationBars["Settings"].waitForExistence(timeout: 5), "設定大標題應為 Settings")
+        // 切語言觸發 .id(language) 重建：留在設定分頁、內容與大標題已英文化。
+        XCTAssertTrue(app.staticTexts["Settings"].waitForExistence(timeout: 5), "設定大標題應為 Settings")
         let langRowEN = app.buttons["Language"]
         XCTAssertTrue(langRowEN.waitForExistence(timeout: 5))
         XCTAssertEqual(langRowEN.value as? String, "English")
 
         // App target 的 tab bar 也英文化（驗證 app-target String Catalog 生效）
-        XCTAssertTrue(app.tabBars.buttons["Settings"].waitForExistence(timeout: 5))
-        XCTAssertTrue(app.tabBars.buttons["Training"].exists)
+        XCTAssertTrue(app.buttons["Settings"].waitForExistence(timeout: 5))
+        XCTAssertTrue(app.buttons["Training"].exists)
 
-        // 回歸（bug2）：其他分頁的 navigationTitle 也要更新——navigationTitle 橋接 UIKit 被快取、
+        // 回歸（bug2）：其他分頁的標題也要更新——原本用 navigationTitle 橋接 UIKit 會被快取、
         // 不隨 \.locale 重解析，靠 .id(language) 重建整個 TabView 才會以新語言重產。
-        app.tabBars.buttons["History"].tap()
-        XCTAssertTrue(app.navigationBars["History"].waitForExistence(timeout: 5), "切英文後歷史大標題應為 History")
+        // 歷史頁改版後標題是 PageHeader（純 SwiftUI Text），不再是 navigationTitle，
+        // 但一樣要驗證切語言後這個標題確實跟著換。
+        app.buttons["History"].tap()
+        XCTAssertTrue(app.staticTexts["History"].waitForExistence(timeout: 5), "切英文後歷史大標題應為 History")
         XCTAssertFalse(app.navigationBars["歷史"].exists, "切英文後歷史大標題不該還是中文")
     }
 
@@ -127,9 +122,9 @@ final class SettingsUITests: XCTestCase {
         app.launchArguments = ["--uitest-inmemory"]
         app.launch()
 
-        app.tabBars.buttons["設定"].tap()
+        app.buttons["設定"].tap()
 
-        // 「關於」在清單最底，List 是 lazy 的，可能要捲到底元素才會進 hierarchy
+        // 版號在頁面最底，捲到底才進 hierarchy
         let version = app.staticTexts["appVersion"]
         if !version.waitForExistence(timeout: 3) {
             app.swipeUp()

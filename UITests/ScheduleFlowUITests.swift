@@ -11,7 +11,7 @@ final class ScheduleFlowUITests: XCTestCase {
         addExercise(app, name: "深蹲")
 
         // 課表：新增一個含兩個動作、當日（預設今天）的排課
-        app.tabBars.buttons["課表"].tap()
+        app.buttons["課表"].tap()
         app.buttons["新增排課"].tap()
         app.buttons["空白建立"].tap()  // 「+」選單 → 空白建立
         let planName = app.textFields["名稱（例：推日）"]
@@ -23,10 +23,14 @@ final class ScheduleFlowUITests: XCTestCase {
         app.buttons["儲存"].tap()
         XCTAssertTrue(app.staticTexts["推日"].waitForExistence(timeout: 5))
 
-        // 訓練首頁：出現今日排課卡 + 照課表開始
-        app.tabBars.buttons["訓練"].tap()
+        // 訓練首頁：出現今日排課卡 + 開始
+        app.buttons["訓練"].tap()
         XCTAssertTrue(app.staticTexts["推日"].waitForExistence(timeout: 5))
-        app.buttons["照課表開始"].tap()
+        app.buttons["開始"].tap()
+        // 13d 開練前預覽 sheet：確認開始才真正落地
+        let confirmStart = app.buttons["開始訓練"]
+        XCTAssertTrue(confirmStart.waitForExistence(timeout: 5))
+        confirmStart.tap()
 
         // 記錄畫面：自動選到第一個課表動作（臥推）並顯示目標
         XCTAssertTrue(app.navigationBars["臥推"].waitForExistence(timeout: 5))
@@ -37,9 +41,13 @@ final class ScheduleFlowUITests: XCTestCase {
         XCTAssertTrue(app.staticTexts.matching(NSPredicate(format: "label BEGINSWITH '下一組'")).firstMatch.waitForExistence(timeout: 5))
 
         // 完成臥推一組 → 「本場動作」清單列出未做的深蹲，點它直接跳過去（不是打開全動作庫）
+        // 組表＋輸入色帶（11c 改版）變高了，「本場動作」要往下捲才會進 List 的可視/實例化範圍。
         completeButton.tap()
         XCTAssertTrue(app.staticTexts["第1組"].waitForExistence(timeout: 5))
         let nextExercise = app.staticTexts["深蹲"]
+        if !nextExercise.waitForExistence(timeout: 3) {
+            app.swipeUp()
+        }
         XCTAssertTrue(nextExercise.waitForExistence(timeout: 5))
         nextExercise.tap()
 
@@ -53,13 +61,15 @@ final class ScheduleFlowUITests: XCTestCase {
 
         // 結束
         app.buttons["結束訓練"].tap()
-        let saveButton = app.buttons["儲存並結束"]
+        let saveButton = app.buttons["完成並存檔"]
         XCTAssertTrue(saveButton.waitForExistence(timeout: 5))
         saveButton.tap()
 
         // 歷史詳情有兩個動作區塊 + 目標快照
-        app.tabBars.buttons["歷史"].tap()
-        app.cells.firstMatch.tap()
+        app.buttons["歷史"].tap()
+        let dateRow = app.staticTexts.matching(NSPredicate(format: "label CONTAINS '個動作'")).firstMatch
+        XCTAssertTrue(dateRow.waitForExistence(timeout: 5))
+        dateRow.tap()
         XCTAssertTrue(app.staticTexts["臥推"].waitForExistence(timeout: 5))
         XCTAssertTrue(app.staticTexts["深蹲"].exists)
         XCTAssertTrue(app.staticTexts.matching(NSPredicate(format: "label BEGINSWITH '目標'")).firstMatch.exists)
@@ -68,8 +78,8 @@ final class ScheduleFlowUITests: XCTestCase {
     // MARK: - Helpers
 
     @MainActor private func addExercise(_ app: XCUIApplication, name: String) {
-        app.tabBars.buttons["動作庫"].tap()
-        app.buttons["新增動作"].tap()
+        app.buttons["動作庫"].tap()
+        app.buttons["libraryAddButton"].tap()
         let field = app.textFields["名稱（例：臥推）"]
         XCTAssertTrue(field.waitForExistence(timeout: 5))
         field.tap()
@@ -79,9 +89,11 @@ final class ScheduleFlowUITests: XCTestCase {
     }
 
     @MainActor private func addExerciseToPlan(_ app: XCUIApplication, name: String) {
+        // 空白排課表單改用新版 PickerSheet（多選）：點名字選取 → 按「加入 1 個動作」確認。
         app.buttons["加入動作"].tap()
         let pick = app.staticTexts[name].firstMatch
         XCTAssertTrue(pick.waitForExistence(timeout: 5))
         pick.tap()
+        app.buttons["加入 1 個動作"].tap()
     }
 }

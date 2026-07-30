@@ -11,7 +11,7 @@ final class ExerciseCompletionUITests: XCTestCase {
         addExercise(app, name: "深蹲")
 
         // 課表：臥推 + 深蹲（各預設 3 組、不設休息，避免倒數拖慢測試）
-        app.tabBars.buttons["課表"].tap()
+        app.buttons["課表"].tap()
         app.buttons["新增排課"].tap()
         app.buttons["空白建立"].tap()  // 「+」選單 → 空白建立
         let planName = app.textFields["名稱（例：推日）"]
@@ -23,10 +23,14 @@ final class ExerciseCompletionUITests: XCTestCase {
         app.buttons["儲存"].tap()
         XCTAssertTrue(app.staticTexts["推日"].waitForExistence(timeout: 5))
 
-        // 照課表開始
-        app.tabBars.buttons["訓練"].tap()
-        XCTAssertTrue(app.buttons["照課表開始"].waitForExistence(timeout: 5))
-        app.buttons["照課表開始"].tap()
+        // 開始
+        app.buttons["訓練"].tap()
+        XCTAssertTrue(app.buttons["開始"].waitForExistence(timeout: 5))
+        app.buttons["開始"].tap()
+        // 13d 開練前預覽 sheet：確認開始才真正落地
+        let confirmStart = app.buttons["開始訓練"]
+        XCTAssertTrue(confirmStart.waitForExistence(timeout: 5))
+        confirmStart.tap()
 
         // 完成臥推 3 組
         let complete = app.buttons["完成此組"]
@@ -51,8 +55,8 @@ final class ExerciseCompletionUITests: XCTestCase {
     // MARK: - Helpers
 
     @MainActor private func addExercise(_ app: XCUIApplication, name: String) {
-        app.tabBars.buttons["動作庫"].tap()
-        app.buttons["新增動作"].tap()
+        app.buttons["動作庫"].tap()
+        app.buttons["libraryAddButton"].tap()
         let field = app.textFields["名稱（例：臥推）"]
         XCTAssertTrue(field.waitForExistence(timeout: 5))
         field.tap()
@@ -62,9 +66,11 @@ final class ExerciseCompletionUITests: XCTestCase {
     }
 
     @MainActor private func addExerciseToPlan(_ app: XCUIApplication, name: String) {
+        // 空白排課表單改用新版 PickerSheet（多選）：點名字選取 → 按「加入 1 個動作」確認。
         app.buttons["加入動作"].tap()
         let pick = app.staticTexts[name].firstMatch
         XCTAssertTrue(pick.waitForExistence(timeout: 5))
         pick.tap()
+        app.buttons["加入 1 個動作"].tap()
     }
 }

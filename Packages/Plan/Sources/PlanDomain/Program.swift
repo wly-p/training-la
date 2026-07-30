@@ -13,6 +13,8 @@ public struct Program: Identifiable, Equatable, Sendable {
     public var cycleLength: Int
     /// 第 dayIndex 天（0-based, 0..<cycleLength）→ workout；缺＝休息。
     public var days: [Int: WorkoutSpec]
+    /// 這份課表的強度倍率（預設 1.0＝基準）。格子（`WorkoutSpec.intensityFactor`）可選填覆寫。
+    public var intensityFactor: Double
     public var createdAt: Date
     public var updatedAt: Date
 
@@ -23,6 +25,7 @@ public struct Program: Identifiable, Equatable, Sendable {
         orderIndex: Int,
         cycleLength: Int = 7,
         days: [Int: WorkoutSpec] = [:],
+        intensityFactor: Double = 1.0,
         createdAt: Date,
         updatedAt: Date
     ) {
@@ -32,6 +35,7 @@ public struct Program: Identifiable, Equatable, Sendable {
         self.orderIndex = orderIndex
         self.cycleLength = max(1, cycleLength)
         self.days = days
+        self.intensityFactor = intensityFactor
         self.createdAt = createdAt
         self.updatedAt = updatedAt
     }
