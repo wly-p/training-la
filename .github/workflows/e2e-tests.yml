@@ -1,0 +1,66 @@
+name: E2E Tests
+
+"on":
+  # 只手動觸發：一輪 UITests 本機實測約 12 分鐘，託管機只會更久，
+  # 不值得掛在每個 PR 上。要驗 UI flow 時自己按。
+  workflow_dispatch:
+    inputs:
+      device:
+        description: "模擬器機型（留空＝用 Config.xcconfig 的 TEST_DEVICE）"
+        required: false
+        default: ""
+
+  # TODO(暫時)：驗證這個 workflow 本身用。合併進 dev 前移除。
+  push:
+    branches: [ci/e2e-workflow]
+
+concurrency:
+  group: e2e-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test-uitest:
+    name: E2E Tests
+    # 公開 repo 用 GitHub 託管的標準 runner 不計費，所以現階段沒有理由把實體機器
+    # 接進一個任何人都能開 PR 的 repo。等 App 上架、repo 轉私有（託管機開始 10 倍計費、
+    # 且不再有 fork PR 風險）時，這行改成 [self-hosted, macOS] 即可，其餘不用動。
+    runs-on: macos-15
+    # 本機 22 個 case 約 12 分鐘，託管機更慢，留足餘裕。
+    timeout-minutes: 90
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Select Xcode
+        uses: maxim-lobanov/setup-xcode@v1
+        with:
+          xcode-version: latest-stable
+
+      # TrainingLa.xcodeproj 不進版控，Makefile 的 test-uitest 會先跑 xcodegen generate。
+      - name: 安裝 xcodegen
+        run: brew install xcodegen
+
+      # 機型來自 Config.xcconfig（TEST_DEVICE），是 Makefile 與 Xcode 專案共用的單一真實來源。
+      # 託管映像檔內建的 runtime 不一定涵蓋這個機型 —— 先把可用清單印出來，
+      # 不管成功失敗都能從 log 判斷該不該改機型。
+      - name: 檢查模擬器機型
+        run: |
+          DEVICE="${{ inputs.device }}"
+          if [ -z "$DEVICE" ]; then
+            DEVICE=$(awk -F'= *' '/^TEST_DEVICE/ {print $2}' Config.xcconfig | xargs)
+          fi
+          echo "DEVICE=$DEVICE" >> "$GITHUB_ENV"
+          echo "要用的機型：$DEVICE"
+          echo "---- runner 上可用的模擬器 ----"
+          xcrun simctl list devices available
+          if ! xcrun simctl list devices available | grep -q "$DEVICE"; then
+            echo "::error::runner 上沒有可用的 \"$DEVICE\" 模擬器。改用上面清單裡有的機型，或在此步驟前加 xcodebuild -downloadPlatform iOS"
+            exit 1
+          fi
+
+      # 只跑 UITests.xctestplan（跟 unit test 分開的獨立 test plan，見 project.yml）。
+      # HEADLESS 維持預設 true：模擬器一律把畫面算進 framebuffer，Simulator.app 視窗只是給人看的，
+      # CI 上沒有人看，開視窗只是浪費。
+      - name: make test-uitest
+        run: make test-uitest DEVICE="$DEVICE"
