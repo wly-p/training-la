@@ -70,7 +70,9 @@ public final class ActiveWorkoutViewModel {
     public func isUndoable(setId: UUID) -> Bool { lastRecordedSetId == setId }
 
     public var draftWeightValue: Double = 20
-    public var draftWeightUnit: WeightUnit = .kg
+    /// 草稿的單位。新的一組用使用者的預設單位；載入既有紀錄時沿用那筆自己的單位
+    /// （見 `apply(weight:reps:)`）——換算只發生在比較與顯示，儲存不做正規化。
+    public var draftWeightUnit: WeightUnit
     public var draftReps: Int = 8
 
     private let saveProgress: SaveWorkoutProgress
@@ -95,6 +97,7 @@ public final class ActiveWorkoutViewModel {
         exerciseCatalog: any ExerciseCatalog,
         plannedProvider: (any PlannedWorkoutProvider)? = nil,
         reminder: any RestEndReminding = NoopRestEndReminding(),
+        weightUnitStore: any WeightUnitPreferenceStoring = InMemoryWeightUnitStore(),
         now: @escaping () -> Date = { Date() }
     ) {
         self.workout = workout
@@ -106,6 +109,7 @@ public final class ActiveWorkoutViewModel {
         self.exerciseCatalog = exerciseCatalog
         self.plannedProvider = plannedProvider
         self.reminder = reminder
+        self.draftWeightUnit = weightUnitStore.load()
         self.now = now
     }
 

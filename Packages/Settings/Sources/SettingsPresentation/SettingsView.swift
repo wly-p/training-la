@@ -9,9 +9,6 @@ public struct SettingsView: View {
 
     @State private var showEraseConfirm = false
     @State private var route: SettingsRoute?
-    /// 重量單位＝**佔位**（Domain/Data 尚無使用者偏好，見設計 handoff 決策）：
-    /// 顯示 kg|lb 分段控制但不寫回、不持久化。TODO：之後接 WeightUnit 偏好 Storing 再綁上去。
-    @State private var weightUnitPlaceholder = "kg"
     /// 「我的能力值」畫面住在 Ability package（Presentation-to-Presentation 不互相 import，
     /// 靠 App 層組裝時注入這個 view builder，型別抹成 AnyView）。nil＝不顯示這一列
     /// （例如 SwiftUI 預覽或還沒接 Ability 的情境）。
@@ -110,11 +107,11 @@ public struct SettingsView: View {
                 }
                 SettingsRow(localText("settings.weightUnit.title")) {
                     TLSegmentedControl(
-                        selection: $weightUnitPlaceholder,
-                        options: [
-                            .init("kg", "kg"),
-                            .init("lb", "lb"),
-                        ]
+                        selection: Binding(
+                            get: { viewModel.weightUnit.rawValue },
+                            set: { viewModel.weightUnit = WeightUnit(rawValue: $0) ?? .kg }
+                        ),
+                        options: WeightUnit.allCases.map { .init($0.rawValue, $0.rawValue) }
                     )
                     .frame(width: 128)
                 }

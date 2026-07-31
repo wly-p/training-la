@@ -36,6 +36,12 @@ public final class SettingsViewModel {
         didSet { languageStore.save(language) }
     }
 
+    /// 預設重量單位；改動即持久化。只影響**之後**輸入的預設單位與顯示，
+    /// 既有紀錄各自留著當初輸入的單位（換算在比較與顯示時發生，見 `Weight`）。
+    public var weightUnit: WeightUnit {
+        didSet { weightUnitStore.save(weightUnit) }
+    }
+
     /// 「刪除所有資料」進行中；UI 用來顯示進度並鎖住按鈕、防重複觸發。
     public private(set) var isErasing = false
     /// 刪除失敗；綁 UI 的錯誤 alert。
@@ -45,6 +51,7 @@ public final class SettingsViewModel {
     private let iconSwitcher: any IconSwitching
     private let restReminderStore: any RestReminderPreferenceStoring
     private let languageStore: any LanguagePreferenceStoring
+    private let weightUnitStore: any WeightUnitPreferenceStoring
     private let dataEraser: any DataErasing
     /// 清除成功後由 App 層觸發整個畫面重建（回到全新初始狀態）。
     private let onErased: @MainActor () -> Void
@@ -54,6 +61,7 @@ public final class SettingsViewModel {
         iconSwitcher: any IconSwitching,
         restReminderStore: any RestReminderPreferenceStoring = InMemoryRestReminderPreferenceStore(),
         languageStore: any LanguagePreferenceStoring = InMemoryLanguageStore(),
+        weightUnitStore: any WeightUnitPreferenceStoring = InMemoryWeightUnitStore(),
         systemPreferredLanguages: [String] = Locale.preferredLanguages,
         dataEraser: any DataErasing = NoopDataEraser(),
         onErased: @escaping @MainActor () -> Void = {}
@@ -62,11 +70,13 @@ public final class SettingsViewModel {
         self.iconSwitcher = iconSwitcher
         self.restReminderStore = restReminderStore
         self.languageStore = languageStore
+        self.weightUnitStore = weightUnitStore
         self.dataEraser = dataEraser
         self.onErased = onErased
         self.theme = store.load() // init 期間 didSet 不觸發，不會多存一次
         self.icon = AppIcon(assetName: iconSwitcher.currentIconName)
         self.restReminder = restReminderStore.load()
+        self.weightUnit = weightUnitStore.load()
         // 第一次啟動（store 為空）：由系統偏好語言決定、命中支援清單就用、否則 fallback，
         // 並 seed 回 store → 之後一律以設定為主，不再看系統。
         let storedLanguage = languageStore.load()

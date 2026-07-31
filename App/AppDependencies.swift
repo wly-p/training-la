@@ -69,6 +69,10 @@ struct AppDependencies {
         // 模擬器系統語言決定，英文模擬器會讓中文標籤的 UITest 全崩。切換測試自己在跑時改成英文。
         let languageStore: any LanguagePreferenceStoring =
             inMemory ? InMemoryLanguageStore(.zhHant) : UserDefaultsLanguageStore()
+        // 預設重量單位：真實落 UserDefaults；UI 測試用記憶體（預設 kg，跟既有斷言一致）。
+        // Settings 與 Training 共用同一實例——訓練頁記錄新組時要用它決定草稿單位。
+        let weightUnitStore: any WeightUnitPreferenceStoring =
+            inMemory ? InMemoryWeightUnitStore() : UserDefaultsWeightUnitStore()
         // UI 測試（in-memory）用 Noop channels，避免真實通知權限彈窗／發聲干擾測試。
         let reminder: any RestEndReminding = inMemory
             ? RestEndReminder(notifications: NoopRestNotificationScheduling(),
@@ -91,6 +95,7 @@ struct AppDependencies {
             reminder: reminder,
             reminderStore: reminderStore,
             languageStore: languageStore,
+            weightUnitStore: weightUnitStore,
             dataEraser: SwiftDataEraser(container: container, modelTypes: allModels)
         )
     }
@@ -108,6 +113,7 @@ struct AppDependencies {
         reminder: any RestEndReminding,
         reminderStore: any RestReminderPreferenceStoring,
         languageStore: any LanguagePreferenceStoring = InMemoryLanguageStore(),
+        weightUnitStore: any WeightUnitPreferenceStoring = InMemoryWeightUnitStore(),
         dataEraser: any DataErasing = NoopDataEraser()
     ) -> AppDependencies {
         // Training 的 ExerciseCatalog port ← Spec 的 use case
@@ -189,7 +195,8 @@ struct AppDependencies {
                     detectPersonalRecords: DetectPersonalRecords(repository: workoutRepository),
                     exerciseCatalog: catalog,
                     plannedProvider: plannedProvider,
-                    reminder: reminder
+                    reminder: reminder,
+                    weightUnitStore: weightUnitStore
                 )
             },
             makeHistoryViewModel: {
@@ -311,6 +318,7 @@ struct AppDependencies {
                     iconSwitcher: UIApplicationIconSwitcher(),
                     restReminderStore: reminderStore,
                     languageStore: languageStore,
+                    weightUnitStore: weightUnitStore,
                     dataEraser: dataEraser,
                     onErased: onErased
                 )
