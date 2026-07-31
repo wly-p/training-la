@@ -10,10 +10,6 @@ name: E2E Tests
         required: false
         default: ""
 
-  # TODO(暫時)：驗證這個 workflow 本身用。合併進 dev 前移除。
-  push:
-    branches: [ci/e2e-workflow]
-
 concurrency:
   group: e2e-${{ github.ref }}
   cancel-in-progress: true
