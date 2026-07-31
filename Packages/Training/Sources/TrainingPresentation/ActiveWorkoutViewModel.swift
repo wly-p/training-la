@@ -651,7 +651,9 @@ public final class ActiveWorkoutViewModel {
     /// 草稿是否已經偏離目標——決定第三顆快捷鍵顯示「同上組」還是「回到目標」（11c）。
     public var isDraftModifiedFromTarget: Bool {
         guard let target = currentTarget, let weight = target.targetWeight else { return false }
-        return draftWeightValue != weight.value || (target.targetReps.map { $0 != draftReps } ?? false)
+        // 草稿與目標可能不同單位，要組成 Weight 比而不是比裸數字。
+        let draft = Weight(value: draftWeightValue, unit: draftWeightUnit)
+        return draft != weight || (target.targetReps.map { $0 != draftReps } ?? false)
     }
 
     // MARK: - 私有

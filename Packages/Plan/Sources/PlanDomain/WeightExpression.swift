@@ -114,7 +114,9 @@ func resolveWeightExpression(
         source = WeightSourceInfo(kind: .percentOf1RM, percent: percent, abilityValue: ability, intensityFactor: intensityFactor)
     case .relativeToLast(let delta):
         let last = try await lastPerformedLookup.lastPerformedWeight(exerciseId: exerciseId)
-        base = last.map { $0.metTarget ? Weight(value: $0.weight.value + delta.value, unit: $0.weight.unit) : $0.weight }
+        // delta 自己帶單位，用 Weight 的 + 相加（會換算成上次那筆的單位），
+        // 不能拿 delta.value 直接加到 last.weight.value —— 那會把 lb 的增量當成 kg 加上去。
+        base = last.map { $0.metTarget ? $0.weight + delta : $0.weight }
         source = WeightSourceInfo(kind: .relativeToLast, delta: delta, lastWeight: last?.weight, intensityFactor: intensityFactor)
     }
     guard let base else { return (nil, source) }

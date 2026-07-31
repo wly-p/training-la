@@ -141,7 +141,8 @@ struct LastPerformedWeightLookupAdapter: LastPerformedWeightLookup {
 
     func lastPerformedWeight(exerciseId: UUID) async throws -> LastPerformedSet? {
         let sets = try await workoutRepository.lastPerformance(exerciseId: exerciseId, excludingWorkout: nil)
-        guard let best = sets.max(by: { $0.weight.value < $1.weight.value }) else { return nil }
+        // 用 Weight 比（已換算單位）；拿 .value 比在混單位時會挑錯那一組。
+        guard let best = sets.max(by: { $0.weight < $1.weight }) else { return nil }
         let metTarget = best.targetReps.map { best.reps >= $0 } ?? true
         return LastPerformedSet(weight: best.weight, metTarget: metTarget)
     }
