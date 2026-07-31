@@ -585,11 +585,18 @@ private struct SetEditSheet: View {
     /// 快捷 ±／滾輪的步階：絕對值與相對上次跟著器材遞增單位，%1RM 固定 5（百分比不是公斤）。
     private var quickStep: Double { mode == .percentOf1RM ? 5 : weightStep }
 
+    /// 這筆絕對重量的單位；其他模式（相對增量／百分比）用不到，預設公斤。
+    private var weightUnit: WeightUnit {
+        if case .absolute(let w) = targetWeight { return w.unit }
+        return .kg
+    }
+
     private var weightValues: [Double] {
         switch mode {
+        // 相對上次是「增減量」不是絕對重量，值域維持 ±50 不套用重量上限。
         case .relativeToLast: Array(stride(from: -50, through: 50, by: weightStep))
         case .percentOf1RM: Array(stride(from: 0, through: 100, by: 5))
-        case .absolute: Array(stride(from: 0, through: 300, by: weightStep))
+        case .absolute: WeightRange.values(for: weightUnit, step: weightStep)
         }
     }
 

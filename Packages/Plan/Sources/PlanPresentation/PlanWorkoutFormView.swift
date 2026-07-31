@@ -329,7 +329,10 @@ private struct DraftEditSheet: View {
         _rest = State(initialValue: restSec.wrappedValue ?? 0)
     }
 
-    private var weightValues: [Double] { Array(stride(from: 0, through: 300, by: weightStep)) }
+    /// 這筆目標重量的單位；還沒有值時預設公斤。
+    private var weightUnit: WeightUnit { targetWeight?.unit ?? .kg }
+
+    private var weightValues: [Double] { WeightRange.values(for: weightUnit, step: weightStep) }
     private var repsValues: [Double] { Array(stride(from: 1, through: 30, by: 1)) }
 
     var body: some View {
@@ -349,8 +352,12 @@ private struct DraftEditSheet: View {
                 secondaryValues: repsValues,
                 secondaryKicker: String(localized: "plan.reps", bundle: .module),
                 quickActions: [
-                    .init("-\(formatNumber(weightStep))") { weightValue = max(0, weightValue - weightStep) },
-                    .init("+\(formatNumber(weightStep))") { weightValue = min(300, weightValue + weightStep) },
+                    .init("-\(formatNumber(weightStep))") {
+                        weightValue = WeightRange.clamped(weightValue - weightStep, unit: weightUnit)
+                    },
+                    .init("+\(formatNumber(weightStep))") {
+                        weightValue = WeightRange.clamped(weightValue + weightStep, unit: weightUnit)
+                    },
                 ]
             )
             Spacer(minLength: 0)

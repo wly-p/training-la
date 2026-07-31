@@ -107,7 +107,10 @@ private struct AbilityEditSheet: View {
         _value = State(initialValue: row.current?.value.value ?? row.suggestion?.value ?? 60)
     }
 
-    private var values: [Double] { Array(stride(from: 0, through: 300, by: 2.5)) }
+    /// 這筆能力值的單位；沒有既有值時預設公斤。
+    private var unit: WeightUnit { row.current?.value.unit ?? .kg }
+
+    private var values: [Double] { WeightRange.values(for: unit, step: 2.5) }
 
     var body: some View {
         VStack(alignment: .leading, spacing: TLSpace.gapL) {
@@ -130,8 +133,8 @@ private struct AbilityEditSheet: View {
                 values: values,
                 kicker: String(localized: "ability.kicker", bundle: .module),
                 quickActions: [
-                    .init("-2.5") { value = max(values.first ?? 0, value - 2.5) },
-                    .init("+2.5") { value = min(values.last ?? 0, value + 2.5) },
+                    .init("-2.5") { value = WeightRange.clamped(value - 2.5, unit: unit) },
+                    .init("+2.5") { value = WeightRange.clamped(value + 2.5, unit: unit) },
                 ]
             )
             localText("ability.editNote")
@@ -154,7 +157,7 @@ private struct AbilityEditSheet: View {
                 .foregroundStyle(TLColor.text)
             Spacer()
             Button {
-                onSave(Weight(value: value, unit: .kg))
+                onSave(Weight(value: value, unit: unit))
             } label: {
                 localText("ability.done")
             }

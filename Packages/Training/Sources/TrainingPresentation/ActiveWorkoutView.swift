@@ -844,7 +844,7 @@ public struct ActiveWorkoutView: View {
 
     /// 大數字點開的重量／次數選擇器（取代 stepper）；重量以 2.5 為級距、次數 1…40。
     private var valueEditorSheet: some View {
-        let weightValues = stride(from: 0.0, through: 300.0, by: 2.5).map { $0 }
+        let weightValues = WeightRange.values(for: viewModel.draftWeightUnit, step: 2.5)
         let repsValues = (1...40).map(Double.init)
         return NavigationStack {
             VStack {
