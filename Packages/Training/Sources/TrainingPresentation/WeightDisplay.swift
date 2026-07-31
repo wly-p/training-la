@@ -2,11 +2,11 @@ import SharedKernel
 import TrainingDomain
 
 enum WeightDisplay {
-    /// 60.0 → "60"、62.5 → "62.5"
+    /// 60.0 → "60"、62.5 → "62.5"。
+    /// 實作在 `Weight.formatted`（SharedKernel）——細級距會帶浮點雜訊，
+    /// 格式化規則只能有一份，不然兩邊會不一致。
     static func value(_ value: Double) -> String {
-        value.truncatingRemainder(dividingBy: 1) == 0
-            ? String(Int(value))
-            : String(value)
+        Weight.formatted(value)
     }
 
     static func weight(_ weight: Weight) -> String {
