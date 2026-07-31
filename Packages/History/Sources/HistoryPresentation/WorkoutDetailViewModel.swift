@@ -23,17 +23,21 @@ public final class WorkoutDetailViewModel {
     private let loadDetail: () async -> HistoryWorkoutDetail?
     private let editing: any WorkoutHistoryEditing
     private let onChange: () async -> Void
+    /// 使用者的重量級距偏好（跟記錄畫面同一個值）。
+    private let weightStep: Double
 
     public init(
         workoutId: UUID,
         loadDetail: @escaping () async -> HistoryWorkoutDetail?,
         editing: any WorkoutHistoryEditing,
-        onChange: @escaping () async -> Void
+        onChange: @escaping () async -> Void,
+        preferences: any TrainingPreferenceStoring = InMemoryTrainingPreferenceStore()
     ) {
         self.workoutId = workoutId
         self.loadDetail = loadDetail
         self.editing = editing
         self.onChange = onChange
+        self.weightStep = preferences.loadWeightStep()
     }
 
     /// 場次內全部組（跨動作區塊攤平，供編輯逐組取用）。
@@ -61,11 +65,12 @@ public final class WorkoutDetailViewModel {
 
     public func draft(for setId: UUID) -> SetDraft? { drafts[setId] }
 
-    /// 調整某組重量（kg ±2.5／lb ±5，對齊記錄畫面的級距），不小於 0。
+    /// 調整某組重量，級距用使用者的偏好（跟記錄畫面同一個值），夾在合法值域內。
     public func bumpWeight(setId: UUID, _ direction: Int) {
         guard var draft = drafts[setId] else { return }
-        let step = draft.weight.unit == .kg ? 2.5 : 5.0
-        draft.weight.value = max(0, draft.weight.value + step * Double(direction))
+        draft.weight.value = WeightRange.clamped(
+            draft.weight.value + weightStep * Double(direction), unit: draft.weight.unit
+        )
         drafts[setId] = draft
     }
 

@@ -73,6 +73,10 @@ struct AppDependencies {
         // Settings 與 Training 共用同一實例——訓練頁記錄新組時要用它決定草稿單位。
         let weightUnitStore: any WeightUnitPreferenceStoring =
             inMemory ? InMemoryWeightUnitStore() : UserDefaultsWeightUnitStore()
+        // 訓練偏好（重量／休息級距）：同樣 UI 測試走記憶體，用預設值（2.5kg / 30 秒），
+        // 跟既有 UITest 斷言一致。Settings / Training / Plan / History 共用同一實例。
+        let trainingPreferences: any TrainingPreferenceStoring =
+            inMemory ? InMemoryTrainingPreferenceStore() : UserDefaultsTrainingPreferenceStore()
         // UI 測試（in-memory）用 Noop channels，避免真實通知權限彈窗／發聲干擾測試。
         let reminder: any RestEndReminding = inMemory
             ? RestEndReminder(notifications: NoopRestNotificationScheduling(),
@@ -96,6 +100,7 @@ struct AppDependencies {
             reminderStore: reminderStore,
             languageStore: languageStore,
             weightUnitStore: weightUnitStore,
+            trainingPreferences: trainingPreferences,
             dataEraser: SwiftDataEraser(container: container, modelTypes: allModels)
         )
     }
@@ -114,6 +119,7 @@ struct AppDependencies {
         reminderStore: any RestReminderPreferenceStoring,
         languageStore: any LanguagePreferenceStoring = InMemoryLanguageStore(),
         weightUnitStore: any WeightUnitPreferenceStoring = InMemoryWeightUnitStore(),
+        trainingPreferences: any TrainingPreferenceStoring = InMemoryTrainingPreferenceStore(),
         dataEraser: any DataErasing = NoopDataEraser()
     ) -> AppDependencies {
         // Training 的 ExerciseCatalog port ← Spec 的 use case
@@ -139,18 +145,18 @@ struct AppDependencies {
             listTemplates: ListTemplates(repository: templateRepository),
             instantiateTemplate: InstantiateTemplate(
                 templateRepository: templateRepository, planRepository: planRepository,
-                exerciseCatalog: planCatalog, lastPerformedWeightLookup: lastPerformedWeightLookup,
+                preferences: trainingPreferences, lastPerformedWeightLookup: lastPerformedWeightLookup,
                 abilityValueLookup: abilityValueLookup
             ),
             listRotations: ListRotations(repository: rotationRepository),
             previewRotationUseCase: PreviewRotationWorkout(
                 rotationRepository: rotationRepository,
-                exerciseCatalog: planCatalog, lastPerformedWeightLookup: lastPerformedWeightLookup,
+                preferences: trainingPreferences, lastPerformedWeightLookup: lastPerformedWeightLookup,
                 abilityValueLookup: abilityValueLookup
             ),
             startRotationUseCase: StartRotation(
                 rotationRepository: rotationRepository, planRepository: planRepository,
-                exerciseCatalog: planCatalog, lastPerformedWeightLookup: lastPerformedWeightLookup,
+                preferences: trainingPreferences, lastPerformedWeightLookup: lastPerformedWeightLookup,
                 abilityValueLookup: abilityValueLookup
             ),
             getActiveRestDay: GetActiveRestDay(
@@ -196,11 +202,12 @@ struct AppDependencies {
                     exerciseCatalog: catalog,
                     plannedProvider: plannedProvider,
                     reminder: reminder,
-                    weightUnitStore: weightUnitStore
+                    weightUnitStore: weightUnitStore,
+                    preferences: trainingPreferences
                 )
             },
             makeHistoryViewModel: {
-                HistoryViewModel(reading: historyReading, editing: historyReading)
+                HistoryViewModel(reading: historyReading, editing: historyReading, preferences: trainingPreferences)
             },
             makePlanScheduleViewModel: {
                 PlanScheduleViewModel(
@@ -211,7 +218,7 @@ struct AppDependencies {
                     listTemplates: ListTemplates(repository: templateRepository),
                     instantiateTemplate: InstantiateTemplate(
                         templateRepository: templateRepository, planRepository: planRepository,
-                        exerciseCatalog: planCatalog, lastPerformedWeightLookup: lastPerformedWeightLookup,
+                        preferences: trainingPreferences, lastPerformedWeightLookup: lastPerformedWeightLookup,
                         abilityValueLookup: abilityValueLookup
                     ),
                     listPrograms: ListPrograms(repository: programRepository),
@@ -222,7 +229,7 @@ struct AppDependencies {
                         programRepository: programRepository,
                         assignmentRepository: programAssignmentRepository,
                         planRepository: planRepository,
-                        exerciseCatalog: planCatalog,
+                        preferences: trainingPreferences,
                         lastPerformedWeightLookup: lastPerformedWeightLookup,
                         abilityValueLookup: abilityValueLookup
                     ),
@@ -233,11 +240,12 @@ struct AppDependencies {
                     ),
                     materializeProjection: MaterializeProjectedWorkout(
                         planRepository: planRepository,
-                        exerciseCatalog: planCatalog,
+                        preferences: trainingPreferences,
                         lastPerformedWeightLookup: lastPerformedWeightLookup,
                         abilityValueLookup: abilityValueLookup
                     ),
-                    exerciseCatalog: planCatalog
+                    exerciseCatalog: planCatalog,
+                    preferences: trainingPreferences
                 )
             },
             makeTemplateListViewModel: {
@@ -247,7 +255,8 @@ struct AppDependencies {
                     updateTemplate: UpdateTemplate(repository: templateRepository),
                     deleteTemplate: DeleteTemplate(repository: templateRepository),
                     duplicateTemplate: DuplicateTemplate(repository: templateRepository),
-                    exerciseCatalog: planCatalog
+                    exerciseCatalog: planCatalog,
+                    preferences: trainingPreferences
                 )
             },
             makeRotationListViewModel: {
@@ -260,7 +269,8 @@ struct AppDependencies {
                     setRotationIntensityFactor: SetRotationIntensityFactor(repository: rotationRepository),
                     deleteRotation: DeleteRotation(repository: rotationRepository),
                     listTemplates: ListTemplates(repository: templateRepository),
-                    exerciseCatalog: planCatalog
+                    exerciseCatalog: planCatalog,
+                    preferences: trainingPreferences
                 )
             },
             makeRotationDetailViewModel: { rotationId in
@@ -319,6 +329,7 @@ struct AppDependencies {
                     restReminderStore: reminderStore,
                     languageStore: languageStore,
                     weightUnitStore: weightUnitStore,
+                    preferences: trainingPreferences,
                     dataEraser: dataEraser,
                     onErased: onErased
                 )

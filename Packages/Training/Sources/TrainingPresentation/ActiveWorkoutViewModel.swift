@@ -74,6 +74,10 @@ public final class ActiveWorkoutViewModel {
     /// （見 `apply(weight:reps:)`）——換算只發生在比較與顯示，儲存不做正規化。
     public var draftWeightUnit: WeightUnit
     public var draftReps: Int = 8
+    /// 使用者的重量級距偏好：± 快捷一次動多少、選擇器滾輪每格差多少。
+    public let weightStep: Double
+    /// 使用者的休息時間級距偏好（秒）：休息中 ± 按鈕一次動多少。
+    public let restStep: Int
 
     private let saveProgress: SaveWorkoutProgress
     private let finishWorkout: FinishWorkout
@@ -98,6 +102,7 @@ public final class ActiveWorkoutViewModel {
         plannedProvider: (any PlannedWorkoutProvider)? = nil,
         reminder: any RestEndReminding = NoopRestEndReminding(),
         weightUnitStore: any WeightUnitPreferenceStoring = InMemoryWeightUnitStore(),
+        preferences: any TrainingPreferenceStoring = InMemoryTrainingPreferenceStore(),
         now: @escaping () -> Date = { Date() }
     ) {
         self.workout = workout
@@ -110,6 +115,8 @@ public final class ActiveWorkoutViewModel {
         self.plannedProvider = plannedProvider
         self.reminder = reminder
         self.draftWeightUnit = weightUnitStore.load()
+        self.weightStep = preferences.loadWeightStep()
+        self.restStep = preferences.loadRestStep()
         self.now = now
     }
 
@@ -487,8 +494,8 @@ public final class ActiveWorkoutViewModel {
         startRestTicking()
     }
 
-    /// 訓練中調整休息剩餘秒數（+/- 15 秒）：移動結束時間並重排通知，
-    /// 並把調整後的休息長度套用到同一動作的後續各組。
+    /// 訓練中調整休息剩餘秒數（`delta` 由呼叫端帶入使用者的級距偏好 `restStep`）：
+    /// 移動結束時間並重排通知，並把調整後的休息長度套用到同一動作的後續各組。
     public func adjustRest(_ delta: Int) {
         guard let end = restEndDate else { return }
         let newEnd = max(now(), end.addingTimeInterval(TimeInterval(delta)))
@@ -632,8 +639,11 @@ public final class ActiveWorkoutViewModel {
     }
 
     public func bumpWeight(_ direction: Int) {
-        let step = draftWeightUnit == .kg ? 2.5 : 5.0
-        draftWeightValue = max(0, draftWeightValue + step * Double(direction))
+        // 從現值加減，不吸附到級距網格：按鈕標「+1」就該動 1，
+        // 課表預填的目標常常本來就不在使用者自訂級距的格子上。
+        draftWeightValue = WeightRange.clamped(
+            draftWeightValue + weightStep * Double(direction), unit: draftWeightUnit
+        )
     }
 
     public func bumpReps(_ direction: Int) {

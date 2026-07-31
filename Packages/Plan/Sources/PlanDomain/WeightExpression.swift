@@ -88,8 +88,8 @@ public struct WeightSourceInfo: Equatable, Sendable, Codable {
 }
 
 /// 投影/實例化收斂：把重量表達式算成確定公斤，同時記下這個數字的來源（給 14c 顯示算式）。
-/// 絕對值／%1RM／相對上次先各自算出 base，套 `intensityFactor` 後再依器材遞增單位向下取整
-/// （順序不能換：倍率套在 base 之後、取整之前，見 91-weight-model.md §5）。
+/// 絕對值／%1RM／相對上次先各自算出 base，套 `intensityFactor` 後再依**使用者的級距偏好**
+/// 向下取整（順序不能換：倍率套在 base 之後、取整之前，見 91-weight-model.md §5）。
 /// 查不到能力值或歷史 ＝ nil（空白待填，不猜一個數字塞進去）。
 func resolveWeightExpression(
     _ expression: WeightExpression?,
@@ -120,29 +120,27 @@ func resolveWeightExpression(
         source = WeightSourceInfo(kind: .relativeToLast, delta: delta, lastWeight: last?.weight, intensityFactor: intensityFactor)
     }
     guard let base else { return (nil, source) }
-    let step = weightStep > 0 ? weightStep : 1
-    let raw = base.value * intensityFactor
-    let stepped = (raw / step).rounded(.down) * step
-    return (.absolute(Weight(value: max(0, stepped), unit: base.unit)), source)
+    let stepped = WeightRange.steppedDown(base.value * intensityFactor, step: weightStep)
+    return (.absolute(Weight(value: stepped, unit: base.unit)), source)
 }
 
 /// 把一份 spec 的 sets（可能帶未收斂表達式）投影成材料化的 `PlanSet` 陣列（一律 `.absolute` 或 nil）。
 /// `InstantiateTemplate`／`MaterializeProjectedWorkout`／`ReconcileProgramAssignments`／`StartRotation` 共用。
 /// `intensityFactor`：範本沒有倍率概念，呼叫端固定傳 1.0；循環/長期傳 `slot ?? plan` 的覆寫值。
+/// `weightStep`：使用者的級距偏好（見 `TrainingPreferenceStoring`），由 composition root 傳下來。
 func resolvedPlanSets(
     from sourceSets: [PlanSet],
-    catalog: [PlanCatalogExercise],
+    weightStep: Double,
     intensityFactor: Double,
     lastPerformedLookup: any LastPerformedWeightLookup,
     abilityValueLookup: any AbilityValueLookup,
     makeID: () -> UUID
 ) async throws -> [PlanSet] {
-    let stepByExercise = Dictionary(uniqueKeysWithValues: catalog.map { ($0.id, $0.equipment.weightStep) })
     var result: [PlanSet] = []
     for set in sourceSets {
         let (resolved, source) = try await resolveWeightExpression(
             set.targetWeight,
-            weightStep: stepByExercise[set.exerciseId] ?? 1,
+            weightStep: weightStep,
             intensityFactor: intensityFactor,
             exerciseId: set.exerciseId,
             lastPerformedLookup: lastPerformedLookup,

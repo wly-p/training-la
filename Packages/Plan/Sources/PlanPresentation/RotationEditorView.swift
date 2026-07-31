@@ -17,6 +17,8 @@ public struct RotationEditorView: View {
 
     let target: Target
     let templates: [WorkoutTemplate]
+    /// 使用者的重量級距偏好；強度倍率預覽要跟投影收斂算出同一個數字。
+    let weightStep: Double
     let name: (UUID) -> String
     let onSubmit: (String, [WorkoutSpec], Bool, Int, Double) async -> Void
     let onDelete: () async -> Void
@@ -41,12 +43,14 @@ public struct RotationEditorView: View {
     public init(
         target: Target,
         templates: [WorkoutTemplate],
+        weightStep: Double,
         name: @escaping (UUID) -> String,
         onSubmit: @escaping (String, [WorkoutSpec], Bool, Int, Double) async -> Void,
         onDelete: @escaping () async -> Void = {}
     ) {
         self.target = target
         self.templates = templates
+        self.weightStep = weightStep
         self.name = name
         self.onSubmit = onSubmit
         self.onDelete = onDelete
@@ -259,7 +263,8 @@ public struct RotationEditorView: View {
     private var intensityPreviewLines: [IntensityFactorGroup.PreviewLine] {
         guard let firstSet = draftWorkouts.first?.sets.first else { return [] }
         let base = firstSet.targetWeight?.resolvedWeight?.value ?? 60
-        let result = (base * draftIntensityFactor / 2.5).rounded(.down) * 2.5
+        // 跟投影收斂用同一個取整（WeightRange.steppedDown），否則預覽與實際排出來的數字會兜不攏。
+        let result = WeightRange.steppedDown(base * draftIntensityFactor, step: weightStep)
         return [
             IntensityFactorGroup.PreviewLine(
                 label: Text(verbatim: "\(name(firstSet.exerciseId)) ")

@@ -23,6 +23,8 @@ public final class RotationListViewModel {
     private let deleteRotation: DeleteRotation
     private let listTemplates: ListTemplates
     private let exerciseCatalog: any PlanExerciseCatalog
+    /// 使用者的重量級距偏好；強度倍率預覽用。
+    public let weightStep: Double
 
     public init(
         listRotations: ListRotations,
@@ -33,7 +35,8 @@ public final class RotationListViewModel {
         setRotationIntensityFactor: SetRotationIntensityFactor,
         deleteRotation: DeleteRotation,
         listTemplates: ListTemplates,
-        exerciseCatalog: any PlanExerciseCatalog
+        exerciseCatalog: any PlanExerciseCatalog,
+        preferences: any TrainingPreferenceStoring = InMemoryTrainingPreferenceStore()
     ) {
         self.listRotations = listRotations
         self.createRotation = createRotation
@@ -43,6 +46,7 @@ public final class RotationListViewModel {
         self.setRotationIntensityFactor = setRotationIntensityFactor
         self.deleteRotation = deleteRotation
         self.listTemplates = listTemplates
+        self.weightStep = preferences.loadWeightStep()
         self.exerciseCatalog = exerciseCatalog
     }
 

@@ -42,6 +42,16 @@ public final class SettingsViewModel {
         didSet { weightUnitStore.save(weightUnit) }
     }
 
+    /// 調整重量的級距；改動即持久化。訓練頁 ± 快捷、選擇器滾輪、投影收斂取整都吃這個值。
+    public var weightStep: Double {
+        didSet { preferences.saveWeightStep(weightStep) }
+    }
+
+    /// 調整休息時間的級距（秒）；改動即持久化。
+    public var restStep: Int {
+        didSet { preferences.saveRestStep(restStep) }
+    }
+
     /// 「刪除所有資料」進行中；UI 用來顯示進度並鎖住按鈕、防重複觸發。
     public private(set) var isErasing = false
     /// 刪除失敗；綁 UI 的錯誤 alert。
@@ -52,6 +62,7 @@ public final class SettingsViewModel {
     private let restReminderStore: any RestReminderPreferenceStoring
     private let languageStore: any LanguagePreferenceStoring
     private let weightUnitStore: any WeightUnitPreferenceStoring
+    private let preferences: any TrainingPreferenceStoring
     private let dataEraser: any DataErasing
     /// 清除成功後由 App 層觸發整個畫面重建（回到全新初始狀態）。
     private let onErased: @MainActor () -> Void
@@ -62,6 +73,7 @@ public final class SettingsViewModel {
         restReminderStore: any RestReminderPreferenceStoring = InMemoryRestReminderPreferenceStore(),
         languageStore: any LanguagePreferenceStoring = InMemoryLanguageStore(),
         weightUnitStore: any WeightUnitPreferenceStoring = InMemoryWeightUnitStore(),
+        preferences: any TrainingPreferenceStoring = InMemoryTrainingPreferenceStore(),
         systemPreferredLanguages: [String] = Locale.preferredLanguages,
         dataEraser: any DataErasing = NoopDataEraser(),
         onErased: @escaping @MainActor () -> Void = {}
@@ -71,12 +83,15 @@ public final class SettingsViewModel {
         self.restReminderStore = restReminderStore
         self.languageStore = languageStore
         self.weightUnitStore = weightUnitStore
+        self.preferences = preferences
         self.dataEraser = dataEraser
         self.onErased = onErased
         self.theme = store.load() // init 期間 didSet 不觸發，不會多存一次
         self.icon = AppIcon(assetName: iconSwitcher.currentIconName)
         self.restReminder = restReminderStore.load()
         self.weightUnit = weightUnitStore.load()
+        self.weightStep = preferences.loadWeightStep()
+        self.restStep = preferences.loadRestStep()
         // 第一次啟動（store 為空）：由系統偏好語言決定、命中支援清單就用、否則 fallback，
         // 並 seed 回 store → 之後一律以設定為主，不再看系統。
         let storedLanguage = languageStore.load()

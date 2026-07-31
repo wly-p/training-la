@@ -15,6 +15,9 @@ struct TemplateFormView: View {
 
     let target: Target
     let catalog: [PlanCatalogExercise]
+    /// 使用者的重量級距偏好（見 `TrainingPreferenceStoring`）。原本依器材猜（`Equipment.weightStep`），
+    /// 但那是對典型健身房的假設而不是使用者的真實器材，已改成一律由設定決定。
+    let weightStep: Double
     /// 最近用過的動作 id（picker 的「最近用過」分組；由呼叫端算好傳入，見 TemplateListView）。
     let recentExerciseIds: [UUID]
     /// 14a 複製範本：剛複製進來時的來源範本名，只在這次開表單顯示一次（存檔後消失，
@@ -35,6 +38,7 @@ struct TemplateFormView: View {
     init(
         target: Target,
         catalog: [PlanCatalogExercise],
+        weightStep: Double,
         recentExerciseIds: [UUID] = [],
         duplicatedFromName: String? = nil,
         onSubmit: @escaping (String, [PlanSet]) async -> Void,
@@ -42,6 +46,7 @@ struct TemplateFormView: View {
     ) {
         self.target = target
         self.catalog = catalog
+        self.weightStep = weightStep
         self.recentExerciseIds = recentExerciseIds
         self.duplicatedFromName = duplicatedFromName
         self.onSubmit = onSubmit
@@ -117,7 +122,7 @@ struct TemplateFormView: View {
                 SetEditSheet(
                     exerciseName: name(for: editing.exerciseId),
                     setNumber: editing.setNumber,
-                    weightStep: weightStep(for: editing.exerciseId),
+                    weightStep: weightStep,
                     previousWeight: previous?.targetWeight,
                     previousReps: previous?.targetReps,
                     targetWeight: $draftSets[index].targetWeight,
@@ -313,7 +318,7 @@ struct TemplateFormView: View {
         HStack(spacing: 8) {
             shortcutButton(localText("template.shortcut.same")) { applySameForAll(exerciseIndex: block.exerciseIndex) }
             shortcutButton(localText("template.shortcut.progressive")) {
-                applyProgressive(exerciseIndex: block.exerciseIndex, step: weightStep(for: block.exerciseId))
+                applyProgressive(exerciseIndex: block.exerciseIndex, step: weightStep)
             }
             shortcutButton(localText("template.shortcut.addSet")) { addSet(exerciseIndex: block.exerciseIndex) }
         }
@@ -449,10 +454,6 @@ struct TemplateFormView: View {
 
     private func name(for exerciseId: UUID) -> String {
         catalog.first { $0.id == exerciseId }?.name ?? "動作"
-    }
-
-    private func weightStep(for exerciseId: UUID) -> Double {
-        catalog.first { $0.id == exerciseId }?.equipment.weightStep ?? 2.5
     }
 
     private func weightLabel(for expression: WeightExpression?) -> String {

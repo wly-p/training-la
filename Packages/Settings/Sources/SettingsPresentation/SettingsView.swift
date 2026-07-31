@@ -14,7 +14,7 @@ public struct SettingsView: View {
     /// （例如 SwiftUI 預覽或還沒接 Ability 的情境）。
     private let abilityDestination: (() -> AnyView)?
 
-    private enum SettingsRoute: Hashable { case theme, language, icon, ability }
+    private enum SettingsRoute: Hashable { case theme, language, icon, ability, weightStep, restStep }
 
     public init(
         viewModel: SettingsViewModel,
@@ -115,6 +115,26 @@ public struct SettingsView: View {
                     )
                     .frame(width: 128)
                 }
+                SettingsRow(
+                    localText("settings.weightStep.title"),
+                    showChevron: true,
+                    accessibilityValue: Text(verbatim: Weight.formatted(viewModel.weightStep)),
+                    onTap: { route = .weightStep }
+                ) {
+                    Text(verbatim: "\(Weight.formatted(viewModel.weightStep)) \(viewModel.weightUnit.rawValue)")
+                        .font(TLFont.zh(TLFont.rowSub))
+                        .foregroundStyle(TLColor.neutral500)
+                }
+                SettingsRow(
+                    localText("settings.restStep.title"),
+                    showChevron: true,
+                    accessibilityValue: Text(verbatim: "\(viewModel.restStep)"),
+                    onTap: { route = .restStep }
+                ) {
+                    localText("settings.restStep.value \(viewModel.restStep)")
+                        .font(TLFont.zh(TLFont.rowSub))
+                        .foregroundStyle(TLColor.neutral500)
+                }
             }
         }
     }
@@ -204,6 +224,12 @@ public struct SettingsView: View {
 
     // MARK: - drill-in 目的地
 
+    /// 休息級距的合法範圍換成 Double（`StepPreferenceView` 重量／秒數共用同一個型別）。
+    private var restStepRangeAsDouble: ClosedRange<Double> {
+        let range = InMemoryTrainingPreferenceStore.restStepRange
+        return Double(range.lowerBound)...Double(range.upperBound)
+    }
+
     @ViewBuilder
     private func destination(_ destinationRoute: SettingsRoute) -> some View {
         switch destinationRoute {
@@ -235,6 +261,28 @@ public struct SettingsView: View {
                 label: { localText($0.displayName) },
                 leadingImageName: { $0.previewImageName },
                 onSelect: { viewModel.icon = $0; route = nil },
+                onBack: { route = nil }
+            )
+        case .weightStep:
+            StepPreferenceView(
+                title: localText("settings.weightStep.title"),
+                options: [0.5, 1, 1.25, 2, 2.5, 5],
+                range: InMemoryTrainingPreferenceStore.weightStepRange,
+                unitLabel: viewModel.weightUnit.rawValue,
+                allowsDecimal: true,
+                current: viewModel.weightStep,
+                onSelect: { viewModel.weightStep = $0 },
+                onBack: { route = nil }
+            )
+        case .restStep:
+            StepPreferenceView(
+                title: localText("settings.restStep.title"),
+                options: [10, 15, 30, 60],
+                range: restStepRangeAsDouble,
+                unitLabel: String(localized: "settings.restStep.unit", bundle: .module),
+                allowsDecimal: false,
+                current: Double(viewModel.restStep),
+                onSelect: { viewModel.restStep = Int($0) },
                 onBack: { route = nil }
             )
         case .ability:

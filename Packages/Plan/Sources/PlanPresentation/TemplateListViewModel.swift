@@ -8,6 +8,8 @@ import SharedKernel
 public final class TemplateListViewModel {
     public private(set) var templates: [WorkoutTemplate] = []
     public private(set) var catalog: [PlanCatalogExercise] = []
+    /// 使用者的重量級距偏好；逐組編輯的 ± 快捷與滾輪用。
+    public let weightStep: Double
     /// 本地化錯誤字串（延後解析，由 View 依 Environment locale 顯示）。
     public private(set) var errorMessage: LocalizedStringResource?
 
@@ -24,13 +26,15 @@ public final class TemplateListViewModel {
         updateTemplate: UpdateTemplate,
         deleteTemplate: DeleteTemplate,
         duplicateTemplate: DuplicateTemplate,
-        exerciseCatalog: any PlanExerciseCatalog
+        exerciseCatalog: any PlanExerciseCatalog,
+        preferences: any TrainingPreferenceStoring = InMemoryTrainingPreferenceStore()
     ) {
         self.listTemplates = listTemplates
         self.createTemplate = createTemplate
         self.updateTemplate = updateTemplate
         self.deleteTemplate = deleteTemplate
         self.duplicateTemplate = duplicateTemplate
+        self.weightStep = preferences.loadWeightStep()
         self.exerciseCatalog = exerciseCatalog
     }
 

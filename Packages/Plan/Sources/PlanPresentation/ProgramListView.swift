@@ -62,6 +62,7 @@ public struct ProgramListView: View {
                 ProgramEditorView(
                     target: .edit(program),
                     templates: viewModel.templates,
+                    weightStep: viewModel.weightStep,
                     name: viewModel.name(for:),
                     onSubmit: { name, cycleLength, days, intensityFactor in
                         await viewModel.update(
@@ -81,6 +82,7 @@ public struct ProgramListView: View {
             ProgramEditorView(
                 target: .create,
                 templates: viewModel.templates,
+                    weightStep: viewModel.weightStep,
                 name: viewModel.name(for:),
                 onSubmit: { name, cycleLength, days, intensityFactor in
                     await viewModel.create(

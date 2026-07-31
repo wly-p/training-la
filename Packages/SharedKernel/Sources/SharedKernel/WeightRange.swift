@@ -29,4 +29,16 @@ public enum WeightRange {
     public static func clamped(_ value: Double, unit: WeightUnit) -> Double {
         min(max(0, value), upperBound(for: unit))
     }
+
+    /// 依級距向下取整（投影收斂、強度倍率預覽共用）。
+    ///
+    /// 加容差再 floor：`value` 剛好落在 `step` 的整數倍上時，浮點除法可能算出 99.999…
+    /// 而少掉一階（實測 17.0 / 0.17 會收斂成 16.83），細級距特別容易中。
+    ///
+    /// 收斂成一份是刻意的——排課的強度倍率預覽必須跟實際材料化的結果算出同一個數字，
+    /// 兩邊各寫各的就會出現「預覽說 90、實際排出來 87.5」。
+    public static func steppedDown(_ value: Double, step: Double) -> Double {
+        let step = step > 0 ? step : 1
+        return max(0, (value / step + 1e-9).rounded(.down) * step)
+    }
 }

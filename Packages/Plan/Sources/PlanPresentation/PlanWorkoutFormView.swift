@@ -12,6 +12,9 @@ import SwiftUI
 struct PlanWorkoutFormView: View {
     let target: PlanFormTarget
     let catalog: [PlanCatalogExercise]
+    /// 使用者的重量級距偏好（見 `TrainingPreferenceStoring`）。原本依器材猜（`Equipment.weightStep`），
+    /// 但那是對典型健身房的假設而不是使用者的真實器材，已改成一律由設定決定。
+    let weightStep: Double
     let recentExerciseIds: [UUID]
     let readOnly: Bool
     let onSubmit: (String?, DayDate, [ExerciseTargetDraft]) async -> Void
@@ -27,12 +30,14 @@ struct PlanWorkoutFormView: View {
     init(
         target: PlanFormTarget,
         catalog: [PlanCatalogExercise],
+        weightStep: Double,
         recentExerciseIds: [UUID] = [],
         readOnly: Bool = false,
         onSubmit: @escaping (String?, DayDate, [ExerciseTargetDraft]) async -> Void
     ) {
         self.target = target
         self.catalog = catalog
+        self.weightStep = weightStep
         self.recentExerciseIds = recentExerciseIds
         self.readOnly = readOnly
         self.onSubmit = onSubmit
@@ -78,7 +83,7 @@ struct PlanWorkoutFormView: View {
             if let index = drafts.firstIndex(where: { $0.id == draft.id }) {
                 DraftEditSheet(
                     exerciseName: name(for: draft.exerciseId),
-                    weightStep: weightStep(for: draft.exerciseId),
+                    weightStep: weightStep,
                     setCount: $drafts[index].setCount,
                     targetWeight: $drafts[index].targetWeight,
                     targetReps: $drafts[index].targetReps,
@@ -264,10 +269,6 @@ struct PlanWorkoutFormView: View {
 
     private func name(for id: UUID) -> String {
         catalog.first { $0.id == id }?.name ?? "動作"
-    }
-
-    private func weightStep(for id: UUID) -> Double {
-        catalog.first { $0.id == id }?.equipment.weightStep ?? 2.5
     }
 
     /// 副標：組數＋休息，如「3 組 · 休息 60 秒」。
