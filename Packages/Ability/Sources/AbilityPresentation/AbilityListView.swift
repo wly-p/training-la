@@ -123,15 +123,16 @@ public struct AbilityListView: View {
     private var rowsGroup: some View {
         TLGroup {
             ForEach(viewModel.visibleRows) { row in
+                // trailing 要具名傳：ListRow 的 leading 排在 trailing 前面，
+                // 用尾隨閉包會綁到 leading，值就跑到列的左邊去。
                 ListRow(
                     title: Text(verbatim: row.exerciseName),
                     subtitle: subtitle(for: row),
                     equipment: row.equipment.displayName,
                     showChevron: true,
-                    onTap: { editingRow = row }
-                ) {
-                    valueDisplay(for: row)
-                }
+                    onTap: { editingRow = row },
+                    trailing: { valueDisplay(for: row) }
+                )
             }
         }
     }

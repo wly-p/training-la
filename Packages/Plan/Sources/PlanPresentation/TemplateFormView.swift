@@ -209,6 +209,7 @@ struct TemplateFormView: View {
         ListRow(
             title: Text(verbatim: name(for: block.exerciseId)),
             subtitle: subtitle(for: block.sets),
+            equipment: equipmentName(for: block.exerciseId),
             onTap: { expandedExerciseIndex = block.exerciseIndex },
             leading: { dragHandle },
             trailing: { capsule(for: block.sets) }
@@ -258,9 +259,12 @@ struct TemplateFormView: View {
     private func expandedBlock(_ block: PlanBlock) -> some View {
         VStack(alignment: .leading, spacing: TLSpace.gapM) {
             HStack {
-                Text(verbatim: name(for: block.exerciseId))
-                    .font(TLFont.zh(TLFont.cardTitle, .bold))
-                    .foregroundStyle(TLColor.text)
+                ExerciseNameWithEquipment(
+                    title: Text(verbatim: name(for: block.exerciseId))
+                        .font(TLFont.zh(TLFont.cardTitle, .bold))
+                        .foregroundColor(TLColor.text),
+                    equipment: equipmentName(for: block.exerciseId)
+                )
                 Spacer()
                 Button {
                     expandedExerciseIndex = nil
@@ -456,12 +460,15 @@ struct TemplateFormView: View {
         catalog.first { $0.id == exerciseId }?.name ?? "動作"
     }
 
+    /// 重量一律帶單位：kg 與 lb 的 20 差很多，數字裸著看不出是哪個。
+    /// 百分比不是重量，沒有單位。
     private func weightLabel(for expression: WeightExpression?) -> String {
         switch expression {
         case nil: "—"
-        case .absolute(let w): formatNumber(w.value)
-        case .relativeToLast(let delta): "上次\(delta.value >= 0 ? "+" : "")\(formatNumber(delta.value))"
-        case .percentOfMax(let percent): "\(formatNumber(percent))%1RM"
+        case .absolute(let w): "\(formatNumber(w.value)) \(w.unit.rawValue)"
+        case .relativeToLast(let delta):
+            "上次\(delta.value >= 0 ? "+" : "")\(formatNumber(delta.value)) \(delta.unit.rawValue)"
+        case .percentOfMax(let percent): "\(formatNumber(percent))% 最大重量"
         }
     }
 
@@ -490,15 +497,21 @@ struct TemplateFormView: View {
         }
     }
 
+    /// 器材顯示名（動作名允許重複，靠它分辨）。
+    private func equipmentName(for exerciseId: UUID) -> String {
+        (catalog.first { $0.id == exerciseId }?.equipment ?? .other).displayName
+    }
+
     private func capsuleText(for sets: [PlanSet]) -> String {
         let reps = sets.first?.targetReps ?? 0
         switch weightMode(for: sets) {
+        // 重量一律帶單位：kg 與 lb 的 20 差很多，數字裸著看不出是哪個。
         case .uniform(.some(.absolute(let w))):
-            return "\(sets.count) × \(reps) @ \(formatNumber(w.value))"
+            return "\(sets.count) × \(reps) @ \(formatNumber(w.value)) \(w.unit.rawValue)"
         case .uniform(.some(.relativeToLast(let delta))):
-            return "\(sets.count) × \(reps) 上次\(delta.value >= 0 ? "+" : "")\(formatNumber(delta.value))"
+            return "\(sets.count) × \(reps) 上次\(delta.value >= 0 ? "+" : "")\(formatNumber(delta.value)) \(delta.unit.rawValue)"
         case .uniform(.some(.percentOfMax(let percent))):
-            return "\(sets.count) × \(reps) \(formatNumber(percent))%1RM"
+            return "\(sets.count) × \(reps) \(formatNumber(percent))% 最大重量"
         case .uniform(nil):
             return "\(sets.count) × \(reps)"
         case .varying:
