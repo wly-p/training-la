@@ -388,14 +388,18 @@ public struct ProgramEditorView: View {
     /// 「套用後」試算：拿目前週期裡第一個已指派的範本、它的第一組當代表動作。
     private var intensityPreviewLines: [IntensityFactorGroup.PreviewLine] {
         guard let firstSet = draftDays.values.first?.sets.first else { return [] }
-        let base = firstSet.targetWeight?.resolvedWeight?.value ?? 60
+        // 帶著單位一起算：使用者可能用 lb，寫死 kg 會標錯。
+        let baseWeight = firstSet.targetWeight?.resolvedWeight ?? Weight(value: 60, unit: .kg)
+        let base = baseWeight.value
         // 跟投影收斂用同一個取整（WeightRange.steppedDown），否則預覽與實際排出來的數字會兜不攏。
         let result = WeightRange.steppedDown(base * draftIntensityFactor, step: weightStep)
         return [
             IntensityFactorGroup.PreviewLine(
                 label: Text(verbatim: "\(name(firstSet.exerciseId)) ") + localText("template.setNumber \(firstSet.setIndex + 1)"),
-                expression: Text(verbatim: String(format: "%.0f kg × %.0f%%", base, draftIntensityFactor * 100)),
-                result: Text(verbatim: String(format: "%.1f kg", result))
+                expression: Text(verbatim: String(
+                    format: "%@ × %.0f%%", baseWeight.displayString, draftIntensityFactor * 100
+                )),
+                result: Text(verbatim: Weight(value: result, unit: baseWeight.unit).displayString)
             )
         ]
     }

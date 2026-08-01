@@ -176,6 +176,8 @@ struct WorkoutDetailView: View {
                 Text(verbatim: HistoryFormatting.formatNumber(actual))
                     .font(TLFont.display(28))
                     .foregroundStyle(TLColor.text)
+                // 總量是把整場換算成公斤加總的純量（見 HistoryFormatting.totalVolume），
+                // 不是某一筆 Weight —— 這裡的 kg 是刻意寫死的，不該跟著使用者的單位偏好變。
                 if let target, target > 0 {
                     Text(verbatim: " / \(HistoryFormatting.formatNumber(target)) kg")
                         .font(TLFont.zh(13, .medium))

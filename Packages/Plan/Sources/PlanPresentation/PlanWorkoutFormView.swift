@@ -286,12 +286,12 @@ struct PlanWorkoutFormView: View {
         return text
     }
 
-    /// 右側膠囊：重量 × 次數，如「20 kg × 8」；未填重量顯示「× 次數」。
-    /// 重量一律帶單位——kg 與 lb 的 20 差很多，數字裸著看不出是哪個。
+    /// 右側膠囊統一成「重量單位 × 次數」（例「20kg × 8」），跟範本編輯同一個格式。
+    /// 走 `Weight.displayString` 而不是自己拼——那份格式化會把浮點雜訊去掉。
     private func capsuleText(for draft: ExerciseTargetDraft) -> String {
         let reps = draft.targetReps ?? 0
         if let weight = draft.targetWeight {
-            return "\(formatNumber(weight.value)) \(weight.unit.rawValue) × \(reps)"
+            return "\(weight.displayString) × \(reps)"
         }
         return "× \(reps)"
     }

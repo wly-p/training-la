@@ -460,14 +460,13 @@ struct TemplateFormView: View {
         catalog.first { $0.id == exerciseId }?.name ?? "動作"
     }
 
-    /// 重量一律帶單位：kg 與 lb 的 20 差很多，數字裸著看不出是哪個。
+    /// 重量一律帶單位（`Weight.displayString`＝「20kg」）：kg 與 lb 的 20 差很多。
     /// 百分比不是重量，沒有單位。
     private func weightLabel(for expression: WeightExpression?) -> String {
         switch expression {
         case nil: "—"
-        case .absolute(let w): "\(formatNumber(w.value)) \(w.unit.rawValue)"
-        case .relativeToLast(let delta):
-            "上次\(delta.value >= 0 ? "+" : "")\(formatNumber(delta.value)) \(delta.unit.rawValue)"
+        case .absolute(let w): w.displayString
+        case .relativeToLast(let delta): "上次\(delta.value >= 0 ? "+" : "")\(delta.displayString)"
         case .percentOfMax(let percent): "\(formatNumber(percent))% 最大重量"
         }
     }
@@ -502,18 +501,19 @@ struct TemplateFormView: View {
         (catalog.first { $0.id == exerciseId }?.equipment ?? .other).displayName
     }
 
+    /// 右側膠囊統一成「重量單位 × 次數」（例「20kg × 8」），跟課表編輯同一個格式。
+    /// 組數不放進來——列的副標已經寫了「3 組」，重複印一次只是佔位置。
     private func capsuleText(for sets: [PlanSet]) -> String {
         let reps = sets.first?.targetReps ?? 0
         switch weightMode(for: sets) {
-        // 重量一律帶單位：kg 與 lb 的 20 差很多，數字裸著看不出是哪個。
         case .uniform(.some(.absolute(let w))):
-            return "\(sets.count) × \(reps) @ \(formatNumber(w.value)) \(w.unit.rawValue)"
+            return "\(w.displayString) × \(reps)"
         case .uniform(.some(.relativeToLast(let delta))):
-            return "\(sets.count) × \(reps) 上次\(delta.value >= 0 ? "+" : "")\(formatNumber(delta.value)) \(delta.unit.rawValue)"
+            return "上次\(delta.value >= 0 ? "+" : "")\(delta.displayString) × \(reps)"
         case .uniform(.some(.percentOfMax(let percent))):
-            return "\(sets.count) × \(reps) \(formatNumber(percent))% 最大重量"
+            return "\(formatNumber(percent))% × \(reps)"
         case .uniform(nil):
-            return "\(sets.count) × \(reps)"
+            return "× \(reps)"
         case .varying:
             return "\(sets.count) 組"
         }

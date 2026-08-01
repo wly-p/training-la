@@ -583,7 +583,7 @@ public struct ActiveWorkoutView: View {
         else { return nil }
         var text = "\(exercise.plannedSetCount)"
         if let reps = rep.targetReps { text += " × \(reps)" }
-        if let weight = rep.targetWeight { text += " · \(WeightDisplay.value(weight.value)) kg" }
+        if let weight = rep.targetWeight { text += " · \(weight.displayString)" }
         return text
     }
 

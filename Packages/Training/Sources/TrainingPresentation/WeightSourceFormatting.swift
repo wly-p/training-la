@@ -13,14 +13,14 @@ enum WeightSourceFormatting {
             return nil
         case .absolute:
             guard source.intensityFactor != 1.0, let base = source.base else { return nil }
-            return "\(WeightDisplay.value(base.value)) kg × \(percentString(source.intensityFactor))"
+            return "\(base.displayString) × \(percentString(source.intensityFactor))"
         case .percentOfMax:
             guard let percent = source.percent, let ability = source.abilityValue else { return nil }
-            return "\(percentString(percent / 100))\(factorSuffix) · 1RM \(WeightDisplay.value(ability.value))"
+            return "\(percentString(percent / 100))\(factorSuffix) · 最大重量 \(ability.displayString)"
         case .relativeToLast:
             guard let last = source.lastWeight, let delta = source.delta else { return nil }
             let sign = delta.value >= 0 ? "+" : ""
-            return "上次 \(WeightDisplay.value(last.value)) \(sign)\(WeightDisplay.value(delta.value))\(factorSuffix)"
+            return "上次 \(last.displayString) \(sign)\(delta.displayString)\(factorSuffix)"
         }
     }
 
