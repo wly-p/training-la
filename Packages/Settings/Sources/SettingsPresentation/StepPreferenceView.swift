@@ -24,6 +24,8 @@ struct StepPreferenceView: View {
     @State private var value: Double
     @State private var customText: String
     @State private var showsRangeHint = false
+    /// 數字鍵盤沒有 return 鍵，要靠這個焦點狀態＋鍵盤工具列的「完成」才收得掉。
+    @FocusState private var isCustomFocused: Bool
 
     init(
         title: Text,
@@ -49,34 +51,52 @@ struct StepPreferenceView: View {
     }
 
     var body: some View {
-        ScrollView {
-            VStack(alignment: .leading, spacing: 0) {
-                backBar
-                PageHeader(title)
-                VStack(alignment: .leading, spacing: TLSpace.gapL) {
-                    ValuePicker(
-                        value: $value,
-                        values: options,
-                        kicker: unitLabel,
-                        format: { "\(Weight.formatted($0)) \(unitLabel)" }
-                    )
-                    .onChange(of: value) { _, new in
-                        customText = Weight.formatted(new)
-                        showsRangeHint = false
-                        onSelect(new)
+        ScrollViewReader { proxy in
+            ScrollView {
+                VStack(alignment: .leading, spacing: 0) {
+                    backBar
+                    PageHeader(title)
+                    VStack(alignment: .leading, spacing: TLSpace.gapL) {
+                        ValuePicker(
+                            value: $value,
+                            values: options,
+                            kicker: unitLabel,
+                            format: { "\(Weight.formatted($0)) \(unitLabel)" }
+                        )
+                        .onChange(of: value) { _, new in
+                            customText = Weight.formatted(new)
+                            showsRangeHint = false
+                            onSelect(new)
+                        }
+                        customField
+                            .id(Self.customFieldID)
                     }
-                    customField
+                    .padding(.horizontal, TLSpace.page)
+                    .padding(.top, TLSpace.section)
                 }
-                .padding(.horizontal, TLSpace.page)
-                .padding(.top, TLSpace.section)
+                .padding(.bottom, 40)
             }
-            .padding(.bottom, 40)
+            // 輸入框在頁面底部，鍵盤升起會蓋住它；聚焦時主動捲進可視範圍。
+            .onChange(of: isCustomFocused) { _, focused in
+                guard focused else { return }
+                withAnimation { proxy.scrollTo(Self.customFieldID, anchor: .center) }
+            }
         }
         .background(TLColor.bg.ignoresSafeArea())
         #if os(iOS)
         .toolbar(.hidden, for: .navigationBar)
+        // 數字鍵盤沒有 return 鍵 —— 沒有這顆「完成」，鍵盤叫出來就收不掉、畫面一直被擋住。
+        .toolbar {
+            ToolbarItemGroup(placement: .keyboard) {
+                Spacer()
+                Button { isCustomFocused = false } label: { localText("settings.step.done") }
+            }
+        }
         #endif
     }
+
+    /// 捲動定位用的 id（輸入框聚焦時捲到它）。
+    private static let customFieldID = "customStepField"
 
     private var backBar: some View {
         HStack {
@@ -104,7 +124,7 @@ struct StepPreferenceView: View {
                         #if os(iOS)
                         .keyboardType(allowsDecimal ? .decimalPad : .numberPad)
                         #endif
-                        .onSubmit(applyCustom)
+                        .focused($isCustomFocused)
                         .accessibilityIdentifier("customStepField")
                     Text(verbatim: unitLabel)
                         .font(TLFont.zh(TLFont.rowSub))
@@ -115,7 +135,7 @@ struct StepPreferenceView: View {
             }
             hint
         }
-        // 鍵盤收起（切走焦點）時也要套用，不能只靠 onSubmit——數字鍵盤沒有 return 鍵。
+        // 邊打邊套用。數字鍵盤沒有 return 鍵，onSubmit 永遠不會觸發，不能靠它。
         .onChange(of: customText) { _, _ in applyCustom() }
     }
 

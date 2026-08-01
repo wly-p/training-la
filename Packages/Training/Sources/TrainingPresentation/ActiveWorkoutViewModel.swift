@@ -75,9 +75,11 @@ public final class ActiveWorkoutViewModel {
     public var draftWeightUnit: WeightUnit
     public var draftReps: Int = 8
     /// 使用者的重量級距偏好：± 快捷一次動多少、選擇器滾輪每格差多少。
-    public let weightStep: Double
-    /// 使用者的休息時間級距偏好（秒）：休息中 ± 按鈕一次動多少。
-    public let restStep: Int
+    /// 每次讀取都問偏好，不在 init 快取——否則訓練途中去設定改級距，回來這場不會生效
+    /// （這個 view model 活在整場訓練期間）。UserDefaults 讀取很便宜。
+    public var weightStep: Double { preferences.loadWeightStep() }
+    /// 使用者的休息時間級距偏好（秒）：休息中 ± 按鈕一次動多少。同上，即時讀取。
+    public var restStep: Int { preferences.loadRestStep() }
 
     private let saveProgress: SaveWorkoutProgress
     private let finishWorkout: FinishWorkout
@@ -90,6 +92,8 @@ public final class ActiveWorkoutViewModel {
     private let now: () -> Date
     /// 休息結束提醒（背景通知＋前景聲音/震動；彈窗依偏好由 View 決定）。
     private let reminder: any RestEndReminding
+    /// 訓練偏好（重量／休息級距）。存 store 本身而非載入後的值，才能即時反映設定變更。
+    private let preferences: any TrainingPreferenceStoring
 
     public init(
         workout: Workout,
@@ -115,8 +119,7 @@ public final class ActiveWorkoutViewModel {
         self.plannedProvider = plannedProvider
         self.reminder = reminder
         self.draftWeightUnit = weightUnitStore.load()
-        self.weightStep = preferences.loadWeightStep()
-        self.restStep = preferences.loadRestStep()
+        self.preferences = preferences
         self.now = now
     }
 

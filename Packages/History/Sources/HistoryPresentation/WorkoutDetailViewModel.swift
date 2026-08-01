@@ -23,8 +23,10 @@ public final class WorkoutDetailViewModel {
     private let loadDetail: () async -> HistoryWorkoutDetail?
     private let editing: any WorkoutHistoryEditing
     private let onChange: () async -> Void
-    /// 使用者的重量級距偏好（跟記錄畫面同一個值）。
-    private let weightStep: Double
+        /// 使用者的重量級距偏好；跟記錄畫面同一個值。
+    /// 即時讀取不快取——這個 view model 活很久，設定改了要馬上反映。
+    private var weightStep: Double { preferences.loadWeightStep() }
+    private let preferences: any TrainingPreferenceStoring
 
     public init(
         workoutId: UUID,
@@ -37,7 +39,7 @@ public final class WorkoutDetailViewModel {
         self.loadDetail = loadDetail
         self.editing = editing
         self.onChange = onChange
-        self.weightStep = preferences.loadWeightStep()
+        self.preferences = preferences
     }
 
     /// 場次內全部組（跨動作區塊攤平，供編輯逐組取用）。

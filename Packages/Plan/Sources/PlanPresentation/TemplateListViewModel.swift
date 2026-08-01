@@ -8,8 +8,10 @@ import SharedKernel
 public final class TemplateListViewModel {
     public private(set) var templates: [WorkoutTemplate] = []
     public private(set) var catalog: [PlanCatalogExercise] = []
-    /// 使用者的重量級距偏好；逐組編輯的 ± 快捷與滾輪用。
-    public let weightStep: Double
+        /// 使用者的重量級距偏好；逐組編輯的 ± 快捷與滾輪用。
+    /// 即時讀取不快取——這個 view model 活很久，設定改了要馬上反映。
+    public var weightStep: Double { preferences.loadWeightStep() }
+    private let preferences: any TrainingPreferenceStoring
     /// 本地化錯誤字串（延後解析，由 View 依 Environment locale 顯示）。
     public private(set) var errorMessage: LocalizedStringResource?
 
@@ -34,7 +36,7 @@ public final class TemplateListViewModel {
         self.updateTemplate = updateTemplate
         self.deleteTemplate = deleteTemplate
         self.duplicateTemplate = duplicateTemplate
-        self.weightStep = preferences.loadWeightStep()
+        self.preferences = preferences
         self.exerciseCatalog = exerciseCatalog
     }
 

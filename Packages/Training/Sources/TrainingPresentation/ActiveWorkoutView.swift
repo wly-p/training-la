@@ -303,10 +303,13 @@ public struct ActiveWorkoutView: View {
                 .font(.caption)
                 .foregroundStyle(TLColor.accent700)
             HStack(spacing: 10) {
-                restPill(String(format: String(localized: "training.rest.adjust %lld", bundle: .module), 30)) {
+                // 標籤要跟著偏好走。寫死 30 的話按鈕上寫「+30 秒」、實際卻調別的值。
+                restPill(String(format: String(localized: "training.rest.adjust %lld", bundle: .module),
+                                viewModel.restStep)) {
                     viewModel.adjustRest(viewModel.restStep)
                 }
-                restPill(String(format: String(localized: "training.rest.adjust %lld", bundle: .module), -30)) {
+                restPill(String(format: String(localized: "training.rest.adjust %lld", bundle: .module),
+                                -viewModel.restStep)) {
                     viewModel.adjustRest(-viewModel.restStep)
                 }
                 Button {
