@@ -34,7 +34,7 @@ struct AbilityListViewModelTests {
         let repo = MockAbilityRepo()
         let vm = makeViewModel(
             repo: repo,
-            practiced: [PracticedExercise(exerciseId: benchId, exerciseName: "臥推", lastWeight: Weight(value: 80, unit: .kg), lastReps: 8)]
+            practiced: [PracticedExercise(exerciseId: benchId, exerciseName: "臥推", equipment: .barbell, lastWeight: Weight(value: 80, unit: .kg), lastReps: 8)]
         )
 
         await vm.load()
@@ -52,7 +52,7 @@ struct AbilityListViewModelTests {
         try await repo.save(AbilityValue(exerciseId: benchId, value: suggested))
         let vm = makeViewModel(
             repo: repo,
-            practiced: [PracticedExercise(exerciseId: benchId, exerciseName: "臥推", lastWeight: Weight(value: 80, unit: .kg), lastReps: 8)]
+            practiced: [PracticedExercise(exerciseId: benchId, exerciseName: "臥推", equipment: .barbell, lastWeight: Weight(value: 80, unit: .kg), lastReps: 8)]
         )
 
         await vm.load()
@@ -65,7 +65,7 @@ struct AbilityListViewModelTests {
         let repo = MockAbilityRepo()
         let vm = makeViewModel(
             repo: repo,
-            practiced: [PracticedExercise(exerciseId: benchId, exerciseName: "臥推", lastWeight: Weight(value: 80, unit: .kg), lastReps: 8)]
+            practiced: [PracticedExercise(exerciseId: benchId, exerciseName: "臥推", equipment: .barbell, lastWeight: Weight(value: 80, unit: .kg), lastReps: 8)]
         )
         await vm.load()
 
@@ -80,7 +80,7 @@ struct AbilityListViewModelTests {
         let repo = MockAbilityRepo()
         let vm = makeViewModel(
             repo: repo,
-            practiced: [PracticedExercise(exerciseId: benchId, exerciseName: "臥推", lastWeight: Weight(value: 80, unit: .kg), lastReps: 8)]
+            practiced: [PracticedExercise(exerciseId: benchId, exerciseName: "臥推", equipment: .barbell, lastWeight: Weight(value: 80, unit: .kg), lastReps: 8)]
         )
         await vm.load()
         let row = vm.rows[0]
@@ -96,8 +96,8 @@ struct AbilityListViewModelTests {
         let vm = makeViewModel(
             repo: repo,
             practiced: [
-                PracticedExercise(exerciseId: UUID(), exerciseName: "Squat", lastWeight: Weight(value: 100, unit: .kg), lastReps: 5),
-                PracticedExercise(exerciseId: UUID(), exerciseName: "Bench", lastWeight: Weight(value: 80, unit: .kg), lastReps: 8),
+                PracticedExercise(exerciseId: UUID(), exerciseName: "Squat", equipment: .barbell, lastWeight: Weight(value: 100, unit: .kg), lastReps: 5),
+                PracticedExercise(exerciseId: UUID(), exerciseName: "Bench", equipment: .barbell, lastWeight: Weight(value: 80, unit: .kg), lastReps: 8),
             ]
         )
 

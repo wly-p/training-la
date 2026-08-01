@@ -48,7 +48,7 @@ struct HistoryViewModelTests {
         await stub.setUp(
             workouts: [HistoryWorkoutSummary(id: UUID(), day: day, exerciseCount: 1,
                                              totalSets: 3, overallFeeling: 4, durationMinutes: 40)],
-            options: [HistoryExerciseOption(id: squatId, name: "深蹲", muscleGroup: .legs)],
+            options: [HistoryExerciseOption(id: squatId, name: "深蹲", muscleGroup: .legs, equipment: .barbell)],
             sessions: [squatId: [HistoryExerciseSession(id: UUID(), day: day, sets: [line(reps: 8)])]]
         )
         let vm = HistoryViewModel(reading: stub, editing: NoopEditing())
@@ -70,8 +70,8 @@ struct HistoryViewModelTests {
         await stub.setUp(
             workouts: [],
             options: [
-                HistoryExerciseOption(id: squatId, name: "深蹲", muscleGroup: .legs),
-                HistoryExerciseOption(id: benchId, name: "臥推", muscleGroup: .chest),
+                HistoryExerciseOption(id: squatId, name: "深蹲", muscleGroup: .legs, equipment: .barbell),
+                HistoryExerciseOption(id: benchId, name: "臥推", muscleGroup: .chest, equipment: .barbell),
             ],
             sessions: [
                 squatId: [HistoryExerciseSession(id: UUID(), day: day, sets: [line(reps: 5)])],

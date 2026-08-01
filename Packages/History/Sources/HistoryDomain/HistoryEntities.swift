@@ -93,11 +93,14 @@ public struct HistoryExerciseOption: Identifiable, Equatable, Sendable {
     public let id: UUID
     public let name: String
     public let muscleGroup: MuscleGroup
+    /// 器材：名稱允許重複，選動作看趨勢時靠它分辨（見 docs/exercise-glossary.md）。
+    public let equipment: Equipment
 
-    public init(id: UUID, name: String, muscleGroup: MuscleGroup) {
+    public init(id: UUID, name: String, muscleGroup: MuscleGroup, equipment: Equipment) {
         self.id = id
         self.name = name
         self.muscleGroup = muscleGroup
+        self.equipment = equipment
     }
 }
 

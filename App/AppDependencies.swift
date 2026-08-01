@@ -335,7 +335,7 @@ private struct SpecCatalogAdapter: ExerciseCatalog {
 
     func exercises() async throws -> [CatalogExercise] {
         try await listExercises(muscleGroup: nil).map {
-            CatalogExercise(id: $0.id, name: $0.name, muscleGroup: $0.muscleGroup)
+            CatalogExercise(id: $0.id, name: $0.name, muscleGroup: $0.muscleGroup, equipment: $0.equipment)
         }
     }
 }

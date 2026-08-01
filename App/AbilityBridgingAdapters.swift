@@ -12,15 +12,17 @@ struct PracticedExerciseListerAdapter: PracticedExerciseLister {
 
     func practicedExercises() async throws -> [PracticedExercise] {
         let workouts = try await workoutRepository.finishedWorkouts()
-        let names = Dictionary(uniqueKeysWithValues: try await listExercises(muscleGroup: nil).map { ($0.id, $0.name) })
+        // 帶整個 Exercise 而不只是名稱：同名動作要靠器材分辨。
+        let catalog = Dictionary(uniqueKeysWithValues: try await listExercises(muscleGroup: nil).map { ($0.id, $0) })
         var seen: Set<UUID> = []
         var result: [PracticedExercise] = []
         for workout in workouts {
             for set in workout.sets where !seen.contains(set.exerciseId) {
                 seen.insert(set.exerciseId)
-                guard let name = names[set.exerciseId] else { continue }
+                guard let exercise = catalog[set.exerciseId] else { continue }
                 result.append(PracticedExercise(
-                    exerciseId: set.exerciseId, exerciseName: name, lastWeight: set.weight, lastReps: set.reps
+                    exerciseId: set.exerciseId, exerciseName: exercise.name,
+                    equipment: exercise.equipment, lastWeight: set.weight, lastReps: set.reps
                 ))
             }
         }

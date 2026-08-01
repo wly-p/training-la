@@ -48,7 +48,10 @@ struct HistoryReadingAdapter: WorkoutHistoryReading, WorkoutHistoryEditing {
         return usedIds
             .compactMap { id -> HistoryExerciseOption? in
                 guard let exercise = names[id] else { return nil }
-                return HistoryExerciseOption(id: id, name: exercise.name, muscleGroup: exercise.muscleGroup)
+                return HistoryExerciseOption(
+                    id: id, name: exercise.name,
+                    muscleGroup: exercise.muscleGroup, equipment: exercise.equipment
+                )
             }
             .sorted { $0.name.localizedStandardCompare($1.name) == .orderedAscending }
     }

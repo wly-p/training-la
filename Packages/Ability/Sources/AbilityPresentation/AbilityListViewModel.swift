@@ -9,6 +9,8 @@ public final class AbilityListViewModel {
     public struct Row: Identifiable, Equatable {
         public let exerciseId: UUID
         public let exerciseName: String
+        /// 器材：同名動作（肩推有三筆）靠它分辨，1RM 各自獨立。
+        public let equipment: Equipment
         public let current: AbilityValue?
         public let suggestion: Weight?
         public var id: UUID { exerciseId }
@@ -43,7 +45,10 @@ public final class AbilityListViewModel {
                     let suggested = suggest(weight: p.lastWeight, reps: p.lastReps)
                     // 只有跟目前的值不同才算「建議」，不然每次都提示同一個數字很煩。
                     let suggestion = (current?.value == suggested) ? nil : suggested
-                    return Row(exerciseId: p.exerciseId, exerciseName: p.exerciseName, current: current, suggestion: suggestion)
+                    return Row(
+                        exerciseId: p.exerciseId, exerciseName: p.exerciseName,
+                        equipment: p.equipment, current: current, suggestion: suggestion
+                    )
                 }
                 .sorted { $0.exerciseName < $1.exerciseName }
         } catch {
