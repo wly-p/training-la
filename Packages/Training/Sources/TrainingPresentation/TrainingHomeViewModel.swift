@@ -296,9 +296,11 @@ public final class TrainingHomeViewModel {
               let last = finished.first(where: { $0.blocks.contains { $0.exerciseId == mainExerciseId } })
         else { return nil }
         let counts = FinishSummaryFormatting.achievedSetCount(last.sets)
-        let thisWeight = blueprint.targets.first { $0.exerciseId == mainExerciseId }?.targetWeight?.value
+        // delta 的單位是公斤（見 mainLiftDeltaKg），兩邊都先換算再相減；
+        // 取最重那組也用 Weight 比較，拿 .value 比在混單位時會挑錯組。
+        let thisWeight = blueprint.targets.first { $0.exerciseId == mainExerciseId }?.targetWeight?.kilograms
         let lastWeight = last.blocks.first { $0.exerciseId == mainExerciseId }?
-            .sets.filter { $0.status == .done }.map { $0.weight.value }.max()
+            .sets.filter { $0.status == .done }.map(\.weight).max()?.kilograms
         let delta: Double? = if let thisWeight, let lastWeight { thisWeight - lastWeight } else { nil }
         return LastWorkoutComparison(date: last.day, achievedSets: counts.achieved,
                                      totalSets: counts.total, mainLiftDeltaKg: delta)

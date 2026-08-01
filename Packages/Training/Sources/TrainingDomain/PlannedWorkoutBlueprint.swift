@@ -20,15 +20,15 @@ public struct PlannedWorkoutBlueprint: Equatable, Sendable {
     }
 
     /// 依 exerciseIndex 排序的動作清單（去重，保留順序）。
-    public var exercises: [(exerciseId: UUID, name: String, setCount: Int)] {
+    public var exercises: [(exerciseId: UUID, name: String, equipment: Equipment, setCount: Int)] {
         var order: [Int] = []
-        var grouped: [Int: (UUID, String, Int)] = [:]
+        var grouped: [Int: (UUID, String, Equipment, Int)] = [:]
         for target in targets.sorted(by: { ($0.exerciseIndex, $0.setIndex) < ($1.exerciseIndex, $1.setIndex) }) {
             if grouped[target.exerciseIndex] == nil {
                 order.append(target.exerciseIndex)
-                grouped[target.exerciseIndex] = (target.exerciseId, target.exerciseName, 0)
+                grouped[target.exerciseIndex] = (target.exerciseId, target.exerciseName, target.equipment, 0)
             }
-            grouped[target.exerciseIndex]!.2 += 1
+            grouped[target.exerciseIndex]!.3 += 1
         }
         return order.map { grouped[$0]! }
     }
@@ -53,6 +53,8 @@ public struct PlannedTargetSet: Identifiable, Equatable, Sendable {
     public let id: UUID
     public let exerciseId: UUID
     public let exerciseName: String
+    /// 器材：動作名允許重複，開練前預覽要靠它分辨（跟 exerciseName 一樣是反正規化進來的顯示欄位）。
+    public let equipment: Equipment
     public let exerciseIndex: Int
     public let setIndex: Int
     public let targetWeight: Weight?
@@ -67,6 +69,7 @@ public struct PlannedTargetSet: Identifiable, Equatable, Sendable {
         id: UUID,
         exerciseId: UUID,
         exerciseName: String,
+        equipment: Equipment = .other,
         exerciseIndex: Int,
         setIndex: Int,
         targetWeight: Weight?,
@@ -77,6 +80,7 @@ public struct PlannedTargetSet: Identifiable, Equatable, Sendable {
         self.id = id
         self.exerciseId = exerciseId
         self.exerciseName = exerciseName
+        self.equipment = equipment
         self.exerciseIndex = exerciseIndex
         self.setIndex = setIndex
         self.targetWeight = targetWeight
@@ -89,13 +93,13 @@ public struct PlannedTargetSet: Identifiable, Equatable, Sendable {
 /// 材料化那一刻 targetWeight 怎麼算出來的快照（14c）。跟 Plan 的 `WeightSourceInfo` 一一對應，
 /// 只是換一層型別，讓 Training 不用 import PlanDomain。
 public struct TargetWeightSource: Equatable, Sendable {
-    public enum Kind: Equatable, Sendable { case none, absolute, relativeToLast, percentOf1RM }
+    public enum Kind: Equatable, Sendable { case none, absolute, relativeToLast, percentOfMax }
 
     public let kind: Kind
     /// `.absolute` 套用強度倍率之前的原始公斤數（14c 算式「120 kg × 75%」的 120）。
     public let base: Weight?
     public let percent: Double?
-    /// `.percentOf1RM` 當時查到的能力值(1RM)；nil＝當時還沒設，算不出來。
+    /// `.percentOfMax` 當時查到的能力值（最大重量）；nil＝當時還沒設，算不出來。
     public let abilityValue: Weight?
     public let delta: Weight?
     /// `.relativeToLast` 當時查到的上次重量；nil＝當時沒有上次紀錄，算不出來。
@@ -126,7 +130,7 @@ public struct TargetWeightSource: Equatable, Sendable {
         case .none: return true
         case .absolute: return false
         case .relativeToLast: return lastWeight == nil
-        case .percentOf1RM: return abilityValue == nil
+        case .percentOfMax: return abilityValue == nil
         }
     }
 }

@@ -19,6 +19,7 @@ struct TrainingPreviewSheet: View {
     private struct ExerciseRow: Identifiable {
         let id: UUID
         let name: String
+        let equipment: Equipment
         let setCount: Int
         let representative: PlannedTargetSet?
     }
@@ -29,7 +30,10 @@ struct TrainingPreviewSheet: View {
                 .filter { $0.exerciseId == exercise.exerciseId }
                 .sorted { ($0.exerciseIndex, $0.setIndex) < ($1.exerciseIndex, $1.setIndex) }
                 .first
-            return ExerciseRow(id: exercise.exerciseId, name: exercise.name, setCount: exercise.setCount, representative: representative)
+            return ExerciseRow(
+                id: exercise.exerciseId, name: exercise.name, equipment: exercise.equipment,
+                setCount: exercise.setCount, representative: representative
+            )
         }
     }
 
@@ -104,9 +108,7 @@ struct TrainingPreviewSheet: View {
     private func exerciseRow(_ row: ExerciseRow) -> some View {
         HStack(alignment: .center, spacing: TLSpace.gapM) {
             VStack(alignment: .leading, spacing: 3) {
-                Text(verbatim: row.name)
-                    .font(TLFont.zh(TLFont.rowTitle, .semibold))
-                    .foregroundStyle(TLColor.text)
+                ExerciseNameWithEquipment(name: row.name, equipment: row.equipment.displayName)
                 if let algebra = WeightSourceFormatting.algebraText(row.representative?.weightSource) {
                     Text(verbatim: algebra)
                         .font(TLFont.zh(11, .regular))
@@ -127,14 +129,15 @@ struct TrainingPreviewSheet: View {
 
     @ViewBuilder private func trailingValue(_ row: ExerciseRow) -> some View {
         if let weight = row.representative?.targetWeight {
+            // 統一成「20kg × 8」（displayString 帶單位，不能寫死 kg —— 使用者可能用 lb）。
+            // 組數放在前面的「N 組」，這裡不重複。
             HStack(spacing: 4) {
-                if let reps = row.representative?.targetReps {
-                    Text(verbatim: "\(row.setCount) × \(reps)")
-                        .font(TLFont.display(15))
-                    Text(verbatim: "·").foregroundStyle(TLColor.neutral400)
-                }
-                Text(verbatim: "\(WeightDisplay.value(weight.value)) kg")
+                Text(verbatim: weight.displayString)
                     .font(TLFont.display(15))
+                if let reps = row.representative?.targetReps {
+                    Text(verbatim: "× \(reps)")
+                        .font(TLFont.display(15))
+                }
             }
             .foregroundStyle(TLColor.text)
         } else {
@@ -182,7 +185,7 @@ struct TrainingPreviewSheet: View {
     private func mainLiftDeltaText(_ delta: Double) -> String {
         if delta == 0 { return String(localized: "training.preview.vsLast.same", bundle: .module) }
         let sign = delta > 0 ? "+" : "−"
-        return "\(sign)\(WeightDisplay.value(abs(delta))) kg"
+        return "\(sign)\(WeightDisplay.value(abs(delta))) kg"   // 主項差值一律換算成公斤（見 mainLiftDeltaKg）
     }
 
     private var actions: some View {

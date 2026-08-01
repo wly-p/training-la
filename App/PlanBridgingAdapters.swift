@@ -83,13 +83,15 @@ struct PlanProviderAdapter: PlannedWorkoutProvider {
     }
 
     private func blueprint(from plan: PlanWorkout, kicker: String? = nil) async throws -> PlannedWorkoutBlueprint {
-        let names = Dictionary(uniqueKeysWithValues:
-            try await listExercises(muscleGroup: nil).map { ($0.id, $0.name) })
+        // 帶整個 Exercise：預覽要顯示器材小標，同名動作靠它分辨。
+        let catalog = Dictionary(uniqueKeysWithValues:
+            try await listExercises(muscleGroup: nil).map { ($0.id, $0) })
         let targets = plan.sets.map { set in
             PlannedTargetSet(
                 id: set.id,
                 exerciseId: set.exerciseId,
-                exerciseName: names[set.exerciseId] ?? "動作",
+                exerciseName: catalog[set.exerciseId]?.name ?? "動作",
+                equipment: catalog[set.exerciseId]?.equipment ?? .other,
                 exerciseIndex: set.exerciseIndex,
                 setIndex: set.setIndex,
                 // 材料化後的 PlanWorkout.sets 一律 .absolute（投影用例保證），這裡解成確定公斤。
@@ -115,9 +117,9 @@ struct PlanProviderAdapter: PlannedWorkoutProvider {
                 kind: .relativeToLast, delta: info.delta, lastWeight: info.lastWeight,
                 intensityFactor: info.intensityFactor
             )
-        case .percentOf1RM:
+        case .percentOfMax:
             return TargetWeightSource(
-                kind: .percentOf1RM, percent: info.percent, abilityValue: info.abilityValue,
+                kind: .percentOfMax, percent: info.percent, abilityValue: info.abilityValue,
                 intensityFactor: info.intensityFactor
             )
         }
@@ -141,7 +143,8 @@ struct LastPerformedWeightLookupAdapter: LastPerformedWeightLookup {
 
     func lastPerformedWeight(exerciseId: UUID) async throws -> LastPerformedSet? {
         let sets = try await workoutRepository.lastPerformance(exerciseId: exerciseId, excludingWorkout: nil)
-        guard let best = sets.max(by: { $0.weight.value < $1.weight.value }) else { return nil }
+        // 用 Weight 比（已換算單位）；拿 .value 比在混單位時會挑錯那一組。
+        guard let best = sets.max(by: { $0.weight < $1.weight }) else { return nil }
         let metTarget = best.targetReps.map { best.reps >= $0 } ?? true
         return LastPerformedSet(weight: best.weight, metTarget: metTarget)
     }

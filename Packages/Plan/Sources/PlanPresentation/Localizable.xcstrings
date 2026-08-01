@@ -2513,20 +2513,24 @@
       }
     },
     "template.block.percentOf1RM %lld" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "%lld sets · % 1RM"
+            "value" : "%lld sets · % max weight"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "%lld 組 · % 1RM"
+            "value" : "%lld 組 · % 最大重量"
           }
         }
       }
+    },
+    "template.block.percentOfMax %lld" : {
+
     },
     "template.block.progressive %lld" : {
       "localizations" : {
@@ -2901,13 +2905,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "% 1RM"
+            "value" : "% max weight"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "% 1RM"
+            "value" : "% 最大重量"
           }
         }
       }
@@ -2917,13 +2921,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "% 1RM"
+            "value" : "% max weight"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "% 1RM"
+            "value" : "% 最大重量"
           }
         }
       }

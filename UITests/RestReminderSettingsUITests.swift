@@ -27,7 +27,16 @@ final class RestReminderSettingsUITests: XCTestCase {
         XCTAssertEqual(sound.value as? String, "1")
         XCTAssertEqual(background.value as? String, "1")
 
-        // 可切換：關掉背景通知（點 cell 尾端的開關控制，避免點到標籤無效）
+        // 可切換：關掉背景通知（點 cell 尾端的開關控制，避免點到標籤無效）。
+        // 先捲進可視範圍——設定頁的外觀組後來多了「重量調整級距」「休息時間級距」兩列，
+        // 提醒區被推到摺線下，而座標點擊不會自動捲動（exists／value 在畫面外仍讀得到，
+        // 所以前面的斷言不會發現，只有點擊會落空）。
+        var scrollAttempts = 0
+        while !background.isHittable, scrollAttempts < 6 {
+            app.swipeUp()
+            scrollAttempts += 1
+        }
+        XCTAssertTrue(background.isHittable, "「背景通知」開關捲不進可視範圍")
         background.coordinate(withNormalizedOffset: CGVector(dx: 0.92, dy: 0.5)).tap()
         let turnedOff = NSPredicate(format: "value == %@", "0")
         expectation(for: turnedOff, evaluatedWith: background)

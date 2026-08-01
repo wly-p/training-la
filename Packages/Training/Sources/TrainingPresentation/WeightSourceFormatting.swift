@@ -13,14 +13,14 @@ enum WeightSourceFormatting {
             return nil
         case .absolute:
             guard source.intensityFactor != 1.0, let base = source.base else { return nil }
-            return "\(WeightDisplay.value(base.value)) kg × \(percentString(source.intensityFactor))"
-        case .percentOf1RM:
+            return "\(base.displayString) × \(percentString(source.intensityFactor))"
+        case .percentOfMax:
             guard let percent = source.percent, let ability = source.abilityValue else { return nil }
-            return "\(percentString(percent / 100))\(factorSuffix) · 1RM \(WeightDisplay.value(ability.value))"
+            return "\(percentString(percent / 100))\(factorSuffix) · 最大重量 \(ability.displayString)"
         case .relativeToLast:
             guard let last = source.lastWeight, let delta = source.delta else { return nil }
             let sign = delta.value >= 0 ? "+" : ""
-            return "上次 \(WeightDisplay.value(last.value)) \(sign)\(WeightDisplay.value(delta.value))\(factorSuffix)"
+            return "上次 \(last.displayString) \(sign)\(delta.displayString)\(factorSuffix)"
         }
     }
 
@@ -30,7 +30,7 @@ enum WeightSourceFormatting {
         switch source.kind {
         case .none: return String(localized: "training.weightSource.reason.none", bundle: .module)
         case .relativeToLast: return String(localized: "training.weightSource.reason.noLast", bundle: .module)
-        case .percentOf1RM: return String(localized: "training.weightSource.reason.noAbility", bundle: .module)
+        case .percentOfMax: return String(localized: "training.weightSource.reason.noAbility", bundle: .module)
         case .absolute: return nil   // .absolute 一定 resolvable，不會走到這
         }
     }

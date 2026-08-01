@@ -29,13 +29,14 @@ struct WorkoutDetailView: View {
     /// 攤平所有組（帶動作名），供單一對照表逐列呈現。
     private struct FlatLine: Identifiable {
         let exerciseName: String
+        let equipment: Equipment
         let set: HistorySetLine
         var id: UUID { self.set.id }
     }
 
     private func flatLines(_ detail: HistoryWorkoutDetail) -> [FlatLine] {
         detail.blocks.flatMap { block in
-            block.sets.map { FlatLine(exerciseName: block.exerciseName, set: $0) }
+            block.sets.map { FlatLine(exerciseName: block.exerciseName, equipment: block.equipment, set: $0) }
         }
     }
 
@@ -175,6 +176,8 @@ struct WorkoutDetailView: View {
                 Text(verbatim: HistoryFormatting.formatNumber(actual))
                     .font(TLFont.display(28))
                     .foregroundStyle(TLColor.text)
+                // 總量是把整場換算成公斤加總的純量（見 HistoryFormatting.totalVolume），
+                // 不是某一筆 Weight —— 這裡的 kg 是刻意寫死的，不該跟著使用者的單位偏好變。
                 if let target, target > 0 {
                     Text(verbatim: " / \(HistoryFormatting.formatNumber(target)) kg")
                         .font(TLFont.zh(13, .medium))
@@ -209,14 +212,13 @@ struct WorkoutDetailView: View {
         return VStack(alignment: .leading, spacing: TLSpace.gapS) {
             SectionHeader(localText("history.setComparison"))
             TLGroup {
-                if !viewModel.isEditing {
-                    columnHeader
-                }
-                ForEach(visible) { line in
-                    if viewModel.isEditing {
-                        editRow(line)
-                    } else {
-                        displayRow(line)
+                if viewModel.isEditing {
+                    // 編輯模式維持單一平表：每列都要能點進去改，分組標頭只會擋路。
+                    ForEach(visible) { line in editRow(line) }
+                } else {
+                    ForEach(groups(of: visible), id: \.id) { group in
+                        groupHeader(group)
+                        ForEach(group.lines) { line in displayRow(line) }
                     }
                 }
                 if remaining > 0 {
@@ -239,37 +241,62 @@ struct WorkoutDetailView: View {
         }
     }
 
-    private var columnHeader: some View {
-        HStack(spacing: 0) {
-            localText("history.col.exercise")
-                .frame(maxWidth: .infinity, alignment: .leading)
-            localText("history.col.target")
-                .frame(width: targetColWidth, alignment: .trailing)
-            localText("history.col.actual")
-                .frame(width: actualColWidth, alignment: .trailing)
-            Color.clear.frame(width: diffColWidth)
+    /// 同一個動作的連續組收成一組。用「連續」而不是 group by 動作 id，
+    /// 是因為同一場可以中途換回先前的動作（超級組、補做），那時它就該是兩段。
+    private struct LineGroup {
+        let id: Int
+        let exerciseName: String
+        let equipment: Equipment
+        let lines: [FlatLine]
+    }
+
+    private func groups(of lines: [FlatLine]) -> [LineGroup] {
+        var result: [LineGroup] = []
+        for line in lines {
+            if let last = result.last, last.exerciseName == line.exerciseName, last.equipment == line.equipment {
+                result[result.count - 1] = LineGroup(
+                    id: last.id, exerciseName: last.exerciseName,
+                    equipment: last.equipment, lines: last.lines + [line]
+                )
+            } else {
+                result.append(LineGroup(
+                    id: result.count, exerciseName: line.exerciseName,
+                    equipment: line.equipment, lines: [line]
+                ))
+            }
         }
-        .font(.caption2.weight(.semibold))
-        .textCase(.uppercase)
-        .foregroundStyle(TLColor.neutral500)
+        return result
+    }
+
+    /// 分組標頭：動作名＋器材 pill 各出現一次，右側是欄位說明。
+    /// 舊版每列重印動作名，加上器材標會變成 N 個 pill（handoff-15 D 節）。
+    private func groupHeader(_ group: LineGroup) -> some View {
+        HStack(spacing: 0) {
+            ExerciseNameWithEquipment(
+                title: Text(verbatim: group.exerciseName)
+                    .font(TLFont.zh(14, .semibold))
+                    .foregroundColor(TLColor.text),
+                equipment: group.equipment.displayName
+            )
+            Spacer(minLength: TLSpace.gapS)
+            (localText("history.col.target") + Text(verbatim: " / ") + localText("history.col.actual"))
+                .font(.caption2.weight(.semibold))
+                .foregroundStyle(TLColor.neutral500)
+        }
         .padding(.horizontal, TLSpace.rowInset)
-        .padding(.top, 12)
-        .padding(.bottom, 2)
+        .frame(minHeight: 40)
+        .background(TLColor.neutral200)
     }
 
     private func displayRow(_ line: FlatLine) -> some View {
         let set = line.set
         return HStack(spacing: 0) {
             HStack(spacing: 6) {
-                // 動作名獨立一個 Text（粗黑，UITest 靠它找動作），「組 N」另一個 Text（細灰）——
-                // 對齊設計稿 11d 的兩段式樣式。
-                Text(verbatim: line.exerciseName)
-                    .font(TLFont.zh(TLFont.rowTitle, .semibold))
-                    .foregroundStyle(set.status == .skipped ? TLColor.neutral500 : TLColor.text)
-                    .lineLimit(1)
+                // 動作名移到分組標頭，這裡只留「組 N」（固定寬 44，讓各組的數字對齊）。
                 localText("history.setN \(set.setIndex + 1)")
                     .font(TLFont.zh(TLFont.rowSub, .regular))
                     .foregroundStyle(TLColor.neutral500)
+                    .frame(width: 44, alignment: .leading)
                 if set.status != .done {
                     localText(HistoryFormatting.statusLabel(set.status))
                         .font(TLFont.zh(10.5, .semibold))

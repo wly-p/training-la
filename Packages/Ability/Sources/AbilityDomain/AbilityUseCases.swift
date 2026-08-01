@@ -46,14 +46,16 @@ public struct DeleteAbilityValue: Sendable {
     public func callAsFunction(exerciseId: UUID) async throws { try await repository.delete(exerciseId: exerciseId) }
 }
 
-/// 從最近一次訓練紀錄（weight × reps）推算 1RM（Epley 公式），供「建議更新到 X」banner 用。
-/// 純函式：只做一組換算，不查任何 repository——最近一次紀錄由呼叫端（Training adapter）提供。
+/// 能力值的建議值＝這個動作**歷來推過的最大重量**，原樣回傳。
+///
+/// 刻意不套 Epley／Brzycki 之類的估算公式（handoff-15 A 節）：「能力值」的定義是
+/// 實際推過的最大重量，不是推估的 1RM。套公式會產生兩個問題——建議一個從沒推起來過的
+/// 數字，以及 `100kg × 2` 被算成 `106.67` 這種裝不出來的重量。
+///
+/// 保留成一個 use case 而不是直接讀欄位，是因為「建議值怎麼來」屬於 domain 決策，
+/// 之後若要加條件（例如只看近三個月）改這裡就好。
 public struct SuggestAbilityValue: Sendable {
     public init() {}
 
-    public func callAsFunction(weight: Weight, reps: Int) -> Weight {
-        guard reps > 1 else { return weight }
-        let estimated = weight.value * (1 + Double(reps) / 30.0)
-        return Weight(value: estimated, unit: weight.unit)
-    }
+    public func callAsFunction(maxWeight: Weight) -> Weight { maxWeight }
 }

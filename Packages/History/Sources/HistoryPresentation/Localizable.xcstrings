@@ -104,6 +104,7 @@
       }
     },
     "history.col.exercise" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {

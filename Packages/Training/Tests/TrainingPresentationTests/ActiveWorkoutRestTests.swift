@@ -61,7 +61,7 @@ struct ActiveWorkoutRestTests {
             finishWorkout: FinishWorkout(repository: repo),
             discardWorkout: DiscardWorkout(repository: repo),
             lastPerformance: LastPerformance(repository: repo),
-            exerciseCatalog: MockCatalog(items: [CatalogExercise(id: exerciseId, name: "臥推", muscleGroup: .chest)]),
+            exerciseCatalog: MockCatalog(items: [CatalogExercise(id: exerciseId, name: "臥推", muscleGroup: .chest, equipment: .barbell)]),
             plannedProvider: MockPlanProvider(blueprint: blueprint)
         )
     }
@@ -155,7 +155,7 @@ struct ActiveWorkoutRestTests {
             finishWorkout: FinishWorkout(repository: repo),
             discardWorkout: DiscardWorkout(repository: repo),
             lastPerformance: LastPerformance(repository: repo),
-            exerciseCatalog: MockCatalog(items: [CatalogExercise(id: exId, name: "臥推", muscleGroup: .chest)])
+            exerciseCatalog: MockCatalog(items: [CatalogExercise(id: exId, name: "臥推", muscleGroup: .chest, equipment: .barbell)])
         )
         await vm.onAppear()
         await vm.select(exerciseId: exId)
@@ -218,8 +218,8 @@ struct ActiveWorkoutCompletionTests {
             discardWorkout: DiscardWorkout(repository: repo),
             lastPerformance: LastPerformance(repository: repo),
             exerciseCatalog: MockCatalog(items: [
-                CatalogExercise(id: benchId, name: "臥推", muscleGroup: .chest),
-                CatalogExercise(id: squatId, name: "深蹲", muscleGroup: .legs),
+                CatalogExercise(id: benchId, name: "臥推", muscleGroup: .chest, equipment: .barbell),
+                CatalogExercise(id: squatId, name: "深蹲", muscleGroup: .legs, equipment: .barbell),
             ]),
             plannedProvider: MockPlanProvider(blueprint: blueprint)
         )
@@ -469,8 +469,8 @@ struct ActiveWorkoutUndoTests {
             discardWorkout: DiscardWorkout(repository: repo),
             lastPerformance: LastPerformance(repository: repo),
             exerciseCatalog: MockCatalog(items: [
-                CatalogExercise(id: benchId, name: "臥推", muscleGroup: .chest),
-                CatalogExercise(id: squatId, name: "深蹲", muscleGroup: .legs),
+                CatalogExercise(id: benchId, name: "臥推", muscleGroup: .chest, equipment: .barbell),
+                CatalogExercise(id: squatId, name: "深蹲", muscleGroup: .legs, equipment: .barbell),
             ]),
             plannedProvider: MockPlanProvider(blueprint: blueprint)
         )
@@ -548,7 +548,7 @@ struct ActiveWorkoutSessionSequenceTests {
         let blueprint = PlannedWorkoutBlueprint(planWorkoutId: UUID(), name: "推日", targets: targets)
         let workout = Workout(id: UUID(), day: DayDate(year: 2026, month: 7, day: 10),
                               planWorkoutId: blueprint.planWorkoutId, startedAt: Date())
-        let catalog = zip(ids, names).map { CatalogExercise(id: $0.0, name: $0.1, muscleGroup: .chest) }
+        let catalog = zip(ids, names).map { CatalogExercise(id: $0.0, name: $0.1, muscleGroup: .chest, equipment: .barbell) }
         let vm = ActiveWorkoutViewModel(
             workout: workout,
             saveProgress: SaveWorkoutProgress(repository: repo),

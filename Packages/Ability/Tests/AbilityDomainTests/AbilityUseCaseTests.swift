@@ -39,17 +39,15 @@ struct AbilityUseCaseTests {
         #expect(try await get(exerciseId: exerciseId) == nil)
     }
 
-    @Test func suggestUsesEpleyFormula() {
+    /// 建議值＝實際推過的最大重量，原樣回傳。刻意不套 Epley——
+    /// 那會建議一個從沒推起來過的數字，還會產生 106.67 這種裝不出來的重量。
+    @Test func suggestReturnsMaxWeightUnchanged() {
         let suggest = SuggestAbilityValue()
-        // 80 × 8 → 80 × (1 + 8/30) ≈ 101.3（設計稿範例：「約 100」）。
-        let estimated = suggest(weight: Weight(value: 80, unit: .kg), reps: 8)
-        #expect(abs(estimated.value - 101.333) < 0.01)
-        #expect(estimated.unit == .kg)
+        #expect(suggest(maxWeight: Weight(value: 100, unit: .kg)) == Weight(value: 100, unit: .kg))
     }
 
-    @Test func suggestSingleRepReturnsSameWeight() {
+    @Test func suggestKeepsUnit() {
         let suggest = SuggestAbilityValue()
-        let estimated = suggest(weight: Weight(value: 100, unit: .kg), reps: 1)
-        #expect(estimated == Weight(value: 100, unit: .kg))
+        #expect(suggest(maxWeight: Weight(value: 225, unit: .lb)).unit == .lb)
     }
 }

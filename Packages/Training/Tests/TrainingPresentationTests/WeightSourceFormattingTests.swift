@@ -12,25 +12,25 @@ struct WeightSourceFormattingTests {
 
     @Test func absoluteWithIntensityShowsBaseTimesFactor() {
         let source = TargetWeightSource(kind: .absolute, base: Weight(value: 120, unit: .kg), intensityFactor: 0.75)
-        #expect(WeightSourceFormatting.algebraText(source) == "120 kg × 75%")
+        #expect(WeightSourceFormatting.algebraText(source) == "120kg × 75%")
     }
 
     @Test func percentOf1RMResolvedShowsPercentTimesFactorAndAbility() {
         let source = TargetWeightSource(
-            kind: .percentOf1RM, percent: 80, abilityValue: Weight(value: 140, unit: .kg), intensityFactor: 0.75
+            kind: .percentOfMax, percent: 80, abilityValue: Weight(value: 140, unit: .kg), intensityFactor: 0.75
         )
-        #expect(WeightSourceFormatting.algebraText(source) == "80% · × 75% · 1RM 140")
+        #expect(WeightSourceFormatting.algebraText(source) == "80% · × 75% · 最大重量 140kg")
     }
 
     @Test func percentOf1RMAtBaselineOmitsFactorSuffix() {
         let source = TargetWeightSource(
-            kind: .percentOf1RM, percent: 80, abilityValue: Weight(value: 140, unit: .kg), intensityFactor: 1.0
+            kind: .percentOfMax, percent: 80, abilityValue: Weight(value: 140, unit: .kg), intensityFactor: 1.0
         )
-        #expect(WeightSourceFormatting.algebraText(source) == "80% · 1RM 140")
+        #expect(WeightSourceFormatting.algebraText(source) == "80% · 最大重量 140kg")
     }
 
     @Test func percentOf1RMUnresolvedHasNoAlgebraButHasReason() {
-        let source = TargetWeightSource(kind: .percentOf1RM, percent: 80, abilityValue: nil, intensityFactor: 1.0)
+        let source = TargetWeightSource(kind: .percentOfMax, percent: 80, abilityValue: nil, intensityFactor: 1.0)
         #expect(WeightSourceFormatting.algebraText(source) == nil)
         #expect(WeightSourceFormatting.unresolvedReason(source) != nil)
     }
@@ -40,7 +40,7 @@ struct WeightSourceFormattingTests {
             kind: .relativeToLast, delta: Weight(value: 2.5, unit: .kg), lastWeight: Weight(value: 45, unit: .kg),
             intensityFactor: 0.75
         )
-        #expect(WeightSourceFormatting.algebraText(source) == "上次 45 +2.5 · × 75%")
+        #expect(WeightSourceFormatting.algebraText(source) == "上次 45kg +2.5kg · × 75%")
     }
 
     @Test func relativeToLastUnresolvedHasNoAlgebraButHasReason() {

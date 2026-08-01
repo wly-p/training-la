@@ -36,7 +36,7 @@ enum HistoryFormatting {
         guard set.status == .done, let targetWeight = set.targetWeight, let targetReps = set.targetReps else {
             return nil
         }
-        return set.weight.value >= targetWeight.value && set.reps >= targetReps
+        return set.weight >= targetWeight && set.reps >= targetReps
     }
 
     /// 次數差異（達標時不用顯示）：正＝超出、負＝未達，給逐組對照表的「+1／−1」符號用。
@@ -57,11 +57,12 @@ enum HistoryFormatting {
     /// 總量（實際 kg×次數）；目標總量只在「每一組都有目標快照」時才給，否則 nil
     /// （只要有一組是 `relativeToLast` 查不到歷史或臨時加練，總量在投影/紀錄當下就不完整算不出來）。
     static func totalVolume(_ blocks: [HistoryBlock]) -> (actual: Double, target: Double?) {
+        // 一律換算成公斤再加總——這種聚合 Comparable 幫不上，混單位相加的數字沒有意義。
         let doneSets = blocks.flatMap(\.sets).filter { $0.status == .done }
-        let actual = doneSets.reduce(0.0) { $0 + $1.weight.value * Double($1.reps) }
+        let actual = doneSets.reduce(0.0) { $0 + $1.weight.kilograms * Double($1.reps) }
         let targets = doneSets.compactMap { set -> Double? in
             guard let tw = set.targetWeight, let tr = set.targetReps else { return nil }
-            return tw.value * Double(tr)
+            return tw.kilograms * Double(tr)
         }
         let target = targets.count == doneSets.count && !targets.isEmpty ? targets.reduce(0, +) : nil
         return (actual, target)
