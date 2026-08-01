@@ -230,6 +230,22 @@
         }
       }
     },
+    "settings.common.back" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Back"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "返回"
+          }
+        }
+      }
+    },
     "settings.common.cancel" : {
       "localizations" : {
         "en" : {
@@ -799,25 +815,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "重量單位"
-          }
-        }
-      }
-    },
-    "返回" : {
-
-    },
-    "settings.common.back" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Back"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "返回"
           }
         }
       }

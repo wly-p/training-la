@@ -64,7 +64,10 @@ test-uitest: generate
 	@if [ "$(HEADLESS)" = "false" ]; then \
 		echo "==> headless=false：開 Simulator.app"; open -a Simulator; \
 	fi
-	@if [ "$(REPORT)" = "true" ]; then mkdir -p $(REPORT_DIR); fi
+	@# xcodebuild 遇到既有的 result bundle 會直接報 error 64（不會覆寫），所以先清掉上一次的。
+	@if [ "$(REPORT)" = "true" ]; then \
+		mkdir -p $(REPORT_DIR); rm -rf $(REPORT_DIR)/uitest-$(LANGUAGE).xcresult; \
+	fi
 	xcodebuild test \
 		-project TrainingLa.xcodeproj \
 		-scheme $(SCHEME) \
