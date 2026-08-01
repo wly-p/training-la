@@ -17,20 +17,20 @@ struct WeightSourceFormattingTests {
 
     @Test func percentOf1RMResolvedShowsPercentTimesFactorAndAbility() {
         let source = TargetWeightSource(
-            kind: .percentOf1RM, percent: 80, abilityValue: Weight(value: 140, unit: .kg), intensityFactor: 0.75
+            kind: .percentOfMax, percent: 80, abilityValue: Weight(value: 140, unit: .kg), intensityFactor: 0.75
         )
         #expect(WeightSourceFormatting.algebraText(source) == "80% · × 75% · 1RM 140")
     }
 
     @Test func percentOf1RMAtBaselineOmitsFactorSuffix() {
         let source = TargetWeightSource(
-            kind: .percentOf1RM, percent: 80, abilityValue: Weight(value: 140, unit: .kg), intensityFactor: 1.0
+            kind: .percentOfMax, percent: 80, abilityValue: Weight(value: 140, unit: .kg), intensityFactor: 1.0
         )
         #expect(WeightSourceFormatting.algebraText(source) == "80% · 1RM 140")
     }
 
     @Test func percentOf1RMUnresolvedHasNoAlgebraButHasReason() {
-        let source = TargetWeightSource(kind: .percentOf1RM, percent: 80, abilityValue: nil, intensityFactor: 1.0)
+        let source = TargetWeightSource(kind: .percentOfMax, percent: 80, abilityValue: nil, intensityFactor: 1.0)
         #expect(WeightSourceFormatting.algebraText(source) == nil)
         #expect(WeightSourceFormatting.unresolvedReason(source) != nil)
     }

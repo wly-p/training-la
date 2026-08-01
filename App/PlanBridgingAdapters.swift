@@ -117,9 +117,9 @@ struct PlanProviderAdapter: PlannedWorkoutProvider {
                 kind: .relativeToLast, delta: info.delta, lastWeight: info.lastWeight,
                 intensityFactor: info.intensityFactor
             )
-        case .percentOf1RM:
+        case .percentOfMax:
             return TargetWeightSource(
-                kind: .percentOf1RM, percent: info.percent, abilityValue: info.abilityValue,
+                kind: .percentOfMax, percent: info.percent, abilityValue: info.abilityValue,
                 intensityFactor: info.intensityFactor
             )
         }

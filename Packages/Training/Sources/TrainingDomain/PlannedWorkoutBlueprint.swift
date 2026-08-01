@@ -93,13 +93,13 @@ public struct PlannedTargetSet: Identifiable, Equatable, Sendable {
 /// 材料化那一刻 targetWeight 怎麼算出來的快照（14c）。跟 Plan 的 `WeightSourceInfo` 一一對應，
 /// 只是換一層型別，讓 Training 不用 import PlanDomain。
 public struct TargetWeightSource: Equatable, Sendable {
-    public enum Kind: Equatable, Sendable { case none, absolute, relativeToLast, percentOf1RM }
+    public enum Kind: Equatable, Sendable { case none, absolute, relativeToLast, percentOfMax }
 
     public let kind: Kind
     /// `.absolute` 套用強度倍率之前的原始公斤數（14c 算式「120 kg × 75%」的 120）。
     public let base: Weight?
     public let percent: Double?
-    /// `.percentOf1RM` 當時查到的能力值(1RM)；nil＝當時還沒設，算不出來。
+    /// `.percentOfMax` 當時查到的能力值（最大重量）；nil＝當時還沒設，算不出來。
     public let abilityValue: Weight?
     public let delta: Weight?
     /// `.relativeToLast` 當時查到的上次重量；nil＝當時沒有上次紀錄，算不出來。
@@ -130,7 +130,7 @@ public struct TargetWeightSource: Equatable, Sendable {
         case .none: return true
         case .absolute: return false
         case .relativeToLast: return lastWeight == nil
-        case .percentOf1RM: return abilityValue == nil
+        case .percentOfMax: return abilityValue == nil
         }
     }
 }

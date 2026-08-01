@@ -7,7 +7,7 @@ import Testing
 private let exerciseId = UUID()
 
 struct ResolveWeightExpressionTests {
-    @Test func percentOf1RMResolvesUsingAbilityValue() async throws {
+    @Test func percentOfMaxResolvesUsingAbilityValue() async throws {
         // 80% of a 100kg 1RM, step 2.5 → 80kg exactly.
         let (resolved, _) = try await resolveWeightExpression(
             .percentOfMax(80), weightStep: 2.5, intensityFactor: 1.0, exerciseId: exerciseId,
@@ -17,7 +17,7 @@ struct ResolveWeightExpressionTests {
         #expect(resolved == .absolute(Weight(value: 80, unit: .kg)))
     }
 
-    @Test func percentOf1RMWithoutAbilityValueResolvesToNil() async throws {
+    @Test func percentOfMaxWithoutAbilityValueResolvesToNil() async throws {
         let (resolved, _) = try await resolveWeightExpression(
             .percentOfMax(80), weightStep: 2.5, intensityFactor: 1.0, exerciseId: exerciseId,
             lastPerformedLookup: MockLastPerformedWeightLookup(),
