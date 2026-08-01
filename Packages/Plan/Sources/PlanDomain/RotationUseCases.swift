@@ -143,7 +143,7 @@ public struct DeleteRotation: Sendable {
 public struct StartRotation: Sendable {
     private let rotationRepository: any RotationRepository
     private let planRepository: any PlanWorkoutRepository
-    private let exerciseCatalog: any PlanExerciseCatalog
+    private let preferences: any TrainingPreferenceStoring
     private let lastPerformedWeightLookup: any LastPerformedWeightLookup
     private let abilityValueLookup: any AbilityValueLookup
     private let makeID: @Sendable () -> UUID
@@ -151,14 +151,14 @@ public struct StartRotation: Sendable {
     public init(
         rotationRepository: any RotationRepository,
         planRepository: any PlanWorkoutRepository,
-        exerciseCatalog: any PlanExerciseCatalog,
+        preferences: any TrainingPreferenceStoring,
         lastPerformedWeightLookup: any LastPerformedWeightLookup,
         abilityValueLookup: any AbilityValueLookup,
         makeID: @escaping @Sendable () -> UUID = { UUID() }
     ) {
         self.rotationRepository = rotationRepository
         self.planRepository = planRepository
-        self.exerciseCatalog = exerciseCatalog
+        self.preferences = preferences
         self.lastPerformedWeightLookup = lastPerformedWeightLookup
         self.abilityValueLookup = abilityValueLookup
         self.makeID = makeID
@@ -171,9 +171,9 @@ public struct StartRotation: Sendable {
         guard let rotation = try await rotationRepository.get(id: id),
               let spec = rotation.current else { return nil }
         let orderIndex = (try await planRepository.onDate(date).map(\.orderIndex).max() ?? -1) + 1
-        let catalog = try await exerciseCatalog.exercises()
+        let weightStep = preferences.loadWeightStep()
         let sets = try await resolvedPlanSets(
-            from: spec.sets, catalog: catalog,
+            from: spec.sets, weightStep: weightStep,
             intensityFactor: spec.intensityFactor ?? rotation.intensityFactor,
             lastPerformedLookup: lastPerformedWeightLookup, abilityValueLookup: abilityValueLookup, makeID: makeID
         )
@@ -200,18 +200,18 @@ public struct StartRotation: Sendable {
 /// 兩者刻意分開：預覽階段使用者可能只是看看就關掉，不該讓循環往下走一輪。
 public struct PreviewRotationWorkout: Sendable {
     private let rotationRepository: any RotationRepository
-    private let exerciseCatalog: any PlanExerciseCatalog
+    private let preferences: any TrainingPreferenceStoring
     private let lastPerformedWeightLookup: any LastPerformedWeightLookup
     private let abilityValueLookup: any AbilityValueLookup
 
     public init(
         rotationRepository: any RotationRepository,
-        exerciseCatalog: any PlanExerciseCatalog,
+        preferences: any TrainingPreferenceStoring,
         lastPerformedWeightLookup: any LastPerformedWeightLookup,
         abilityValueLookup: any AbilityValueLookup
     ) {
         self.rotationRepository = rotationRepository
-        self.exerciseCatalog = exerciseCatalog
+        self.preferences = preferences
         self.lastPerformedWeightLookup = lastPerformedWeightLookup
         self.abilityValueLookup = abilityValueLookup
     }
@@ -221,9 +221,9 @@ public struct PreviewRotationWorkout: Sendable {
     public func callAsFunction(id: UUID) async throws -> PlanWorkout? {
         guard let rotation = try await rotationRepository.get(id: id),
               let spec = rotation.current else { return nil }
-        let catalog = try await exerciseCatalog.exercises()
+        let weightStep = preferences.loadWeightStep()
         let sets = try await resolvedPlanSets(
-            from: spec.sets, catalog: catalog,
+            from: spec.sets, weightStep: weightStep,
             intensityFactor: spec.intensityFactor ?? rotation.intensityFactor,
             lastPerformedLookup: lastPerformedWeightLookup, abilityValueLookup: abilityValueLookup,
             makeID: { UUID() }

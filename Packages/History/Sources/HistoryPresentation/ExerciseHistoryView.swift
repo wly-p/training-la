@@ -62,13 +62,14 @@ public struct ExerciseHistoryView: View {
             Chart(points) { point in
                 LineMark(
                     x: .value("day", point.day.chartDate),
-                    y: .value("weight", point.weight.value)
+                    // 一律用公斤畫，否則混單位時同一張圖會出現兩種尺度。
+                    y: .value("weight", point.weight.kilograms)
                 )
                 .foregroundStyle(TLColor.accent700)
                 .interpolationMethod(.monotone)
                 PointMark(
                     x: .value("day", point.day.chartDate),
-                    y: .value("weight", point.weight.value)
+                    y: .value("weight", point.weight.kilograms)
                 )
                 .foregroundStyle(point.isPersonalRecord ? TLColor.sage : TLColor.accent700)
                 .symbolSize(point.isPersonalRecord ? 90 : 32)

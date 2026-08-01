@@ -70,8 +70,16 @@ public final class ActiveWorkoutViewModel {
     public func isUndoable(setId: UUID) -> Bool { lastRecordedSetId == setId }
 
     public var draftWeightValue: Double = 20
-    public var draftWeightUnit: WeightUnit = .kg
+    /// 草稿的單位。新的一組用使用者的預設單位；載入既有紀錄時沿用那筆自己的單位
+    /// （見 `apply(weight:reps:)`）——換算只發生在比較與顯示，儲存不做正規化。
+    public var draftWeightUnit: WeightUnit
     public var draftReps: Int = 8
+    /// 使用者的重量級距偏好：± 快捷一次動多少、選擇器滾輪每格差多少。
+    /// 每次讀取都問偏好，不在 init 快取——否則訓練途中去設定改級距，回來這場不會生效
+    /// （這個 view model 活在整場訓練期間）。UserDefaults 讀取很便宜。
+    public var weightStep: Double { preferences.loadWeightStep() }
+    /// 使用者的休息時間級距偏好（秒）：休息中 ± 按鈕一次動多少。同上，即時讀取。
+    public var restStep: Int { preferences.loadRestStep() }
 
     private let saveProgress: SaveWorkoutProgress
     private let finishWorkout: FinishWorkout
@@ -84,6 +92,8 @@ public final class ActiveWorkoutViewModel {
     private let now: () -> Date
     /// 休息結束提醒（背景通知＋前景聲音/震動；彈窗依偏好由 View 決定）。
     private let reminder: any RestEndReminding
+    /// 訓練偏好（重量／休息級距）。存 store 本身而非載入後的值，才能即時反映設定變更。
+    private let preferences: any TrainingPreferenceStoring
 
     public init(
         workout: Workout,
@@ -95,6 +105,8 @@ public final class ActiveWorkoutViewModel {
         exerciseCatalog: any ExerciseCatalog,
         plannedProvider: (any PlannedWorkoutProvider)? = nil,
         reminder: any RestEndReminding = NoopRestEndReminding(),
+        weightUnitStore: any WeightUnitPreferenceStoring = InMemoryWeightUnitStore(),
+        preferences: any TrainingPreferenceStoring = InMemoryTrainingPreferenceStore(),
         now: @escaping () -> Date = { Date() }
     ) {
         self.workout = workout
@@ -106,6 +118,8 @@ public final class ActiveWorkoutViewModel {
         self.exerciseCatalog = exerciseCatalog
         self.plannedProvider = plannedProvider
         self.reminder = reminder
+        self.draftWeightUnit = weightUnitStore.load()
+        self.preferences = preferences
         self.now = now
     }
 
@@ -483,8 +497,8 @@ public final class ActiveWorkoutViewModel {
         startRestTicking()
     }
 
-    /// 訓練中調整休息剩餘秒數（+/- 15 秒）：移動結束時間並重排通知，
-    /// 並把調整後的休息長度套用到同一動作的後續各組。
+    /// 訓練中調整休息剩餘秒數（`delta` 由呼叫端帶入使用者的級距偏好 `restStep`）：
+    /// 移動結束時間並重排通知，並把調整後的休息長度套用到同一動作的後續各組。
     public func adjustRest(_ delta: Int) {
         guard let end = restEndDate else { return }
         let newEnd = max(now(), end.addingTimeInterval(TimeInterval(delta)))
@@ -628,8 +642,11 @@ public final class ActiveWorkoutViewModel {
     }
 
     public func bumpWeight(_ direction: Int) {
-        let step = draftWeightUnit == .kg ? 2.5 : 5.0
-        draftWeightValue = max(0, draftWeightValue + step * Double(direction))
+        // 從現值加減，不吸附到級距網格：按鈕標「+1」就該動 1，
+        // 課表預填的目標常常本來就不在使用者自訂級距的格子上。
+        draftWeightValue = WeightRange.clamped(
+            draftWeightValue + weightStep * Double(direction), unit: draftWeightUnit
+        )
     }
 
     public func bumpReps(_ direction: Int) {
@@ -651,7 +668,9 @@ public final class ActiveWorkoutViewModel {
     /// 草稿是否已經偏離目標——決定第三顆快捷鍵顯示「同上組」還是「回到目標」（11c）。
     public var isDraftModifiedFromTarget: Bool {
         guard let target = currentTarget, let weight = target.targetWeight else { return false }
-        return draftWeightValue != weight.value || (target.targetReps.map { $0 != draftReps } ?? false)
+        // 草稿與目標可能不同單位，要組成 Weight 比而不是比裸數字。
+        let draft = Weight(value: draftWeightValue, unit: draftWeightUnit)
+        return draft != weight || (target.targetReps.map { $0 != draftReps } ?? false)
     }
 
     // MARK: - 私有

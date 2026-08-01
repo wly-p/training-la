@@ -122,7 +122,7 @@ struct InstantiateTemplateTests {
         let planRepo = MockPlanWorkoutRepository()
         let tpl = template()
         await templateRepo.seed([tpl])
-        let instantiate = InstantiateTemplate(templateRepository: templateRepo, planRepository: planRepo, exerciseCatalog: MockPlanExerciseCatalog(), lastPerformedWeightLookup: MockLastPerformedWeightLookup(), abilityValueLookup: MockAbilityValueLookup())
+        let instantiate = InstantiateTemplate(templateRepository: templateRepo, planRepository: planRepo, preferences: InMemoryTrainingPreferenceStore(), lastPerformedWeightLookup: MockLastPerformedWeightLookup(), abilityValueLookup: MockAbilityValueLookup())
 
         let plan = try await instantiate(templateId: tpl.id, date: today)
 
@@ -146,7 +146,7 @@ struct InstantiateTemplateTests {
         let tpl = template()
         await templateRepo.seed([tpl])
         await planRepo.seed([PlanWorkout(id: UUID(), name: "先排的", date: today, orderIndex: 0)])
-        let instantiate = InstantiateTemplate(templateRepository: templateRepo, planRepository: planRepo, exerciseCatalog: MockPlanExerciseCatalog(), lastPerformedWeightLookup: MockLastPerformedWeightLookup(), abilityValueLookup: MockAbilityValueLookup())
+        let instantiate = InstantiateTemplate(templateRepository: templateRepo, planRepository: planRepo, preferences: InMemoryTrainingPreferenceStore(), lastPerformedWeightLookup: MockLastPerformedWeightLookup(), abilityValueLookup: MockAbilityValueLookup())
 
         let plan = try await instantiate(templateId: tpl.id, date: today)
 
@@ -158,7 +158,7 @@ struct InstantiateTemplateTests {
         let instantiate = InstantiateTemplate(
             templateRepository: MockWorkoutTemplateRepository(),
             planRepository: MockPlanWorkoutRepository(),
-            exerciseCatalog: MockPlanExerciseCatalog(),
+            preferences: InMemoryTrainingPreferenceStore(),
             lastPerformedWeightLookup: MockLastPerformedWeightLookup(),
             abilityValueLookup: MockAbilityValueLookup()
         )

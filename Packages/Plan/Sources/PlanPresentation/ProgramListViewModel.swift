@@ -26,6 +26,10 @@ public final class ProgramListViewModel {
     private let applyProgram: ApplyProgram
     private let listTemplates: ListTemplates
     private let exerciseCatalog: any PlanExerciseCatalog
+        /// 使用者的重量級距偏好；強度倍率預覽用。
+    /// 即時讀取不快取——這個 view model 活很久，設定改了要馬上反映。
+    public var weightStep: Double { preferences.loadWeightStep() }
+    private let preferences: any TrainingPreferenceStoring
     private let today: @Sendable () -> DayDate
 
     public init(
@@ -38,6 +42,7 @@ public final class ProgramListViewModel {
         applyProgram: ApplyProgram,
         listTemplates: ListTemplates,
         exerciseCatalog: any PlanExerciseCatalog,
+        preferences: any TrainingPreferenceStoring = InMemoryTrainingPreferenceStore(),
         today: @escaping @Sendable () -> DayDate
     ) {
         self.listPrograms = listPrograms
@@ -48,6 +53,7 @@ public final class ProgramListViewModel {
         self.deleteProgram = deleteProgram
         self.applyProgram = applyProgram
         self.listTemplates = listTemplates
+        self.preferences = preferences
         self.exerciseCatalog = exerciseCatalog
         self.today = today
     }
