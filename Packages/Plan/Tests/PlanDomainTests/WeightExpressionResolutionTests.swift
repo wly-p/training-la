@@ -8,7 +8,7 @@ private let exerciseId = UUID()
 
 struct ResolveWeightExpressionTests {
     @Test func percentOf1RMResolvesUsingAbilityValue() async throws {
-        // 80% of a 100kg 1RM, barbell step 2.5 → 80kg exactly.
+        // 80% of a 100kg 1RM, step 2.5 → 80kg exactly.
         let (resolved, _) = try await resolveWeightExpression(
             .percentOf1RM(80), weightStep: 2.5, intensityFactor: 1.0, exerciseId: exerciseId,
             lastPerformedLookup: MockLastPerformedWeightLookup(),
@@ -74,4 +74,40 @@ struct ResolveWeightExpressionTests {
         )
         #expect(resolved == nil)
     }
+
+    /// 級距是使用者偏好，可以細到一個卡扣（0.17kg）。這種值最容易踩到浮點取整的坑：
+    /// 17.0 / 0.17 在浮點下是 99.999…，沒有容差就會 floor 成 99 而少掉一階（16.83）。
+    @Test func fineStepDoesNotLoseAStepToFloatingPointError() async throws {
+        let (resolved, _) = try await resolveWeightExpression(
+            .absolute(Weight(value: 17, unit: .kg)), weightStep: 0.17, intensityFactor: 1.0,
+            exerciseId: exerciseId,
+            lastPerformedLookup: MockLastPerformedWeightLookup(),
+            abilityValueLookup: MockAbilityValueLookup()
+        )
+        #expect(resolved == .absolute(Weight(value: 17, unit: .kg)))
+    }
+
+    /// 細級距下仍要正常向下取整（不是「一律不取整」）。
+    @Test func fineStepStillRoundsDown() async throws {
+        let (resolved, _) = try await resolveWeightExpression(
+            .absolute(Weight(value: 17.1, unit: .kg)), weightStep: 0.17, intensityFactor: 1.0,
+            exerciseId: exerciseId,
+            lastPerformedLookup: MockLastPerformedWeightLookup(),
+            abilityValueLookup: MockAbilityValueLookup()
+        )
+        // 17.1 / 0.17 = 100.58… → floor 100 → 17.0
+        #expect(resolved == .absolute(Weight(value: 17, unit: .kg)))
+    }
+
+    /// delta 自帶單位：lb 的增量不可以被當成 kg 直接加到上次的重量上。
+    @Test func relativeToLastConvertsDeltaUnit() async throws {
+        let (resolved, _) = try await resolveWeightExpression(
+            .relativeToLast(delta: Weight(value: 2.20462262185, unit: .lb)),   // ＝ 1 kg
+            weightStep: 0.5, intensityFactor: 1.0, exerciseId: exerciseId,
+            lastPerformedLookup: MockLastPerformedWeightLookup(Weight(value: 60, unit: .kg)),
+            abilityValueLookup: MockAbilityValueLookup()
+        )
+        #expect(resolved == .absolute(Weight(value: 61, unit: .kg)))
+    }
+
 }

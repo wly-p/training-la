@@ -72,6 +72,7 @@ public struct RotationListView: View {
                 RotationEditorView(
                     target: .edit(rotation),
                     templates: viewModel.templates,
+                    weightStep: viewModel.weightStep,
                     name: viewModel.name(for:),
                     onSubmit: { name, workouts, _, _, intensityFactor in
                         await viewModel.update(id: rotation.id, name: name, workouts: workouts, intensityFactor: intensityFactor)
@@ -88,6 +89,7 @@ public struct RotationListView: View {
             RotationEditorView(
                 target: .create,
                 templates: viewModel.templates,
+                    weightStep: viewModel.weightStep,
                 name: viewModel.name(for:),
                 onSubmit: { name, workouts, isActive, cursor, intensityFactor in
                     await viewModel.create(

@@ -160,7 +160,7 @@ struct ReconcileProgramAssignmentsTests {
     ) -> ReconcileProgramAssignments {
         ReconcileProgramAssignments(
             programRepository: programRepo, assignmentRepository: assignRepo, planRepository: planRepo,
-            exerciseCatalog: MockPlanExerciseCatalog(), lastPerformedWeightLookup: MockLastPerformedWeightLookup(),
+            preferences: InMemoryTrainingPreferenceStore(), lastPerformedWeightLookup: MockLastPerformedWeightLookup(),
             abilityValueLookup: MockAbilityValueLookup()
         )
     }

@@ -27,18 +27,20 @@ extension HistoryFormatting {
     ///
     /// - Parameter sessions: `sessions(exerciseId:)` 回傳的順序（新到舊）；這裡會反轉成時間序處理。
     static func trendPoints(for sessions: [HistoryExerciseSession]) -> [ExerciseTrendPoint] {
-        var bestRepsAtWeight: [Double: Int] = [:]
-        var bestWeightAtReps: [Int: Double] = [:]
+        // 一律用 Weight 本身當 key 與比較對象，不要退回 .value —— Weight 的雜湊與比較
+        // 都已換算過單位，用 .value 會讓 100 lb 和 100 kg 變成同一格、並互相判成新高。
+        var bestRepsAtWeight: [Weight: Int] = [:]
+        var bestWeightAtReps: [Int: Weight] = [:]
         var points: [ExerciseTrendPoint] = []
         for session in sessions.reversed() {
             let doneSets = session.sets.filter { $0.status == .done }
-            guard let best = doneSets.max(by: { ($0.weight.value, $0.reps) < ($1.weight.value, $1.reps) }) else { continue }
-            let priorBestReps = bestRepsAtWeight[best.weight.value] ?? 0
-            let priorBestWeight = bestWeightAtReps[best.reps] ?? 0
-            let isPR = best.reps > priorBestReps || best.weight.value > priorBestWeight
+            guard let best = doneSets.max(by: { ($0.weight, $0.reps) < ($1.weight, $1.reps) }) else { continue }
+            let priorBestReps = bestRepsAtWeight[best.weight] ?? 0
+            let priorBestWeight = bestWeightAtReps[best.reps] ?? Weight(value: 0, unit: .kg)
+            let isPR = best.reps > priorBestReps || best.weight > priorBestWeight
             points.append(ExerciseTrendPoint(id: session.id, day: session.day, weight: best.weight, reps: best.reps, isPersonalRecord: isPR))
-            bestRepsAtWeight[best.weight.value] = max(priorBestReps, best.reps)
-            bestWeightAtReps[best.reps] = max(priorBestWeight, best.weight.value)
+            bestRepsAtWeight[best.weight] = max(priorBestReps, best.reps)
+            bestWeightAtReps[best.reps] = max(priorBestWeight, best.weight)
         }
         return points
     }

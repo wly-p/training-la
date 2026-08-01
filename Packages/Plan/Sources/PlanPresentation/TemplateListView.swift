@@ -46,6 +46,7 @@ public struct TemplateListView: View {
             TemplateFormView(
                 target: target.formTarget,
                 catalog: viewModel.catalog,
+                weightStep: viewModel.weightStep,
                 recentExerciseIds: recentExerciseIds,
                 duplicatedFromName: duplicatedFromName,
                 onSubmit: { name, sets in

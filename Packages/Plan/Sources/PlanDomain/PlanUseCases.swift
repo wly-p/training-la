@@ -279,7 +279,7 @@ public struct DeleteTemplate: Sendable {
 public struct InstantiateTemplate: Sendable {
     private let templateRepository: any WorkoutTemplateRepository
     private let planRepository: any PlanWorkoutRepository
-    private let exerciseCatalog: any PlanExerciseCatalog
+    private let preferences: any TrainingPreferenceStoring
     private let lastPerformedWeightLookup: any LastPerformedWeightLookup
     private let abilityValueLookup: any AbilityValueLookup
     private let makeID: @Sendable () -> UUID
@@ -287,14 +287,14 @@ public struct InstantiateTemplate: Sendable {
     public init(
         templateRepository: any WorkoutTemplateRepository,
         planRepository: any PlanWorkoutRepository,
-        exerciseCatalog: any PlanExerciseCatalog,
+        preferences: any TrainingPreferenceStoring,
         lastPerformedWeightLookup: any LastPerformedWeightLookup,
         abilityValueLookup: any AbilityValueLookup,
         makeID: @escaping @Sendable () -> UUID = { UUID() }
     ) {
         self.templateRepository = templateRepository
         self.planRepository = planRepository
-        self.exerciseCatalog = exerciseCatalog
+        self.preferences = preferences
         self.lastPerformedWeightLookup = lastPerformedWeightLookup
         self.abilityValueLookup = abilityValueLookup
         self.makeID = makeID
@@ -306,10 +306,10 @@ public struct InstantiateTemplate: Sendable {
             throw WorkoutTemplateRepositoryError.notFound(id: templateId)
         }
         let orderIndex = (try await planRepository.onDate(date).map(\.orderIndex).max() ?? -1) + 1
-        let catalog = try await exerciseCatalog.exercises()
+        let weightStep = preferences.loadWeightStep()
         // 範本永遠是 100% 的原始處方，沒有強度倍率概念（見 91-weight-model.md §9）。
         let sets = try await resolvedPlanSets(
-            from: template.sets, catalog: catalog, intensityFactor: 1.0,
+            from: template.sets, weightStep: weightStep, intensityFactor: 1.0,
             lastPerformedLookup: lastPerformedWeightLookup, abilityValueLookup: abilityValueLookup, makeID: makeID
         )
         let plan = PlanWorkout(

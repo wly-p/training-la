@@ -86,6 +86,7 @@ public struct PlanScheduleView: View {
                 PlanWorkoutFormView(
                     target: target,
                     catalog: viewModel.catalog,
+                    weightStep: viewModel.weightStep,
                     readOnly: target.isDone
                 ) { name, date, drafts in
                     if case .edit(let plan) = target {

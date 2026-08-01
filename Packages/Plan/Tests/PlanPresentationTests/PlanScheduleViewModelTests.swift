@@ -85,7 +85,7 @@ private func makeViewModel(
         listTemplates: ListTemplates(repository: templateRepo),
         instantiateTemplate: InstantiateTemplate(
             templateRepository: templateRepo, planRepository: repo,
-            exerciseCatalog: MockCatalog(items: catalog), lastPerformedWeightLookup: MockLookup(),
+            preferences: InMemoryTrainingPreferenceStore(), lastPerformedWeightLookup: MockLookup(),
             abilityValueLookup: MockAbilityLookup()
         ),
         listPrograms: ListPrograms(repository: programRepo),
@@ -94,12 +94,12 @@ private func makeViewModel(
         deleteAssignment: DeleteProgramAssignment(repository: assignmentRepo),
         reconcile: ReconcileProgramAssignments(
             programRepository: programRepo, assignmentRepository: assignmentRepo, planRepository: repo,
-            exerciseCatalog: MockCatalog(items: catalog), lastPerformedWeightLookup: MockLookup(),
+            preferences: InMemoryTrainingPreferenceStore(), lastPerformedWeightLookup: MockLookup(),
             abilityValueLookup: MockAbilityLookup()
         ),
         projectSchedule: ProjectSchedule(programRepository: programRepo, assignmentRepository: assignmentRepo, planRepository: repo),
         materializeProjection: MaterializeProjectedWorkout(
-            planRepository: repo, exerciseCatalog: MockCatalog(items: catalog), lastPerformedWeightLookup: MockLookup(),
+            planRepository: repo, preferences: InMemoryTrainingPreferenceStore(), lastPerformedWeightLookup: MockLookup(),
             abilityValueLookup: MockAbilityLookup()
         ),
         exerciseCatalog: MockCatalog(items: catalog),
