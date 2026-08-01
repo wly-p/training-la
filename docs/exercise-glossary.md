@@ -71,6 +71,10 @@ i18n 主線（Part 1–3）完成了全 app 介面文字的中英雙語，但依
 器材欄標的是「最常見的做法」，不是唯一做法（臥推也可以用啞鈴）。真的做預設動作庫時，
 器材應該由使用者自己選，這欄只是建議預設值。
 
+分組是**互斥**的：`Exercise` 一個動作只有一個 `muscleGroup`，所以同一個動作不會出現在兩組。
+邊界上的動作依「主要訓練目標」歸類——硬舉歸腿不歸背、面拉歸肩不歸背、農夫走路歸功能性不歸核心，
+雖然它們對第二個部位也有明顯刺激。
+
 ### 胸 Chest
 
 | 中文 | 英文 | 常見器材 |
@@ -89,8 +93,6 @@ i18n 主線（Part 1–3）完成了全 app 介面文字的中英雙語，但依
 
 | 中文 | 英文 | 常見器材 |
 |---|---|---|
-| 硬舉 | Deadlift | `barbell` |
-| 羅馬尼亞硬舉 | Romanian Deadlift | `barbell` |
 | 槓鈴划船 | Barbell Row | `barbell` |
 | 單臂啞鈴划船 | One-Arm Dumbbell Row | `dumbbell` |
 | 引體向上 | Pull-Up | `bodyweight` |
@@ -98,7 +100,6 @@ i18n 主線（Part 1–3）完成了全 app 介面文字的中英雙語，但依
 | 滑輪下拉 | Lat Pulldown | `cable` |
 | 坐姿划船 | Seated Cable Row | `cable` |
 | T 槓划船 | T-Bar Row | `barbell` |
-| 面拉 | Face Pull | `cable` |
 
 ### 腿 Legs
 
@@ -106,14 +107,18 @@ i18n 主線（Part 1–3）完成了全 app 介面文字的中英雙語，但依
 |---|---|---|
 | 深蹲 | Back Squat | `barbell` |
 | 前蹲 | Front Squat | `barbell` |
+| 硬舉 | Deadlift | `barbell` |
+| 羅馬尼亞硬舉 | Romanian Deadlift | `barbell` |
+| 六角槓硬舉 | Hex Bar Deadlift | `hex_bar` |
 | 腿推 | Leg Press | `machine` |
 | 保加利亞分腿蹲 | Bulgarian Split Squat | `dumbbell` |
 | 弓步蹲 | Lunge | `dumbbell` |
 | 腿伸展 | Leg Extension | `machine` |
 | 腿彎舉 | Leg Curl | `machine` |
 | 臀推 | Hip Thrust | `barbell` |
+| 髖外展 | Hip Abduction | `machine` |
+| 髖內收 | Hip Adduction | `machine` |
 | 提踵 | Calf Raise | `machine` |
-| 六角槓硬舉 | Hex Bar Deadlift | `hex_bar` |
 
 ### 肩 Shoulders
 
@@ -124,6 +129,7 @@ i18n 主線（Part 1–3）完成了全 app 介面文字的中英雙語，但依
 | 側平舉 | Lateral Raise | `dumbbell` |
 | 前平舉 | Front Raise | `dumbbell` |
 | 俯身側平舉 | Rear Delt Fly | `dumbbell` |
+| 面拉 | Face Pull | `cable` |
 | 直立划船 | Upright Row | `barbell` |
 | 聳肩 | Shrug | `dumbbell` |
 
@@ -152,7 +158,6 @@ i18n 主線（Part 1–3）完成了全 app 介面文字的中英雙語，但依
 | 死蟲 | Dead Bug | `bodyweight` |
 | 鳥狗式 | Bird Dog | `bodyweight` |
 | 滾輪 | Ab Wheel Rollout | `other` |
-| 農夫走路 | Farmer's Walk | `dumbbell` |
 
 ### 功能性訓練 Functional
 
@@ -167,6 +172,8 @@ i18n 主線（Part 1–3）完成了全 app 介面文字的中英雙語，但依
 | 跳箱 | Box Jump | `bodyweight` |
 | 藥球砸地 | Medicine Ball Slam | `other` |
 | 戰繩 | Battle Rope | `other` |
+| 雪橇推拉 | Sled Push / Drag | `other` |
+| 農夫走路 | Farmer's Walk | `dumbbell` |
 
 ---
 
