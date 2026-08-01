@@ -427,9 +427,12 @@ public struct ActiveWorkoutView: View {
                     .tracking(TLFont.kickerTracking)
                     .textCase(.uppercase)
                     .foregroundStyle(TLColor.accent600)
-                Text(verbatim: viewModel.name(for: exerciseId))
-                    .font(TLFont.zh(TLFont.pageTitle, .bold))
-                    .foregroundStyle(TLColor.text)
+                ExerciseNameWithEquipment(
+                    title: Text(verbatim: viewModel.name(for: exerciseId))
+                        .font(TLFont.zh(TLFont.pageTitle, .bold))
+                        .foregroundColor(TLColor.text),
+                    equipment: viewModel.equipmentName(for: exerciseId)
+                )
                 if let summary = exerciseTableSummary {
                     Text(verbatim: summary)
                         .font(TLFont.zh(TLFont.rowSub, .regular))

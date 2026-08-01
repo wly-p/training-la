@@ -152,6 +152,7 @@ struct PlanWorkoutFormView: View {
         ListRow(
             title: Text(verbatim: name(for: draft.exerciseId)),
             subtitle: Text(verbatim: summary(for: draft)),
+            equipment: equipmentName(for: draft.exerciseId),
             onTap: { editingDraftId = draft.id },
             trailing: {
                 Text(verbatim: capsuleText(for: draft))
@@ -272,6 +273,11 @@ struct PlanWorkoutFormView: View {
     }
 
     /// 副標：組數＋休息，如「3 組 · 休息 60 秒」。
+    /// 器材顯示名（動作名允許重複，靠它分辨）。
+    private func equipmentName(for id: UUID) -> String {
+        (catalog.first { $0.id == id }?.equipment ?? .other).displayName
+    }
+
     private func summary(for draft: ExerciseTargetDraft) -> String {
         var text = "\(draft.setCount) 組"
         if let rest = draft.restSec, rest > 0 {

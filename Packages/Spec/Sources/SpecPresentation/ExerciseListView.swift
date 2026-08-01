@@ -100,18 +100,15 @@ public struct ExerciseListView: View {
 
     private func row(for exercise: Exercise) -> some View {
         ListRow(
+            // 器材從右欄灰字移到名稱右側的 pill（handoff-15 15c）——右欄那個位置離名稱太遠，
+            // 同名動作要左右來回對才看得出差別。
             title: Text(verbatim: exercise.name),
+            equipment: exercise.equipment.displayName,
             showChevron: true,
             onTap: { editingTarget = .edit(exercise) },
             leading: {
                 // 肌群縮寫圓章（sage）。displayName 可能多字（功能性訓練／核心），圓章取前二字。
                 CircleBadge(muscle: String(exercise.muscleGroup.displayName.prefix(2)))
-            },
-            trailing: {
-                // 器材名是 enum 資料（verbatim）；右側 meta 小灰字。
-                Text(verbatim: exercise.equipment.displayName)
-                    .font(TLFont.zh(TLFont.rowTitle))
-                    .foregroundStyle(TLColor.neutral500)
             }
         )
         .contextMenu {

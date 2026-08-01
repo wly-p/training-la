@@ -20,15 +20,15 @@ public struct PlannedWorkoutBlueprint: Equatable, Sendable {
     }
 
     /// 依 exerciseIndex 排序的動作清單（去重，保留順序）。
-    public var exercises: [(exerciseId: UUID, name: String, setCount: Int)] {
+    public var exercises: [(exerciseId: UUID, name: String, equipment: Equipment, setCount: Int)] {
         var order: [Int] = []
-        var grouped: [Int: (UUID, String, Int)] = [:]
+        var grouped: [Int: (UUID, String, Equipment, Int)] = [:]
         for target in targets.sorted(by: { ($0.exerciseIndex, $0.setIndex) < ($1.exerciseIndex, $1.setIndex) }) {
             if grouped[target.exerciseIndex] == nil {
                 order.append(target.exerciseIndex)
-                grouped[target.exerciseIndex] = (target.exerciseId, target.exerciseName, 0)
+                grouped[target.exerciseIndex] = (target.exerciseId, target.exerciseName, target.equipment, 0)
             }
-            grouped[target.exerciseIndex]!.2 += 1
+            grouped[target.exerciseIndex]!.3 += 1
         }
         return order.map { grouped[$0]! }
     }
@@ -53,6 +53,8 @@ public struct PlannedTargetSet: Identifiable, Equatable, Sendable {
     public let id: UUID
     public let exerciseId: UUID
     public let exerciseName: String
+    /// 器材：動作名允許重複，開練前預覽要靠它分辨（跟 exerciseName 一樣是反正規化進來的顯示欄位）。
+    public let equipment: Equipment
     public let exerciseIndex: Int
     public let setIndex: Int
     public let targetWeight: Weight?
@@ -67,6 +69,7 @@ public struct PlannedTargetSet: Identifiable, Equatable, Sendable {
         id: UUID,
         exerciseId: UUID,
         exerciseName: String,
+        equipment: Equipment = .other,
         exerciseIndex: Int,
         setIndex: Int,
         targetWeight: Weight?,
@@ -77,6 +80,7 @@ public struct PlannedTargetSet: Identifiable, Equatable, Sendable {
         self.id = id
         self.exerciseId = exerciseId
         self.exerciseName = exerciseName
+        self.equipment = equipment
         self.exerciseIndex = exerciseIndex
         self.setIndex = setIndex
         self.targetWeight = targetWeight

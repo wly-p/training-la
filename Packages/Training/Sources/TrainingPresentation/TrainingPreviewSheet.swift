@@ -19,6 +19,7 @@ struct TrainingPreviewSheet: View {
     private struct ExerciseRow: Identifiable {
         let id: UUID
         let name: String
+        let equipment: Equipment
         let setCount: Int
         let representative: PlannedTargetSet?
     }
@@ -29,7 +30,10 @@ struct TrainingPreviewSheet: View {
                 .filter { $0.exerciseId == exercise.exerciseId }
                 .sorted { ($0.exerciseIndex, $0.setIndex) < ($1.exerciseIndex, $1.setIndex) }
                 .first
-            return ExerciseRow(id: exercise.exerciseId, name: exercise.name, setCount: exercise.setCount, representative: representative)
+            return ExerciseRow(
+                id: exercise.exerciseId, name: exercise.name, equipment: exercise.equipment,
+                setCount: exercise.setCount, representative: representative
+            )
         }
     }
 
@@ -104,9 +108,7 @@ struct TrainingPreviewSheet: View {
     private func exerciseRow(_ row: ExerciseRow) -> some View {
         HStack(alignment: .center, spacing: TLSpace.gapM) {
             VStack(alignment: .leading, spacing: 3) {
-                Text(verbatim: row.name)
-                    .font(TLFont.zh(TLFont.rowTitle, .semibold))
-                    .foregroundStyle(TLColor.text)
+                ExerciseNameWithEquipment(name: row.name, equipment: row.equipment.displayName)
                 if let algebra = WeightSourceFormatting.algebraText(row.representative?.weightSource) {
                     Text(verbatim: algebra)
                         .font(TLFont.zh(11, .regular))

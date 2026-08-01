@@ -141,6 +141,11 @@ public final class ActiveWorkoutViewModel {
         catalog.first { $0.id == exerciseId }?.name ?? "動作"
     }
 
+    /// 器材顯示名（動作名允許重複，靠它分辨）。查不到就回「其他」，不留空。
+    public func equipmentName(for exerciseId: UUID) -> String {
+        (catalog.first { $0.id == exerciseId }?.equipment ?? .other).displayName
+    }
+
     /// 上次同動作的組摘要「60kg × 8, 8, 6」；沒有歷史回 nil。「上次：」前綴由 View 本地化組。
     public func lastSummary(for exerciseId: UUID) -> String? {
         guard let sets = lastPerformances[exerciseId], !sets.isEmpty else { return nil }
