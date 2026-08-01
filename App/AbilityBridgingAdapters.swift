@@ -14,18 +14,41 @@ struct PracticedExerciseListerAdapter: PracticedExerciseLister {
         let workouts = try await workoutRepository.finishedWorkouts()
         // 帶整個 Exercise 而不只是名稱：同名動作要靠器材分辨。
         let catalog = Dictionary(uniqueKeysWithValues: try await listExercises(muscleGroup: nil).map { ($0.id, $0) })
-        var seen: Set<UUID> = []
-        var result: [PracticedExercise] = []
+
+        // 最近一次：finishedWorkouts() 已是新到舊，每個動作第一次出現的就是。
+        // 最大重量：要掃完整個歷史，不能只看最近一次 —— 能力值的定義是「推過的最大」，
+        // 上一次是輕重量恢復日的話，拿它當建議會把使用者的能力值往下拉。
+        var firstSeen: [UUID: (set: WorkoutSet, day: DayDate)] = [:]
+        var maxWeights: [UUID: Weight] = [:]
+        var order: [UUID] = []
         for workout in workouts {
-            for set in workout.sets where !seen.contains(set.exerciseId) {
-                seen.insert(set.exerciseId)
-                guard let exercise = catalog[set.exerciseId] else { continue }
-                result.append(PracticedExercise(
-                    exerciseId: set.exerciseId, exerciseName: exercise.name,
-                    equipment: exercise.equipment, lastWeight: set.weight, lastReps: set.reps
-                ))
+            for set in workout.sets where set.status == .done {
+                if firstSeen[set.exerciseId] == nil {
+                    firstSeen[set.exerciseId] = (set, workout.day)
+                    order.append(set.exerciseId)
+                }
+                if let current = maxWeights[set.exerciseId] {
+                    maxWeights[set.exerciseId] = Swift.max(current, set.weight)
+                } else {
+                    maxWeights[set.exerciseId] = set.weight
+                }
             }
         }
-        return result
+
+        return order.compactMap { exerciseId in
+            guard let exercise = catalog[exerciseId],
+                  let last = firstSeen[exerciseId],
+                  let maxWeight = maxWeights[exerciseId]
+            else { return nil }
+            return PracticedExercise(
+                exerciseId: exerciseId,
+                exerciseName: exercise.name,
+                equipment: exercise.equipment,
+                maxWeight: maxWeight,
+                lastWeight: last.set.weight,
+                lastReps: last.set.reps,
+                lastPerformedOn: last.day
+            )
+        }
     }
 }
