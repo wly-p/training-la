@@ -35,6 +35,7 @@ struct HistoryReadingAdapter: WorkoutHistoryReading, WorkoutHistoryEditing {
             HistoryBlock(
                 id: block.exerciseIndex,
                 exerciseName: names[block.exerciseId]?.name ?? "動作",
+                equipment: names[block.exerciseId]?.equipment ?? .other,
                 sets: block.sets.map(Self.line(from:))
             )
         }

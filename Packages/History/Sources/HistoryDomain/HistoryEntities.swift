@@ -51,11 +51,14 @@ public struct HistoryWorkoutDetail: Identifiable, Equatable, Sendable {
 public struct HistoryBlock: Identifiable, Equatable, Sendable {
     public let id: Int          // exerciseIndex
     public let exerciseName: String
+    /// 器材：逐組對照的分組標頭要顯示（動作名允許重複，靠它分辨）。
+    public let equipment: Equipment
     public let sets: [HistorySetLine]
 
-    public init(id: Int, exerciseName: String, sets: [HistorySetLine]) {
+    public init(id: Int, exerciseName: String, equipment: Equipment = .other, sets: [HistorySetLine]) {
         self.id = id
         self.exerciseName = exerciseName
+        self.equipment = equipment
         self.sets = sets
     }
 }
