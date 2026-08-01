@@ -60,13 +60,14 @@ i18n 主線（Part 1–3）完成了全 app 介面文字的中英雙語，但依
 
 ## 表 3 · 常見動作
 
-**這張表目前沒有任何程式碼使用。** 它服務於兩件還沒決定的事：
+**這張表目前沒有任何程式碼使用。** 它是「預設動作庫」（讓新使用者不用從零建動作）的候選清單。
 
-1. 若要做「預設動作庫」（讓新使用者不用從零建動作），這是候選清單
-2. 做那件事之前，得先解決一個資料模型缺口——`Exercise`
-   （`Packages/Spec/Sources/SpecDomain/Exercise.swift`）目前**沒有任何欄位區分「內建常見動作」
-   與「使用者自訂」**，而只有前者要翻譯。怎麼標記（`isPreset` flag？常見項目改存翻譯 key？）
-   屬於 i18n 那張票的範圍
+這張表列的**全部都是系統內建**的動作，seed 進去時 `source` 應為 `.official`
+（`Exercise.source: ContentSource`，`Packages/Spec/Sources/SpecDomain/Exercise.swift`）。
+欄位早就存在、存取層也接好了，不需要另外加 `isPreset` 之類的旗標——目前只是還沒有任何地方
+寫入 `.official`，因為還沒有官方內容來源。
+
+`.user`（使用者自建）與 `.official` 的實際差別只有一個：**自建的動作不做 i18n，原樣顯示**。
 
 器材欄標的是「最常見的做法」，不是唯一做法（臥推也可以用啞鈴）。真的做預設動作庫時，
 器材應該由使用者自己選，這欄只是建議預設值。
@@ -75,17 +76,30 @@ i18n 主線（Part 1–3）完成了全 app 介面文字的中英雙語，但依
 邊界上的動作依「主要訓練目標」歸類——硬舉歸腿不歸背、面拉歸肩不歸背、農夫走路歸功能性不歸核心，
 雖然它們對第二個部位也有明顯刺激。
 
+**名稱允許重複**（2026-08-01 決議）。`Exercise` 只有 `id` 是唯一鍵，名稱本來就不唯一；
+同一個動作在不同器材上仍叫同一個名字（肩推有槓鈴／啞鈴／機械三筆），**靠 UI 顯示器材來分辨**，
+不用「機械肩推」這種前綴把器材塞進名稱裡。名稱只描述動作本身；握法、角度、單邊這類**不是器材**
+的變化才寫進名稱（窄距臥推、上斜臥推、單臂划船）。
+
+⚠️ 這條對 i18n 有直接後果：**中文同名時英文常常不同名**（肩推 → 槓鈴 Overhead Press
+／機械 Shoulder Press；夾胸 → 纜繩 Cable Crossover／機械 Pec Deck）。
+
+所以**翻譯一律以 `id` 為 key，中文和英文名稱都只是那個 id 的某個語言的值**（2026-08-01 決議）。
+拿名稱當 key 兩邊都不成立：中文會撞（肩推有三筆），英文則不是一對一。
+
 ### 胸 Chest
 
 | 中文 | 英文 | 常見器材 |
 |---|---|---|
 | 臥推 | Bench Press | `barbell` |
+| 臥推 | Bench Press | `dumbbell` |
+| 胸推 | Chest Press | `machine` |
 | 上斜臥推 | Incline Bench Press | `barbell` |
+| 上斜臥推 | Incline Bench Press | `dumbbell` |
 | 下斜臥推 | Decline Bench Press | `barbell` |
-| 啞鈴臥推 | Dumbbell Bench Press | `dumbbell` |
-| 啞鈴飛鳥 | Dumbbell Fly | `dumbbell` |
-| 纜繩夾胸 | Cable Crossover | `cable` |
-| 蝴蝶機夾胸 | Pec Deck | `machine` |
+| 飛鳥 | Dumbbell Fly | `dumbbell` |
+| 夾胸 | Cable Crossover | `cable` |
+| 夾胸 | Pec Deck | `machine` |
 | 伏地挺身 | Push-Up | `bodyweight` |
 | 雙槓撐體 | Chest Dip | `bodyweight` |
 
@@ -94,11 +108,13 @@ i18n 主線（Part 1–3）完成了全 app 介面文字的中英雙語，但依
 | 中文 | 英文 | 常見器材 |
 |---|---|---|
 | 槓鈴划船 | Barbell Row | `barbell` |
-| 單臂啞鈴划船 | One-Arm Dumbbell Row | `dumbbell` |
-| 引體向上 | Pull-Up | `bodyweight` |
-| 反手引體向上 | Chin-Up | `bodyweight` |
-| 滑輪下拉 | Lat Pulldown | `cable` |
+| 單臂划船 | One-Arm Row | `dumbbell` |
 | 坐姿划船 | Seated Cable Row | `cable` |
+| 坐姿划船 | Seated Row | `machine` |
+| 滑輪下拉 | Lat Pulldown | `cable` |
+| 引體向上 | Pull-Up | `bodyweight` |
+| 引體向上 | Assisted Pull-Up | `machine` |
+| 反手引體向上 | Chin-Up | `bodyweight` |
 | T 槓划船 | T-Bar Row | `barbell` |
 
 ### 腿 Legs
@@ -107,6 +123,7 @@ i18n 主線（Part 1–3）完成了全 app 介面文字的中英雙語，但依
 |---|---|---|
 | 深蹲 | Back Squat | `barbell` |
 | 前蹲 | Front Squat | `barbell` |
+| 哈克深蹲 | Hack Squat | `machine` |
 | 硬舉 | Deadlift | `barbell` |
 | 羅馬尼亞硬舉 | Romanian Deadlift | `barbell` |
 | 六角槓硬舉 | Hex Bar Deadlift | `hex_bar` |
@@ -116,7 +133,9 @@ i18n 主線（Part 1–3）完成了全 app 介面文字的中英雙語，但依
 | 腿伸展 | Leg Extension | `machine` |
 | 腿彎舉 | Leg Curl | `machine` |
 | 臀推 | Hip Thrust | `barbell` |
+| 臀推 | Hip Thrust Machine | `machine` |
 | 髖外展 | Hip Abduction | `machine` |
+| 髖外展 | Lateral Band Walk | `band` |
 | 髖內收 | Hip Adduction | `machine` |
 | 提踵 | Calf Raise | `machine` |
 
@@ -125,11 +144,15 @@ i18n 主線（Part 1–3）完成了全 app 介面文字的中英雙語，但依
 | 中文 | 英文 | 常見器材 |
 |---|---|---|
 | 肩推 | Overhead Press | `barbell` |
-| 啞鈴肩推 | Dumbbell Shoulder Press | `dumbbell` |
+| 肩推 | Shoulder Press | `dumbbell` |
+| 肩推 | Shoulder Press | `machine` |
+| 阿諾肩推 | Arnold Press | `dumbbell` |
 | 側平舉 | Lateral Raise | `dumbbell` |
+| 側平舉 | Lateral Raise Machine | `machine` |
 | 前平舉 | Front Raise | `dumbbell` |
 | 俯身側平舉 | Rear Delt Fly | `dumbbell` |
 | 面拉 | Face Pull | `cable` |
+| 面拉 | Band Pull-Apart | `band` |
 | 直立划船 | Upright Row | `barbell` |
 | 聳肩 | Shrug | `dumbbell` |
 
@@ -137,12 +160,15 @@ i18n 主線（Part 1–3）完成了全 app 介面文字的中英雙語，但依
 
 | 中文 | 英文 | 常見器材 |
 |---|---|---|
-| 槓鈴彎舉 | Barbell Curl | `barbell` |
-| 啞鈴彎舉 | Dumbbell Curl | `dumbbell` |
+| 彎舉 | Barbell Curl | `barbell` |
+| 彎舉 | Dumbbell Curl | `dumbbell` |
+| 彎舉 | Machine Curl | `machine` |
+| 牧師椅彎舉 | Preacher Curl | `barbell` |
 | 錘式彎舉 | Hammer Curl | `dumbbell` |
 | 集中彎舉 | Concentration Curl | `dumbbell` |
 | 三頭下壓 | Triceps Pushdown | `cable` |
 | 過頭三頭伸展 | Overhead Triceps Extension | `dumbbell` |
+| 過頭三頭伸展 | Triceps Extension Machine | `machine` |
 | 窄距臥推 | Close-Grip Bench Press | `barbell` |
 | 三頭撐體 | Triceps Dip | `bodyweight` |
 
@@ -153,6 +179,7 @@ i18n 主線（Part 1–3）完成了全 app 介面文字的中英雙語，但依
 | 棒式 | Plank | `bodyweight` |
 | 側棒式 | Side Plank | `bodyweight` |
 | 捲腹 | Crunch | `bodyweight` |
+| 捲腹 | Ab Crunch Machine | `machine` |
 | 懸垂舉腿 | Hanging Leg Raise | `bodyweight` |
 | 俄羅斯轉體 | Russian Twist | `bodyweight` |
 | 死蟲 | Dead Bug | `bodyweight` |
