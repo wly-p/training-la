@@ -1,6 +1,23 @@
 {
   "sourceLanguage": "zh-Hant",
   "strings": {
+    "ability.apply %@": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Use %@"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "套用 %@"
+          }
+        }
+      }
+    },
     "ability.cancel": {
       "localizations": {
         "en": {
@@ -81,6 +98,23 @@
         }
       }
     },
+    "ability.filter.unset %lld": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Not set %lld"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "未設定 %lld"
+          }
+        }
+      }
+    },
     "ability.footer": {
       "localizations": {
         "en": {
@@ -113,6 +147,23 @@
         }
       }
     },
+    "ability.lastPerformed": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Last time"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "最近一次做到"
+          }
+        }
+      }
+    },
     "ability.notSet": {
       "localizations": {
         "en": {
@@ -125,6 +176,40 @@
           "stringUnit": {
             "state": "translated",
             "value": "尚未設定"
+          }
+        }
+      }
+    },
+    "ability.perSide": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": " (per side)"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "（每邊）"
+          }
+        }
+      }
+    },
+    "ability.search": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Search exercise or equipment"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "搜尋動作或器材"
           }
         }
       }
@@ -161,6 +246,23 @@
         }
       }
     },
+    "ability.stepHint": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Increment follows Settings › Weight increment · hold to repeat"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "級距跟隨「設定 › 重量調整級距」· 長按可連續"
+          }
+        }
+      }
+    },
     "ability.suggestion": {
       "localizations": {
         "en": {
@@ -189,6 +291,40 @@
           "stringUnit": {
             "state": "translated",
             "value": "依最近一次紀錄，建議更新到"
+          }
+        }
+      }
+    },
+    "ability.summary %lld %lld": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Heaviest weight per exercise · %1$lld exercises · %2$lld set"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "每個動作推過的最大重量 · %1$lld 個動作 · %2$lld 個已設定"
+          }
+        }
+      }
+    },
+    "ability.tapToType": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tap the number to type"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "點數字可直接鍵入"
           }
         }
       }
