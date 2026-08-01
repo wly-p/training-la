@@ -461,7 +461,7 @@ struct TemplateFormView: View {
         case nil: "—"
         case .absolute(let w): formatNumber(w.value)
         case .relativeToLast(let delta): "上次\(delta.value >= 0 ? "+" : "")\(formatNumber(delta.value))"
-        case .percentOf1RM(let percent): "\(formatNumber(percent))%1RM"
+        case .percentOfMax(let percent): "\(formatNumber(percent))%1RM"
         }
     }
 
@@ -483,8 +483,8 @@ struct TemplateFormView: View {
             localText("template.block.same \(sets.count)")
         case .uniform(.some(.relativeToLast)):
             localText("template.block.relativeToLast \(sets.count)")
-        case .uniform(.some(.percentOf1RM)):
-            localText("template.block.percentOf1RM \(sets.count)")
+        case .uniform(.some(.percentOfMax)):
+            localText("template.block.percentOfMax \(sets.count)")
         case .varying:
             localText("template.block.progressive \(sets.count)")
         }
@@ -497,7 +497,7 @@ struct TemplateFormView: View {
             return "\(sets.count) × \(reps) @ \(formatNumber(w.value))"
         case .uniform(.some(.relativeToLast(let delta))):
             return "\(sets.count) × \(reps) 上次\(delta.value >= 0 ? "+" : "")\(formatNumber(delta.value))"
-        case .uniform(.some(.percentOf1RM(let percent))):
+        case .uniform(.some(.percentOfMax(let percent))):
             return "\(sets.count) × \(reps) \(formatNumber(percent))%1RM"
         case .uniform(nil):
             return "\(sets.count) × \(reps)"
@@ -542,7 +542,7 @@ private struct SetEditSheet: View {
     private enum WeightInputMode: Equatable {
         case absolute
         case relativeToLast
-        case percentOf1RM
+        case percentOfMax
     }
 
     @Environment(\.dismiss) private var dismiss
@@ -573,8 +573,8 @@ private struct SetEditSheet: View {
         case .absolute(let w):
             _mode = State(initialValue: .absolute)
             _weightValue = State(initialValue: w.value)
-        case .percentOf1RM(let percent):
-            _mode = State(initialValue: .percentOf1RM)
+        case .percentOfMax(let percent):
+            _mode = State(initialValue: .percentOfMax)
             _weightValue = State(initialValue: percent)
         case nil:
             _mode = State(initialValue: .absolute)
@@ -584,7 +584,7 @@ private struct SetEditSheet: View {
     }
 
     /// 快捷 ±／滾輪的步階：絕對值與相對上次跟著器材遞增單位，%1RM 固定 5（百分比不是公斤）。
-    private var quickStep: Double { mode == .percentOf1RM ? 5 : weightStep }
+    private var quickStep: Double { mode == .percentOfMax ? 5 : weightStep }
 
     /// 這筆絕對重量的單位；其他模式（相對增量／百分比）用不到，預設公斤。
     private var weightUnit: WeightUnit {
@@ -596,7 +596,7 @@ private struct SetEditSheet: View {
         switch mode {
         // 相對上次是「增減量」不是絕對重量，值域維持 ±50 不套用重量上限。
         case .relativeToLast: Array(stride(from: -50, through: 50, by: weightStep))
-        case .percentOf1RM: Array(stride(from: 0, through: 100, by: 5))
+        case .percentOfMax: Array(stride(from: 0, through: 100, by: 5))
         case .absolute: WeightRange.values(for: weightUnit, step: weightStep)
         }
     }
@@ -617,7 +617,7 @@ private struct SetEditSheet: View {
                 switch previousWeight {
                 case .absolute(let w): mode = .absolute; weightValue = w.value
                 case .relativeToLast(let d): mode = .relativeToLast; weightValue = d.value
-                case .percentOf1RM(let p): mode = .percentOf1RM; weightValue = p
+                case .percentOfMax(let p): mode = .percentOfMax; weightValue = p
                 case nil: break
                 }
                 if let previousReps { repsValue = Double(previousReps) }
@@ -649,7 +649,7 @@ private struct SetEditSheet: View {
     private var primaryKicker: String {
         switch mode {
         case .relativeToLast: String(localized: "template.set.relativeKicker", bundle: .module)
-        case .percentOf1RM: String(localized: "template.set.percentKicker", bundle: .module)
+        case .percentOfMax: String(localized: "template.set.percentKicker", bundle: .module)
         case .absolute: String(localized: "template.set.weightKicker", bundle: .module)
         }
     }
@@ -668,8 +668,8 @@ private struct SetEditSheet: View {
                 switch mode {
                 case .relativeToLast:
                     targetWeight = .relativeToLast(delta: Weight(value: weightValue, unit: .kg))
-                case .percentOf1RM:
-                    targetWeight = .percentOf1RM(weightValue)
+                case .percentOfMax:
+                    targetWeight = .percentOfMax(weightValue)
                 case .absolute:
                     targetWeight = .absolute(Weight(value: weightValue, unit: .kg))
                 }
@@ -696,9 +696,9 @@ private struct SetEditSheet: View {
                 onTap: { mode = .relativeToLast }
             )
             SelectableChip(
-                String(localized: "template.set.percent", bundle: .module), isSelected: mode == .percentOf1RM,
+                String(localized: "template.set.percent", bundle: .module), isSelected: mode == .percentOfMax,
                 selectedFill: TLColor.accent, selectedText: TLColor.bg,
-                onTap: { mode = .percentOf1RM }
+                onTap: { mode = .percentOfMax }
             )
         }
     }

@@ -38,13 +38,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Changing your 1RM never affects schedules already generated — those weights are already locked in."
+            "value": "Scheduled weights are locked in — changing this won't affect them."
           }
         },
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "改 1RM 不會影響已經排定的課表，那些重量已經寫死了。"
+            "value": "已排定的課表重量已鎖定，改這裡不會動到。"
           }
         }
       }
@@ -102,13 +102,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "1RM (KG)"
+            "value": "Max weight"
           }
         },
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "1RM（KG）"
+            "value": "最大重量"
           }
         }
       }

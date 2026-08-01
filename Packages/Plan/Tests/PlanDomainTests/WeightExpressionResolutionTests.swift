@@ -10,7 +10,7 @@ struct ResolveWeightExpressionTests {
     @Test func percentOf1RMResolvesUsingAbilityValue() async throws {
         // 80% of a 100kg 1RM, step 2.5 → 80kg exactly.
         let (resolved, _) = try await resolveWeightExpression(
-            .percentOf1RM(80), weightStep: 2.5, intensityFactor: 1.0, exerciseId: exerciseId,
+            .percentOfMax(80), weightStep: 2.5, intensityFactor: 1.0, exerciseId: exerciseId,
             lastPerformedLookup: MockLastPerformedWeightLookup(),
             abilityValueLookup: MockAbilityValueLookup(Weight(value: 100, unit: .kg))
         )
@@ -19,7 +19,7 @@ struct ResolveWeightExpressionTests {
 
     @Test func percentOf1RMWithoutAbilityValueResolvesToNil() async throws {
         let (resolved, _) = try await resolveWeightExpression(
-            .percentOf1RM(80), weightStep: 2.5, intensityFactor: 1.0, exerciseId: exerciseId,
+            .percentOfMax(80), weightStep: 2.5, intensityFactor: 1.0, exerciseId: exerciseId,
             lastPerformedLookup: MockLastPerformedWeightLookup(),
             abilityValueLookup: MockAbilityValueLookup(nil)
         )
