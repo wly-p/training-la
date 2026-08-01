@@ -158,8 +158,8 @@ public struct TrainingHomeView: View {
             Color.black.opacity(0.35).ignoresSafeArea()
             VStack(alignment: .leading, spacing: 16) {
                 Text(summary.isOvernight
-                    ? String(localized: "training.resume.overnightTitle", bundle: .module)
-                    : String(localized: "training.resume.sameDayTitle", bundle: .module))
+                    ? localString("training.resume.overnightTitle", locale)
+                    : localString("training.resume.sameDayTitle", locale))
                     .font(TLFont.zh(20, .bold))
                     .foregroundStyle(TLColor.text)
                 Text(verbatim: resumeDescription(summary))
@@ -177,7 +177,7 @@ public struct TrainingHomeView: View {
                         statNumber("\(summary.elapsedMinutes)", label: "training.finish.minutes")
                     }
                     Text(verbatim: String(
-                        format: String(localized: "training.resume.dataStaysPut %lld", bundle: .module),
+                        format: localString("training.resume.dataStaysPut %lld", locale),
                         summary.recordedSetCount
                     ))
                     .font(.caption2)
@@ -212,19 +212,19 @@ public struct TrainingHomeView: View {
         guard let start = summary.workout.startedAt else { return "" }
         let formatter = DateFormatter()
         formatter.dateFormat = "HH:mm"
-        let name = summary.name ?? String(localized: "training.free", bundle: .module)
+        let name = summary.name ?? localString("training.free", locale)
         return String(
-            format: String(localized: "training.resume.description %@ %@", bundle: .module),
+            format: localString("training.resume.description %@ %@", locale),
             name, formatter.string(from: start)
         )
     }
 
-    private func statNumber(_ value: String, label: String.LocalizationValue) -> some View {
+    private func statNumber(_ value: String, label: String) -> some View {
         VStack(alignment: .leading, spacing: 2) {
             Text(verbatim: value)
                 .font(TLFont.display(26))
                 .foregroundStyle(TLColor.text)
-            Text(String(localized: label, bundle: .module))
+            Text(LocalizedStringKey(label), bundle: .module)
                 .font(.caption2)
                 .foregroundStyle(TLColor.neutral600)
         }
@@ -240,7 +240,7 @@ public struct TrainingHomeView: View {
             viewModel.resume()
         } label: {
             if let remaining = summary.remainingSetCount {
-                Text(verbatim: String(format: String(localized: "training.resume.continueRemaining %lld", bundle: .module), remaining))
+                Text(verbatim: String(format: localString("training.resume.continueRemaining %lld", locale), remaining))
             } else {
                 localText("training.resume.continue")
             }
@@ -283,7 +283,7 @@ public struct TrainingHomeView: View {
             result.append(Card(
                 id: "today",
                 kind: .todaySpecified,
-                title: plan.name ?? String(localized: "training.todaysPlan", bundle: .module),
+                title: plan.name ?? localString("training.todaysPlan", locale),
                 subtitle: nil,
                 meta: String(format: format, plan.exercises.count, totalSets)
             ))
@@ -331,8 +331,8 @@ public struct TrainingHomeView: View {
     private func cardView(_ card: Card) -> some View {
         let isToday = card.kind == .todaySpecified
         return VStack(alignment: .leading, spacing: TLSpace.gapS) {
-            Text(isToday ? String(localized: "training.home.todaySpecified", bundle: .module)
-                         : String(localized: "training.home.anytime", bundle: .module))
+            Text(isToday ? localString("training.home.todaySpecified", locale)
+                         : localString("training.home.anytime", locale))
                 .font(TLFont.zh(11, .semibold))
                 .foregroundStyle(isToday ? TLColor.accent800 : TLColor.neutral800)
                 .padding(.horizontal, 10)
@@ -443,7 +443,7 @@ public struct TrainingHomeView: View {
         .buttonStyle(.plain)
     }
 
-    private var freeTrainingLabel: String { String(localized: "training.free", bundle: .module) }
+    private var freeTrainingLabel: String { localString("training.free", locale) }
 
     private func setsCountText(_ count: Int) -> Text {
         let language = AppLanguage(locale: locale)
@@ -495,7 +495,7 @@ public struct TrainingHomeView: View {
 
                 // 課表名是使用者資料（verbatim），套進本地化模板組成整句。
                 Text(verbatim: String(
-                    format: String(localized: "training.home.restDay.headline %@", bundle: .module),
+                    format: localString("training.home.restDay.headline %@", locale),
                     restDay.programName
                 ))
                 .font(TLFont.zh(16, .bold))
@@ -531,13 +531,13 @@ public struct TrainingHomeView: View {
     /// 下一個訓練日文案：明天/未來某天有排課就報日期＋名稱；once 模式已經跑完週期就誠實說沒有了。
     private func nextWorkoutText(_ restDay: RestDayInfo) -> String {
         guard let date = restDay.nextWorkoutDate, let name = restDay.nextWorkoutName else {
-            return String(localized: "training.home.restDay.noMoreWorkouts", bundle: .module)
+            return localString("training.home.restDay.noMoreWorkouts", locale)
         }
         if date == DayDate(Date()).adding(days: 1) {
-            return String(format: String(localized: "training.home.restDay.nextWorkoutTomorrow %@", bundle: .module), name)
+            return String(format: localString("training.home.restDay.nextWorkoutTomorrow %@", locale), name)
         }
         let dateText = "\(date.month)/\(date.day)"
-        return String(format: String(localized: "training.home.restDay.nextWorkoutLater %@ %@", bundle: .module), dateText, name)
+        return String(format: localString("training.home.restDay.nextWorkoutLater %@ %@", locale), dateText, name)
     }
 
     // MARK: - 完全沒排課（13f 右）
@@ -546,9 +546,9 @@ public struct TrainingHomeView: View {
         VStack(alignment: .leading, spacing: TLSpace.section) {
             EmptyState(
                 systemImage: "dumbbell",
-                title: String(localized: "training.noPlanToday", bundle: .module),
-                message: String(localized: "training.home.noPlanMessage", bundle: .module),
-                actionTitle: viewModel.templates.isEmpty ? nil : String(localized: "training.home.pickTemplateToStart", bundle: .module),
+                title: localString("training.noPlanToday", locale),
+                message: localString("training.home.noPlanMessage", locale),
+                actionTitle: viewModel.templates.isEmpty ? nil : localString("training.home.pickTemplateToStart", locale),
                 action: { showsTemplatePicker = true }
             )
             if let lastSession = viewModel.lastSession {

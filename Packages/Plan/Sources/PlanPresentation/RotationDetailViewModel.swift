@@ -42,7 +42,9 @@ public final class RotationDetailViewModel {
     }
 
     public func name(for exerciseId: UUID) -> String {
-        catalog.first { $0.id == exerciseId }?.name ?? "動作"
+        // 查不到＝該動作已被刪；正常流程進不來（刪除前有 ExerciseUsageChecker 擋）。
+        // 用中性符號而非任何語言的字，這裡拿不到 locale。
+        catalog.first { $0.id == exerciseId }?.name ?? "—"
     }
 
     /// 目前輪到第幾張（0-based cursor）—— 組成清單標出當前那張。

@@ -2362,6 +2362,38 @@
           }
         }
       }
+    },
+    "training.weightSource.maxWeightLabel": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Max"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "最大重量"
+          }
+        }
+      }
+    },
+    "training.weightSource.lastLabel": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Last"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "上次"
+          }
+        }
+      }
     }
   },
   "version": "1.0"

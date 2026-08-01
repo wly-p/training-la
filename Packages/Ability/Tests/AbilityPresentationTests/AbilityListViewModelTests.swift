@@ -179,9 +179,13 @@ struct AbilityListViewModelTests {
         ])
         await vm.load()
 
-        vm.searchText = "啞鈴"
+        // 查詢字串取自同一支 `displayName(_:)`，而不是寫死「啞鈴」：SwiftPM 不編譯 String Catalog，
+        // 在單元測試裡查表會回 key 本身，寫死中文的話這條就永遠比不中。這樣寫在兩種環境都成立，
+        // 測的也是真正的行為——搜尋要能用「當前語言的器材名」撈到動作。
+        let locale = Locale(identifier: "zh-Hant")
+        vm.searchText = Equipment.dumbbell.displayName(locale)
 
-        #expect(vm.visibleRows.map(\.exerciseName) == ["肩推"])
+        #expect(vm.visibleRows(locale: locale).map(\.exerciseName) == ["肩推"])
     }
 
     @Test func searchMatchesExerciseName() async throws {
@@ -193,7 +197,7 @@ struct AbilityListViewModelTests {
 
         vm.searchText = "深蹲"
 
-        #expect(vm.visibleRows.map(\.exerciseName) == ["深蹲"])
+        #expect(vm.visibleRows(locale: Locale(identifier: "zh-Hant")).map(\.exerciseName) == ["深蹲"])
     }
 
     @Test func unsetFilterShowsOnlyRowsWithoutValue() async throws {
@@ -208,7 +212,7 @@ struct AbilityListViewModelTests {
 
         vm.filter = .unset
 
-        #expect(vm.visibleRows.map(\.exerciseName) == ["未設定的"])
+        #expect(vm.visibleRows(locale: Locale(identifier: "zh-Hant")).map(\.exerciseName) == ["未設定的"])
         #expect(vm.unsetCount == 1)
         #expect(vm.setCount == 1)
     }
@@ -222,7 +226,7 @@ struct AbilityListViewModelTests {
 
         vm.filter = .equipment(.dumbbell)
 
-        #expect(vm.visibleRows.map(\.exerciseName) == ["肩推"])
+        #expect(vm.visibleRows(locale: Locale(identifier: "zh-Hant")).map(\.exerciseName) == ["肩推"])
     }
 
     /// 沒有任何動作的器材 chip 要停用（View 降到 45% opacity）。

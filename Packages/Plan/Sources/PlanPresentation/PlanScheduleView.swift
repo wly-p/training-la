@@ -155,7 +155,7 @@ public struct PlanScheduleView: View {
     }
 
     private var monthKicker: Text {
-        Text(verbatim: String(format: "%d 月", viewModel.selectedDate.month))
+        Text(verbatim: String(format: localString("plan.month %lld", locale), viewModel.selectedDate.month))
     }
 
     // MARK: - 當天課表

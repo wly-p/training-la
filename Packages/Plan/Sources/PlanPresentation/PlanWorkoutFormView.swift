@@ -10,6 +10,8 @@ import SwiftUI
 /// 資料模型維持 `ExerciseTargetDraft`（每個動作統一的 組數×重量×次數＋休息，非逐組），
 /// 只換視覺、不改行為。
 struct PlanWorkoutFormView: View {
+    /// 目前語言：`localString` 要靠它才能查到 app 設定的語言（而非手機語系）。
+    @Environment(\.locale) private var locale
     let target: PlanFormTarget
     let catalog: [PlanCatalogExercise]
     /// 使用者的重量級距偏好（見 `TrainingPreferenceStoring`）。原本依器材猜（`Equipment.weightStep`），
@@ -67,9 +69,9 @@ struct PlanWorkoutFormView: View {
             PickerSheet(
                 title: localText("plan.addExercise"),
                 searchPrompt: localText("plan.searchExercises"),
-                allItems: catalog.map(ExercisePickerItem.init),
+                allItems: catalog.map { ExercisePickerItem(exercise: $0, locale: locale) },
                 recentItemIds: recentExerciseIds,
-                filters: MuscleGroup.allCases.map { PickerSheetFilterChip(id: $0.rawValue, label: $0.displayName) },
+                filters: MuscleGroup.allCases.map { PickerSheetFilterChip(id: $0.rawValue, label: $0.displayName(locale)) },
                 matchesFilter: { item, filter in item.exercise.muscleGroup.rawValue == filter.id },
                 selection: .multiple(
                     selectedIds: $selectedExerciseIds,
@@ -204,7 +206,7 @@ struct PlanWorkoutFormView: View {
             ScrollView {
                 VStack(alignment: .leading, spacing: TLSpace.section) {
                     VStack(alignment: .leading, spacing: 6) {
-                        Text(verbatim: name.isEmpty ? String(localized: "plan.view", bundle: .module) : name)
+                        Text(verbatim: name.isEmpty ? localString("plan.view", locale) : name)
                             .font(TLFont.zh(TLFont.pageTitle, .bold))
                             .foregroundStyle(TLColor.text)
                         Label { localText("plan.readOnly.hint") } icon: { Image(systemName: "checkmark.circle.fill") }
@@ -269,19 +271,21 @@ struct PlanWorkoutFormView: View {
     // MARK: - 顯示輔助
 
     private func name(for id: UUID) -> String {
-        catalog.first { $0.id == id }?.name ?? "動作"
+        // 查不到＝該動作已被刪；正常流程進不來（刪除前有 ExerciseUsageChecker 擋）。
+        // 用中性符號而非任何語言的字，這裡拿不到 locale。
+        catalog.first { $0.id == id }?.name ?? "—"
     }
 
     /// 副標：組數＋休息，如「3 組 · 休息 60 秒」。
     /// 器材顯示名（動作名允許重複，靠它分辨）。
     private func equipmentName(for id: UUID) -> String {
-        (catalog.first { $0.id == id }?.equipment ?? .other).displayName
+        (catalog.first { $0.id == id }?.equipment ?? .other).displayName(locale)
     }
 
     private func summary(for draft: ExerciseTargetDraft) -> String {
-        var text = "\(draft.setCount) 組"
+        var text = String(format: localString("template.stats.sets %lld", locale), draft.setCount)
         if let rest = draft.restSec, rest > 0 {
-            text += " · " + String(format: String(localized: "plan.restSeconds \(rest)", bundle: .module))
+            text += " · " + String(format: localString("plan.restSeconds %lld", locale), rest)
         }
         return text
     }
@@ -304,6 +308,8 @@ private func formatNumber(_ v: Double) -> String {
 /// 單一動作草稿的編輯 sheet：組數（stepper）＋重量×次數（`DualValuePicker`）＋休息（stepper）。
 /// 對齊動作庫 `SetEditSheet` 的視覺與互動。
 private struct DraftEditSheet: View {
+    /// 目前語言：`localString` 要靠它才能查到 app 設定的語言（而非手機語系）。
+    @Environment(\.locale) private var locale
     let exerciseName: String
     let weightStep: Double
     @Binding var setCount: Int
@@ -355,10 +361,10 @@ private struct DraftEditSheet: View {
             DualValuePicker(
                 primaryValue: $weightValue,
                 primaryValues: weightValues,
-                primaryKicker: String(localized: "plan.weight", bundle: .module),
+                primaryKicker: localString("plan.weight", locale),
                 secondaryValue: $repsValue,
                 secondaryValues: repsValues,
-                secondaryKicker: String(localized: "plan.reps", bundle: .module),
+                secondaryKicker: localString("plan.reps", locale),
                 quickActions: [
                     .init("-\(formatNumber(weightStep))") {
                         weightValue = WeightRange.clamped(weightValue - weightStep, unit: weightUnit)

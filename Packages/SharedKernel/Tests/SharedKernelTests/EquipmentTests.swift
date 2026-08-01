@@ -13,21 +13,6 @@ struct EquipmentTests {
         }
     }
 
-    @Test func everyCaseHasANonEmptyDisplayName() {
-        for equipment in Equipment.allCases {
-            #expect(!equipment.displayName.isEmpty)
-        }
-    }
-
-    @Test func displayNameMapsCorrectly() {
-        #expect(Equipment.barbell.displayName == "槓鈴")
-        #expect(Equipment.dumbbell.displayName == "啞鈴")
-        #expect(Equipment.kettlebell.displayName == "壺鈴")
-        #expect(Equipment.hexBar.displayName == "六角槓")
-        #expect(Equipment.machine.displayName == "機械")
-        #expect(Equipment.cable.displayName == "纜繩")
-        #expect(Equipment.band.displayName == "彈力帶")
-        #expect(Equipment.bodyweight.displayName == "自體重量")
-        #expect(Equipment.other.displayName == "其他")
-    }
+    // 顯示名的翻譯是否齊備見 EnumLocalizationTests：`displayName(_:)` 現在查 String Catalog，
+    // 而 SwiftPM 不編譯 catalog，在這裡斷言字面值只會測到 key 本身。
 }

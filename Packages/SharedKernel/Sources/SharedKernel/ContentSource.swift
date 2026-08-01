@@ -4,12 +4,4 @@ public enum ContentSource: String, CaseIterable, Codable, Sendable {
     case user      // 自行建立
     case official  // 線上公開／官方
     // 未來擴充：community
-
-    /// 中文顯示名（來源標籤／filter UI 用）。
-    public var displayName: String {
-        switch self {
-        case .user: "自建"
-        case .official: "官方"
-        }
-    }
 }

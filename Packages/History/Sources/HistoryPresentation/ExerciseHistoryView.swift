@@ -31,8 +31,8 @@ public struct ExerciseHistoryView: View {
                 } else if points.isEmpty {
                     EmptyState(
                         systemImage: "chart.line.uptrend.xyaxis",
-                        title: String(localized: "history.exerciseTrend.empty.title", bundle: .module),
-                        message: String(localized: "history.exerciseTrend.empty.message", bundle: .module)
+                        title: localString("history.exerciseTrend.empty.title", locale),
+                        message: localString("history.exerciseTrend.empty.message", locale)
                     )
                     .padding(.horizontal, TLSpace.page)
                     .padding(.top, TLSpace.section)

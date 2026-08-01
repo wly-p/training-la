@@ -64,7 +64,7 @@ public struct HistoryView: View {
 
     // MARK: - 按日期
 
-    private var freeTrainingLabel: String { String(localized: "history.freeTraining", bundle: .module) }
+    private var freeTrainingLabel: String { localString("history.freeTraining", locale) }
 
     private var monthGroups: [(key: MonthKey, workouts: [HistoryWorkoutSummary])] {
         let filtered = viewModel.filteredWorkouts(freeTrainingLabel: freeTrainingLabel)
@@ -76,8 +76,8 @@ public struct HistoryView: View {
         if viewModel.workouts.isEmpty {
             EmptyState(
                 systemImage: "calendar",
-                title: String(localized: "history.empty", bundle: .module),
-                message: String(localized: "history.empty.hint", bundle: .module)
+                title: localString("history.empty", locale),
+                message: localString("history.empty.hint", locale)
             )
         } else {
             VStack(alignment: .leading, spacing: TLSpace.section) {
@@ -93,7 +93,7 @@ public struct HistoryView: View {
         let totalMinutes = workouts.compactMap(\.durationMinutes).reduce(0, +)
         return VStack(alignment: .leading, spacing: 0) {
             HStack(alignment: .firstTextBaseline) {
-                Text(HistoryFormatting.monthLabel(month: key.month) + " · ")
+                Text(HistoryFormatting.monthLabel(month: key.month, locale: locale) + " · ")
                     + localText("history.monthCount \(workouts.count)")
                 Spacer()
                 localText("history.monthDuration \(totalMinutes / 60) \(totalMinutes % 60)")
@@ -135,10 +135,10 @@ public struct HistoryView: View {
     }
 
     private func daySummaryLine(_ summary: HistoryWorkoutSummary) -> String {
-        var parts = [String(localized: "history.exerciseCount \(summary.exerciseCount)", bundle: .module)]
-        parts.append(String(localized: "history.setsCount \(summary.totalSets)", bundle: .module))
+        var parts = [String(format: localString("history.exerciseCount %lld", locale), summary.exerciseCount)]
+        parts.append(String(format: localString("history.setsCount %lld", locale), summary.totalSets))
         if let minutes = summary.durationMinutes {
-            parts.append(String(localized: "history.minutesShort \(minutes)", bundle: .module))
+            parts.append(String(format: localString("history.minutesShort %lld", locale), minutes))
         }
         return parts.joined(separator: " · ")
     }
@@ -149,8 +149,8 @@ public struct HistoryView: View {
         if viewModel.exerciseOptions.isEmpty {
             EmptyState(
                 systemImage: "chart.line.uptrend.xyaxis",
-                title: String(localized: "history.empty", bundle: .module),
-                message: String(localized: "history.empty.hint", bundle: .module)
+                title: localString("history.empty", locale),
+                message: localString("history.empty.hint", locale)
             )
         } else {
             TLGroup {
@@ -158,9 +158,9 @@ public struct HistoryView: View {
                     NavigationLink(value: option.id) {
                         ListRow(
                             title: Text(verbatim: option.name),
-                            subtitle: Text(option.muscleGroup.displayName),
+                            subtitle: Text(verbatim: option.muscleGroup.displayName(locale)),
                             showChevron: true,
-                            leading: { CircleBadge(muscle: String(option.muscleGroup.displayName.prefix(1))) }
+                            leading: { CircleBadge(muscle: option.muscleGroup.badgeText(locale)) }
                         )
                     }
                 }

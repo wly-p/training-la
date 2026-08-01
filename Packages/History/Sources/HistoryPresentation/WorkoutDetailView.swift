@@ -124,7 +124,7 @@ struct WorkoutDetailView: View {
         return VStack(alignment: .leading, spacing: 16) {
             HStack(alignment: .top) {
                 VStack(alignment: .leading, spacing: 4) {
-                    Text(verbatim: detail.summary.name ?? String(localized: "history.freeTraining", bundle: .module))
+                    Text(verbatim: detail.summary.name ?? localString("history.freeTraining", locale))
                         .font(TLFont.zh(26, .bold))
                         .foregroundStyle(TLColor.text)
                     Text(verbatim: subline(detail))
@@ -163,7 +163,7 @@ struct WorkoutDetailView: View {
     private func subline(_ detail: HistoryWorkoutDetail) -> String {
         let day = HistoryFormatting.dayLabel(summary.day, locale: locale)
         guard let minutes = detail.summary.durationMinutes else { return day }
-        return day + " · " + String(format: String(localized: "history.minutes \(minutes)", bundle: .module))
+        return day + " · " + String(format: String(format: localString("history.minutes %lld", locale), minutes))
     }
 
     /// 總量：有目標時「實際 / 目標 kg」（實際大黑、目標小灰）；無目標只顯示「實際 kg」。
@@ -276,7 +276,7 @@ struct WorkoutDetailView: View {
                 title: Text(verbatim: group.exerciseName)
                     .font(TLFont.zh(14, .semibold))
                     .foregroundColor(TLColor.text),
-                equipment: group.equipment.displayName
+                equipment: group.equipment.displayName(locale)
             )
             Spacer(minLength: TLSpace.gapS)
             (localText("history.col.target") + Text(verbatim: " / ") + localText("history.col.actual"))

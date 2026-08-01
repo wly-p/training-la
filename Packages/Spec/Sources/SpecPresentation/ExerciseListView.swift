@@ -4,6 +4,8 @@ import SpecDomain
 import SwiftUI
 
 public struct ExerciseListView: View {
+    /// 目前語言：肌群／器材的顯示名要靠它才會跟著 app 設定走（而非手機語系）。
+    @Environment(\.locale) private var locale
     @Bindable private var viewModel: ExerciseListViewModel
     @State private var editingTarget: FormTarget?
     /// 分組方式（純前端呈現，不動 VM 的 `filter`）。
@@ -103,12 +105,12 @@ public struct ExerciseListView: View {
             // 器材從右欄灰字移到名稱右側的 pill（handoff-15 15c）——右欄那個位置離名稱太遠，
             // 同名動作要左右來回對才看得出差別。
             title: Text(verbatim: exercise.name),
-            equipment: exercise.equipment.displayName,
+            equipment: exercise.equipment.displayName(locale),
             showChevron: true,
             onTap: { editingTarget = .edit(exercise) },
             leading: {
                 // 肌群縮寫圓章（sage）。displayName 可能多字（功能性訓練／核心），圓章取前二字。
-                CircleBadge(muscle: String(exercise.muscleGroup.displayName.prefix(2)))
+                CircleBadge(muscle: exercise.muscleGroup.badgeText(locale))
             }
         )
         .contextMenu {
@@ -151,7 +153,7 @@ public struct ExerciseListView: View {
                 guard !matched.isEmpty else { return nil }
                 return Section(
                     id: "m-\(group.rawValue)",
-                    header: sectionHeader(group.displayName, matched.count),
+                    header: sectionHeader(group.displayName(locale), matched.count),
                     exercises: matched
                 )
             }
@@ -161,7 +163,7 @@ public struct ExerciseListView: View {
                 guard !matched.isEmpty else { return nil }
                 return Section(
                     id: "e-\(equip.rawValue)",
-                    header: sectionHeader(equip.displayName, matched.count),
+                    header: sectionHeader(equip.displayName(locale), matched.count),
                     exercises: matched
                 )
             }

@@ -128,7 +128,7 @@ struct PlanScheduleViewModelTests {
 
     @Test func nameFallsBackToDefaultForUnknownExercise() async {
         let vm = makeViewModel(repo: MockScheduleRepo())
-        #expect(vm.name(for: UUID()) == "動作")
+        #expect(vm.name(for: UUID()) == "—")
     }
 
     @Test func workoutsMarksReflectDatesAndStatus() async {
