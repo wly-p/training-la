@@ -86,9 +86,10 @@ enum HistoryFormatting {
         return formatter.veryShortWeekdaySymbols[(weekday - 1) % 7]
     }
 
-    /// 月份分組標題的月份數字（「7 月」）。
-    static func monthLabel(month: Int) -> String {
-        String(format: "%d 月", month)
+    /// 月份分組標題的月份數字（「7 月」）。`locale` 由 View 傳 `@Environment(\.locale)`，
+    /// 才會跟著 app 的語言設定走而不是手機語系。
+    static func monthLabel(month: Int, locale: Locale) -> String {
+        String(format: localString("history.month %lld", locale), month)
     }
 
     /// 2026-07-09 → 繁中「7/9 (週三)」、英文「7/9 (Wed)」。星期依傳入的 `locale` 取當地縮寫，

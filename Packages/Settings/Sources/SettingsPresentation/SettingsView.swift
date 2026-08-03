@@ -3,6 +3,8 @@ import SharedKernel
 import SwiftUI
 
 public struct SettingsView: View {
+    /// 目前語言：`localString` 要靠它才能查到 app 設定的語言（而非手機語系）。
+    @Environment(\.locale) private var locale
     @Bindable private var viewModel: SettingsViewModel
     /// App 版號顯示字串（例："1.0.0 (1)"）；nil＝不顯示。
     private let appVersion: String?
@@ -279,7 +281,7 @@ public struct SettingsView: View {
                 title: localText("settings.restStep.title"),
                 options: [10, 15, 30, 60],
                 range: restStepRangeAsDouble,
-                unitLabel: String(localized: "settings.restStep.unit", bundle: .module),
+                unitLabel: localString("settings.restStep.unit", locale),
                 allowsDecimal: false,
                 current: Double(viewModel.restStep),
                 onSelect: { viewModel.restStep = Int($0) },

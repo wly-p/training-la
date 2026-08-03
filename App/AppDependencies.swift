@@ -37,6 +37,15 @@ struct AppDependencies {
     let makeSettingsViewModel: @MainActor (_ onErased: @escaping @MainActor () -> Void) -> SettingsViewModel
     let makeAbilityListViewModel: @MainActor () -> AbilityListViewModel
 
+    /// UI 測試指定的 app 語言（`--uitest-language=en`）；沒帶或代碼不認得就回 nil。
+    /// 只在 `inMemory` 模式下生效，正式啟動一律走使用者的持久化偏好。
+    private static var uitestLanguageOverride: AppLanguage? {
+        let prefix = "--uitest-language="
+        return CommandLine.arguments
+            .first { $0.hasPrefix(prefix) }
+            .flatMap { AppLanguage(rawValue: String($0.dropFirst(prefix.count))) }
+    }
+
     /// 正式組裝：SwiftData 落地儲存，各 domain 的 models 併進同一個 Schema。
     /// `inMemory`：UI 測試用，換成不落地的 store（每次啟動都是乾淨狀態）。
     static func live(inMemory: Bool = false) throws -> AppDependencies {
@@ -67,8 +76,12 @@ struct AppDependencies {
             inMemory ? InMemoryRestReminderPreferenceStore() : UserDefaultsRestReminderStore()
         // 語言偏好：真實落 UserDefaults；UI 測試用記憶體，並固定 seed 繁中——否則首次啟動會依
         // 模擬器系統語言決定，英文模擬器會讓中文標籤的 UITest 全崩。切換測試自己在跑時改成英文。
+        //
+        // `--uitest-language=<code>` 可覆蓋這個 seed。英文本地化 smoke test 需要的組合是
+        // 「裝置語系繁中 ＋ app 語言英文」：兩邊都設英文的話 `String(localized:)` 也會回英文，
+        // 反而把「不跟著 app 語言切」這個 bug 藏起來。
         let languageStore: any LanguagePreferenceStoring =
-            inMemory ? InMemoryLanguageStore(.zhHant) : UserDefaultsLanguageStore()
+            inMemory ? InMemoryLanguageStore(uitestLanguageOverride ?? .zhHant) : UserDefaultsLanguageStore()
         // 預設重量單位：真實落 UserDefaults；UI 測試用記憶體（預設 kg，跟既有斷言一致）。
         // Settings 與 Training 共用同一實例——訓練頁記錄新組時要用它決定草稿單位。
         let weightUnitStore: any WeightUnitPreferenceStoring =
@@ -163,7 +176,8 @@ struct AppDependencies {
                 programRepository: programRepository, assignmentRepository: programAssignmentRepository
             ),
             today: { DayDate(Date()) },
-            listExercises: ListExercises(repository: exerciseRepository)
+            listExercises: ListExercises(repository: exerciseRepository),
+            currentLanguage: { languageStore.load() ?? .fallback }
         )
         let planProgress = PlanProgressAdapter(markDone: MarkPlanWorkoutDone(repository: planRepository))
 

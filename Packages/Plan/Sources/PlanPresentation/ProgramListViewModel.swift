@@ -63,7 +63,9 @@ public final class ProgramListViewModel {
     public var inactivePrograms: [Program] { programs.filter { progressByProgram[$0.id] == nil } }
 
     public func name(for exerciseId: UUID) -> String {
-        catalog.first { $0.id == exerciseId }?.name ?? "動作"
+        // 查不到＝該動作已被刪；正常流程進不來（刪除前有 ExerciseUsageChecker 擋）。
+        // 用中性符號而非任何語言的字，這裡拿不到 locale。
+        catalog.first { $0.id == exerciseId }?.name ?? "—"
     }
 
     public func load() async {

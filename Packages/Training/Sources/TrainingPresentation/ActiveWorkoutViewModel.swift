@@ -138,12 +138,16 @@ public final class ActiveWorkoutViewModel {
     }
 
     public func name(for exerciseId: UUID) -> String {
-        catalog.first { $0.id == exerciseId }?.name ?? "動作"
+        // 查不到＝該動作已被刪；正常流程進不來（刪除前有 ExerciseUsageChecker 擋）。
+        // 用中性符號而非任何語言的字，這裡拿不到 locale。
+        catalog.first { $0.id == exerciseId }?.name ?? "—"
     }
 
-    /// 器材顯示名（動作名允許重複，靠它分辨）。查不到就回「其他」，不留空。
-    public func equipmentName(for exerciseId: UUID) -> String {
-        (catalog.first { $0.id == exerciseId }?.equipment ?? .other).displayName
+    /// 器材顯示名（動作名允許重複，靠它分辨）。查不到就回 `.other`，不留空。
+    /// `locale` 由 View 傳入：ViewModel 拿不到 Environment，但這是要顯示的文字，
+    /// 必須跟著 app 的語言設定而不是手機語系。
+    public func equipmentName(for exerciseId: UUID, locale: Locale) -> String {
+        (catalog.first { $0.id == exerciseId }?.equipment ?? .other).displayName(locale)
     }
 
     /// 上次同動作的組摘要「60kg × 8, 8, 6」；沒有歷史回 nil。「上次：」前綴由 View 本地化組。

@@ -7,6 +7,8 @@ import TrainingDomain
 /// 算不出來的那列老實說「待填」。這一步本身不落地任何東西（見 `TrainingHomeViewModel.previewPlan/previewRotation`），
 /// 真正落地在「開始訓練」按下的那一刻。
 struct TrainingPreviewSheet: View {
+    /// 目前語言：`localString` 要靠它才能查到 app 設定的語言（而非手機語系）。
+    @Environment(\.locale) private var locale
     let blueprint: PlannedWorkoutBlueprint
     /// 「和上次比」灰卡資料（14c）；nil＝查不到上一場，卡片不出現。
     var comparison: LastWorkoutComparison? = nil
@@ -82,12 +84,12 @@ struct TrainingPreviewSheet: View {
                     .textCase(.uppercase)
                     .foregroundStyle(TLColor.accent700)
             }
-            Text(verbatim: blueprint.name ?? String(localized: "training.todaysPlan", bundle: .module))
+            Text(verbatim: blueprint.name ?? localString("training.todaysPlan", locale))
                 .font(TLFont.zh(30, .bold))
                 .foregroundStyle(TLColor.text)
             HStack(spacing: TLSpace.gapS) {
                 if let pill = WeightSourceFormatting.intensityPillText(blueprint.intensityFactor) {
-                    Text(String(format: String(localized: "training.preview.intensity %@", bundle: .module), pill))
+                    Text(String(format: localString("training.preview.intensity %@", locale), pill))
                         .font(TLFont.zh(11.5, .semibold))
                         .foregroundStyle(TLColor.accent800)
                         .padding(.horizontal, 10)
@@ -96,7 +98,7 @@ struct TrainingPreviewSheet: View {
                         .clipShape(Capsule())
                 }
                 Text(verbatim: String(
-                    format: String(localized: "training.preview.exerciseSetCountDuration %lld %lld %lld", bundle: .module),
+                    format: localString("training.preview.exerciseSetCountDuration %lld %lld %lld", locale),
                     blueprint.exercises.count, totalSets, estimatedMinutes
                 ))
                 .font(TLFont.zh(TLFont.rowSub, .regular))
@@ -108,12 +110,12 @@ struct TrainingPreviewSheet: View {
     private func exerciseRow(_ row: ExerciseRow) -> some View {
         HStack(alignment: .center, spacing: TLSpace.gapM) {
             VStack(alignment: .leading, spacing: 3) {
-                ExerciseNameWithEquipment(name: row.name, equipment: row.equipment.displayName)
-                if let algebra = WeightSourceFormatting.algebraText(row.representative?.weightSource) {
+                ExerciseNameWithEquipment(name: row.name, equipment: row.equipment.displayName(locale))
+                if let algebra = WeightSourceFormatting.algebraText(row.representative?.weightSource, locale: locale) {
                     Text(verbatim: algebra)
                         .font(TLFont.zh(11, .regular))
                         .foregroundStyle(TLColor.accent700)
-                } else if let reason = WeightSourceFormatting.unresolvedReason(row.representative?.weightSource) {
+                } else if let reason = WeightSourceFormatting.unresolvedReason(row.representative?.weightSource, locale: locale) {
                     Text(verbatim: reason)
                         .font(TLFont.zh(TLFont.rowSub, .regular))
                         .foregroundStyle(TLColor.neutral500)
@@ -161,14 +163,14 @@ struct TrainingPreviewSheet: View {
                 .textCase(.uppercase)
                 .foregroundStyle(TLColor.neutral500)
             Text(verbatim: String(
-                format: String(localized: "training.preview.vsLast.summary %@ %lld %lld", bundle: .module),
+                format: localString("training.preview.vsLast.summary %@ %lld %lld", locale),
                 "\(c.date.month)/\(c.date.day)", c.achievedSets, c.totalSets
             ))
             .font(TLFont.zh(TLFont.rowTitle, .medium))
             .foregroundStyle(TLColor.text)
             if let delta = c.mainLiftDeltaKg {
                 Text(verbatim: String(
-                    format: String(localized: "training.preview.vsLast.mainLift %@", bundle: .module),
+                    format: localString("training.preview.vsLast.mainLift %@", locale),
                     mainLiftDeltaText(delta)
                 ))
                 .font(TLFont.zh(TLFont.rowSub, .semibold))
@@ -183,7 +185,7 @@ struct TrainingPreviewSheet: View {
 
     /// 主項增減文字：`+2.5 kg` / `−2.5 kg` / `持平`。
     private func mainLiftDeltaText(_ delta: Double) -> String {
-        if delta == 0 { return String(localized: "training.preview.vsLast.same", bundle: .module) }
+        if delta == 0 { return localString("training.preview.vsLast.same", locale) }
         let sign = delta > 0 ? "+" : "−"
         return "\(sign)\(WeightDisplay.value(abs(delta))) kg"   // 主項差值一律換算成公斤（見 mainLiftDeltaKg）
     }

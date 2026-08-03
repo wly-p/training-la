@@ -7,6 +7,8 @@ import SwiftUI
 ///
 /// 「能力值」＝該動作實際推過的最大重量，不是估算 1RM。
 public struct AbilityListView: View {
+    /// 目前語言：`localString` 要靠它才能查到 app 設定的語言（而非手機語系）。
+    @Environment(\.locale) private var locale
     @Bindable private var viewModel: AbilityListViewModel
     @State private var editingRow: AbilityListViewModel.Row?
     /// 使用者的重量級距偏好；編輯頁的 ± 與刻度尺跟隨它，不寫死。
@@ -26,8 +28,8 @@ public struct AbilityListView: View {
                 if viewModel.rows.isEmpty {
                     EmptyState(
                         systemImage: "chart.bar.xaxis",
-                        title: String(localized: "ability.empty.title", bundle: .module),
-                        message: String(localized: "ability.empty.message", bundle: .module)
+                        title: localString("ability.empty.title", locale),
+                        message: localString("ability.empty.message", locale)
                     )
                     .padding(.horizontal, TLSpace.page)
                     .padding(.top, TLSpace.section)
@@ -83,7 +85,7 @@ public struct AbilityListView: View {
                 ForEach(Equipment.allCases, id: \.self) { equipment in
                     let enabled = viewModel.hasExercises(for: equipment)
                     MuscleTag(
-                        equipment.displayName,
+                        equipment.displayName(locale),
                         isSelected: viewModel.filter == .equipment(equipment),
                         onTap: enabled ? { toggle(.equipment(equipment)) } : nil
                     )
@@ -98,7 +100,7 @@ public struct AbilityListView: View {
     private var unsetChip: some View {
         let selected = viewModel.filter == .unset
         return Text(verbatim: String(
-            format: String(localized: "ability.filter.unset %lld", bundle: .module), viewModel.unsetCount
+            format: localString("ability.filter.unset %lld", locale), viewModel.unsetCount
         ))
         .font(TLFont.zh(TLFont.rowSub, .semibold))
         .foregroundStyle(selected ? TLColor.bg : TLColor.accent800)
@@ -122,13 +124,13 @@ public struct AbilityListView: View {
 
     private var rowsGroup: some View {
         TLGroup {
-            ForEach(viewModel.visibleRows) { row in
+            ForEach(viewModel.visibleRows(locale: locale)) { row in
                 // trailing 要具名傳：ListRow 的 leading 排在 trailing 前面，
                 // 用尾隨閉包會綁到 leading，值就跑到列的左邊去。
                 ListRow(
                     title: Text(verbatim: row.exerciseName),
                     subtitle: subtitle(for: row),
-                    equipment: row.equipment.displayName,
+                    equipment: row.equipment.displayName(locale),
                     showChevron: true,
                     onTap: { editingRow = row },
                     trailing: { valueDisplay(for: row) }
@@ -178,6 +180,8 @@ public struct AbilityListView: View {
 ///
 /// 新版：大數字本身就是輸入框，刻度尺只負責微調，建議值變成可以直接按的套用鍵。
 private struct AbilityEditSheet: View {
+    /// 目前語言：`localString` 要靠它才能查到 app 設定的語言（而非手機語系）。
+    @Environment(\.locale) private var locale
     let row: AbilityListViewModel.Row
     /// 使用者的重量級距偏好；± 與刻度尺跟隨它（G 節：不寫死）。
     let weightStep: Double
@@ -217,7 +221,7 @@ private struct AbilityEditSheet: View {
             Spacer()
             ExerciseNameWithEquipment(
                 name: row.exerciseName,
-                equipment: row.equipment.displayName
+                equipment: row.equipment.displayName(locale)
             )
             Spacer()
             Button {
@@ -243,7 +247,7 @@ private struct AbilityEditSheet: View {
             TLNumberField(
                 value: $value,
                 unitLabel: unit.rawValue,
-                doneLabel: Text(String(localized: "ability.done", bundle: .module))
+                doneLabel: Text("ability.done", bundle: .module)
             )
             localText("ability.tapToType")
                 .font(TLFont.zh(TLFont.rowSub))
@@ -321,7 +325,7 @@ private struct AbilityEditSheet: View {
                 value = suggestion.value
             } label: {
                 Text(verbatim: String(
-                    format: String(localized: "ability.apply %@", bundle: .module),
+                    format: localString("ability.apply %@", locale),
                     TLNumberField.format(suggestion.value)
                 ))
                 .font(TLFont.zh(TLFont.rowSub, .semibold))

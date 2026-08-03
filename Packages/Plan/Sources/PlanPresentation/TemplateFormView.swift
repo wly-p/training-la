@@ -8,6 +8,8 @@ import UniformTypeIdentifiers
 /// 點膠囊/整列展開才逐組編輯（組N／重量表達式／次數）。重量表達式只支援絕對值／相對上次，
 /// **不做 %1RM**（本次設計範圍外，見動作庫 v3 README J 節）。
 struct TemplateFormView: View {
+    /// 目前語言：`localString` 要靠它才能查到 app 設定的語言（而非手機語系）。
+    @Environment(\.locale) private var locale
     enum Target {
         case create
         case edit(WorkoutTemplate)
@@ -99,11 +101,11 @@ struct TemplateFormView: View {
         }
         .sheet(isPresented: $pickingExercise) {
             PickerSheet(
-                title: Text(verbatim: String(localized: "plan.addExercise", bundle: .module)),
+                title: Text("plan.addExercise", bundle: .module),
                 searchPrompt: localText("plan.searchExercises"),
-                allItems: catalog.map(ExercisePickerItem.init),
+                allItems: catalog.map { ExercisePickerItem(exercise: $0, locale: locale) },
                 recentItemIds: recentExerciseIds,
-                filters: MuscleGroup.allCases.map { PickerSheetFilterChip(id: $0.rawValue, label: $0.displayName) },
+                filters: MuscleGroup.allCases.map { PickerSheetFilterChip(id: $0.rawValue, label: $0.displayName(locale)) },
                 matchesFilter: { item, filter in item.exercise.muscleGroup.rawValue == filter.id },
                 selection: .multiple(
                     selectedIds: $selectedExerciseIds,
@@ -167,7 +169,7 @@ struct TemplateFormView: View {
             localized: "template.stats.summary \(blocks.count) \(draftSets.count) \(estimatedMinutes)",
             bundle: .module
         )
-        let sourceText = String(localized: "template.duplicatedFrom \(originalName)", bundle: .module)
+        let sourceText = String(format: localString("template.duplicatedFrom %@", locale), originalName)
         return (Text(Image(systemName: "doc.on.doc")) + Text(verbatim: "  \(sourceText) · \(statsText)"))
             .font(TLFont.zh(TLFont.rowSub, .semibold))
             .foregroundStyle(TLColor.accent700)
@@ -457,7 +459,9 @@ struct TemplateFormView: View {
     // MARK: - 顯示輔助
 
     private func name(for exerciseId: UUID) -> String {
-        catalog.first { $0.id == exerciseId }?.name ?? "動作"
+        // 查不到＝該動作已被刪；正常流程進不來（刪除前有 ExerciseUsageChecker 擋）。
+        // 用中性符號而非任何語言的字，這裡拿不到 locale。
+        catalog.first { $0.id == exerciseId }?.name ?? "—"
     }
 
     /// 重量一律帶單位（`Weight.displayString`＝「20kg」）：kg 與 lb 的 20 差很多。
@@ -466,8 +470,10 @@ struct TemplateFormView: View {
         switch expression {
         case nil: "—"
         case .absolute(let w): w.displayString
-        case .relativeToLast(let delta): "上次\(delta.value >= 0 ? "+" : "")\(delta.displayString)"
-        case .percentOfMax(let percent): "\(formatNumber(percent))% 最大重量"
+        case .relativeToLast(let delta):
+            String(format: localString("plan.weight.relativeToLast %@", locale), signedDelta(delta))
+        case .percentOfMax(let percent):
+            String(format: localString("plan.weight.percentOfMax %@", locale), "\(formatNumber(percent))%")
         }
     }
 
@@ -498,7 +504,7 @@ struct TemplateFormView: View {
 
     /// 器材顯示名（動作名允許重複，靠它分辨）。
     private func equipmentName(for exerciseId: UUID) -> String {
-        (catalog.first { $0.id == exerciseId }?.equipment ?? .other).displayName
+        (catalog.first { $0.id == exerciseId }?.equipment ?? .other).displayName(locale)
     }
 
     /// 右側膠囊統一成「重量單位 × 次數」（例「20kg × 8」），跟課表編輯同一個格式。
@@ -509,15 +515,21 @@ struct TemplateFormView: View {
         case .uniform(.some(.absolute(let w))):
             return "\(w.displayString) × \(reps)"
         case .uniform(.some(.relativeToLast(let delta))):
-            return "上次\(delta.value >= 0 ? "+" : "")\(delta.displayString) × \(reps)"
+            let last = String(format: localString("plan.weight.relativeToLast %@", locale), signedDelta(delta))
+            return "\(last) × \(reps)"
         case .uniform(.some(.percentOfMax(let percent))):
             return "\(formatNumber(percent))% × \(reps)"
         case .uniform(nil):
             return "× \(reps)"
         case .varying:
-            return "\(sets.count) 組"
+            return String(format: localString("template.stats.sets %lld", locale), sets.count)
         }
     }
+}
+
+/// 增減量帶正負號（「+2.5kg」／「-2.5kg」），給「上次%@」這類 format 當參數。
+private func signedDelta(_ delta: Weight) -> String {
+    (delta.value >= 0 ? "+" : "") + delta.displayString
 }
 
 private func formatNumber(_ v: Double) -> String {
@@ -543,6 +555,8 @@ private struct TemplateBlockTransfer: Codable, Transferable {
 /// 逐組編輯（設計稿 4a「08 · 數值選擇器」）：重量／次數並排在同一個 `DualValuePicker`，
 /// 共用一排快捷（-step/+step/同上組）。「同上組」複製前一組的重量與次數，第一組沒有上一組故不顯示。
 private struct SetEditSheet: View {
+    /// 目前語言：`localString` 要靠它才能查到 app 設定的語言（而非手機語系）。
+    @Environment(\.locale) private var locale
     let exerciseName: String
     let setNumber: Int
     let weightStep: Double
@@ -626,7 +640,7 @@ private struct SetEditSheet: View {
             },
         ]
         if previousWeight != nil || previousReps != nil {
-            actions.append(.init(String(localized: "template.set.copyPrevious", bundle: .module), flex: 1.4) {
+            actions.append(.init(localString("template.set.copyPrevious", locale), flex: 1.4) {
                 switch previousWeight {
                 case .absolute(let w): mode = .absolute; weightValue = w.value
                 case .relativeToLast(let d): mode = .relativeToLast; weightValue = d.value
@@ -649,7 +663,7 @@ private struct SetEditSheet: View {
                 primaryKicker: primaryKicker,
                 secondaryValue: $repsValue,
                 secondaryValues: repsValues,
-                secondaryKicker: String(localized: "template.setNumber.reps", bundle: .module),
+                secondaryKicker: localString("template.setNumber.reps", locale),
                 quickActions: quickActions
             )
         }
@@ -661,9 +675,9 @@ private struct SetEditSheet: View {
 
     private var primaryKicker: String {
         switch mode {
-        case .relativeToLast: String(localized: "template.set.relativeKicker", bundle: .module)
-        case .percentOfMax: String(localized: "template.set.percentKicker", bundle: .module)
-        case .absolute: String(localized: "template.set.weightKicker", bundle: .module)
+        case .relativeToLast: localString("template.set.relativeKicker", locale)
+        case .percentOfMax: localString("template.set.percentKicker", locale)
+        case .absolute: localString("template.set.weightKicker", locale)
         }
     }
 
@@ -699,17 +713,17 @@ private struct SetEditSheet: View {
     private var modeChips: some View {
         HStack(spacing: 8) {
             SelectableChip(
-                String(localized: "template.set.absolute", bundle: .module), isSelected: mode == .absolute,
+                localString("template.set.absolute", locale), isSelected: mode == .absolute,
                 selectedFill: TLColor.accent, selectedText: TLColor.bg,
                 onTap: { mode = .absolute }
             )
             SelectableChip(
-                String(localized: "template.set.relative", bundle: .module), isSelected: mode == .relativeToLast,
+                localString("template.set.relative", locale), isSelected: mode == .relativeToLast,
                 selectedFill: TLColor.accent, selectedText: TLColor.bg,
                 onTap: { mode = .relativeToLast }
             )
             SelectableChip(
-                String(localized: "template.set.percent", bundle: .module), isSelected: mode == .percentOfMax,
+                localString("template.set.percent", locale), isSelected: mode == .percentOfMax,
                 selectedFill: TLColor.accent, selectedText: TLColor.bg,
                 onTap: { mode = .percentOfMax }
             )

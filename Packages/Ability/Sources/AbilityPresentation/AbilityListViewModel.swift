@@ -67,7 +67,7 @@ public final class AbilityListViewModel {
     }
 
     /// 搜尋比對**動作名 ＋ 器材名**：打「啞鈴」要能撈出全部啞鈴動作。
-    public var visibleRows: [Row] {
+    public func visibleRows(locale: Locale) -> [Row] {
         let query = searchText.trimmingCharacters(in: .whitespaces)
         return rows.filter { row in
             let matchesFilter: Bool = switch filter {
@@ -78,7 +78,7 @@ public final class AbilityListViewModel {
             guard matchesFilter else { return false }
             guard !query.isEmpty else { return true }
             return row.exerciseName.localizedCaseInsensitiveContains(query)
-                || row.equipment.displayName.localizedCaseInsensitiveContains(query)
+                || row.equipment.displayName(locale).localizedCaseInsensitiveContains(query)
         }
     }
 

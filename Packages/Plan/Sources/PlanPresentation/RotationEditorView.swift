@@ -10,6 +10,8 @@ import UniformTypeIdentifiers
 /// 直接吃 `Rotation` 物件（跟 `TemplateFormView` 同precedent）：清單已經載入過，不用再依 id 非同步查一次
 /// （避開 drill-in 陷阱那整類問題，見 memory `nav-drill-in-pitfall`）。
 public struct RotationEditorView: View {
+    /// 目前語言：`localString` 要靠它才能查到 app 設定的語言（而非手機語系）。
+    @Environment(\.locale) private var locale
     public enum Target {
         case create
         case edit(Rotation)
@@ -112,7 +114,7 @@ public struct RotationEditorView: View {
         }
         .sheet(isPresented: $pickingTemplates) {
             PickerSheet(
-                title: Text(verbatim: String(localized: "rotation.picker.title", bundle: .module)),
+                title: Text("rotation.picker.title", bundle: .module),
                 searchPrompt: localText("rotation.picker.searchPrompt"),
                 allItems: templates.map { TemplatePickerItem(template: $0, name: name) },
                 recentItemIds: recentTemplateIds,
@@ -198,11 +200,11 @@ public struct RotationEditorView: View {
             },
             trailing: {
                 HStack(spacing: 8) {
-                    RowValue("\(spec.sets.count)", unit: String(localized: "rotation.setsUnit", bundle: .module))
+                    RowValue("\(spec.sets.count)", unit: localString("rotation.setsUnit", locale))
                     // 14b：這一格的強度覆寫（未覆寫＝線框「基準」，已覆寫＝accent 實心 ×N%）。
                     IntensityOverridePill(
                         factor: spec.intensityFactor,
-                        baselineLabel: String(localized: "rotation.intensity.baseline", bundle: .module),
+                        baselineLabel: localString("rotation.intensity.baseline", locale),
                         onTap: { overridingWorkoutId = spec.id }
                     )
                 }
@@ -283,7 +285,7 @@ public struct RotationEditorView: View {
         EditSection(localText("rotation.intensity.section"), footer: localText("rotation.intensity.footer")) {
             IntensityFactorGroup(
                 factor: $draftIntensityFactor,
-                customLabel: String(localized: "rotation.intensity.custom", bundle: .module),
+                customLabel: localString("rotation.intensity.custom", locale),
                 previewLines: intensityPreviewLines
             )
         }
@@ -405,6 +407,8 @@ private struct RotationWorkoutTransfer: Codable, Transferable {
 /// （同一個 PlanPresentation module 內共用，不用為兩個呼叫端拉出去 DesignSystem）。
 /// 「取消」不寫回；「使用基準」清掉覆寫（nil）；「完成」把 ValuePicker 選的值寫回。
 struct IntensityOverrideSheet: View {
+    /// 目前語言：`localString` 要靠它才能查到 app 設定的語言（而非手機語系）。
+    @Environment(\.locale) private var locale
     let baseline: Double
     let current: Double?
     let onCancel: () -> Void
@@ -442,7 +446,7 @@ struct IntensityOverrideSheet: View {
             ValuePicker(
                 value: $value,
                 values: values,
-                kicker: String(localized: "rotation.intensity.custom", bundle: .module),
+                kicker: localString("rotation.intensity.custom", locale),
                 format: { String(format: "%.0f%%", $0 * 100) },
                 quickActions: [
                     .init("-5%") { value = max(values.first ?? 0.5, value - 0.05) },

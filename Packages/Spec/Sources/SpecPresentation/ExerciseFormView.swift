@@ -7,6 +7,8 @@ import SwiftUI
 /// 肌群（單選 sage）／器材（單選 accent＋遞增 hint）／備註／被使用於（編輯模式護欄）／刪除列。
 /// ⚠️ 沒有組數／次數／休息／重量 —— 那些屬於範本（設計原則 9）。
 struct ExerciseFormView: View {
+    /// 目前語言：肌群／器材的顯示名要靠它才會跟著 app 設定走（而非手機語系）。
+    @Environment(\.locale) private var locale
     let target: FormTarget
     let loadUsages: (UUID) async -> [ExerciseUsageRef]
     let onSubmit: (String, MuscleGroup, Equipment, String?) async -> Void
@@ -106,7 +108,7 @@ struct ExerciseFormView: View {
             FlowLayout(spacing: 8, lineSpacing: 8) {
                 ForEach(MuscleGroup.allCases, id: \.self) { group in
                     SelectableChip(
-                        group.displayName,
+                        group.displayName(locale),
                         isSelected: muscleGroup == group,
                         selectedFill: TLColor.sage200,
                         selectedText: TLColor.sage800,
@@ -125,7 +127,7 @@ struct ExerciseFormView: View {
             FlowLayout(spacing: 8, lineSpacing: 8) {
                 ForEach(Equipment.allCases, id: \.self) { item in
                     SelectableChip(
-                        item.displayName,
+                        item.displayName(locale),
                         isSelected: equipment == item,
                         selectedFill: TLColor.accent,
                         selectedText: TLColor.bg,

@@ -41,7 +41,7 @@ struct SettingsSelectionView<Value: Hashable & Identifiable>: View {
     private var backBar: some View {
         HStack {
             CircleIconButton(systemImage: "chevron.left", filled: false) { onBack() }
-                .accessibilityLabel(Text("返回"))
+                .accessibilityLabel(localText("settings.common.back"))
             Spacer()
         }
         .padding(.horizontal, TLSpace.page)

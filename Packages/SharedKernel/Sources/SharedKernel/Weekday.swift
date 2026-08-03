@@ -4,18 +4,8 @@ import Foundation
 public enum Weekday: Int, CaseIterable, Codable, Sendable {
     case monday = 1, tuesday, wednesday, thursday, friday, saturday, sunday
 
-    /// 中文短名。
-    public var shortName: String {
-        switch self {
-        case .monday: "週一"
-        case .tuesday: "週二"
-        case .wednesday: "週三"
-        case .thursday: "週四"
-        case .friday: "週五"
-        case .saturday: "週六"
-        case .sunday: "週日"
-        }
-    }
+    // 顯示用的星期名稱刻意不放這裡：`Calendar.shortWeekdaySymbols` 已經內建各語言的版本，
+    // 自己維護一份只會多一個要翻譯的地方。索引換算是 `rawValue % 7`（本 enum 週一＝1、Calendar 週日＝0）。
 }
 
 extension DayDate {

@@ -12,6 +12,8 @@ import SwiftUI
 /// 存檔前必須全部決定過（`還有 N 格未指派 · 填完才能儲存`）。編輯既有課表沒有這個狀態——
 /// 已存過的資料，缺席一律視為「休息」（沿用 9c 原本語意），不會出現虛線格。
 public struct ProgramEditorView: View {
+    /// 目前語言：`localString` 要靠它才能查到 app 設定的語言（而非手機語系）。
+    @Environment(\.locale) private var locale
     public enum Target {
         case create
         case edit(Program)
@@ -134,7 +136,7 @@ public struct ProgramEditorView: View {
         .sheet(item: $pickingDay) { editing in
             let index = editing.index
             PickerSheet(
-                title: Text(verbatim: String(localized: "program.picker.title", bundle: .module)),
+                title: Text("program.picker.title", bundle: .module),
                 searchPrompt: localText("rotation.picker.searchPrompt"),
                 allItems: dayPickerItems,
                 recentItemIds: recentTemplateIds,
@@ -169,8 +171,8 @@ public struct ProgramEditorView: View {
 
     private var dayPickerItems: [DayAssignmentPickerItem] {
         let rest = DayAssignmentPickerItem.rest(
-            title: String(localized: "program.day.setRest", bundle: .module),
-            subtitle: String(localized: "program.picker.restSubtitle", bundle: .module)
+            title: localString("program.day.setRest", locale),
+            subtitle: localString("program.picker.restSubtitle", locale)
         )
         return [rest] + templates.map { DayAssignmentPickerItem.template($0, name: name) }
     }
@@ -215,11 +217,11 @@ public struct ProgramEditorView: View {
     }
 
     private func totalLengthLabel(_ n: Int) -> String {
-        String(localized: "program.totalLength.days \(n)", bundle: .module)
+        String(format: localString("program.totalLength.days %lld", locale), n)
     }
 
     private var customTotalLengthLabel: String {
-        String(localized: "program.totalLength.custom", bundle: .module)
+        localString("program.totalLength.custom", locale)
     }
 
     // MARK: - 週期（真正的 Domain 欄位：cycleLength／days）
@@ -274,7 +276,7 @@ public struct ProgramEditorView: View {
                 if state == .assigned {
                     IntensityOverridePill(
                         factor: spec?.intensityFactor,
-                        baselineLabel: String(localized: "rotation.intensity.baseline", bundle: .module),
+                        baselineLabel: localString("rotation.intensity.baseline", locale),
                         onTap: { overridingDay = index }
                     )
                 }
@@ -408,7 +410,7 @@ public struct ProgramEditorView: View {
         EditSection(localText("rotation.intensity.section"), footer: localText("program.intensity.footer")) {
             IntensityFactorGroup(
                 factor: $draftIntensityFactor,
-                customLabel: String(localized: "rotation.intensity.custom", bundle: .module),
+                customLabel: localString("rotation.intensity.custom", locale),
                 previewLines: intensityPreviewLines
             )
         }

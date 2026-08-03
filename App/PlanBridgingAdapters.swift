@@ -20,6 +20,9 @@ struct PlanProviderAdapter: PlannedWorkoutProvider {
     let getActiveRestDay: GetActiveRestDay
     let today: @Sendable () -> DayDate
     let listExercises: ListExercises
+    /// 目前的 app 語言。這裡是 composition root、拿不到 SwiftUI Environment，
+    /// 但 kicker 是要顯示給使用者看的文字，必須跟著 app 的語言設定走而不是手機語系。
+    let currentLanguage: @Sendable () -> AppLanguage
 
     func todaysPlan() async throws -> PlannedWorkoutBlueprint? {
         guard let plan = try await todaysWorkout() else { return nil }
@@ -68,7 +71,7 @@ struct PlanProviderAdapter: PlannedWorkoutProvider {
         guard let rotation = try await listRotations().first(where: { $0.id == id }),
               !rotation.workouts.isEmpty else { return nil }
         return String(
-            format: String(localized: "preview.kicker.rotation %@ %lld %lld"),
+            format: currentLanguage().localizedString("preview.kicker.rotation %@ %lld %lld", bundle: .main),
             rotation.name, rotation.roundsCompleted + 1, rotation.cursor + 1
         )
     }
@@ -90,7 +93,7 @@ struct PlanProviderAdapter: PlannedWorkoutProvider {
             PlannedTargetSet(
                 id: set.id,
                 exerciseId: set.exerciseId,
-                exerciseName: catalog[set.exerciseId]?.name ?? "動作",
+                exerciseName: catalog[set.exerciseId]?.name ?? "—",
                 equipment: catalog[set.exerciseId]?.equipment ?? .other,
                 exerciseIndex: set.exerciseIndex,
                 setIndex: set.setIndex,

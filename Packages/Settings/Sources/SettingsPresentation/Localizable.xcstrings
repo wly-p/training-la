@@ -230,6 +230,22 @@
         }
       }
     },
+    "settings.common.back" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Back"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "返回"
+          }
+        }
+      }
+    },
     "settings.common.cancel" : {
       "localizations" : {
         "en" : {
@@ -802,9 +818,6 @@
           }
         }
       }
-    },
-    "返回" : {
-
     }
   },
   "version" : "1.0"

@@ -8,6 +8,8 @@ import SwiftUI
 /// 內容用既有的 `ValuePicker` 滾輪選常用值，另外附一個輸入框給滾輪清單裡沒有的值
 /// （例：一個卡扣 0.17kg）。等 UI 設計出來再改這一層，行為與持久化不受影響。
 struct StepPreferenceView: View {
+    /// 目前語言：`localString` 要靠它才能查到 app 設定的語言（而非手機語系）。
+    @Environment(\.locale) private var locale
     let title: Text
     /// 滾輪的可選值。
     let options: [Double]
@@ -143,7 +145,7 @@ struct StepPreferenceView: View {
     private var hint: some View {
         let text = showsRangeHint
             ? String(
-                format: String(localized: "settings.step.range %@ %@", bundle: .module),
+                format: localString("settings.step.range %@ %@", locale),
                 Weight.formatted(range.lowerBound), Weight.formatted(range.upperBound)
             )
             : ""
