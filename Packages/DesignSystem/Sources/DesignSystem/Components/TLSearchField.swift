@@ -36,6 +36,8 @@ public struct TLSearchField: View {
                         .foregroundStyle(TLColor.neutral400)
                 }
                 .buttonStyle(.plain)
+                // 只有 SF Symbol 沒有文字，UITest 沒有東西可以定位；給個穩定 id。
+                .accessibilityIdentifier("searchField.clear")
             }
         }
         .padding(.horizontal, TLSpace.rowInset)

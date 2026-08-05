@@ -13,9 +13,11 @@ final class TrainingFlowUITests: XCTestCase {
         let nameField = app.textFields["名稱（例：臥推）"]
         XCTAssertTrue(nameField.waitForExistence(timeout: 5))
         nameField.tap()
-        nameField.typeText("深蹲")
+        nameField.typeText("測試深蹲")
         app.buttons["儲存"].tap()
-        XCTAssertTrue(app.staticTexts["深蹲"].waitForExistence(timeout: 5))
+        app.searchExercises("測試深蹲")
+        XCTAssertTrue(app.staticTexts["測試深蹲"].waitForExistence(timeout: 5))
+        app.clearExerciseSearch()
 
         // 2. 開始訓練 → 自動彈出選動作（保險起見沒彈出就手動點「加入動作」）
         app.buttons["訓練"].tap()
@@ -25,9 +27,7 @@ final class TrainingFlowUITests: XCTestCase {
             app.buttons["加入動作"].tap()
             XCTAssertTrue(pickerTitle.waitForExistence(timeout: 5))
         }
-        let pickerRow = app.staticTexts["深蹲"].firstMatch
-        XCTAssertTrue(pickerRow.waitForExistence(timeout: 5))
-        pickerRow.tap()
+        app.pickExercise("測試深蹲")
 
         // 3. 記兩組（預設 20kg × 8）
         let completeButton = app.buttons["完成此組"]
@@ -52,11 +52,11 @@ final class TrainingFlowUITests: XCTestCase {
         let dateRow = app.staticTexts.matching(NSPredicate(format: "label CONTAINS '個動作'")).firstMatch
         XCTAssertTrue(dateRow.waitForExistence(timeout: 5))
         dateRow.tap()
-        XCTAssertTrue(app.staticTexts["深蹲"].waitForExistence(timeout: 5))
+        XCTAssertTrue(app.staticTexts["測試深蹲"].waitForExistence(timeout: 5))
 
         // 7. 切「按動作」，該動作有紀錄（清單列出動作名，點進去才是單一動作歷史頁）
         app.navigationBars.buttons.firstMatch.tap() // 返回
         app.buttons["按動作"].tap()
-        XCTAssertTrue(app.staticTexts["深蹲"].waitForExistence(timeout: 5))
+        XCTAssertTrue(app.staticTexts["測試深蹲"].waitForExistence(timeout: 5))
     }
 }

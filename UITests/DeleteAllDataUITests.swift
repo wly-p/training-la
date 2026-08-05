@@ -13,9 +13,11 @@ final class DeleteAllDataUITests: XCTestCase {
         let nameField = app.textFields["名稱（例：臥推）"]
         XCTAssertTrue(nameField.waitForExistence(timeout: 5))
         nameField.tap()
-        nameField.typeText("臥推")
+        nameField.typeText("測試臥推")
         app.buttons["儲存"].tap()
-        XCTAssertTrue(app.staticTexts["臥推"].waitForExistence(timeout: 5))
+        app.searchExercises("測試臥推")
+        XCTAssertTrue(app.staticTexts["測試臥推"].waitForExistence(timeout: 5))
+        app.clearExerciseSearch()
 
         // 設定 → 刪除所有資料 → 二次確認
         app.buttons["設定"].tap()
@@ -29,13 +31,18 @@ final class DeleteAllDataUITests: XCTestCase {
         XCTAssertTrue(confirm.waitForExistence(timeout: 5))
         confirm.tap()
 
-        // 畫面重建後，回動作庫應該已清空（剛建的「臥推」不見了）
+        // 畫面重建後，回動作庫，使用者自建的那筆應該不見了。
+        //
+        // 不能再斷言「動作庫是空的」：內建動作清單（80 筆）常駐、不進 DB，所以刪光使用者資料
+        // 之後它們仍然在。用搜尋把清單縮到只剩目標，才不會因為那筆剛好被擠到畫面外
+        // 而誤判成「已刪除」。
         let exercisesTab = app.buttons["動作庫"]
         XCTAssertTrue(exercisesTab.waitForExistence(timeout: 5))
         exercisesTab.tap()
-        XCTAssertFalse(
-            app.staticTexts["臥推"].waitForExistence(timeout: 3),
-            "刪除所有資料後，動作庫應回到空狀態"
+        app.searchExercises("測試臥推")
+        XCTAssertTrue(
+            app.staticTexts["找不到符合的動作"].waitForExistence(timeout: 5),
+            "刪除所有資料後，使用者自建的動作應該不見了"
         )
     }
 }

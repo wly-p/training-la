@@ -17,7 +17,14 @@ let package = Package(
     targets: [
         .target(
             name: "SpecDomain",
-            dependencies: ["SharedKernel"]
+            dependencies: ["SharedKernel"],
+            // 內建動作清單（結構）與它的名稱翻譯。放 SpecDomain 而不是 SpecPresentation（那裡已有
+            // 一份 catalog），是因為名稱要在 repository 層就解析成當前語言，Training / Plan /
+            // History 才會一起吃到——而 SpecData 只依賴 SpecDomain。
+            resources: [
+                .process("Resources/OfficialExercises.json"),
+                .process("Localizable.xcstrings"),
+            ]
         ),
         .target(
             name: "SpecData",

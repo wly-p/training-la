@@ -100,34 +100,41 @@ public struct ExerciseListView: View {
 
     // MARK: - 列
 
+    @ViewBuilder
     private func row(for exercise: Exercise) -> some View {
+        // 內建動作（OfficialExerciseCatalog）唯讀：不進編輯表單、沒有刪除選單，
+        // 也不顯示 chevron——留著箭頭卻點不動比沒有箭頭更難懂。
+        let isOfficial = exercise.source == .official
         ListRow(
             // 器材從右欄灰字移到名稱右側的 pill（handoff-15 15c）——右欄那個位置離名稱太遠，
             // 同名動作要左右來回對才看得出差別。
             title: Text(verbatim: exercise.name),
             equipment: exercise.equipment.displayName(locale),
-            showChevron: true,
-            onTap: { editingTarget = .edit(exercise) },
+            showChevron: !isOfficial,
+            onTap: isOfficial ? nil : { editingTarget = .edit(exercise) },
             leading: {
                 // 肌群縮寫圓章（sage）。displayName 可能多字（功能性訓練／核心），圓章取前二字。
                 CircleBadge(muscle: exercise.muscleGroup.badgeText(locale))
             }
         )
-        .contextMenu {
+        // 整個 modifier 拿掉、而不是留一個空的 menu：空 menu 長按仍會有抬起動畫卻沒有選項。
+        .contextMenu(isOfficial ? nil : ContextMenu {
             Button(role: .destructive) {
                 Task { await viewModel.remove(id: exercise.id) }
             } label: {
                 Label { localText("spec.delete") } icon: { Image(systemName: "trash") }
             }
-        }
+        })
     }
 
+    /// 內建動作清單常駐之後，動作庫幾乎不可能真的空——唯一會空的是搜尋沒中，
+    /// 那時候「還沒有動作」是錯的文案，所以分成兩種。
     private var emptyState: some View {
         VStack(spacing: 8) {
-            localText("spec.empty")
+            localText(viewModel.searchText.isEmpty ? "spec.empty" : "spec.search.empty")
                 .font(TLFont.zh(16, .bold))
                 .foregroundStyle(TLColor.text)
-            localText("spec.empty.hint")
+            localText(viewModel.searchText.isEmpty ? "spec.empty.hint" : "spec.search.empty.hint")
                 .font(TLFont.zh(12.5, .regular))
                 .foregroundStyle(TLColor.neutral600)
                 .multilineTextAlignment(.center)

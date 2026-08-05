@@ -15,6 +15,8 @@ public enum ExerciseRepositoryError: Error, Equatable, Sendable {
     case notFound(id: UUID)
     /// 動作被課表 / 訓練紀錄引用，無法刪除（對齊 API 契約的 `in_use`）。
     case inUse(id: UUID)
+    /// 內建動作（``OfficialExerciseCatalog``）唯讀，不可編輯也不可刪除。
+    case readOnly(id: UUID)
 }
 
 /// 「這個動作有沒有被引用」的查詢 port。
