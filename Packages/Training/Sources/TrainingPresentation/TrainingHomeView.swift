@@ -446,12 +446,6 @@ public struct TrainingHomeView: View {
 
     private var freeTrainingLabel: String { localString("training.free", locale) }
 
-    private func setsCountText(_ count: Int) -> Text {
-        let language = AppLanguage(locale: locale)
-        let format = language.localizedString("training.home.setsCount %lld", bundle: .module)
-        return Text(verbatim: String(format: format, count))
-    }
-
     // MARK: - 本週
 
     private func weekSection(_ summary: WeekTrainingSummary) -> some View {
@@ -552,30 +546,9 @@ public struct TrainingHomeView: View {
                 actionTitle: viewModel.templates.isEmpty ? nil : localString("training.home.pickTemplateToStart", locale),
                 action: { showsTemplatePicker = true }
             )
-            if let lastSession = viewModel.lastSession {
-                VStack(alignment: .leading, spacing: TLSpace.gapS) {
-                    localText("training.home.recentlyTrained")
-                        .font(TLFont.zh(TLFont.kicker, .semibold))
-                        .tracking(TLFont.kickerTracking)
-                        .textCase(.uppercase)
-                        .foregroundStyle(TLColor.neutral500)
-                    TLGroup {
-                        ListRow(
-                            title: Text(verbatim: lastSession.name ?? freeTrainingLabel),
-                            subtitle: Text(verbatim: "\(lastSession.day.month)/\(lastSession.day.day) · ") + setsCountText(lastSession.setCount),
-                            trailing: {
-                                Button {
-                                    Task { await viewModel.startRepeatingLast() }
-                                } label: {
-                                    localText("training.home.repeatOnceMore")
-                                }
-                                .buttonStyle(.tlSecondary)
-                                .fixedSize(horizontal: true, vertical: false)
-                            }
-                        )
-                    }
-                }
-            }
+            // 這裡原本還有一塊「最近練過 ＋ 再練一次」。拿掉的理由：跟有排課時的「重複上次」
+            // 是同一件事卻長得完全不同（另一套元件、另一套文案、另一種互動），而空狀態的重點
+            // 是「挑一份範本開始」與「自由訓練」這兩條出路，多一塊反而稀釋掉它們。
             TLGroup {
                 orRow(
                     icon: "plus", iconColor: TLColor.accent700,
