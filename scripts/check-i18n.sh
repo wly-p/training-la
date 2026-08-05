@@ -52,6 +52,60 @@ if [ -n "$han" ]; then
     fail=1
 fi
 
+# --- 規則 3 ------------------------------------------------------------------
+# 顯示用的日期文字／星期月份符號必須指定 locale。
+#
+# 這是跟規則 1、2 完全不同的一條漏水路徑：這些符號由系統提供、不經過 String Catalog，
+# 而 Calendar.current / Locale.current 讀的是**裝置語系**，同樣不吃 \.locale environment。
+# 規則 1、2 對它們完全視而不見，所以英文模式下星期照樣是中文（PR #54 沒抓到、後來才被回報）。
+#
+# 日期「運算」用 Calendar.current 是正當的（週界、isToday 跟裝置設定走沒問題），
+# 所以這裡只擋「取顯示字串」的兩種寫法。
+
+dates=$(python3 - <<'PY'
+import pathlib, re, sys
+
+# 兩種違規：
+#   1. 讀星期／月份符號（xxxWeekdaySymbols / xxxMonthSymbols）
+#   2. 建了 DateFormatter
+# 只要往上／往下數行內都沒有指定 locale，就是吃裝置語系。用「附近有沒有設 locale」判斷，
+# 是因為實務上寫法會拆行（let c = Calendar.current 之後才 c.shortWeekdaySymbols），
+# 只比對單行的 pattern 會整個漏掉——這個洞第一次寫這條規則時就踩到了。
+SYMBOLS = re.compile(r'\b\w*(?:Weekday|Month)Symbols\b')
+FORMATTER = re.compile(r'\bDateFormatter\(\)')
+SETS_LOCALE = re.compile(r'\.locale\s*=|locale:\s*locale')
+# 裝置語系的來源。附近只要出現就算違規——即使有設 .locale，設成 `?? .current` 一樣是錯的，
+# 而且「同一個函式裡別處有設 locale」不能證明這一行安全（這兩個洞第一版都漏了）。
+DEVICE_LOCALE = re.compile(r'\.current\b')
+COMMENT = re.compile(r'//.*$', re.M)
+WINDOW = 4
+
+violations = []
+for path in sorted(pathlib.Path(".").glob("Packages/*/Sources/**/*.swift")) + \
+            sorted(pathlib.Path("App").glob("**/*.swift")):
+    lines = path.read_text().split("\n")
+    for i, line in enumerate(lines):
+        stripped = line.strip()
+        if stripped.startswith(("//", "///", "*")):
+            continue
+        if not (SYMBOLS.search(line) or FORMATTER.search(line)):
+            continue
+        # 註解要先拿掉再判斷：說明文字裡提到 Calendar.current 是正常的，
+        # 不先剝掉的話這條規則會被自己的說明註解觸發。
+        near = COMMENT.sub("", "\n".join(lines[max(0, i - WINDOW): i + WINDOW + 1]))
+        if DEVICE_LOCALE.search(near) or not SETS_LOCALE.search(near):
+            violations.append(f"{path}:{i + 1}:{stripped}")
+
+print("\n".join(violations))
+PY
+)
+
+if [ -n "$dates" ]; then
+    echo "✘ 日期／星期文字沒指定 locale——預設吃裝置語系，不是 app 的語言設定："
+    echo "$dates" | sed 's/^/    /'
+    fail=1
+fi
+
 if [ "$fail" -eq 0 ]; then
     echo "✔ i18n 檢查通過"
 fi

@@ -53,8 +53,15 @@ else
 endif
 
 # TrainingLa.xcodeproj 不進版控，跑 UI test 前先用 xcodegen 重生。
+#
+# 重生完把 UITests 的原始碼 touch 一次，強制那個 target 重新編譯。
+# 原因：實測過改了 UITests/*.swift 之後 xcodebuild 連續三次都回報 0 個編譯動作、跑的是**舊的**
+# 測試 bundle（改 package 原始碼則正常重建）。那會靜默地讓你以為測試通過——最糟的失敗模式。
+# 推測是 xcodegen 每次重寫 pbxproj 打亂了這個 target 的增量狀態。整包 clean 要多花兩分鐘，
+# 這個 target 很小，touch 一下重編只要幾秒。
 generate:
 	xcodegen generate
+	@touch UITests/*.swift
 
 # 只跑 UITests.xctestplan（跟 unit test 分開的獨立 Test Plan，見 project.yml）。
 #

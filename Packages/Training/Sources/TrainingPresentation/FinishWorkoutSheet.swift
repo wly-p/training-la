@@ -126,8 +126,12 @@ struct FinishWorkoutSheet: View {
     private var subtitleTimeRange: String {
         guard let start = workout.startedAt else { return "" }
         let timeFormatter = DateFormatter()
+        timeFormatter.locale = locale
         timeFormatter.dateFormat = "HH:mm"
-        let weekday = Calendar.current.shortWeekdaySymbols[workout.day.weekdayNumber - 1]
+        // Calendar.current 讀裝置語系，不是 app 的語言設定——星期縮寫要走帶 locale 的 formatter。
+        let weekdayFormatter = DateFormatter()
+        weekdayFormatter.locale = locale
+        let weekday = weekdayFormatter.shortWeekdaySymbols[workout.day.weekdayNumber - 1]
         return "\(workout.day.month)/\(workout.day.day)（\(weekday)） · \(timeFormatter.string(from: start))–\(timeFormatter.string(from: Date()))"
     }
 

@@ -792,22 +792,6 @@
         }
       }
     },
-    "training.home.recentlyTrained": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Recently Trained"
-          }
-        },
-        "zh-Hant": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "最近練過"
-          }
-        }
-      }
-    },
     "training.home.repeatLast": {
       "localizations": {
         "en": {
@@ -820,22 +804,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "重複上次"
-          }
-        }
-      }
-    },
-    "training.home.repeatOnceMore": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Do It Again"
-          }
-        },
-        "zh-Hant": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "再練一次"
           }
         }
       }
@@ -932,22 +900,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "今天休息"
-          }
-        }
-      }
-    },
-    "training.home.setsCount %lld": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "%lld sets"
-          }
-        },
-        "zh-Hant": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "%lld 組"
           }
         }
       }

@@ -24,19 +24,29 @@ final class EnglishLocalizationUITests: XCTestCase {
         app.launchArguments = ["--uitest-inmemory", "--uitest-language=en"]
         app.launch()
 
-        let tabBar = app.tabBars.firstMatch
-        XCTAssertTrue(tabBar.waitForExistence(timeout: 10), "找不到分頁列")
+        XCTAssertTrue(
+            app.buttons["tabBar.item.0"].waitForExistence(timeout: 10),
+            "找不到自訂分頁列"
+        )
 
         var offenders: [String] = []
+        var previous: [String] = []
 
         for index in 0..<tabCount {
-            let tab = tabBar.buttons.element(boundBy: index)
-            guard tab.exists else { continue }
+            // 用自訂分頁列的 identifier，不用 app.tabBars——原生分頁列被隱藏了但仍在無障礙樹裡，
+            // 點它不會真的換頁（這正是本測試原本漏掉整個課表頁的原因）。
+            let tab = app.buttons["tabBar.item.\(index)"]
+            XCTAssertTrue(tab.waitForExistence(timeout: 5), "找不到分頁 \(index)")
             tab.tap()
-            // 換頁後給 SwiftUI 一點時間重繪，否則抓到的是上一頁的殘影。
-            _ = app.staticTexts.firstMatch.waitForExistence(timeout: 5)
 
-            for label in visibleLabels(in: app) where Self.containsHan(label) {
+            let labels = waitForContentChange(in: app, from: previous)
+            XCTAssertNotEqual(
+                labels, previous,
+                "分頁 \(index) 的內容與前一頁相同——很可能是還沒換頁就取值了，這一頁等於沒測到"
+            )
+            previous = labels
+
+            for label in labels where Self.containsHan(label) {
                 offenders.append("[分頁 \(index)] \(label)")
             }
         }
@@ -45,6 +55,22 @@ final class EnglishLocalizationUITests: XCTestCase {
             offenders.isEmpty,
             "英文語系下仍出現中文（共 \(offenders.count) 處）：\n" + offenders.prefix(30).joined(separator: "\n")
         )
+    }
+
+    /// 等到畫面內容真的換掉為止，回傳新一頁的文字。
+    ///
+    /// 不能只等「有 staticText 存在」——上一頁的 staticText 本來就在，那種等待會立刻通過，
+    /// 於是取到的是舊畫面。這個 bug 讓本測試有一整頁（課表）從來沒被真正檢查過，
+    /// 而漏掉的正是那一頁上的中文星期。所以改成等「內容與前一頁不同」。
+    @MainActor
+    private func waitForContentChange(in app: XCUIApplication, from previous: [String]) -> [String] {
+        let deadline = Date().addingTimeInterval(5)
+        var labels = visibleLabels(in: app)
+        while labels == previous, Date() < deadline {
+            usleep(200_000)
+            labels = visibleLabels(in: app)
+        }
+        return labels
     }
 
     /// 畫面上所有可見的文字：靜態文字 ＋ 按鈕標題 ＋ 導覽列標題。

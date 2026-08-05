@@ -9,6 +9,9 @@ import TrainingDomain
 struct WeekProgressRow: View {
     let days: [WeekTrainingSummary.Day]
 
+    /// 星期縮寫走系統符號，`Calendar.current` 讀的是裝置語系而非 app 語言設定，要吃 Environment。
+    @Environment(\.locale) private var locale
+
     var body: some View {
         HStack(spacing: 0) {
             ForEach(days) { day in
@@ -39,8 +42,9 @@ struct WeekProgressRow: View {
     }
 
     private func weekdaySymbol(for day: DayDate) -> String {
-        let calendar = Calendar.current
+        let formatter = DateFormatter()
+        formatter.locale = locale
         let weekday = day.weekdayNumber   // 1=Sun...7=Sat
-        return calendar.shortWeekdaySymbols[weekday - 1]
+        return formatter.shortWeekdaySymbols[weekday - 1]
     }
 }

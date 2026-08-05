@@ -46,6 +46,10 @@ public struct TLTabBar<Value: Hashable>: View {
                     .contentShape(Rectangle())
                 }
                 .buttonStyle(.plain)
+                // 原生分頁列被 .toolbar(.hidden, for: .tabBar) 藏起來了，但它仍留在無障礙樹裡，
+                // UITest 用 app.tabBars 會抓到那個藏起來的、點了不一定有效。給穩定的 id 讓測試
+                // 直接點到這一列，也不必依賴會隨語言變的標籤文字。
+                .accessibilityIdentifier("tabBar.item.\(item.value)")
             }
         }
         .padding(.horizontal, TLSpace.gapL)

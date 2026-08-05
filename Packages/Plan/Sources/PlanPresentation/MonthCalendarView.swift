@@ -14,6 +14,9 @@ import UIKit
 /// 原生 UICalendarView 月視圖的 SwiftUI 包裝。圓點用 decorationFor 畫；單選回呼更新選取日。
 struct MonthCalendarView: UIViewRepresentable {
     @Binding var selectedDate: DayDate
+    /// UICalendarView 的月份／星期表頭由它自己的 locale 決定，預設是**裝置語系**，
+    /// 不是 app 內的語言設定。要跟著 app 走就得把 Environment 的 locale 明確灌進去。
+    @Environment(\.locale) private var locale
     /// 目前有標記的日子（用來決定 reload 哪些格；含新舊聯集才能清掉消失的點）。
     let markedDates: Set<DayDate>
     /// 每天的標記；nil＝無點。
@@ -21,7 +24,10 @@ struct MonthCalendarView: UIViewRepresentable {
 
     func makeUIView(context: Context) -> UICalendarView {
         let view = UICalendarView()
-        view.calendar = Calendar(identifier: .gregorian)
+        var calendar = Calendar(identifier: .gregorian)
+        calendar.locale = locale
+        view.calendar = calendar
+        view.locale = locale
         view.delegate = context.coordinator
         let selection = UICalendarSelectionSingleDate(delegate: context.coordinator)
         selection.setSelected(selectedDate.dateComponents, animated: false)
@@ -32,6 +38,13 @@ struct MonthCalendarView: UIViewRepresentable {
 
     func updateUIView(_ view: UICalendarView, context: Context) {
         context.coordinator.parent = self
+        // 切語言時 SwiftUI 只會重跑 update，這裡不同步的話月曆表頭會停在舊語言。
+        if view.locale != locale {
+            var calendar = view.calendar
+            calendar.locale = locale
+            view.calendar = calendar
+            view.locale = locale
+        }
         // reload 舊∪新，才能把已消失的點清掉。
         let union = context.coordinator.lastMarked.union(markedDates)
         if !union.isEmpty {
