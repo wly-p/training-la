@@ -593,6 +593,12 @@ public struct TrainingHomeView: View {
                     )
                 }
             }
+
+            // 「這週」在有排課與休息日兩條路徑都會顯示，沒排課時卻整塊不見——但這個區塊講的是
+            // 本週練了幾次，跟今天有沒有排課無關。沒排課的人反而更需要看到進度。
+            if let weekSummary = viewModel.weekSummary {
+                weekSection(weekSummary)
+            }
         }
     }
 }
