@@ -21,6 +21,11 @@ public struct WeekDateStrip: View {
 
     @State private var weekOffset: Int = 0
 
+    /// 星期縮寫是系統提供的（`DateFormatter.shortWeekdaySymbols`），而 `Calendar.current` /
+    /// `Locale.current` 讀的是**裝置語系**，不是 app 內的語言設定。這裡改吃 Environment，
+    /// 才會跟著 app 走——這類「系統符號」不經過 String Catalog，是另一條會漏的路徑。
+    @Environment(\.locale) private var locale
+
     public init(
         selectedDate: Binding<Date>,
         calendar: Calendar = .current,
@@ -96,7 +101,7 @@ public struct WeekDateStrip: View {
     private func weekdaySymbol(for day: Date) -> String {
         let f = DateFormatter()
         f.calendar = calendar
-        f.locale = calendar.locale ?? .current
+        f.locale = locale
         let idx = calendar.component(.weekday, from: day) - 1
         return f.shortWeekdaySymbols[idx]
     }

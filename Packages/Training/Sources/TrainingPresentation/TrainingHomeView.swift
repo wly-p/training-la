@@ -211,6 +211,7 @@ public struct TrainingHomeView: View {
     private func resumeDescription(_ summary: ResumeSummary) -> String {
         guard let start = summary.workout.startedAt else { return "" }
         let formatter = DateFormatter()
+        formatter.locale = locale
         formatter.dateFormat = "HH:mm"
         let name = summary.name ?? localString("training.free", locale)
         return String(
