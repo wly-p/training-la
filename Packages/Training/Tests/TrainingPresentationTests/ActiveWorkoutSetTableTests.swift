@@ -57,7 +57,7 @@ struct ActiveWorkoutSetTableTests {
             finishWorkout: FinishWorkout(repository: repo),
             discardWorkout: DiscardWorkout(repository: repo),
             lastPerformance: LastPerformance(repository: repo),
-            exerciseCatalog: MockCatalog(items: [CatalogExercise(id: exerciseId, name: "臥推", muscleGroup: .chest)]),
+            exerciseCatalog: MockCatalog(items: [CatalogExercise(id: exerciseId, name: "臥推", muscleGroup: .chest, equipment: .barbell)]),
             plannedProvider: MockPlanProvider(blueprint: blueprint)
         )
     }
@@ -95,7 +95,7 @@ struct ActiveWorkoutSetTableTests {
             finishWorkout: FinishWorkout(repository: repo),
             discardWorkout: DiscardWorkout(repository: repo),
             lastPerformance: LastPerformance(repository: repo),
-            exerciseCatalog: MockCatalog(items: [CatalogExercise(id: exerciseId, name: "臥推", muscleGroup: .chest)])
+            exerciseCatalog: MockCatalog(items: [CatalogExercise(id: exerciseId, name: "臥推", muscleGroup: .chest, equipment: .barbell)])
         )
         await vm.onAppear()
         await vm.select(exerciseId: exerciseId)
@@ -142,7 +142,7 @@ struct ActiveWorkoutSetTableTests {
             finishWorkout: FinishWorkout(repository: repo),
             discardWorkout: DiscardWorkout(repository: repo),
             lastPerformance: LastPerformance(repository: repo),
-            exerciseCatalog: MockCatalog(items: [CatalogExercise(id: exerciseId, name: "臥推", muscleGroup: .chest)])
+            exerciseCatalog: MockCatalog(items: [CatalogExercise(id: exerciseId, name: "臥推", muscleGroup: .chest, equipment: .barbell)])
         )
         await vm.onAppear()
         await vm.select(exerciseId: exerciseId)

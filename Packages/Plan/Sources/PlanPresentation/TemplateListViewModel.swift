@@ -8,6 +8,10 @@ import SharedKernel
 public final class TemplateListViewModel {
     public private(set) var templates: [WorkoutTemplate] = []
     public private(set) var catalog: [PlanCatalogExercise] = []
+        /// 使用者的重量級距偏好；逐組編輯的 ± 快捷與滾輪用。
+    /// 即時讀取不快取——這個 view model 活很久，設定改了要馬上反映。
+    public var weightStep: Double { preferences.loadWeightStep() }
+    private let preferences: any TrainingPreferenceStoring
     /// 本地化錯誤字串（延後解析，由 View 依 Environment locale 顯示）。
     public private(set) var errorMessage: LocalizedStringResource?
 
@@ -24,18 +28,22 @@ public final class TemplateListViewModel {
         updateTemplate: UpdateTemplate,
         deleteTemplate: DeleteTemplate,
         duplicateTemplate: DuplicateTemplate,
-        exerciseCatalog: any PlanExerciseCatalog
+        exerciseCatalog: any PlanExerciseCatalog,
+        preferences: any TrainingPreferenceStoring = InMemoryTrainingPreferenceStore()
     ) {
         self.listTemplates = listTemplates
         self.createTemplate = createTemplate
         self.updateTemplate = updateTemplate
         self.deleteTemplate = deleteTemplate
         self.duplicateTemplate = duplicateTemplate
+        self.preferences = preferences
         self.exerciseCatalog = exerciseCatalog
     }
 
     public func name(for exerciseId: UUID) -> String {
-        catalog.first { $0.id == exerciseId }?.name ?? "動作"
+        // 查不到＝該動作已被刪；正常流程進不來（刪除前有 ExerciseUsageChecker 擋）。
+        // 用中性符號而非任何語言的字，這裡拿不到 locale。
+        catalog.first { $0.id == exerciseId }?.name ?? "—"
     }
 
     public func load() async {

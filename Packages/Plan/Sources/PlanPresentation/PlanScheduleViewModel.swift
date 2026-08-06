@@ -15,6 +15,10 @@ public final class PlanScheduleViewModel {
     /// 今天（含）以後的投影建議，依日期分組。
     public private(set) var projectionsByDate: [DayDate: [ProjectedWorkout]] = [:]
     public private(set) var catalog: [PlanCatalogExercise] = []
+        /// 使用者的重量級距偏好；表單的 ± 快捷與滾輪用。
+    /// 即時讀取不快取——這個 view model 活很久，設定改了要馬上反映。
+    public var weightStep: Double { preferences.loadWeightStep() }
+    private let preferences: any TrainingPreferenceStoring
     /// 月曆上目前選取的日期（預設今天）。
     public var selectedDate: DayDate
     /// 本地化錯誤字串（延後解析，由 View 依 Environment locale 顯示）。
@@ -51,6 +55,7 @@ public final class PlanScheduleViewModel {
         projectSchedule: ProjectSchedule,
         materializeProjection: MaterializeProjectedWorkout,
         exerciseCatalog: any PlanExerciseCatalog,
+        preferences: any TrainingPreferenceStoring = InMemoryTrainingPreferenceStore(),
         today: @Sendable () -> DayDate = { DayDate(Date()) }
     ) {
         self.listPlanWorkouts = listPlanWorkouts
@@ -67,6 +72,7 @@ public final class PlanScheduleViewModel {
         self.projectSchedule = projectSchedule
         self.materializeProjection = materializeProjection
         self.exerciseCatalog = exerciseCatalog
+        self.preferences = preferences
         let todayValue = today()
         self.today = todayValue
         self.selectedDate = todayValue
@@ -97,7 +103,9 @@ public final class PlanScheduleViewModel {
     }
 
     public func name(for exerciseId: UUID) -> String {
-        catalog.first { $0.id == exerciseId }?.name ?? "動作"
+        // 查不到＝該動作已被刪；正常流程進不來（刪除前有 ExerciseUsageChecker 擋）。
+        // 用中性符號而非任何語言的字，這裡拿不到 locale。
+        catalog.first { $0.id == exerciseId }?.name ?? "—"
     }
 
     /// 某月已完成的排課次數（「月檢視」入口列的摘要用）。

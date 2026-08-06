@@ -1,6 +1,7 @@
 import Foundation
 import HistoryDomain
 import Observation
+import SharedKernel
 
 public enum HistoryMode: Hashable, Sendable {
     case byDate
@@ -25,10 +26,16 @@ public final class HistoryViewModel {
 
     private let reading: any WorkoutHistoryReading
     private let editing: any WorkoutHistoryEditing
+    private let preferences: any TrainingPreferenceStoring
 
-    public init(reading: any WorkoutHistoryReading, editing: any WorkoutHistoryEditing) {
+    public init(
+        reading: any WorkoutHistoryReading,
+        editing: any WorkoutHistoryEditing,
+        preferences: any TrainingPreferenceStoring = InMemoryTrainingPreferenceStore()
+    ) {
         self.reading = reading
         self.editing = editing
+        self.preferences = preferences
     }
 
     /// 建立單場詳情頁的 view model。編輯／刪除成功後回呼 `load()`，讓兩種歷史查詢一致更新。
@@ -37,7 +44,8 @@ public final class HistoryViewModel {
             workoutId: id,
             loadDetail: { [reading] in try? await reading.workoutDetail(id: id) },
             editing: editing,
-            onChange: { [weak self] in await self?.load() }
+            onChange: { [weak self] in await self?.load() },
+            preferences: preferences
         )
     }
 

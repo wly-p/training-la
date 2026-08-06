@@ -5,6 +5,8 @@ import TrainingDomain
 
 /// 完成摘要（13a）：練了多久、做了多少、有沒有達標——只回答這三件事，不做慶祝動畫頁。
 struct FinishWorkoutSheet: View {
+    /// 目前語言：`localString` 要靠它才能查到 app 設定的語言（而非手機語系）。
+    @Environment(\.locale) private var locale
     let workout: Workout
     let workoutName: String?
     let exerciseName: (UUID) -> String
@@ -112,7 +114,7 @@ struct FinishWorkoutSheet: View {
                 .tracking(TLFont.kickerTracking)
                 .textCase(.uppercase)
                 .foregroundStyle(TLColor.accent700)
-            Text(verbatim: workoutName ?? String(localized: "training.free", bundle: .module))
+            Text(verbatim: workoutName ?? localString("training.free", locale))
                 .font(TLFont.zh(30, .bold))
                 .foregroundStyle(TLColor.text)
             Text(verbatim: subtitleTimeRange)
@@ -124,8 +126,12 @@ struct FinishWorkoutSheet: View {
     private var subtitleTimeRange: String {
         guard let start = workout.startedAt else { return "" }
         let timeFormatter = DateFormatter()
+        timeFormatter.locale = locale
         timeFormatter.dateFormat = "HH:mm"
-        let weekday = Calendar.current.shortWeekdaySymbols[workout.day.weekdayNumber - 1]
+        // Calendar.current 讀裝置語系，不是 app 的語言設定——星期縮寫要走帶 locale 的 formatter。
+        let weekdayFormatter = DateFormatter()
+        weekdayFormatter.locale = locale
+        let weekday = weekdayFormatter.shortWeekdaySymbols[workout.day.weekdayNumber - 1]
         return "\(workout.day.month)/\(workout.day.day)（\(weekday)） · \(timeFormatter.string(from: start))–\(timeFormatter.string(from: Date()))"
     }
 
@@ -151,7 +157,7 @@ struct FinishWorkoutSheet: View {
                 }
                 .frame(height: 6)
                 Text(verbatim: String(
-                    format: String(localized: "training.finish.volumeGoal %@ %@", bundle: .module),
+                    format: localString("training.finish.volumeGoal %@ %@", locale),
                     WeightDisplay.value(targetVolume), String(format: "%.0f%%", totalVolume / targetVolume * 100)
                 ))
                 .font(.footnote)
@@ -165,13 +171,13 @@ struct FinishWorkoutSheet: View {
     }
 
     private func statNumber(
-        _ value: String, label: String.LocalizationValue, alignment: HorizontalAlignment
+        _ value: String, label: String, alignment: HorizontalAlignment
     ) -> some View {
         VStack(alignment: alignment, spacing: 2) {
             Text(verbatim: value)
                 .font(TLFont.display(34))
                 .foregroundStyle(TLColor.text)
-            Text(String(localized: label, bundle: .module))
+            Text(LocalizedStringKey(label), bundle: .module)
                 .font(.caption2)
                 .foregroundStyle(TLColor.neutral600)
         }
@@ -188,7 +194,7 @@ struct FinishWorkoutSheet: View {
                     .foregroundStyle(TLColor.neutral500)
             }
             .foregroundStyle(TLColor.text)
-            Text(String(localized: "training.finish.achievedSets", bundle: .module))
+            Text("training.finish.achievedSets", bundle: .module)
                 .font(.caption2)
                 .foregroundStyle(TLColor.neutral600)
         }
@@ -202,9 +208,9 @@ struct FinishWorkoutSheet: View {
         let text: String
         switch pr.kind {
         case .newRepsAtWeight:
-            text = String(format: String(localized: "training.finish.pr.newReps %@ %@ %lld", bundle: .module), name, weightText, pr.reps)
+            text = String(format: localString("training.finish.pr.newReps %@ %@ %lld", locale), name, weightText, pr.reps)
         case .newWeightAtReps:
-            text = String(format: String(localized: "training.finish.pr.newWeight %@ %@ %lld", bundle: .module), name, weightText, pr.reps)
+            text = String(format: localString("training.finish.pr.newWeight %@ %@ %lld", locale), name, weightText, pr.reps)
         }
         return Label {
             Text(verbatim: text)
@@ -237,7 +243,7 @@ struct FinishWorkoutSheet: View {
                         Spacer(minLength: TLSpace.gapS)
                         // 組數·重量放右側（Caprasimo 數字），貼著達標勾號——不再當名稱下的副標。
                         Text(verbatim: String(
-                            format: String(localized: "training.finish.exerciseSets %lld %@", bundle: .module),
+                            format: localString("training.finish.exerciseSets %lld %@", locale),
                             summary.setCount, summary.weightRange
                         ))
                         .font(TLFont.display(15))
@@ -274,7 +280,7 @@ struct FinishWorkoutSheet: View {
                 feelingChip(value: 3, label: "training.finish.feeling.justRight")
                 feelingChip(value: 5, label: "training.finish.feeling.hard")
                 SelectableChip(
-                    String(localized: "training.finish.addNote", bundle: .module),
+                    localString("training.finish.addNote", locale),
                     isSelected: showsNoteField,
                     selectedFill: TLColor.accent, selectedText: TLColor.bg,
                     onTap: { showsNoteField.toggle() }
@@ -283,9 +289,9 @@ struct FinishWorkoutSheet: View {
         }
     }
 
-    private func feelingChip(value: Int, label: String.LocalizationValue) -> some View {
+    private func feelingChip(value: Int, label: String) -> some View {
         SelectableChip(
-            String(localized: label, bundle: .module),
+            localString(label, locale),
             isSelected: feeling == value,
             selectedFill: TLColor.accent, selectedText: TLColor.bg,
             onTap: { feeling = feeling == value ? nil : value }

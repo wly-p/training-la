@@ -59,3 +59,6 @@ App/Info.plist
 
 # xcode-build-server 產物（指向本機 DerivedData，供 VS Code SourceKit-LSP 用；跟 xcodeproj 一樣不進版控）
 buildServer.json
+
+# 測試報告產物（make test-* REPORT=true 產生，不進版控）
+test-reports/

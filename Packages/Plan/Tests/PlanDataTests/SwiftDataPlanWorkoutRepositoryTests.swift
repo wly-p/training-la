@@ -41,7 +41,7 @@ struct SwiftDataPlanWorkoutRepositoryTests {
         let repo = try makeRepository()
         let exerciseId = UUID()
         let source = WeightSourceInfo(
-            kind: .percentOf1RM, percent: 80,
+            kind: .percentOfMax, percent: 80,
             abilityValue: Weight(value: 140, unit: .kg), intensityFactor: 0.75
         )
         var plan = planWorkout(date: DayDate(year: 2026, month: 7, day: 9), order: 0, sets: 1)

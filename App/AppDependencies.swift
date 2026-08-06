@@ -37,6 +37,15 @@ struct AppDependencies {
     let makeSettingsViewModel: @MainActor (_ onErased: @escaping @MainActor () -> Void) -> SettingsViewModel
     let makeAbilityListViewModel: @MainActor () -> AbilityListViewModel
 
+    /// UI 測試指定的 app 語言（`--uitest-language=en`）；沒帶或代碼不認得就回 nil。
+    /// 只在 `inMemory` 模式下生效，正式啟動一律走使用者的持久化偏好。
+    private static var uitestLanguageOverride: AppLanguage? {
+        let prefix = "--uitest-language="
+        return CommandLine.arguments
+            .first { $0.hasPrefix(prefix) }
+            .flatMap { AppLanguage(rawValue: String($0.dropFirst(prefix.count))) }
+    }
+
     /// 正式組裝：SwiftData 落地儲存，各 domain 的 models 併進同一個 Schema。
     /// `inMemory`：UI 測試用，換成不落地的 store（每次啟動都是乾淨狀態）。
     static func live(inMemory: Bool = false) throws -> AppDependencies {
@@ -67,8 +76,20 @@ struct AppDependencies {
             inMemory ? InMemoryRestReminderPreferenceStore() : UserDefaultsRestReminderStore()
         // 語言偏好：真實落 UserDefaults；UI 測試用記憶體，並固定 seed 繁中——否則首次啟動會依
         // 模擬器系統語言決定，英文模擬器會讓中文標籤的 UITest 全崩。切換測試自己在跑時改成英文。
+        //
+        // `--uitest-language=<code>` 可覆蓋這個 seed。英文本地化 smoke test 需要的組合是
+        // 「裝置語系繁中 ＋ app 語言英文」：兩邊都設英文的話 `String(localized:)` 也會回英文，
+        // 反而把「不跟著 app 語言切」這個 bug 藏起來。
         let languageStore: any LanguagePreferenceStoring =
-            inMemory ? InMemoryLanguageStore(.zhHant) : UserDefaultsLanguageStore()
+            inMemory ? InMemoryLanguageStore(uitestLanguageOverride ?? .zhHant) : UserDefaultsLanguageStore()
+        // 預設重量單位：真實落 UserDefaults；UI 測試用記憶體（預設 kg，跟既有斷言一致）。
+        // Settings 與 Training 共用同一實例——訓練頁記錄新組時要用它決定草稿單位。
+        let weightUnitStore: any WeightUnitPreferenceStoring =
+            inMemory ? InMemoryWeightUnitStore() : UserDefaultsWeightUnitStore()
+        // 訓練偏好（重量／休息級距）：同樣 UI 測試走記憶體，用預設值（2.5kg / 30 秒），
+        // 跟既有 UITest 斷言一致。Settings / Training / Plan / History 共用同一實例。
+        let trainingPreferences: any TrainingPreferenceStoring =
+            inMemory ? InMemoryTrainingPreferenceStore() : UserDefaultsTrainingPreferenceStore()
         // UI 測試（in-memory）用 Noop channels，避免真實通知權限彈窗／發聲干擾測試。
         let reminder: any RestEndReminding = inMemory
             ? RestEndReminder(notifications: NoopRestNotificationScheduling(),
@@ -79,7 +100,11 @@ struct AppDependencies {
                               store: reminderStore)
         return assemble(
             exerciseRepository: SpecDataFactory.makeExerciseRepository(
-                container: container, usageChecker: usageChecker
+                container: container,
+                usageChecker: usageChecker,
+                // 內建動作清單的名稱要跟著 app 的語言設定，而 repository 拿不到 SwiftUI
+                // Environment——所以讀同一個 languageStore（跟背景通知那條路一樣的做法）。
+                currentLanguage: { languageStore.load() ?? .fallback }
             ),
             workoutRepository: workoutRepository,
             planRepository: planRepository,
@@ -91,6 +116,8 @@ struct AppDependencies {
             reminder: reminder,
             reminderStore: reminderStore,
             languageStore: languageStore,
+            weightUnitStore: weightUnitStore,
+            trainingPreferences: trainingPreferences,
             dataEraser: SwiftDataEraser(container: container, modelTypes: allModels)
         )
     }
@@ -108,6 +135,8 @@ struct AppDependencies {
         reminder: any RestEndReminding,
         reminderStore: any RestReminderPreferenceStoring,
         languageStore: any LanguagePreferenceStoring = InMemoryLanguageStore(),
+        weightUnitStore: any WeightUnitPreferenceStoring = InMemoryWeightUnitStore(),
+        trainingPreferences: any TrainingPreferenceStoring = InMemoryTrainingPreferenceStore(),
         dataEraser: any DataErasing = NoopDataEraser()
     ) -> AppDependencies {
         // Training 的 ExerciseCatalog port ← Spec 的 use case
@@ -133,25 +162,26 @@ struct AppDependencies {
             listTemplates: ListTemplates(repository: templateRepository),
             instantiateTemplate: InstantiateTemplate(
                 templateRepository: templateRepository, planRepository: planRepository,
-                exerciseCatalog: planCatalog, lastPerformedWeightLookup: lastPerformedWeightLookup,
+                preferences: trainingPreferences, lastPerformedWeightLookup: lastPerformedWeightLookup,
                 abilityValueLookup: abilityValueLookup
             ),
             listRotations: ListRotations(repository: rotationRepository),
             previewRotationUseCase: PreviewRotationWorkout(
                 rotationRepository: rotationRepository,
-                exerciseCatalog: planCatalog, lastPerformedWeightLookup: lastPerformedWeightLookup,
+                preferences: trainingPreferences, lastPerformedWeightLookup: lastPerformedWeightLookup,
                 abilityValueLookup: abilityValueLookup
             ),
             startRotationUseCase: StartRotation(
                 rotationRepository: rotationRepository, planRepository: planRepository,
-                exerciseCatalog: planCatalog, lastPerformedWeightLookup: lastPerformedWeightLookup,
+                preferences: trainingPreferences, lastPerformedWeightLookup: lastPerformedWeightLookup,
                 abilityValueLookup: abilityValueLookup
             ),
             getActiveRestDay: GetActiveRestDay(
                 programRepository: programRepository, assignmentRepository: programAssignmentRepository
             ),
             today: { DayDate(Date()) },
-            listExercises: ListExercises(repository: exerciseRepository)
+            listExercises: ListExercises(repository: exerciseRepository),
+            currentLanguage: { languageStore.load() ?? .fallback }
         )
         let planProgress = PlanProgressAdapter(markDone: MarkPlanWorkoutDone(repository: planRepository))
 
@@ -189,11 +219,13 @@ struct AppDependencies {
                     detectPersonalRecords: DetectPersonalRecords(repository: workoutRepository),
                     exerciseCatalog: catalog,
                     plannedProvider: plannedProvider,
-                    reminder: reminder
+                    reminder: reminder,
+                    weightUnitStore: weightUnitStore,
+                    preferences: trainingPreferences
                 )
             },
             makeHistoryViewModel: {
-                HistoryViewModel(reading: historyReading, editing: historyReading)
+                HistoryViewModel(reading: historyReading, editing: historyReading, preferences: trainingPreferences)
             },
             makePlanScheduleViewModel: {
                 PlanScheduleViewModel(
@@ -204,7 +236,7 @@ struct AppDependencies {
                     listTemplates: ListTemplates(repository: templateRepository),
                     instantiateTemplate: InstantiateTemplate(
                         templateRepository: templateRepository, planRepository: planRepository,
-                        exerciseCatalog: planCatalog, lastPerformedWeightLookup: lastPerformedWeightLookup,
+                        preferences: trainingPreferences, lastPerformedWeightLookup: lastPerformedWeightLookup,
                         abilityValueLookup: abilityValueLookup
                     ),
                     listPrograms: ListPrograms(repository: programRepository),
@@ -215,7 +247,7 @@ struct AppDependencies {
                         programRepository: programRepository,
                         assignmentRepository: programAssignmentRepository,
                         planRepository: planRepository,
-                        exerciseCatalog: planCatalog,
+                        preferences: trainingPreferences,
                         lastPerformedWeightLookup: lastPerformedWeightLookup,
                         abilityValueLookup: abilityValueLookup
                     ),
@@ -226,11 +258,12 @@ struct AppDependencies {
                     ),
                     materializeProjection: MaterializeProjectedWorkout(
                         planRepository: planRepository,
-                        exerciseCatalog: planCatalog,
+                        preferences: trainingPreferences,
                         lastPerformedWeightLookup: lastPerformedWeightLookup,
                         abilityValueLookup: abilityValueLookup
                     ),
-                    exerciseCatalog: planCatalog
+                    exerciseCatalog: planCatalog,
+                    preferences: trainingPreferences
                 )
             },
             makeTemplateListViewModel: {
@@ -240,7 +273,8 @@ struct AppDependencies {
                     updateTemplate: UpdateTemplate(repository: templateRepository),
                     deleteTemplate: DeleteTemplate(repository: templateRepository),
                     duplicateTemplate: DuplicateTemplate(repository: templateRepository),
-                    exerciseCatalog: planCatalog
+                    exerciseCatalog: planCatalog,
+                    preferences: trainingPreferences
                 )
             },
             makeRotationListViewModel: {
@@ -253,7 +287,8 @@ struct AppDependencies {
                     setRotationIntensityFactor: SetRotationIntensityFactor(repository: rotationRepository),
                     deleteRotation: DeleteRotation(repository: rotationRepository),
                     listTemplates: ListTemplates(repository: templateRepository),
-                    exerciseCatalog: planCatalog
+                    exerciseCatalog: planCatalog,
+                    preferences: trainingPreferences
                 )
             },
             makeRotationDetailViewModel: { rotationId in
@@ -311,6 +346,8 @@ struct AppDependencies {
                     iconSwitcher: UIApplicationIconSwitcher(),
                     restReminderStore: reminderStore,
                     languageStore: languageStore,
+                    weightUnitStore: weightUnitStore,
+                    preferences: trainingPreferences,
                     dataEraser: dataEraser,
                     onErased: onErased
                 )
@@ -335,7 +372,7 @@ private struct SpecCatalogAdapter: ExerciseCatalog {
 
     func exercises() async throws -> [CatalogExercise] {
         try await listExercises(muscleGroup: nil).map {
-            CatalogExercise(id: $0.id, name: $0.name, muscleGroup: $0.muscleGroup)
+            CatalogExercise(id: $0.id, name: $0.name, muscleGroup: $0.muscleGroup, equipment: $0.equipment)
         }
     }
 }

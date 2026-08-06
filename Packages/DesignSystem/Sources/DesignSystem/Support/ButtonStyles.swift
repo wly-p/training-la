@@ -3,6 +3,10 @@ import SwiftUI
 // 模板 7：按鈕
 // 規則：一個畫面最多一顆實心赭紅（主要操作），其餘降級為線框／文字。
 // 互動：按下實心 → accent-700（破壞性 → danger-800）；按下線框／文字 → text @6%。無縮放動畫。
+//
+// 水平 padding 要寫在 `.frame(maxWidth: .infinity)` **之前**：全寬使用時它被撐開、看不出差別，
+// 但呼叫端一旦加 `.fixedSize(horizontal: true)`（例如 EmptyState 的按鈕要內容寬），
+// 沒有水平 padding 的膠囊就會直接貼死文字，看起來又小又擠。
 
 /// 主要：capsule、accent 底、bg 字、15.5pt weight 700。
 public struct TLPrimaryButtonStyle: ButtonStyle {
@@ -11,6 +15,7 @@ public struct TLPrimaryButtonStyle: ButtonStyle {
         configuration.label
             .font(TLFont.zh(15.5, .bold))
             .foregroundStyle(TLColor.bg)
+            .padding(.horizontal, 24)
             .frame(maxWidth: .infinity)
             .padding(.vertical, 17.5)
             .background(configuration.isPressed ? TLColor.accent700 : TLColor.accent)
@@ -26,6 +31,7 @@ public struct TLSecondaryButtonStyle: ButtonStyle {
         configuration.label
             .font(TLFont.zh(15.5, .bold))
             .foregroundStyle(TLColor.text)
+            .padding(.horizontal, 24)
             .frame(maxWidth: .infinity)
             .padding(.vertical, 17.5)
             .background(configuration.isPressed ? TLColor.text.opacity(0.06) : Color.clear)
@@ -53,6 +59,7 @@ public struct TLDestructiveButtonStyle: ButtonStyle {
         configuration.label
             .font(TLFont.zh(15.5, .bold))
             .foregroundStyle(TLColor.bg)
+            .padding(.horizontal, 24)
             .frame(maxWidth: .infinity)
             .padding(.vertical, 17.5)
             .background(configuration.isPressed ? TLColor.danger800 : TLColor.danger600)

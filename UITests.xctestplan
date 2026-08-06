@@ -2,9 +2,18 @@
   "configurations" : [
     {
       "id" : "A010CCF7-BA7E-4CB4-BB15-9D264BFF382F",
-      "name" : "Configuration 1",
+      "name" : "zh-Hant",
       "options" : {
-
+        "language" : "zh-Hant",
+        "region" : "TW"
+      }
+    },
+    {
+      "id" : "6F2E1C4B-9A73-4D58-8E11-2B7C5D0F3A96",
+      "name" : "en",
+      "options" : {
+        "language" : "en",
+        "region" : "US"
       }
     }
   ],

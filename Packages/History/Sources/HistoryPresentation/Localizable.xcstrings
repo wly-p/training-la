@@ -104,6 +104,7 @@
       }
     },
     "history.col.exercise" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -878,6 +879,22 @@
     },
     "weight" : {
 
+    },
+    "history.month %lld" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Month %lld"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld 月"
+          }
+        }
+      }
     }
   },
   "version" : "1.0"

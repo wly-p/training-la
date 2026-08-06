@@ -118,6 +118,8 @@ public struct ListRow<Leading: View, Trailing: View>: View {
     private let leading: Leading
     private let title: Text
     private let subtitle: Text?
+    /// 動作名右側的器材小標；nil＝不是動作列。名稱允許重複，靠它分辨（handoff-15 B 節）。
+    private let equipment: String?
     private let trailing: Trailing
     private let showChevron: Bool
     private let onTap: (() -> Void)?
@@ -125,6 +127,7 @@ public struct ListRow<Leading: View, Trailing: View>: View {
     public init(
         title: Text,
         subtitle: Text? = nil,
+        equipment: String? = nil,
         showChevron: Bool = false,
         onTap: (() -> Void)? = nil,
         @ViewBuilder leading: () -> Leading = { EmptyView() },
@@ -132,6 +135,7 @@ public struct ListRow<Leading: View, Trailing: View>: View {
     ) {
         self.title = title
         self.subtitle = subtitle
+        self.equipment = equipment
         self.showChevron = showChevron
         self.onTap = onTap
         self.leading = leading()
@@ -142,11 +146,16 @@ public struct ListRow<Leading: View, Trailing: View>: View {
         HStack(spacing: TLSpace.gapM) {
             leading
             VStack(alignment: .leading, spacing: 2) {
-                title
+                let styledTitle = title
                     .font(TLFont.zh(TLFont.rowTitle))          // 15pt weight 500
-                    .foregroundStyle(TLColor.text)
-                    .lineLimit(1)
-                    .truncationMode(.tail)                      // 列表列一行截斷加 …
+                    .foregroundColor(TLColor.text)
+                if let equipment {
+                    ExerciseNameWithEquipment(title: styledTitle, equipment: equipment)
+                } else {
+                    styledTitle
+                        .lineLimit(1)
+                        .truncationMode(.tail)                  // 列表列一行截斷加 …
+                }
                 if let subtitle {
                     subtitle
                         .font(TLFont.zh(TLFont.rowSub, .regular))

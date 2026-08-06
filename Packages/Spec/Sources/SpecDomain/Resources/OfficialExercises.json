@@ -1,0 +1,482 @@
+[
+  {
+    "id": "064E921A-2BC7-472F-8D21-4BDAC0111238",
+    "key": "exercise.benchPress.barbell",
+    "muscleGroup": "chest",
+    "equipment": "barbell"
+  },
+  {
+    "id": "56041906-A597-4D30-8624-28DAB24E3199",
+    "key": "exercise.benchPress.dumbbell",
+    "muscleGroup": "chest",
+    "equipment": "dumbbell"
+  },
+  {
+    "id": "6FAA92D9-4113-4A48-BD09-0FFA7EF2B0E0",
+    "key": "exercise.chestPress.machine",
+    "muscleGroup": "chest",
+    "equipment": "machine"
+  },
+  {
+    "id": "11B865C4-168B-41D7-8D1E-86ED054EFC3F",
+    "key": "exercise.inclineBenchPress.barbell",
+    "muscleGroup": "chest",
+    "equipment": "barbell"
+  },
+  {
+    "id": "6C9C445B-3B0B-44E1-BBD0-CAF7FA8B912A",
+    "key": "exercise.inclineBenchPress.dumbbell",
+    "muscleGroup": "chest",
+    "equipment": "dumbbell"
+  },
+  {
+    "id": "9D1654F8-0FD2-4BE4-A704-3E3BB094411F",
+    "key": "exercise.declineBenchPress.barbell",
+    "muscleGroup": "chest",
+    "equipment": "barbell"
+  },
+  {
+    "id": "ABED896B-6D11-4648-8A5E-2D2E99C2A514",
+    "key": "exercise.dumbbellFly.dumbbell",
+    "muscleGroup": "chest",
+    "equipment": "dumbbell"
+  },
+  {
+    "id": "2307A482-B54F-4F3E-B3CD-1628C9795797",
+    "key": "exercise.cableCrossover.cable",
+    "muscleGroup": "chest",
+    "equipment": "cable"
+  },
+  {
+    "id": "70A6FFF0-41F0-4601-8A19-29A298C36D44",
+    "key": "exercise.pecDeck.machine",
+    "muscleGroup": "chest",
+    "equipment": "machine"
+  },
+  {
+    "id": "F65D727A-AB4A-4B38-8358-1F0ADFF60529",
+    "key": "exercise.pushUp.bodyweight",
+    "muscleGroup": "chest",
+    "equipment": "bodyweight"
+  },
+  {
+    "id": "43612A7E-C095-4665-8771-CA920F60D8A5",
+    "key": "exercise.chestDip.bodyweight",
+    "muscleGroup": "chest",
+    "equipment": "bodyweight"
+  },
+  {
+    "id": "09C57ADE-D6D8-4E81-87DC-AD24DA61E0EB",
+    "key": "exercise.barbellRow.barbell",
+    "muscleGroup": "back",
+    "equipment": "barbell"
+  },
+  {
+    "id": "943A3A4A-47F8-4CE6-81AD-C4133F88982F",
+    "key": "exercise.oneArmRow.dumbbell",
+    "muscleGroup": "back",
+    "equipment": "dumbbell"
+  },
+  {
+    "id": "C7662F9C-464A-42AA-BEA2-C6058D3053F4",
+    "key": "exercise.seatedCableRow.cable",
+    "muscleGroup": "back",
+    "equipment": "cable"
+  },
+  {
+    "id": "A6E2CD99-4E04-4A08-8779-3A4972AEFDD0",
+    "key": "exercise.seatedRow.machine",
+    "muscleGroup": "back",
+    "equipment": "machine"
+  },
+  {
+    "id": "C736F092-277D-4AC4-81C2-3F87C1CB5240",
+    "key": "exercise.latPulldown.cable",
+    "muscleGroup": "back",
+    "equipment": "cable"
+  },
+  {
+    "id": "AF76BE32-A808-4F13-A8AE-FD53997637FC",
+    "key": "exercise.pullUp.bodyweight",
+    "muscleGroup": "back",
+    "equipment": "bodyweight"
+  },
+  {
+    "id": "DDB4B8D7-9F15-4D4B-B284-295E4598E93E",
+    "key": "exercise.assistedPullUp.machine",
+    "muscleGroup": "back",
+    "equipment": "machine"
+  },
+  {
+    "id": "CE69A81E-CB4A-4503-AA38-CA014D116BBA",
+    "key": "exercise.chinUp.bodyweight",
+    "muscleGroup": "back",
+    "equipment": "bodyweight"
+  },
+  {
+    "id": "A2A5B321-71C9-4ECD-B496-8A38277173BB",
+    "key": "exercise.tBarRow.barbell",
+    "muscleGroup": "back",
+    "equipment": "barbell"
+  },
+  {
+    "id": "DD8954DB-FDB6-4651-8007-FEF8F7C87540",
+    "key": "exercise.backSquat.barbell",
+    "muscleGroup": "legs",
+    "equipment": "barbell"
+  },
+  {
+    "id": "9D023B74-2541-4133-A2D5-F58B31E4AFD3",
+    "key": "exercise.frontSquat.barbell",
+    "muscleGroup": "legs",
+    "equipment": "barbell"
+  },
+  {
+    "id": "6E8C1B69-DD89-45B1-BFD3-2DEC12FFEFF1",
+    "key": "exercise.hackSquat.machine",
+    "muscleGroup": "legs",
+    "equipment": "machine"
+  },
+  {
+    "id": "4F7CCE2B-E6FB-4CE4-943A-D134A6914A97",
+    "key": "exercise.deadlift.barbell",
+    "muscleGroup": "legs",
+    "equipment": "barbell"
+  },
+  {
+    "id": "B6B936B1-F88E-4EEA-980D-24CB51D6DD89",
+    "key": "exercise.romanianDeadlift.barbell",
+    "muscleGroup": "legs",
+    "equipment": "barbell"
+  },
+  {
+    "id": "CEF0A417-5E98-4CF1-A753-A787BAFA9EA1",
+    "key": "exercise.hexBarDeadlift.hex_bar",
+    "muscleGroup": "legs",
+    "equipment": "hex_bar"
+  },
+  {
+    "id": "F7631EF6-8390-450F-97C0-7BFE0B0BDF55",
+    "key": "exercise.legPress.machine",
+    "muscleGroup": "legs",
+    "equipment": "machine"
+  },
+  {
+    "id": "555B32CC-3F4A-4E2A-A0B7-C466BAE3B916",
+    "key": "exercise.bulgarianSplitSquat.dumbbell",
+    "muscleGroup": "legs",
+    "equipment": "dumbbell"
+  },
+  {
+    "id": "589541C7-0052-469D-B3EC-28CA369ED0B9",
+    "key": "exercise.lunge.dumbbell",
+    "muscleGroup": "legs",
+    "equipment": "dumbbell"
+  },
+  {
+    "id": "10677DBF-EEF1-49D0-88DE-91C23A9E8EEF",
+    "key": "exercise.legExtension.machine",
+    "muscleGroup": "legs",
+    "equipment": "machine"
+  },
+  {
+    "id": "05170A11-8F3D-4072-B951-BD3562B0DDBD",
+    "key": "exercise.legCurl.machine",
+    "muscleGroup": "legs",
+    "equipment": "machine"
+  },
+  {
+    "id": "2BF07305-72A8-4B18-9C6D-8742134D392E",
+    "key": "exercise.hipThrust.barbell",
+    "muscleGroup": "legs",
+    "equipment": "barbell"
+  },
+  {
+    "id": "F7151B34-2EEB-4652-B45F-82A448457B7D",
+    "key": "exercise.hipThrustMachine.machine",
+    "muscleGroup": "legs",
+    "equipment": "machine"
+  },
+  {
+    "id": "E93A182D-8F27-4849-8908-37BA007F8C9D",
+    "key": "exercise.hipAbduction.machine",
+    "muscleGroup": "legs",
+    "equipment": "machine"
+  },
+  {
+    "id": "622D173C-61AB-4A8D-AB23-302D81FD323B",
+    "key": "exercise.lateralBandWalk.band",
+    "muscleGroup": "legs",
+    "equipment": "band"
+  },
+  {
+    "id": "DE8FB875-17E3-4E6D-AE06-F490CC0E863F",
+    "key": "exercise.hipAdduction.machine",
+    "muscleGroup": "legs",
+    "equipment": "machine"
+  },
+  {
+    "id": "35036B91-B5E8-42F7-A789-31463B7A7687",
+    "key": "exercise.calfRaise.machine",
+    "muscleGroup": "legs",
+    "equipment": "machine"
+  },
+  {
+    "id": "B7B6DC4D-6F7A-401D-88DE-71D8E6FB6EBD",
+    "key": "exercise.overheadPress.barbell",
+    "muscleGroup": "shoulders",
+    "equipment": "barbell"
+  },
+  {
+    "id": "58C4E3D6-1F32-410E-911B-9AC35C13B63D",
+    "key": "exercise.shoulderPress.dumbbell",
+    "muscleGroup": "shoulders",
+    "equipment": "dumbbell"
+  },
+  {
+    "id": "0DBB1DAA-B99F-4E14-8F5F-287AD1D54916",
+    "key": "exercise.shoulderPress.machine",
+    "muscleGroup": "shoulders",
+    "equipment": "machine"
+  },
+  {
+    "id": "814CB6F8-4FE5-4C09-821C-4A3182A2DAC4",
+    "key": "exercise.arnoldPress.dumbbell",
+    "muscleGroup": "shoulders",
+    "equipment": "dumbbell"
+  },
+  {
+    "id": "179DF2AE-D497-4231-8B23-B1E998F665A9",
+    "key": "exercise.lateralRaise.dumbbell",
+    "muscleGroup": "shoulders",
+    "equipment": "dumbbell"
+  },
+  {
+    "id": "994745D5-2F5D-48D4-A679-FE107C8A54E0",
+    "key": "exercise.lateralRaiseMachine.machine",
+    "muscleGroup": "shoulders",
+    "equipment": "machine"
+  },
+  {
+    "id": "D49896B2-D7E5-4C27-9F87-03C76A9FEED1",
+    "key": "exercise.frontRaise.dumbbell",
+    "muscleGroup": "shoulders",
+    "equipment": "dumbbell"
+  },
+  {
+    "id": "09FD80E0-BF95-4E20-860C-A12FD5F6A8B7",
+    "key": "exercise.rearDeltFly.dumbbell",
+    "muscleGroup": "shoulders",
+    "equipment": "dumbbell"
+  },
+  {
+    "id": "C6F4E179-4AE5-471B-829C-B915D35B96A3",
+    "key": "exercise.facePull.cable",
+    "muscleGroup": "shoulders",
+    "equipment": "cable"
+  },
+  {
+    "id": "3E3CC0C3-5531-4BF1-9871-B38844A965C9",
+    "key": "exercise.bandPullApart.band",
+    "muscleGroup": "shoulders",
+    "equipment": "band"
+  },
+  {
+    "id": "0287779F-4934-43E5-B3DC-FBB57FE92066",
+    "key": "exercise.uprightRow.barbell",
+    "muscleGroup": "shoulders",
+    "equipment": "barbell"
+  },
+  {
+    "id": "D4FC6904-BA6A-4E96-BACB-2613B66C0A12",
+    "key": "exercise.shrug.dumbbell",
+    "muscleGroup": "shoulders",
+    "equipment": "dumbbell"
+  },
+  {
+    "id": "37B524B7-6A9E-43D0-B1CD-3C2D3619D68D",
+    "key": "exercise.barbellCurl.barbell",
+    "muscleGroup": "arms",
+    "equipment": "barbell"
+  },
+  {
+    "id": "758D9223-D239-48E2-B597-46FBE560BC2C",
+    "key": "exercise.dumbbellCurl.dumbbell",
+    "muscleGroup": "arms",
+    "equipment": "dumbbell"
+  },
+  {
+    "id": "EDB45C1E-E296-4355-B55B-73162FE69C5D",
+    "key": "exercise.machineCurl.machine",
+    "muscleGroup": "arms",
+    "equipment": "machine"
+  },
+  {
+    "id": "3F077B67-EFCB-49ED-8E8C-33E9D436489F",
+    "key": "exercise.preacherCurl.barbell",
+    "muscleGroup": "arms",
+    "equipment": "barbell"
+  },
+  {
+    "id": "D7ED19C7-D771-4FCC-8174-71917D0C7894",
+    "key": "exercise.hammerCurl.dumbbell",
+    "muscleGroup": "arms",
+    "equipment": "dumbbell"
+  },
+  {
+    "id": "FCC41472-679B-496B-A728-4999C5497B9E",
+    "key": "exercise.concentrationCurl.dumbbell",
+    "muscleGroup": "arms",
+    "equipment": "dumbbell"
+  },
+  {
+    "id": "84B624A7-9868-435F-B9AA-9372C0D23CD2",
+    "key": "exercise.tricepsPushdown.cable",
+    "muscleGroup": "arms",
+    "equipment": "cable"
+  },
+  {
+    "id": "519AC3E4-01BD-4C36-84DC-97A318523FCC",
+    "key": "exercise.overheadTricepsExtension.dumbbell",
+    "muscleGroup": "arms",
+    "equipment": "dumbbell"
+  },
+  {
+    "id": "7BB73268-73AC-4EAC-BD37-F7C520FD68A6",
+    "key": "exercise.tricepsExtensionMachine.machine",
+    "muscleGroup": "arms",
+    "equipment": "machine"
+  },
+  {
+    "id": "78741A9C-5B1F-4709-BFE7-B20851A6F4F7",
+    "key": "exercise.closeGripBenchPress.barbell",
+    "muscleGroup": "arms",
+    "equipment": "barbell"
+  },
+  {
+    "id": "8919D5E0-FA95-4E89-B53F-DA340490B6E0",
+    "key": "exercise.tricepsDip.bodyweight",
+    "muscleGroup": "arms",
+    "equipment": "bodyweight"
+  },
+  {
+    "id": "1248729D-0E21-4245-B7CE-6DC07A130ADB",
+    "key": "exercise.plank.bodyweight",
+    "muscleGroup": "core",
+    "equipment": "bodyweight"
+  },
+  {
+    "id": "59EB8A88-EDF7-4FBB-9876-459981998BE7",
+    "key": "exercise.sidePlank.bodyweight",
+    "muscleGroup": "core",
+    "equipment": "bodyweight"
+  },
+  {
+    "id": "24A057A0-B01F-4183-ADF8-372E46DCC23C",
+    "key": "exercise.crunch.bodyweight",
+    "muscleGroup": "core",
+    "equipment": "bodyweight"
+  },
+  {
+    "id": "C318A48C-F940-46EB-941F-39A8D891DDAF",
+    "key": "exercise.abCrunchMachine.machine",
+    "muscleGroup": "core",
+    "equipment": "machine"
+  },
+  {
+    "id": "8EDE843F-9302-4646-9AAE-45FB9C8117CE",
+    "key": "exercise.hangingLegRaise.bodyweight",
+    "muscleGroup": "core",
+    "equipment": "bodyweight"
+  },
+  {
+    "id": "28DDBDE2-2E85-4B62-A51F-B3C5BDCE6291",
+    "key": "exercise.russianTwist.bodyweight",
+    "muscleGroup": "core",
+    "equipment": "bodyweight"
+  },
+  {
+    "id": "49A62E76-E95E-4974-B8F1-1915E571260B",
+    "key": "exercise.deadBug.bodyweight",
+    "muscleGroup": "core",
+    "equipment": "bodyweight"
+  },
+  {
+    "id": "A1F3E3EE-1313-4846-9D69-5AF38202D23A",
+    "key": "exercise.birdDog.bodyweight",
+    "muscleGroup": "core",
+    "equipment": "bodyweight"
+  },
+  {
+    "id": "31A9C481-95EC-4807-B32E-4F78E2763B93",
+    "key": "exercise.abWheelRollout.other",
+    "muscleGroup": "core",
+    "equipment": "other"
+  },
+  {
+    "id": "7ABCB074-EE23-4C24-A9CA-761517A013E0",
+    "key": "exercise.kettlebellSwing.kettlebell",
+    "muscleGroup": "functional",
+    "equipment": "kettlebell"
+  },
+  {
+    "id": "48686F97-CFFA-4E2D-A292-40BD7D60D562",
+    "key": "exercise.turkishGetUp.kettlebell",
+    "muscleGroup": "functional",
+    "equipment": "kettlebell"
+  },
+  {
+    "id": "7974DBA3-C136-410A-8487-7C13AA02F3B5",
+    "key": "exercise.snatch.barbell",
+    "muscleGroup": "functional",
+    "equipment": "barbell"
+  },
+  {
+    "id": "8F258625-ED17-4D88-8589-0A64635EAA9E",
+    "key": "exercise.powerClean.barbell",
+    "muscleGroup": "functional",
+    "equipment": "barbell"
+  },
+  {
+    "id": "90C115E8-CA60-444E-A185-98E16222981C",
+    "key": "exercise.cleanAndJerk.barbell",
+    "muscleGroup": "functional",
+    "equipment": "barbell"
+  },
+  {
+    "id": "62ED6597-EA5C-41A7-A921-379E2A6C85E6",
+    "key": "exercise.burpee.bodyweight",
+    "muscleGroup": "functional",
+    "equipment": "bodyweight"
+  },
+  {
+    "id": "057CE161-1441-40EF-A44A-C2DB9C445C42",
+    "key": "exercise.boxJump.bodyweight",
+    "muscleGroup": "functional",
+    "equipment": "bodyweight"
+  },
+  {
+    "id": "45E41605-9A1A-4364-9434-14F5D51CDCE5",
+    "key": "exercise.medicineBallSlam.other",
+    "muscleGroup": "functional",
+    "equipment": "other"
+  },
+  {
+    "id": "504A7ACF-EA71-4693-BB96-F365B3B0E1A7",
+    "key": "exercise.battleRope.other",
+    "muscleGroup": "functional",
+    "equipment": "other"
+  },
+  {
+    "id": "0425C6E4-7DA5-4AC2-8929-3864F30111A1",
+    "key": "exercise.sledPushDrag.other",
+    "muscleGroup": "functional",
+    "equipment": "other"
+  },
+  {
+    "id": "1E14DD3F-F83F-428E-AAA0-3ED882D56F58",
+    "key": "exercise.farmerSWalk.dumbbell",
+    "muscleGroup": "functional",
+    "equipment": "dumbbell"
+  }
+]

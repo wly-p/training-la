@@ -62,8 +62,8 @@ struct ActiveWorkoutMidWorkoutEditTests {
             discardWorkout: DiscardWorkout(repository: repo),
             lastPerformance: LastPerformance(repository: repo),
             exerciseCatalog: MockCatalog(items: [
-                CatalogExercise(id: benchId, name: "臥推", muscleGroup: .chest),
-                CatalogExercise(id: squatId, name: "深蹲", muscleGroup: .legs),
+                CatalogExercise(id: benchId, name: "臥推", muscleGroup: .chest, equipment: .barbell),
+                CatalogExercise(id: squatId, name: "深蹲", muscleGroup: .legs, equipment: .barbell),
             ]),
             plannedProvider: MockPlanProvider(blueprint: blueprint)
         )

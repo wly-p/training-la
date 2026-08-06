@@ -10,8 +10,13 @@ import SwiftUI
 /// 資料模型維持 `ExerciseTargetDraft`（每個動作統一的 組數×重量×次數＋休息，非逐組），
 /// 只換視覺、不改行為。
 struct PlanWorkoutFormView: View {
+    /// 目前語言：`localString` 要靠它才能查到 app 設定的語言（而非手機語系）。
+    @Environment(\.locale) private var locale
     let target: PlanFormTarget
     let catalog: [PlanCatalogExercise]
+    /// 使用者的重量級距偏好（見 `TrainingPreferenceStoring`）。原本依器材猜（`Equipment.weightStep`），
+    /// 但那是對典型健身房的假設而不是使用者的真實器材，已改成一律由設定決定。
+    let weightStep: Double
     let recentExerciseIds: [UUID]
     let readOnly: Bool
     let onSubmit: (String?, DayDate, [ExerciseTargetDraft]) async -> Void
@@ -27,12 +32,14 @@ struct PlanWorkoutFormView: View {
     init(
         target: PlanFormTarget,
         catalog: [PlanCatalogExercise],
+        weightStep: Double,
         recentExerciseIds: [UUID] = [],
         readOnly: Bool = false,
         onSubmit: @escaping (String?, DayDate, [ExerciseTargetDraft]) async -> Void
     ) {
         self.target = target
         self.catalog = catalog
+        self.weightStep = weightStep
         self.recentExerciseIds = recentExerciseIds
         self.readOnly = readOnly
         self.onSubmit = onSubmit
@@ -62,9 +69,9 @@ struct PlanWorkoutFormView: View {
             PickerSheet(
                 title: localText("plan.addExercise"),
                 searchPrompt: localText("plan.searchExercises"),
-                allItems: catalog.map(ExercisePickerItem.init),
+                allItems: catalog.map { ExercisePickerItem(exercise: $0, locale: locale) },
                 recentItemIds: recentExerciseIds,
-                filters: MuscleGroup.allCases.map { PickerSheetFilterChip(id: $0.rawValue, label: $0.displayName) },
+                filters: MuscleGroup.allCases.map { PickerSheetFilterChip(id: $0.rawValue, label: $0.displayName(locale)) },
                 matchesFilter: { item, filter in item.exercise.muscleGroup.rawValue == filter.id },
                 selection: .multiple(
                     selectedIds: $selectedExerciseIds,
@@ -78,7 +85,7 @@ struct PlanWorkoutFormView: View {
             if let index = drafts.firstIndex(where: { $0.id == draft.id }) {
                 DraftEditSheet(
                     exerciseName: name(for: draft.exerciseId),
-                    weightStep: weightStep(for: draft.exerciseId),
+                    weightStep: weightStep,
                     setCount: $drafts[index].setCount,
                     targetWeight: $drafts[index].targetWeight,
                     targetReps: $drafts[index].targetReps,
@@ -147,6 +154,7 @@ struct PlanWorkoutFormView: View {
         ListRow(
             title: Text(verbatim: name(for: draft.exerciseId)),
             subtitle: Text(verbatim: summary(for: draft)),
+            equipment: equipmentName(for: draft.exerciseId),
             onTap: { editingDraftId = draft.id },
             trailing: {
                 Text(verbatim: capsuleText(for: draft))
@@ -198,7 +206,7 @@ struct PlanWorkoutFormView: View {
             ScrollView {
                 VStack(alignment: .leading, spacing: TLSpace.section) {
                     VStack(alignment: .leading, spacing: 6) {
-                        Text(verbatim: name.isEmpty ? String(localized: "plan.view", bundle: .module) : name)
+                        Text(verbatim: name.isEmpty ? localString("plan.view", locale) : name)
                             .font(TLFont.zh(TLFont.pageTitle, .bold))
                             .foregroundStyle(TLColor.text)
                         Label { localText("plan.readOnly.hint") } icon: { Image(systemName: "checkmark.circle.fill") }
@@ -263,27 +271,31 @@ struct PlanWorkoutFormView: View {
     // MARK: - 顯示輔助
 
     private func name(for id: UUID) -> String {
-        catalog.first { $0.id == id }?.name ?? "動作"
-    }
-
-    private func weightStep(for id: UUID) -> Double {
-        catalog.first { $0.id == id }?.equipment.weightStep ?? 2.5
+        // 查不到＝該動作已被刪；正常流程進不來（刪除前有 ExerciseUsageChecker 擋）。
+        // 用中性符號而非任何語言的字，這裡拿不到 locale。
+        catalog.first { $0.id == id }?.name ?? "—"
     }
 
     /// 副標：組數＋休息，如「3 組 · 休息 60 秒」。
+    /// 器材顯示名（動作名允許重複，靠它分辨）。
+    private func equipmentName(for id: UUID) -> String {
+        (catalog.first { $0.id == id }?.equipment ?? .other).displayName(locale)
+    }
+
     private func summary(for draft: ExerciseTargetDraft) -> String {
-        var text = "\(draft.setCount) 組"
+        var text = String(format: localString("template.stats.sets %lld", locale), draft.setCount)
         if let rest = draft.restSec, rest > 0 {
-            text += " · " + String(format: String(localized: "plan.restSeconds \(rest)", bundle: .module))
+            text += " · " + String(format: localString("plan.restSeconds %lld", locale), rest)
         }
         return text
     }
 
-    /// 右側膠囊：重量 × 次數，如「20 × 8」；未填重量顯示「× 次數」。
+    /// 右側膠囊統一成「重量單位 × 次數」（例「20kg × 8」），跟範本編輯同一個格式。
+    /// 走 `Weight.displayString` 而不是自己拼——那份格式化會把浮點雜訊去掉。
     private func capsuleText(for draft: ExerciseTargetDraft) -> String {
         let reps = draft.targetReps ?? 0
         if let weight = draft.targetWeight {
-            return "\(formatNumber(weight.value)) × \(reps)"
+            return "\(weight.displayString) × \(reps)"
         }
         return "× \(reps)"
     }
@@ -296,6 +308,8 @@ private func formatNumber(_ v: Double) -> String {
 /// 單一動作草稿的編輯 sheet：組數（stepper）＋重量×次數（`DualValuePicker`）＋休息（stepper）。
 /// 對齊動作庫 `SetEditSheet` 的視覺與互動。
 private struct DraftEditSheet: View {
+    /// 目前語言：`localString` 要靠它才能查到 app 設定的語言（而非手機語系）。
+    @Environment(\.locale) private var locale
     let exerciseName: String
     let weightStep: Double
     @Binding var setCount: Int
@@ -329,7 +343,10 @@ private struct DraftEditSheet: View {
         _rest = State(initialValue: restSec.wrappedValue ?? 0)
     }
 
-    private var weightValues: [Double] { Array(stride(from: 0, through: 300, by: weightStep)) }
+    /// 這筆目標重量的單位；還沒有值時預設公斤。
+    private var weightUnit: WeightUnit { targetWeight?.unit ?? .kg }
+
+    private var weightValues: [Double] { WeightRange.values(for: weightUnit, step: weightStep) }
     private var repsValues: [Double] { Array(stride(from: 1, through: 30, by: 1)) }
 
     var body: some View {
@@ -344,13 +361,17 @@ private struct DraftEditSheet: View {
             DualValuePicker(
                 primaryValue: $weightValue,
                 primaryValues: weightValues,
-                primaryKicker: String(localized: "plan.weight", bundle: .module),
+                primaryKicker: localString("plan.weight", locale),
                 secondaryValue: $repsValue,
                 secondaryValues: repsValues,
-                secondaryKicker: String(localized: "plan.reps", bundle: .module),
+                secondaryKicker: localString("plan.reps", locale),
                 quickActions: [
-                    .init("-\(formatNumber(weightStep))") { weightValue = max(0, weightValue - weightStep) },
-                    .init("+\(formatNumber(weightStep))") { weightValue = min(300, weightValue + weightStep) },
+                    .init("-\(formatNumber(weightStep))") {
+                        weightValue = WeightRange.clamped(weightValue - weightStep, unit: weightUnit)
+                    },
+                    .init("+\(formatNumber(weightStep))") {
+                        weightValue = WeightRange.clamped(weightValue + weightStep, unit: weightUnit)
+                    },
                 ]
             )
             Spacer(minLength: 0)

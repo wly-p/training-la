@@ -10,7 +10,7 @@ enum FinishSummaryFormatting {
     static func achieved(_ set: WorkoutSet) -> Bool? {
         guard set.status == .done, let targetWeight = set.targetWeight, let targetReps = set.targetReps
         else { return nil }
-        return set.weight.value >= targetWeight.value && set.reps >= targetReps
+        return set.weight >= targetWeight && set.reps >= targetReps
     }
 
     /// 「達標 X/Y 組」：分母只算「真的被判定過」的組數，free 加練/跳過都不計入。
@@ -19,17 +19,18 @@ enum FinishSummaryFormatting {
         return (judged.filter { $0 }.count, judged.count)
     }
 
-    /// 實際總量（只算 `.done` 的組；跳過的組沒有真的舉起來，不算）。
+    /// 實際總量（公斤；只算 `.done` 的組，跳過的組沒有真的舉起來不算）。
+    /// 加總前一律換算成公斤——這種聚合 `Comparable` 幫不上，混單位相加的數字沒有意義。
     static func totalVolume(_ sets: [WorkoutSet]) -> Double {
         sets.filter { $0.status == .done }
-            .reduce(0) { $0 + $1.weight.value * Double($1.reps) }
+            .reduce(0) { $0 + $1.weight.kilograms * Double($1.reps) }
     }
 
-    /// 目標總量：只加總「有目標快照」的組（照課表的部分），自由加練沒有目標、不計入。
+    /// 目標總量（公斤）：只加總「有目標快照」的組（照課表的部分），自由加練沒有目標、不計入。
     static func targetVolume(_ sets: [WorkoutSet]) -> Double {
         sets.compactMap { set -> Double? in
             guard let targetWeight = set.targetWeight, let targetReps = set.targetReps else { return nil }
-            return targetWeight.value * Double(targetReps)
+            return targetWeight.kilograms * Double(targetReps)
         }
         .reduce(0, +)
     }
@@ -47,10 +48,14 @@ enum FinishSummaryFormatting {
 
     static func exerciseSummaries(_ blocks: [ExerciseBlock], nameLookup: (UUID) -> String) -> [ExerciseSummary] {
         blocks.map { block in
-            let weights = block.sets.map(\.weight.value)
+            // 取 Weight 本身的 min/max（已換算單位），不要拿 .value 比 —— 混單位時
+            // 用 .value 挑出來的「最輕/最重」會是錯的。
+            let weights = block.sets.map(\.weight)
             let range: String
             if let min = weights.min(), let max = weights.max() {
-                range = min == max ? WeightDisplay.value(min) : "\(WeightDisplay.value(min))→\(WeightDisplay.value(max))"
+                range = min == max
+                    ? WeightDisplay.value(min.value)
+                    : "\(WeightDisplay.value(min.value))→\(WeightDisplay.value(max.value))"
             } else {
                 range = "—"
             }

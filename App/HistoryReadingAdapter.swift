@@ -34,7 +34,8 @@ struct HistoryReadingAdapter: WorkoutHistoryReading, WorkoutHistoryEditing {
         let blocks = workout.blocks.map { block in
             HistoryBlock(
                 id: block.exerciseIndex,
-                exerciseName: names[block.exerciseId]?.name ?? "動作",
+                exerciseName: names[block.exerciseId]?.name ?? "—",
+                equipment: names[block.exerciseId]?.equipment ?? .other,
                 sets: block.sets.map(Self.line(from:))
             )
         }
@@ -48,7 +49,10 @@ struct HistoryReadingAdapter: WorkoutHistoryReading, WorkoutHistoryEditing {
         return usedIds
             .compactMap { id -> HistoryExerciseOption? in
                 guard let exercise = names[id] else { return nil }
-                return HistoryExerciseOption(id: id, name: exercise.name, muscleGroup: exercise.muscleGroup)
+                return HistoryExerciseOption(
+                    id: id, name: exercise.name,
+                    muscleGroup: exercise.muscleGroup, equipment: exercise.equipment
+                )
             }
             .sorted { $0.name.localizedStandardCompare($1.name) == .orderedAscending }
     }

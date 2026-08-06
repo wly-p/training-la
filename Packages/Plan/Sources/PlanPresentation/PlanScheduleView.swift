@@ -86,6 +86,7 @@ public struct PlanScheduleView: View {
                 PlanWorkoutFormView(
                     target: target,
                     catalog: viewModel.catalog,
+                    weightStep: viewModel.weightStep,
                     readOnly: target.isDone
                 ) { name, date, drafts in
                     if case .edit(let plan) = target {
@@ -154,7 +155,7 @@ public struct PlanScheduleView: View {
     }
 
     private var monthKicker: Text {
-        Text(verbatim: String(format: "%d 月", viewModel.selectedDate.month))
+        Text(verbatim: String(format: localString("plan.month %lld", locale), viewModel.selectedDate.month))
     }
 
     // MARK: - 當天課表

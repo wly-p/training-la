@@ -3,12 +3,16 @@ import SharedKernel
 
 /// 重量表達式（逐組屬性）：範本／循環／長期的 spec 存這個；一旦投影/實例化成當日排課，
 /// 一律收斂成 `.absolute`（或 nil，查不到歷史/能力值時）——materialize 後的 `PlanWorkout.sets`
-/// 不會出現 `.relativeToLast`／`.percentOf1RM`（這個 invariant 由投影用例維持，不是型別強制）。
+/// 不會出現 `.relativeToLast`／`.percentOfMax`（這個 invariant 由投影用例維持，不是型別強制）。
 public enum WeightExpression: Equatable, Sendable {
     case absolute(Weight)
     case relativeToLast(delta: Weight)
-    /// 這個階段練「能力值」的 p%（p 為 0–100 的百分比數字）。需要該動作的能力值(1RM)才算得出公斤。
-    case percentOf1RM(Double)
+    /// 這個階段練「能力值」的 p%（p 為 0–100 的百分比數字）。需要該動作的能力值（實際推過的
+    /// 最大重量）才算得出公斤。
+    ///
+    /// 舊名 `percentOf1RM`——能力值不是估算 1RM 而是實測最大重量（handoff-15 A 節），故更名。
+    /// **儲存字串仍是 `"percentOf1RM"`**，見 `WeightExpressionCoding` 與 `WeightSourceInfo.Kind`。
+    case percentOfMax(Double)
 }
 
 extension WeightExpression {
@@ -35,22 +39,27 @@ public protocol LastPerformedWeightLookup: Sendable {
     func lastPerformedWeight(exerciseId: UUID) async throws -> LastPerformedSet?
 }
 
-/// 查某動作目前的能力值(1RM)。Plan package 不依賴 Ability，由 App 層 adapter 實作、注入。
+/// 查某動作目前的能力值（實際推過的最大重量）。Plan package 不依賴 Ability，由 App 層 adapter 實作、注入。
 public protocol AbilityValueLookup: Sendable {
     func abilityValue(exerciseId: UUID) async throws -> Weight?
 }
 
 /// 材料化那一刻「這個數字怎麼來的」快照（14c 用）。跟 `targetWeight` 一起鎖死——
-/// 之後改 1RM／強度基準／補新的訓練紀錄，都不會回頭改這份說明（見 91-weight-model.md §5）。
+/// 之後改最大重量／強度基準／補新的訓練紀錄，都不會回頭改這份說明（見 91-weight-model.md §5）。
 public struct WeightSourceInfo: Equatable, Sendable, Codable {
-    public enum Kind: String, Sendable, Codable { case none, absolute, relativeToLast, percentOf1RM }
+    public enum Kind: String, Sendable, Codable {
+        case none, absolute, relativeToLast
+        /// rawValue 維持舊字串：這個 enum 會被 Codable 寫進 `PlanSetModel` 的 JSON 快照，
+        /// 改 rawValue 等於讓既有資料解不出來。
+        case percentOfMax = "percentOf1RM"
+    }
 
     public let kind: Kind
     /// `.absolute` 套用強度倍率之前的原始公斤數（14c 算式「120 kg × 75%」的 120）。
     public let base: Weight?
-    /// `.percentOf1RM` 的百分比數字。
+    /// `.percentOfMax` 的百分比數字。
     public let percent: Double?
-    /// `.percentOf1RM` 當時查到的能力值(1RM)；nil＝當時還沒設，算不出來。
+    /// `.percentOfMax` 當時查到的能力值（最大重量）；nil＝當時還沒設，算不出來。
     public let abilityValue: Weight?
     /// `.relativeToLast` 的增減量。
     public let delta: Weight?
@@ -82,14 +91,14 @@ public struct WeightSourceInfo: Equatable, Sendable, Codable {
         case .none: return true
         case .absolute: return false
         case .relativeToLast: return lastWeight == nil
-        case .percentOf1RM: return abilityValue == nil
+        case .percentOfMax: return abilityValue == nil
         }
     }
 }
 
 /// 投影/實例化收斂：把重量表達式算成確定公斤，同時記下這個數字的來源（給 14c 顯示算式）。
-/// 絕對值／%1RM／相對上次先各自算出 base，套 `intensityFactor` 後再依器材遞增單位向下取整
-/// （順序不能換：倍率套在 base 之後、取整之前，見 91-weight-model.md §5）。
+/// 絕對值／%最大重量／相對上次先各自算出 base，套 `intensityFactor` 後再依**使用者的級距偏好**
+/// 向下取整（順序不能換：倍率套在 base 之後、取整之前，見 91-weight-model.md §5）。
 /// 查不到能力值或歷史 ＝ nil（空白待填，不猜一個數字塞進去）。
 func resolveWeightExpression(
     _ expression: WeightExpression?,
@@ -108,39 +117,39 @@ func resolveWeightExpression(
     case .absolute(let weight):
         base = weight
         source = WeightSourceInfo(kind: .absolute, base: weight, intensityFactor: intensityFactor)
-    case .percentOf1RM(let percent):
+    case .percentOfMax(let percent):
         let ability = try await abilityValueLookup.abilityValue(exerciseId: exerciseId)
         base = ability.map { Weight(value: $0.value * percent / 100, unit: $0.unit) }
-        source = WeightSourceInfo(kind: .percentOf1RM, percent: percent, abilityValue: ability, intensityFactor: intensityFactor)
+        source = WeightSourceInfo(kind: .percentOfMax, percent: percent, abilityValue: ability, intensityFactor: intensityFactor)
     case .relativeToLast(let delta):
         let last = try await lastPerformedLookup.lastPerformedWeight(exerciseId: exerciseId)
-        base = last.map { $0.metTarget ? Weight(value: $0.weight.value + delta.value, unit: $0.weight.unit) : $0.weight }
+        // delta 自己帶單位，用 Weight 的 + 相加（會換算成上次那筆的單位），
+        // 不能拿 delta.value 直接加到 last.weight.value —— 那會把 lb 的增量當成 kg 加上去。
+        base = last.map { $0.metTarget ? $0.weight + delta : $0.weight }
         source = WeightSourceInfo(kind: .relativeToLast, delta: delta, lastWeight: last?.weight, intensityFactor: intensityFactor)
     }
     guard let base else { return (nil, source) }
-    let step = weightStep > 0 ? weightStep : 1
-    let raw = base.value * intensityFactor
-    let stepped = (raw / step).rounded(.down) * step
-    return (.absolute(Weight(value: max(0, stepped), unit: base.unit)), source)
+    let stepped = WeightRange.steppedDown(base.value * intensityFactor, step: weightStep)
+    return (.absolute(Weight(value: stepped, unit: base.unit)), source)
 }
 
 /// 把一份 spec 的 sets（可能帶未收斂表達式）投影成材料化的 `PlanSet` 陣列（一律 `.absolute` 或 nil）。
 /// `InstantiateTemplate`／`MaterializeProjectedWorkout`／`ReconcileProgramAssignments`／`StartRotation` 共用。
 /// `intensityFactor`：範本沒有倍率概念，呼叫端固定傳 1.0；循環/長期傳 `slot ?? plan` 的覆寫值。
+/// `weightStep`：使用者的級距偏好（見 `TrainingPreferenceStoring`），由 composition root 傳下來。
 func resolvedPlanSets(
     from sourceSets: [PlanSet],
-    catalog: [PlanCatalogExercise],
+    weightStep: Double,
     intensityFactor: Double,
     lastPerformedLookup: any LastPerformedWeightLookup,
     abilityValueLookup: any AbilityValueLookup,
     makeID: () -> UUID
 ) async throws -> [PlanSet] {
-    let stepByExercise = Dictionary(uniqueKeysWithValues: catalog.map { ($0.id, $0.equipment.weightStep) })
     var result: [PlanSet] = []
     for set in sourceSets {
         let (resolved, source) = try await resolveWeightExpression(
             set.targetWeight,
-            weightStep: stepByExercise[set.exerciseId] ?? 1,
+            weightStep: weightStep,
             intensityFactor: intensityFactor,
             exerciseId: set.exerciseId,
             lastPerformedLookup: lastPerformedLookup,

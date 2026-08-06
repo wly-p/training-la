@@ -4,6 +4,8 @@ import SwiftUI
 import TrainingDomain
 
 public struct ActiveWorkoutView: View {
+    /// 目前語言：`localString` 要靠它才能查到 app 設定的語言（而非手機語系）。
+    @Environment(\.locale) private var locale
     @Bindable private var viewModel: ActiveWorkoutViewModel
     @Environment(\.dismiss) private var dismiss
     @Environment(\.scenePhase) private var scenePhase
@@ -231,8 +233,8 @@ public struct ActiveWorkoutView: View {
         PickerSheet(
             title: localText("training.chooseExercise"),
             searchPrompt: localText("training.searchExercises"),
-            allItems: viewModel.catalog.map(ExercisePickerItem.init),
-            filters: MuscleGroup.allCases.map { PickerSheetFilterChip(id: $0.rawValue, label: $0.displayName) },
+            allItems: viewModel.catalog.map { ExercisePickerItem(exercise: $0, locale: locale) },
+            filters: MuscleGroup.allCases.map { PickerSheetFilterChip(id: $0.rawValue, label: $0.displayName(locale)) },
             matchesFilter: { item, filter in item.exercise.muscleGroup.rawValue == filter.id },
             selection: .single { item in onSelect(item.exercise) },
             labels: TrainingPickerLabels.standard
@@ -244,9 +246,9 @@ public struct ActiveWorkoutView: View {
             TLColor.bg.ignoresSafeArea()
             EmptyState(
                 systemImage: "dumbbell",
-                title: String(localized: "training.pickToStart", bundle: .module),
-                message: String(localized: "training.pickToStart.hint", bundle: .module),
-                actionTitle: String(localized: "training.addExercise", bundle: .module),
+                title: localString("training.pickToStart", locale),
+                message: localString("training.pickToStart.hint", locale),
+                actionTitle: localString("training.addExercise", locale),
                 action: { showsExercisePicker = true }
             )
             .padding(.horizontal, TLSpace.page)
@@ -263,7 +265,7 @@ public struct ActiveWorkoutView: View {
                 // 動作名已經是 navigationTitle（native 大標題），這裡不重複，只加課表進度 kicker。
                 if let plannedCount = viewModel.blueprint?.exercises.first(where: { $0.exerciseId == exerciseId })?.setCount {
                     Text(verbatim: String(
-                        format: String(localized: "training.rest.doneOfTotal %lld %lld", bundle: .module),
+                        format: localString("training.rest.doneOfTotal %lld %lld", locale),
                         doneCount, plannedCount
                     ))
                     .font(.footnote.weight(.semibold))
@@ -276,7 +278,7 @@ public struct ActiveWorkoutView: View {
                     viewModel.dismissRest()
                 } label: {
                     Text(verbatim: String(
-                        format: String(localized: "training.rest.startEarly %lld", bundle: .module), doneCount + 1
+                        format: localString("training.rest.startEarly %lld", locale), doneCount + 1
                     ))
                 }
                 .buttonStyle(.tlPrimary)
@@ -303,11 +305,14 @@ public struct ActiveWorkoutView: View {
                 .font(.caption)
                 .foregroundStyle(TLColor.accent700)
             HStack(spacing: 10) {
-                restPill(String(format: String(localized: "training.rest.adjust %lld", bundle: .module), 30)) {
-                    viewModel.adjustRest(30)
+                // 標籤要跟著偏好走。寫死 30 的話按鈕上寫「+30 秒」、實際卻調別的值。
+                restPill(String(format: localString("training.rest.adjust %lld", locale),
+                                viewModel.restStep)) {
+                    viewModel.adjustRest(viewModel.restStep)
                 }
-                restPill(String(format: String(localized: "training.rest.adjust %lld", bundle: .module), -30)) {
-                    viewModel.adjustRest(-30)
+                restPill(String(format: localString("training.rest.adjust %lld", locale),
+                                -viewModel.restStep)) {
+                    viewModel.adjustRest(-viewModel.restStep)
                 }
                 Button {
                     viewModel.dismissRest()
@@ -350,7 +355,7 @@ public struct ActiveWorkoutView: View {
     private var nextSetCard: some View {
         VStack(alignment: .leading, spacing: 10) {
             Text(verbatim: String(
-                format: String(localized: "training.rest.next %lld", bundle: .module),
+                format: localString("training.rest.next %lld", locale),
                 viewModel.currentBlockSets.count + 1
             ))
             .font(.caption)
@@ -364,10 +369,10 @@ public struct ActiveWorkoutView: View {
                     }
                     HStack(spacing: 6) {
                         if let targetReps = viewModel.currentTarget?.targetReps {
-                            Text(verbatim: String(format: String(localized: "training.rest.targetReps %lld", bundle: .module), targetReps))
+                            Text(verbatim: String(format: localString("training.rest.targetReps %lld", locale), targetReps))
                         }
                         if let lastReps = viewModel.currentBlockSets.last?.reps {
-                            Text(verbatim: String(format: String(localized: "training.rest.lastReps %lld", bundle: .module), lastReps))
+                            Text(verbatim: String(format: localString("training.rest.lastReps %lld", locale), lastReps))
                         }
                     }
                     .font(.footnote)
@@ -379,8 +384,8 @@ public struct ActiveWorkoutView: View {
                     .foregroundStyle(TLColor.text)
             }
             HStack(spacing: 8) {
-                restPill("−\(viewModel.draftWeightUnit == .kg ? "2.5" : "5")") { viewModel.bumpWeight(-1) }
-                restPill("+\(viewModel.draftWeightUnit == .kg ? "2.5" : "5")") { viewModel.bumpWeight(1) }
+                restPill("−\(WeightDisplay.value(viewModel.weightStep))") { viewModel.bumpWeight(-1) }
+                restPill("+\(WeightDisplay.value(viewModel.weightStep))") { viewModel.bumpWeight(1) }
             }
             localText("training.rest.tapHint")
                 .font(.caption2)
@@ -424,9 +429,12 @@ public struct ActiveWorkoutView: View {
                     .tracking(TLFont.kickerTracking)
                     .textCase(.uppercase)
                     .foregroundStyle(TLColor.accent600)
-                Text(verbatim: viewModel.name(for: exerciseId))
-                    .font(TLFont.zh(TLFont.pageTitle, .bold))
-                    .foregroundStyle(TLColor.text)
+                ExerciseNameWithEquipment(
+                    title: Text(verbatim: viewModel.name(for: exerciseId))
+                        .font(TLFont.zh(TLFont.pageTitle, .bold))
+                        .foregroundColor(TLColor.text),
+                    equipment: viewModel.equipmentName(for: exerciseId, locale: locale)
+                )
                 if let summary = exerciseTableSummary {
                     Text(verbatim: summary)
                         .font(TLFont.zh(TLFont.rowSub, .regular))
@@ -577,7 +585,7 @@ public struct ActiveWorkoutView: View {
         else { return nil }
         var text = "\(exercise.plannedSetCount)"
         if let reps = rep.targetReps { text += " × \(reps)" }
-        if let weight = rep.targetWeight { text += " · \(WeightDisplay.value(weight.value)) kg" }
+        if let weight = rep.targetWeight { text += " · \(weight.displayString)" }
         return text
     }
 
@@ -586,9 +594,9 @@ public struct ActiveWorkoutView: View {
         guard let exerciseId = viewModel.currentExerciseId,
               let plannedCount = viewModel.blueprint?.exercises.first(where: { $0.exerciseId == exerciseId })?.setCount
         else { return nil }
-        var parts = [String(localized: "training.table.setCount \(plannedCount)", bundle: .module)]
+        var parts = [String(format: localString("training.table.setCount %lld", locale), plannedCount)]
         if let pill = WeightSourceFormatting.intensityPillText(viewModel.blueprint?.intensityFactor ?? 1.0) {
-            parts.append(String(format: String(localized: "training.preview.intensity %@", bundle: .module), pill))
+            parts.append(String(format: localString("training.preview.intensity %@", locale), pill))
         }
         return parts.joined(separator: " · ")
     }
@@ -722,7 +730,7 @@ public struct ActiveWorkoutView: View {
                     viewModel.addPlannedSet(for: exercise.id)
                 } label: {
                     Text(verbatim: String(
-                        format: String(localized: "training.edit.addSet %lld %lld", bundle: .module),
+                        format: localString("training.edit.addSet %lld %lld", locale),
                         exercise.plannedSetCount, exercise.plannedSetCount + 1
                     ))
                 }
@@ -731,7 +739,7 @@ public struct ActiveWorkoutView: View {
                         viewModel.removePlannedSet(for: exercise.id)
                     } label: {
                         Text(verbatim: String(
-                            format: String(localized: "training.edit.removeSet %lld %lld", bundle: .module),
+                            format: localString("training.edit.removeSet %lld %lld", locale),
                             exercise.plannedSetCount, max(exercise.doneSetCount, exercise.plannedSetCount - 1)
                         ))
                     }
@@ -795,7 +803,7 @@ public struct ActiveWorkoutView: View {
 
     /// 輸入色帶（11c）：大數字讀出（點開 DualValuePicker 改重量／次數）＋來源標示（14c）＋
     /// 快捷鍵；neutral-300 底、右側大圓角且不到底的不對稱形狀，左緣貼齊螢幕。取代原本的 ± stepper
-    /// ——設計稿沒有 stepper，數字直接點開選擇器；快捷膠囊做常見的 ±2.5／回到目標微調。
+    /// ——設計稿沒有 stepper，數字直接點開選擇器；快捷膠囊做 ±級距／回到目標微調。
     private var inputBand: some View {
         VStack(alignment: .leading, spacing: 14) {
             if let annotation = targetAnnotationText {
@@ -842,23 +850,23 @@ public struct ActiveWorkoutView: View {
         .padding(.trailing, TLSpace.gapL)
     }
 
-    /// 大數字點開的重量／次數選擇器（取代 stepper）；重量以 2.5 為級距、次數 1…40。
+    /// 大數字點開的重量／次數選擇器（取代 stepper）；重量依使用者的級距偏好、次數 1…40。
     private var valueEditorSheet: some View {
-        let weightValues = stride(from: 0.0, through: 300.0, by: 2.5).map { $0 }
+        let weightValues = WeightRange.values(for: viewModel.draftWeightUnit, step: viewModel.weightStep)
         let repsValues = (1...40).map(Double.init)
         return NavigationStack {
             VStack {
                 DualValuePicker(
                     primaryValue: $viewModel.draftWeightValue,
                     primaryValues: weightValues,
-                    primaryKicker: String(localized: "training.weight", bundle: .module),
+                    primaryKicker: localString("training.weight", locale),
                     primaryFormat: { "\(WeightDisplay.value($0)) \(viewModel.draftWeightUnit.rawValue)" },
                     secondaryValue: Binding(
                         get: { Double(viewModel.draftReps) },
                         set: { viewModel.draftReps = Int($0) }
                     ),
                     secondaryValues: repsValues,
-                    secondaryKicker: String(localized: "training.reps", bundle: .module),
+                    secondaryKicker: localString("training.reps", locale),
                     secondaryFormat: { "\(Int($0))" }
                 )
                 Spacer()
@@ -879,22 +887,22 @@ public struct ActiveWorkoutView: View {
     private var targetAnnotationText: String? {
         guard let target = viewModel.currentTarget, target.targetWeight != nil,
               !viewModel.isDraftModifiedFromTarget,
-              let algebra = WeightSourceFormatting.algebraText(target.weightSource)
+              let algebra = WeightSourceFormatting.algebraText(target.weightSource, locale: locale)
         else { return nil }
-        return String(format: String(localized: "training.table.prefilledFromTarget %@", bundle: .module), algebra)
+        return String(format: localString("training.table.prefilledFromTarget %@", locale), algebra)
     }
 
     private var quickActionRow: some View {
-        let step = viewModel.draftWeightUnit == .kg ? "2.5" : "5"
+        let step = WeightDisplay.value(viewModel.weightStep)
         return HStack(spacing: 8) {
             quickPill("−\(step)") { viewModel.bumpWeight(-1) }
             quickPill("+\(step)") { viewModel.bumpWeight(1) }
             if viewModel.currentTarget?.targetWeight != nil {
-                quickPill(String(localized: "training.table.resetToTarget", bundle: .module)) {
+                quickPill(localString("training.table.resetToTarget", locale)) {
                     viewModel.resetToTarget()
                 }
             } else if !viewModel.currentBlockSets.isEmpty {
-                quickPill(String(localized: "training.table.sameAsLast", bundle: .module)) {
+                quickPill(localString("training.table.sameAsLast", locale)) {
                     viewModel.applyLastSetValues()
                 }
             }

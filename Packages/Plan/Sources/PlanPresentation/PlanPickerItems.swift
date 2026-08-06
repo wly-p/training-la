@@ -16,10 +16,15 @@ struct TemplatePickerItem: PickerSheetItem {
 /// 動作庫的動作包成 `PickerSheetItem`：範本加動作(9b) 用。
 struct ExercisePickerItem: PickerSheetItem {
     let exercise: PlanCatalogExercise
+    /// 副標要顯示器材與肌群，兩者的翻譯都得跟著 app 語言走；這個型別不是 View，
+    /// 拿不到 Environment，所以由建立它的 View 把 locale 傳進來。
+    let locale: Locale
 
     var id: UUID { exercise.id }
     var title: String { exercise.name }
-    var subtitle: String { "\(exercise.equipment.displayName) · \(exercise.muscleGroup.displayName)" }
+    var subtitle: String {
+        "\(exercise.equipment.displayName(locale)) · \(exercise.muscleGroup.displayName(locale))"
+    }
 }
 
 /// 長期指派週期格(12b) 用：範本 ＋「休息」列混在同一份清單，單選。

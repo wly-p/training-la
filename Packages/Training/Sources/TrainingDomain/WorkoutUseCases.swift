@@ -168,19 +168,21 @@ public struct DetectPersonalRecords: Sendable {
         var result: [ExercisePRAnnouncement] = []
         for block in workout.blocks {
             let doneSets = block.sets.filter { $0.status == .done }
-            guard let best = doneSets.max(by: { ($0.weight.value, $0.reps) < ($1.weight.value, $1.reps) })
+            guard let best = doneSets.max(by: { ($0.weight, $0.reps) < ($1.weight, $1.reps) })
             else { continue }
             let history = try await repository.exerciseHistory(exerciseId: block.exerciseId)
                 .filter { $0.workoutId != workout.id }
             // 只在「該重量／該次數以前真的出現過」時才算「創新高」——完全沒比較基準的維度
             // 不能拿 0 當預設基準，否則隨便一組都會被誤判成「創新高」。
+            // 比較一律用 Weight 本身（已換算單位），不要退回 .value：
+            // 那會讓 100 lb 和 100 kg 被當成同一個重量，並互相判成創新高。
             let bestRepsAtThisWeight = history
-                .filter { $0.set.weight.value == best.weight.value }.map(\.set.reps).max()
+                .filter { $0.set.weight == best.weight }.map(\.set.reps).max()
             let bestWeightAtThisReps = history
-                .filter { $0.set.reps == best.reps }.map(\.set.weight.value).max()
+                .filter { $0.set.reps == best.reps }.map(\.set.weight).max()
             if let bestReps = bestRepsAtThisWeight, best.reps > bestReps {
                 result.append(ExercisePRAnnouncement(exerciseId: block.exerciseId, weight: best.weight, reps: best.reps, kind: .newRepsAtWeight))
-            } else if let bestWeight = bestWeightAtThisReps, best.weight.value > bestWeight {
+            } else if let bestWeight = bestWeightAtThisReps, best.weight > bestWeight {
                 result.append(ExercisePRAnnouncement(exerciseId: block.exerciseId, weight: best.weight, reps: best.reps, kind: .newWeightAtReps))
             } else if history.isEmpty {
                 // 這個動作完全沒有歷史紀錄——第一次練，任何一組都算創新高。

@@ -10,6 +10,8 @@ import UniformTypeIdentifiers
 /// 直接吃 `Rotation` 物件（跟 `TemplateFormView` 同precedent）：清單已經載入過，不用再依 id 非同步查一次
 /// （避開 drill-in 陷阱那整類問題，見 memory `nav-drill-in-pitfall`）。
 public struct RotationEditorView: View {
+    /// 目前語言：`localString` 要靠它才能查到 app 設定的語言（而非手機語系）。
+    @Environment(\.locale) private var locale
     public enum Target {
         case create
         case edit(Rotation)
@@ -17,6 +19,8 @@ public struct RotationEditorView: View {
 
     let target: Target
     let templates: [WorkoutTemplate]
+    /// 使用者的重量級距偏好；強度倍率預覽要跟投影收斂算出同一個數字。
+    let weightStep: Double
     let name: (UUID) -> String
     let onSubmit: (String, [WorkoutSpec], Bool, Int, Double) async -> Void
     let onDelete: () async -> Void
@@ -41,12 +45,14 @@ public struct RotationEditorView: View {
     public init(
         target: Target,
         templates: [WorkoutTemplate],
+        weightStep: Double,
         name: @escaping (UUID) -> String,
         onSubmit: @escaping (String, [WorkoutSpec], Bool, Int, Double) async -> Void,
         onDelete: @escaping () async -> Void = {}
     ) {
         self.target = target
         self.templates = templates
+        self.weightStep = weightStep
         self.name = name
         self.onSubmit = onSubmit
         self.onDelete = onDelete
@@ -108,7 +114,7 @@ public struct RotationEditorView: View {
         }
         .sheet(isPresented: $pickingTemplates) {
             PickerSheet(
-                title: Text(verbatim: String(localized: "rotation.picker.title", bundle: .module)),
+                title: Text("rotation.picker.title", bundle: .module),
                 searchPrompt: localText("rotation.picker.searchPrompt"),
                 allItems: templates.map { TemplatePickerItem(template: $0, name: name) },
                 recentItemIds: recentTemplateIds,
@@ -194,11 +200,11 @@ public struct RotationEditorView: View {
             },
             trailing: {
                 HStack(spacing: 8) {
-                    RowValue("\(spec.sets.count)", unit: String(localized: "rotation.setsUnit", bundle: .module))
+                    RowValue("\(spec.sets.count)", unit: localString("rotation.setsUnit", locale))
                     // 14b：這一格的強度覆寫（未覆寫＝線框「基準」，已覆寫＝accent 實心 ×N%）。
                     IntensityOverridePill(
                         factor: spec.intensityFactor,
-                        baselineLabel: String(localized: "rotation.intensity.baseline", bundle: .module),
+                        baselineLabel: localString("rotation.intensity.baseline", locale),
                         onTap: { overridingWorkoutId = spec.id }
                     )
                 }
@@ -258,14 +264,19 @@ public struct RotationEditorView: View {
     /// 只給百分比沒人算得出槓上要放幾片，這是這個群組存在的理由（03-schedule.md B 節）。
     private var intensityPreviewLines: [IntensityFactorGroup.PreviewLine] {
         guard let firstSet = draftWorkouts.first?.sets.first else { return [] }
-        let base = firstSet.targetWeight?.resolvedWeight?.value ?? 60
-        let result = (base * draftIntensityFactor / 2.5).rounded(.down) * 2.5
+        // 帶著單位一起算：使用者可能用 lb，寫死 kg 會標錯。
+        let baseWeight = firstSet.targetWeight?.resolvedWeight ?? Weight(value: 60, unit: .kg)
+        let base = baseWeight.value
+        // 跟投影收斂用同一個取整（WeightRange.steppedDown），否則預覽與實際排出來的數字會兜不攏。
+        let result = WeightRange.steppedDown(base * draftIntensityFactor, step: weightStep)
         return [
             IntensityFactorGroup.PreviewLine(
                 label: Text(verbatim: "\(name(firstSet.exerciseId)) ")
                     + localText("template.setNumber \(firstSet.setIndex + 1)"),
-                expression: Text(verbatim: String(format: "%.0f kg × %.0f%%", base, draftIntensityFactor * 100)),
-                result: Text(verbatim: String(format: "%.1f kg", result))
+                expression: Text(verbatim: String(
+                    format: "%@ × %.0f%%", baseWeight.displayString, draftIntensityFactor * 100
+                )),
+                result: Text(verbatim: Weight(value: result, unit: baseWeight.unit).displayString)
             )
         ]
     }
@@ -274,7 +285,7 @@ public struct RotationEditorView: View {
         EditSection(localText("rotation.intensity.section"), footer: localText("rotation.intensity.footer")) {
             IntensityFactorGroup(
                 factor: $draftIntensityFactor,
-                customLabel: String(localized: "rotation.intensity.custom", bundle: .module),
+                customLabel: localString("rotation.intensity.custom", locale),
                 previewLines: intensityPreviewLines
             )
         }
@@ -396,6 +407,8 @@ private struct RotationWorkoutTransfer: Codable, Transferable {
 /// （同一個 PlanPresentation module 內共用，不用為兩個呼叫端拉出去 DesignSystem）。
 /// 「取消」不寫回；「使用基準」清掉覆寫（nil）；「完成」把 ValuePicker 選的值寫回。
 struct IntensityOverrideSheet: View {
+    /// 目前語言：`localString` 要靠它才能查到 app 設定的語言（而非手機語系）。
+    @Environment(\.locale) private var locale
     let baseline: Double
     let current: Double?
     let onCancel: () -> Void
@@ -433,7 +446,7 @@ struct IntensityOverrideSheet: View {
             ValuePicker(
                 value: $value,
                 values: values,
-                kicker: String(localized: "rotation.intensity.custom", bundle: .module),
+                kicker: localString("rotation.intensity.custom", locale),
                 format: { String(format: "%.0f%%", $0 * 100) },
                 quickActions: [
                     .init("-5%") { value = max(values.first ?? 0.5, value - 0.05) },

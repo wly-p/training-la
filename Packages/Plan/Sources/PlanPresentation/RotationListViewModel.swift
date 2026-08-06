@@ -23,6 +23,10 @@ public final class RotationListViewModel {
     private let deleteRotation: DeleteRotation
     private let listTemplates: ListTemplates
     private let exerciseCatalog: any PlanExerciseCatalog
+        /// 使用者的重量級距偏好；強度倍率預覽用。
+    /// 即時讀取不快取——這個 view model 活很久，設定改了要馬上反映。
+    public var weightStep: Double { preferences.loadWeightStep() }
+    private let preferences: any TrainingPreferenceStoring
 
     public init(
         listRotations: ListRotations,
@@ -33,7 +37,8 @@ public final class RotationListViewModel {
         setRotationIntensityFactor: SetRotationIntensityFactor,
         deleteRotation: DeleteRotation,
         listTemplates: ListTemplates,
-        exerciseCatalog: any PlanExerciseCatalog
+        exerciseCatalog: any PlanExerciseCatalog,
+        preferences: any TrainingPreferenceStoring = InMemoryTrainingPreferenceStore()
     ) {
         self.listRotations = listRotations
         self.createRotation = createRotation
@@ -43,11 +48,14 @@ public final class RotationListViewModel {
         self.setRotationIntensityFactor = setRotationIntensityFactor
         self.deleteRotation = deleteRotation
         self.listTemplates = listTemplates
+        self.preferences = preferences
         self.exerciseCatalog = exerciseCatalog
     }
 
     public func name(for exerciseId: UUID) -> String {
-        catalog.first { $0.id == exerciseId }?.name ?? "動作"
+        // 查不到＝該動作已被刪；正常流程進不來（刪除前有 ExerciseUsageChecker 擋）。
+        // 用中性符號而非任何語言的字，這裡拿不到 locale。
+        catalog.first { $0.id == exerciseId }?.name ?? "—"
     }
 
     public func load() async {

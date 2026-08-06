@@ -99,6 +99,10 @@ public final class ExerciseListViewModel {
             .spec("spec.error.notFound")
         case ExerciseRepositoryError.inUse:
             .spec("spec.error.inUse")
+        // UI 不會給內建動作編輯／刪除的入口，所以走到這裡代表有別的路徑漏擋——
+        // 給明確訊息比落到 generic 好判讀。
+        case ExerciseRepositoryError.readOnly:
+            .spec("spec.error.readOnly")
         default:
             .spec("spec.error.generic \(error.localizedDescription)")
         }

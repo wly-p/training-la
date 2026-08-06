@@ -60,7 +60,13 @@ struct RootView: View {
             SettingsView(
                 viewModel: settingsViewModel,
                 appVersion: AppVersion.displayString(infoDictionary: Bundle.main.infoDictionary ?? [:]),
-                abilityDestination: { AnyView(AbilityListView(viewModel: abilityListViewModel)) }
+                // 能力值編輯的 ± 與刻度尺跟隨「設定 › 重量調整級距」，不寫死（handoff-15 G 節）。
+                abilityDestination: {
+                    AnyView(AbilityListView(
+                        viewModel: abilityListViewModel,
+                        weightStep: settingsViewModel.weightStep
+                    ))
+                }
             )
             .tag(4)
         }
