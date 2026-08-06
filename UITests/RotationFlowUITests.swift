@@ -15,18 +15,20 @@ final class RotationFlowUITests: XCTestCase {
         app.buttons["libraryAddButton"].tap()
         let nameField = app.textFields["名稱（例：臥推）"]
         XCTAssertTrue(nameField.waitForExistence(timeout: 5))
-        nameField.tap(); nameField.typeText("臥推")
+        nameField.tap(); nameField.typeText("測試臥推")
         app.buttons["儲存"].tap()
-        XCTAssertTrue(app.staticTexts["臥推"].waitForExistence(timeout: 5))
+        app.searchExercises("測試臥推")
+        XCTAssertTrue(app.staticTexts["測試臥推"].waitForExistence(timeout: 5))
+        app.clearExerciseSearch()
 
-        // 範本分段：建一個含臥推的課表範本（循環現在只能從範本匯入內容，見設計稿 12a）
+        // 範本分段：建一個含測試臥推的課表範本（循環現在只能從範本匯入內容，見設計稿 12a）
         app.buttons["範本"].tap()
         app.buttons["libraryAddButton"].tap()
         let templateName = app.textFields["範本名稱"]
         XCTAssertTrue(templateName.waitForExistence(timeout: 5))
         templateName.tap(); templateName.typeText("推日")
         app.buttons["從動作庫加入"].tap()
-        app.staticTexts["臥推"].firstMatch.tap()
+        app.pickExercise("測試臥推")
         app.buttons["加入 1 個動作"].tap()
         app.buttons["儲存"].tap()
         XCTAssertTrue(app.staticTexts["推日"].waitForExistence(timeout: 5))
@@ -54,8 +56,8 @@ final class RotationFlowUITests: XCTestCase {
         XCTAssertTrue(confirmStart.waitForExistence(timeout: 5))
         confirmStart.tap()
 
-        // 記錄畫面：自動選到循環的動作（臥推）
-        XCTAssertTrue(app.navigationBars["臥推"].waitForExistence(timeout: 5))
+        // 記錄畫面：自動選到循環的動作（測試臥推）
+        XCTAssertTrue(app.navigationBars["測試臥推"].waitForExistence(timeout: 5))
         XCTAssertTrue(app.buttons["完成此組"].waitForExistence(timeout: 5))
     }
 }

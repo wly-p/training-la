@@ -100,7 +100,11 @@ struct AppDependencies {
                               store: reminderStore)
         return assemble(
             exerciseRepository: SpecDataFactory.makeExerciseRepository(
-                container: container, usageChecker: usageChecker
+                container: container,
+                usageChecker: usageChecker,
+                // 內建動作清單的名稱要跟著 app 的語言設定，而 repository 拿不到 SwiftUI
+                // Environment——所以讀同一個 languageStore（跟背景通知那條路一樣的做法）。
+                currentLanguage: { languageStore.load() ?? .fallback }
             ),
             workoutRepository: workoutRepository,
             planRepository: planRepository,

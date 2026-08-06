@@ -1,9 +1,7 @@
 {
   "sourceLanguage" : "zh-Hant",
   "strings" : {
-    "" : {
-
-    },
+    "" : {},
     "spec.all" : {
       "localizations" : {
         "en" : {
@@ -277,6 +275,22 @@
         }
       }
     },
+    "spec.error.readOnly" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Built-in exercises can't be edited or deleted"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "內建動作無法編輯或刪除"
+          }
+        }
+      }
+    },
     "spec.group.frequent" : {
       "localizations" : {
         "en" : {
@@ -402,6 +416,38 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "儲存"
+          }
+        }
+      }
+    },
+    "spec.search.empty" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No matching exercises"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "找不到符合的動作"
+          }
+        }
+      }
+    },
+    "spec.search.empty.hint" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Try a different keyword, or tap + in the top right to create your own"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "換個關鍵字試試，或點右上角＋建立自己的動作"
           }
         }
       }

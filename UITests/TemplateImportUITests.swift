@@ -12,24 +12,26 @@ final class TemplateImportUITests: XCTestCase {
 
         // 動作庫：建兩個動作
         app.buttons["動作庫"].tap()
-        for name in ["臥推", "深蹲"] {
+        for name in ["測試臥推", "測試深蹲"] {
             app.buttons["libraryAddButton"].tap()
             let nameField = app.textFields["名稱（例：臥推）"]
             XCTAssertTrue(nameField.waitForExistence(timeout: 5))
             nameField.tap(); nameField.typeText(name)
             app.buttons["儲存"].tap()
+            app.searchExercises(name)
             XCTAssertTrue(app.staticTexts[name].waitForExistence(timeout: 5))
+            app.clearExerciseSearch()
         }
 
         // 範本分段：建兩個範本，各帶一個動作
         app.buttons["範本"].tap()
-        for (templateName, exerciseName) in [("推日", "臥推"), ("腿日", "深蹲")] {
+        for (templateName, exerciseName) in [("推日", "測試臥推"), ("腿日", "測試深蹲")] {
             app.buttons["libraryAddButton"].tap()
             let field = app.textFields["範本名稱"]
             XCTAssertTrue(field.waitForExistence(timeout: 5))
             field.tap(); field.typeText(templateName)
             app.buttons["從動作庫加入"].tap()
-            app.staticTexts[exerciseName].firstMatch.tap()
+            app.pickExercise(exerciseName)
             app.buttons["加入 1 個動作"].tap()
             app.buttons["儲存"].tap()
             XCTAssertTrue(app.staticTexts[templateName].waitForExistence(timeout: 5))

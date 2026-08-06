@@ -19,9 +19,11 @@ final class MistapSetUITests: XCTestCase {
         let nameField = app.textFields["名稱（例：臥推）"]
         XCTAssertTrue(nameField.waitForExistence(timeout: 5))
         nameField.tap()
-        nameField.typeText("臥推")
+        nameField.typeText("測試臥推")
         app.buttons["儲存"].tap()
-        XCTAssertTrue(app.staticTexts["臥推"].waitForExistence(timeout: 5))
+        app.searchExercises("測試臥推")
+        XCTAssertTrue(app.staticTexts["測試臥推"].waitForExistence(timeout: 5))
+        app.clearExerciseSearch()
 
         // 2. 開始訓練 → 選動作 → 進入記錄面板
         app.buttons["訓練"].tap()
@@ -31,9 +33,7 @@ final class MistapSetUITests: XCTestCase {
             app.buttons["加入動作"].tap()
             XCTAssertTrue(pickerTitle.waitForExistence(timeout: 5))
         }
-        let pickerRow = app.staticTexts["臥推"].firstMatch
-        XCTAssertTrue(pickerRow.waitForExistence(timeout: 5))
-        pickerRow.tap()
+        app.pickExercise("測試臥推")
 
         // 3. 記錄面板出現、尚未記任何組（header 顯示「第1組」）
         XCTAssertTrue(app.buttons["完成此組"].waitForExistence(timeout: 5))

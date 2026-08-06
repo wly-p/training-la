@@ -16,9 +16,11 @@ final class BackgroundRestUITests: XCTestCase {
         let nameField = app.textFields["名稱（例：臥推）"]
         XCTAssertTrue(nameField.waitForExistence(timeout: 5))
         nameField.tap()
-        nameField.typeText("臥推")
+        nameField.typeText("測試臥推")
         app.buttons["儲存"].tap()
-        XCTAssertTrue(app.staticTexts["臥推"].waitForExistence(timeout: 5))
+        app.searchExercises("測試臥推")
+        XCTAssertTrue(app.staticTexts["測試臥推"].waitForExistence(timeout: 5))
+        app.clearExerciseSearch()
 
         // 課表：休息設 5 秒
         app.buttons["課表"].tap()
@@ -29,13 +31,11 @@ final class BackgroundRestUITests: XCTestCase {
         planName.tap()
         planName.typeText("背景測試")
         app.buttons["加入動作"].tap()
-        let pick = app.staticTexts["臥推"].firstMatch
-        XCTAssertTrue(pick.waitForExistence(timeout: 5))
-        pick.tap()
+        app.pickExercise("測試臥推")
         app.buttons["加入 1 個動作"].tap()
 
         // 新版：點動作列開編輯 sheet，把休息從預設 0（不設）加到 15 秒（stepper 15 秒一階，按 ＋ 一次）。
-        app.staticTexts["臥推"].firstMatch.tap()
+        app.staticTexts["測試臥推"].firstMatch.tap()
         let restStepper = app.steppers["draftRestStepper"]
         XCTAssertTrue(restStepper.waitForExistence(timeout: 5))
         restStepper.buttons.element(boundBy: 1).tap()

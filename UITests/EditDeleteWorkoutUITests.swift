@@ -8,14 +8,14 @@ final class EditDeleteWorkoutUITests: XCTestCase {
         app.launchArguments = ["--uitest-inmemory"]
         app.launch()
 
-        recordOneWorkout(app, exerciseName: "深蹲")
+        recordOneWorkout(app, exerciseName: "測試深蹲")
 
         // 進歷史「按日期」→ 點該場
         app.buttons["歷史"].tap()
         let dateRow = app.staticTexts.matching(NSPredicate(format: "label CONTAINS '個動作'")).firstMatch
         XCTAssertTrue(dateRow.waitForExistence(timeout: 5))
         dateRow.tap()
-        XCTAssertTrue(app.staticTexts["深蹲"].waitForExistence(timeout: 5))
+        XCTAssertTrue(app.staticTexts["測試深蹲"].waitForExistence(timeout: 5))
 
         // 編輯：把第一組狀態改「跳過」→ 完成
         app.buttons["workoutDetail.edit"].tap()
@@ -56,9 +56,7 @@ final class EditDeleteWorkoutUITests: XCTestCase {
             app.buttons["加入動作"].tap()
             XCTAssertTrue(pickerTitle.waitForExistence(timeout: 5))
         }
-        let pickerRow = app.staticTexts[exerciseName].firstMatch
-        XCTAssertTrue(pickerRow.waitForExistence(timeout: 5))
-        pickerRow.tap()
+        app.pickExercise(exerciseName)
 
         let completeButton = app.buttons["完成此組"]
         XCTAssertTrue(completeButton.waitForExistence(timeout: 5))

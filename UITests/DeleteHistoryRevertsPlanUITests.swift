@@ -14,11 +14,13 @@ final class DeleteHistoryRevertsPlanUITests: XCTestCase {
         app.buttons["libraryAddButton"].tap()
         let nameField = app.textFields["名稱（例：臥推）"]
         XCTAssertTrue(nameField.waitForExistence(timeout: 5))
-        nameField.tap(); nameField.typeText("臥推")
+        nameField.tap(); nameField.typeText("測試臥推")
         app.buttons["儲存"].tap()
-        XCTAssertTrue(app.staticTexts["臥推"].waitForExistence(timeout: 5))
+        app.searchExercises("測試臥推")
+        XCTAssertTrue(app.staticTexts["測試臥推"].waitForExistence(timeout: 5))
+        app.clearExerciseSearch()
 
-        // 課表：新增今天的排課「推日」含臥推
+        // 課表：新增今天的排課「推日」含測試臥推
         app.buttons["課表"].tap()
         app.buttons["新增排課"].tap()
         app.buttons["空白建立"].tap()  // 「+」選單 → 空白建立
@@ -26,9 +28,7 @@ final class DeleteHistoryRevertsPlanUITests: XCTestCase {
         XCTAssertTrue(planName.waitForExistence(timeout: 5))
         planName.tap(); planName.typeText("推日")
         app.buttons["加入動作"].tap()
-        let pick = app.staticTexts["臥推"].firstMatch
-        XCTAssertTrue(pick.waitForExistence(timeout: 5))
-        pick.tap()
+        app.pickExercise("測試臥推")
         app.buttons["加入 1 個動作"].tap()
         app.buttons["儲存"].tap()
         XCTAssertTrue(app.staticTexts["推日"].waitForExistence(timeout: 5))

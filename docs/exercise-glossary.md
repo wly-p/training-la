@@ -1,15 +1,15 @@
 # 訓練項目 / 肌群 / 器材 中英文對照
 
-這份清單是**參考資料，不是程式碼的一部分**——沒有任何 build 或 test 依賴它。
+這份清單是**人工維護的來源文件**。三張表都已經進了程式碼，但**沒有 build 或 test 依賴這個
+markdown 檔**——改這份文件不會自動改到 App，程式碼那邊要一起改（見下方各表的落點）。
 
 ## 為什麼有這份文件
 
 i18n 主線（Part 1–3）完成了全 app 介面文字的中英雙語，但依當時約定刻意排除「資料值」：
-`MuscleGroup`（8 類）與 `Equipment`（9 類）的 `displayName` 目前寫死中文。要補上那塊，得先有一份
+`MuscleGroup`（8 類）與 `Equipment`（9 類）的 `displayName` 曾寫死中文。要補上那塊，得先有一份
 講定的英文對照——這份文件就是那個前置。
 
 範圍上有一條已確認的界線：**「常見／預設」動作要多語系，使用者自己新增的動作不翻譯、原樣顯示**。
-所以表 3 只是「未來若要做預設動作庫」的候選清單，不是使用者資料的翻譯字典。
 
 清單以人工整理，沒有爬蟲。理由是 `MuscleGroup` / `Equipment` 的英文其實已經在程式碼裡
 （`rawValue` 就是英文 token），只需要決定顯示用的措辭；而動作名稱各家健身網站的命名帶有商標與
@@ -60,14 +60,26 @@ i18n 主線（Part 1–3）完成了全 app 介面文字的中英雙語，但依
 
 ## 表 3 · 常見動作
 
-**這張表目前沒有任何程式碼使用。** 它是「預設動作庫」（讓新使用者不用從零建動作）的候選清單。
+這張表是內建動作庫的來源。落點：
 
-這張表列的**全部都是系統內建**的動作，seed 進去時 `source` 應為 `.official`
-（`Exercise.source: ContentSource`，`Packages/Spec/Sources/SpecDomain/Exercise.swift`）。
-欄位早就存在、存取層也接好了，不需要另外加 `isPreset` 之類的旗標——目前只是還沒有任何地方
-寫入 `.official`，因為還沒有官方內容來源。
+- 結構（固定 UUID／catalog key／肌群／器材）→
+  `Packages/Spec/Sources/SpecDomain/Resources/OfficialExercises.json`
+- 中英名稱 → `Packages/Spec/Sources/SpecDomain/Localizable.xcstrings`
+- 讀取與合併 → `OfficialExerciseCatalog` ＋ `OfficialCatalogExerciseRepository`
 
-`.user`（使用者自建）與 `.official` 的實際差別只有一個：**自建的動作不做 i18n，原樣顯示**。
+**這些動作不進 SwiftData**：它們是常駐清單，在 repository 層合併進使用者自建的動作裡。
+所以沒有「首次啟動 seed 時機」「與既有資料去重」「官方清單版本管理」這些問題——更新 app
+就是更新清單。代價是它們**唯讀**，使用者不能編輯也不能刪除。
+
+它們的 `source` 是 `.official`（`Exercise.source: ContentSource`，
+`Packages/Spec/Sources/SpecDomain/Exercise.swift`）。欄位本來就有，不需要 `isPreset` 之類的新旗標。
+
+`.user`（使用者自建）與 `.official` 的實際差別有兩個：**自建的動作不做 i18n，原樣顯示**；
+**內建的動作唯讀**。
+
+⚠️ 要增刪動作時，JSON 與 String Catalog 兩邊都要改，`id` 一旦發出去就不能變
+（未來官方內容改由 API 供貨時，這批 id 就是契約值）。`OfficialExerciseCatalogTests`
+會擋住「加了動作卻忘了補翻譯」「key 撞了」「筆數對不上」。
 
 器材欄標的是「最常見的做法」，不是唯一做法（臥推也可以用啞鈴）。真的做預設動作庫時，
 器材應該由使用者自己選，這欄只是建議預設值。
