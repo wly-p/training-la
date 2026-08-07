@@ -56,15 +56,15 @@ final class ExerciseCompletionUITests: XCTestCase {
 
     @MainActor private func addExercise(_ app: XCUIApplication, name: String) {
         app.buttons["動作庫"].tap()
-        app.buttons["libraryAddButton"].tap()
+        app.buttons["library.add"].tap()
         let field = app.textFields["名稱（例：臥推）"]
         XCTAssertTrue(field.waitForExistence(timeout: 5))
         field.tap()
         field.typeText(name)
         app.buttons["儲存"].tap()
-        app.searchExercises(name)
+        app.searchExerciseList(name)
         XCTAssertTrue(app.staticTexts[name].waitForExistence(timeout: 5))
-        app.clearExerciseSearch()
+        app.clearExerciseListSearch()
     }
 
     @MainActor private func addExerciseToPlan(_ app: XCUIApplication, name: String) {

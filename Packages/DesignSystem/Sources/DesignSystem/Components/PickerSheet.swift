@@ -78,7 +78,7 @@ public struct PickerSheet<Item: PickerSheetItem>: View {
         VStack(spacing: 0) {
             grabber
             topBar
-            TLSearchField(text: $searchText, placeholder: searchPrompt)
+            TLSearchField(text: $searchText, placeholder: searchPrompt, identifier: "picker.search")
                 .padding(.horizontal, TLSpace.page)
                 .padding(.top, TLSpace.gapM)
             if isSearching {
@@ -283,6 +283,8 @@ public struct PickerSheet<Item: PickerSheetItem>: View {
                     .clipShape(Capsule())
             }
             .disabled(count == 0)
+            // 標題帶已選數量（「加入 2 個動作」），拿文字定位會綁死語言＋數量。
+            .accessibilityIdentifier("picker.confirm")
             .padding(.horizontal, TLSpace.page)
             .padding(.bottom, 12)
             .padding(.top, 16)

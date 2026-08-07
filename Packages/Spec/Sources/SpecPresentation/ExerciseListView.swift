@@ -23,7 +23,9 @@ public struct ExerciseListView: View {
     // 不自帶 NavigationStack：嵌在動作庫 tab 共用的 NavigationStack 內（見 App/RootView 的 LibraryTabView）。
     public var body: some View {
         VStack(spacing: 0) {
-            TLSearchField(text: $viewModel.searchText, placeholder: localText("spec.searchExercises"))
+            TLSearchField(text: $viewModel.searchText,
+                           placeholder: localText("spec.searchExercises"),
+                           identifier: "exerciseList.search")
                 .padding(.horizontal, TLSpace.page)
                 .padding(.bottom, TLSpace.gapM)
 

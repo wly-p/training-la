@@ -13,20 +13,20 @@ final class TemplateImportUITests: XCTestCase {
         // 動作庫：建兩個動作
         app.buttons["動作庫"].tap()
         for name in ["測試臥推", "測試深蹲"] {
-            app.buttons["libraryAddButton"].tap()
+            app.buttons["library.add"].tap()
             let nameField = app.textFields["名稱（例：臥推）"]
             XCTAssertTrue(nameField.waitForExistence(timeout: 5))
             nameField.tap(); nameField.typeText(name)
             app.buttons["儲存"].tap()
-            app.searchExercises(name)
+            app.searchExerciseList(name)
             XCTAssertTrue(app.staticTexts[name].waitForExistence(timeout: 5))
-            app.clearExerciseSearch()
+            app.clearExerciseListSearch()
         }
 
         // 範本分段：建兩個範本，各帶一個動作
         app.buttons["範本"].tap()
         for (templateName, exerciseName) in [("推日", "測試臥推"), ("腿日", "測試深蹲")] {
-            app.buttons["libraryAddButton"].tap()
+            app.buttons["library.add"].tap()
             let field = app.textFields["範本名稱"]
             XCTAssertTrue(field.waitForExistence(timeout: 5))
             field.tap(); field.typeText(templateName)
@@ -39,7 +39,7 @@ final class TemplateImportUITests: XCTestCase {
 
         // 循環分段：開建立頁 → 開「加入範本」picker
         app.buttons["循環"].tap()
-        app.buttons["libraryAddButton"].tap()
+        app.buttons["library.add"].tap()
         let rotationTitle = app.textFields["名稱（例：推拉腿）"]
         XCTAssertTrue(rotationTitle.waitForExistence(timeout: 5))
         rotationTitle.tap(); rotationTitle.typeText("測試循環")

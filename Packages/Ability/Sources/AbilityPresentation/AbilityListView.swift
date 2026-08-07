@@ -35,7 +35,9 @@ public struct AbilityListView: View {
                     .padding(.top, TLSpace.section)
                 } else {
                     VStack(alignment: .leading, spacing: TLSpace.gapM) {
-                        TLSearchField(text: $viewModel.searchText, placeholder: localText("ability.search"))
+                        TLSearchField(text: $viewModel.searchText,
+                                      placeholder: localText("ability.search"),
+                                      identifier: "ability.search")
                         filterChips
                         rowsGroup
                         localText("ability.footer")

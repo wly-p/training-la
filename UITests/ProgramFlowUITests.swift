@@ -12,18 +12,18 @@ final class ProgramFlowUITests: XCTestCase {
 
         // 動作庫：建動作
         app.buttons["動作庫"].tap()
-        app.buttons["libraryAddButton"].tap()
+        app.buttons["library.add"].tap()
         let nameField = app.textFields["名稱（例：臥推）"]
         XCTAssertTrue(nameField.waitForExistence(timeout: 5))
         nameField.tap(); nameField.typeText("測試臥推")
         app.buttons["儲存"].tap()
-        app.searchExercises("測試臥推")
+        app.searchExerciseList("測試臥推")
         XCTAssertTrue(app.staticTexts["測試臥推"].waitForExistence(timeout: 5))
-        app.clearExerciseSearch()
+        app.clearExerciseListSearch()
 
         // 範本分段：建一個含測試臥推的課表範本（長期現在每天指派的是範本，見設計稿 12b）
         app.buttons["範本"].tap()
-        app.buttons["libraryAddButton"].tap()
+        app.buttons["library.add"].tap()
         let templateName = app.textFields["範本名稱"]
         XCTAssertTrue(templateName.waitForExistence(timeout: 5))
         templateName.tap(); templateName.typeText("推日")
@@ -35,7 +35,7 @@ final class ProgramFlowUITests: XCTestCase {
 
         // 長期分段：「+」直接開建立頁 → 打名字
         app.buttons["長期"].tap()
-        app.buttons["libraryAddButton"].tap()
+        app.buttons["library.add"].tap()
         let programTitle = app.textFields["名稱（例：PPL）"]
         XCTAssertTrue(programTitle.waitForExistence(timeout: 5))
         programTitle.tap(); programTitle.typeText("測試課表")

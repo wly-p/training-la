@@ -382,6 +382,7 @@ public struct TrainingHomeView: View {
                 localText("training.home.startCard")
             }
             .buttonStyle(.tlPrimary)
+            .accessibilityIdentifier("training.startCard")
         case .rotation(let id):
             Button {
                 Task { await viewModel.previewRotation(id: id) }

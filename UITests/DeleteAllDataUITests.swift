@@ -9,15 +9,15 @@ final class DeleteAllDataUITests: XCTestCase {
 
         // 先建一筆資料
         app.buttons["動作庫"].tap()
-        app.buttons["libraryAddButton"].tap()
+        app.buttons["library.add"].tap()
         let nameField = app.textFields["名稱（例：臥推）"]
         XCTAssertTrue(nameField.waitForExistence(timeout: 5))
         nameField.tap()
         nameField.typeText("測試臥推")
         app.buttons["儲存"].tap()
-        app.searchExercises("測試臥推")
+        app.searchExerciseList("測試臥推")
         XCTAssertTrue(app.staticTexts["測試臥推"].waitForExistence(timeout: 5))
-        app.clearExerciseSearch()
+        app.clearExerciseListSearch()
 
         // 設定 → 刪除所有資料 → 二次確認
         app.buttons["設定"].tap()
@@ -39,7 +39,7 @@ final class DeleteAllDataUITests: XCTestCase {
         let exercisesTab = app.buttons["動作庫"]
         XCTAssertTrue(exercisesTab.waitForExistence(timeout: 5))
         exercisesTab.tap()
-        app.searchExercises("測試臥推")
+        app.searchExerciseList("測試臥推")
         XCTAssertTrue(
             app.staticTexts["找不到符合的動作"].waitForExistence(timeout: 5),
             "刪除所有資料後，使用者自建的動作應該不見了"

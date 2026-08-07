@@ -59,6 +59,7 @@ public struct ActiveWorkoutView: View {
                         localText("training.finish")
                     }
                     .disabled(viewModel.totalSetCount == 0)
+                    .accessibilityIdentifier("activeWorkout.finish")
                 }
             }
             .task {
@@ -470,6 +471,7 @@ public struct ActiveWorkoutView: View {
                 localText("training.table.set")
                 Spacer()
                 localText("training.table.target")
+                    .accessibilityIdentifier("activeWorkout.targetColumn")
                 Spacer()
                 localText("training.table.actual")
             }
@@ -662,6 +664,8 @@ public struct ActiveWorkoutView: View {
                     .foregroundStyle(.clear)
                     .frame(width: 0, height: 0)
                     .accessibilityHidden(false)
+                    .accessibilityIdentifier("activeWorkout.currentSet")
+                    .accessibilityIdentifier("activeWorkout.completedSet")
             }
             Text(verbatim: text)
                 .monospacedDigit()
@@ -776,6 +780,7 @@ public struct ActiveWorkoutView: View {
                 Image(systemName: "arrow.turn.down.right")
             }
             .font(.footnote)
+            .accessibilityIdentifier("activeWorkout.nextSetPreview")
         case .lastSet:
             Label {
                 localText("training.lastSet")

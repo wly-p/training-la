@@ -2512,8 +2512,7 @@
         }
       }
     },
-    "template.block.percentOf1RM %lld" : {
-      "extractionState" : "stale",
+    "template.block.percentOfMax %lld" : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -2528,9 +2527,6 @@
           }
         }
       }
-    },
-    "template.block.percentOfMax %lld" : {
-
     },
     "template.block.progressive %lld" : {
       "localizations" : {

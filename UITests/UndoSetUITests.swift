@@ -11,15 +11,15 @@ final class UndoSetUITests: XCTestCase {
 
         // 1. 動作庫建一個動作
         app.buttons["動作庫"].tap()
-        app.buttons["libraryAddButton"].tap()
+        app.buttons["library.add"].tap()
         let nameField = app.textFields["名稱（例：臥推）"]
         XCTAssertTrue(nameField.waitForExistence(timeout: 5))
         nameField.tap()
         nameField.typeText("測試臥推")
         app.buttons["儲存"].tap()
-        app.searchExercises("測試臥推")
+        app.searchExerciseList("測試臥推")
         XCTAssertTrue(app.staticTexts["測試臥推"].waitForExistence(timeout: 5))
-        app.clearExerciseSearch()
+        app.clearExerciseListSearch()
 
         // 2. 開始訓練 → 選動作
         app.buttons["訓練"].tap()
@@ -107,15 +107,15 @@ final class UndoSetUITests: XCTestCase {
 
     @MainActor private func addExercise(_ app: XCUIApplication, name: String) {
         app.buttons["動作庫"].tap()
-        app.buttons["libraryAddButton"].tap()
+        app.buttons["library.add"].tap()
         let field = app.textFields["名稱（例：臥推）"]
         XCTAssertTrue(field.waitForExistence(timeout: 5))
         field.tap()
         field.typeText(name)
         app.buttons["儲存"].tap()
-        app.searchExercises(name)
+        app.searchExerciseList(name)
         XCTAssertTrue(app.staticTexts[name].waitForExistence(timeout: 5))
-        app.clearExerciseSearch()
+        app.clearExerciseListSearch()
     }
 
     @MainActor private func addExerciseToPlan(_ app: XCUIApplication, name: String) {

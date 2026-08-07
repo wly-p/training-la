@@ -282,6 +282,7 @@ struct WorkoutDetailView: View {
             (localText("history.col.target") + Text(verbatim: " / ") + localText("history.col.actual"))
                 .font(.caption2.weight(.semibold))
                 .foregroundStyle(TLColor.neutral500)
+                .accessibilityIdentifier("workoutDetail.targetColumn")
         }
         .padding(.horizontal, TLSpace.rowInset)
         .frame(minHeight: 40)

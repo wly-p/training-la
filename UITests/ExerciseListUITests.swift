@@ -8,7 +8,7 @@ final class ExerciseListUITests: XCTestCase {
         app.launch()
 
         app.buttons["動作庫"].tap()
-        app.buttons["libraryAddButton"].tap()
+        app.buttons["library.add"].tap()
 
         let nameField = app.textFields["名稱（例：臥推）"]
         XCTAssertTrue(nameField.waitForExistence(timeout: 5))
@@ -18,7 +18,7 @@ final class ExerciseListUITests: XCTestCase {
 
         // 內建動作清單（80 筆）常駐，先搜尋縮到只剩剛建的那筆再驗——不然下面的「槓鈴」
         // 會被一堆內建動作的器材標籤誤打誤撞地滿足，等於沒測到。
-        app.searchExercises("測試臥推")
+        app.searchExerciseList("測試臥推")
         XCTAssertTrue(app.staticTexts["測試臥推"].waitForExistence(timeout: 5))
         // 列表列顯示器材（預設槓鈴）→ 證明 equipment 有存進去並顯示
         XCTAssertTrue(app.staticTexts["槓鈴"].waitForExistence(timeout: 5))
@@ -43,7 +43,7 @@ final class ExerciseListUITests: XCTestCase {
 
         app.buttons["動作庫"].tap()
         // 全新的 in-memory store 也看得到內建動作——它們不進 DB，是常駐清單。
-        app.searchExercises("臥推")
+        app.searchExerciseList("臥推")
         let builtIn = app.staticTexts["臥推"].firstMatch
         XCTAssertTrue(builtIn.waitForExistence(timeout: 5), "內建動作應該出現在動作庫")
 
