@@ -41,7 +41,7 @@ final class EditDeleteWorkoutUITests: XCTestCase {
     @MainActor
     private func recordOneWorkout(_ app: XCUIApplication, exerciseName: String) {
         app.buttons["動作庫"].tap()
-        app.buttons["libraryAddButton"].tap()
+        app.buttons["library.add"].tap()
         let nameField = app.textFields["名稱（例：臥推）"]
         XCTAssertTrue(nameField.waitForExistence(timeout: 5))
         nameField.tap()

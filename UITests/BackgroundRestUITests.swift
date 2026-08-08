@@ -12,15 +12,15 @@ final class BackgroundRestUITests: XCTestCase {
 
         // 動作庫建一個動作
         app.buttons["動作庫"].tap()
-        app.buttons["libraryAddButton"].tap()
+        app.buttons["library.add"].tap()
         let nameField = app.textFields["名稱（例：臥推）"]
         XCTAssertTrue(nameField.waitForExistence(timeout: 5))
         nameField.tap()
         nameField.typeText("測試臥推")
         app.buttons["儲存"].tap()
-        app.searchExercises("測試臥推")
+        app.searchExerciseList("測試臥推")
         XCTAssertTrue(app.staticTexts["測試臥推"].waitForExistence(timeout: 5))
-        app.clearExerciseSearch()
+        app.clearExerciseListSearch()
 
         // 課表：休息設 5 秒
         app.buttons["課表"].tap()

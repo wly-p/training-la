@@ -8,12 +8,17 @@ public struct TLTabBar<Value: Hashable>: View {
         public let value: Value
         public let systemImage: String
         public let label: Text
+        /// UITest 定位用（見 ARCHITECTURE.md 的命名規範），最終 id 為 `tabBar.item.<identifier>`。
+        /// 由呼叫端給語意化名稱——`value` 是分頁的 selection 值（目前是 Int），
+        /// 拿它拼出來的 `tabBar.item.0` 看不出是哪一頁。
+        public let identifier: String
         public var id: Value { value }
 
-        public init(_ value: Value, systemImage: String, label: Text) {
+        public init(_ value: Value, systemImage: String, label: Text, identifier: String) {
             self.value = value
             self.systemImage = systemImage
             self.label = label
+            self.identifier = identifier
         }
     }
 
@@ -49,7 +54,7 @@ public struct TLTabBar<Value: Hashable>: View {
                 // 原生分頁列被 .toolbar(.hidden, for: .tabBar) 藏起來了，但它仍留在無障礙樹裡，
                 // UITest 用 app.tabBars 會抓到那個藏起來的、點了不一定有效。給穩定的 id 讓測試
                 // 直接點到這一列，也不必依賴會隨語言變的標籤文字。
-                .accessibilityIdentifier("tabBar.item.\(item.value)")
+                .accessibilityIdentifier("tabBar.item.\(item.identifier)")
             }
         }
         .padding(.horizontal, TLSpace.gapL)

@@ -29,6 +29,7 @@ public struct PlanScheduleView: View {
                             } label: {
                                 Label { localText("plan.addBlank") } icon: { Image(systemName: "square.and.pencil") }
                             }
+                            .accessibilityIdentifier("plan.addBlank")
                             Button {
                                 pickingTemplate = true
                             } label: {
@@ -48,6 +49,7 @@ public struct PlanScheduleView: View {
                                 .clipShape(Capsule())
                         }
                         .accessibilityLabel(localText("plan.new"))
+                        .accessibilityIdentifier("plan.new")
                     }
 
                     WeekDateStrip(

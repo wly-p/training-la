@@ -148,6 +148,32 @@ Training 的休息倒數不認識任何提醒手段，只呼叫 `RestEndRemindin
 
 同一份 `swift test` 也能在 Xcode 裡跑：`project.yml` 把每個 package 的 unit test target 都掛進 `UnitTests.xctestplan`，跟只含 `TrainingLaUITests` 的 `UITests.xctestplan` 是兩個獨立的 Test Plan（scheme 的 Test Plan 下拉選單可切換），Test Navigator 兩邊都看得到、能分開跑，不會混在一起。
 
+## UI test 怎麼定位元素：`accessibilityIdentifier` 命名
+
+UI test 原本一律靠中文標籤查元素（`app.buttons["儲存"]`）。那在單一語言下沒問題，但 App 支援
+在設定裡切語言之後，**任何寫死語言文字的測試就再也跑不了另一種語言**——而「切語言後畫面壞掉」
+正是最需要自動化守住的東西。所以要定位的元件一律掛 identifier。
+
+這是**為了測試與工具化**，不是無障礙工程。加 identifier 不等於做了 VoiceOver 支援，
+也不要拿它當無障礙覆蓋率的指標。
+
+- **格式 `screen.element`**，點分隔，需要再細分往後接：
+  `exerciseForm.save`、`activeWorkout.completeSet`、`tabBar.item.training`、`picker.confirm`。
+  早期有一派 camelCase 寫法（`libraryAddButton`、`eraseConfirmButton`），逐步收斂掉，不要再新增。
+- **只給測試真的要定位的元件加**，不是全畫面掛滿。
+- **測試自己輸入的資料照舊用文字定位**（動作名、課表名）——那是測試自己打進去的字串，
+  本來就與介面語言無關。
+- **斷言動態內容時只驗「帶這個 id 的元件存在」**，內容正確性歸 unit test。
+  測試一旦斷言「目標 60kg × 8」這種字串，就又把自己綁死在某個語言上了。
+
+`XCUIElement` 的 subscript 同時比對 identifier 與 label，所以加 identifier 不會弄壞既有那些
+還在用中文查找的測試——**但這也表示「漏改了某一處」不會被測出來**。轉換完成與否要看
+「UITests 裡的中文字面值歸零」，不能只看測試綠不綠。
+
+英文覆蓋的跑法：**裝置語系維持繁中，只把 App 語言切成英文**（launch argument
+`--uitest-language=en`）。兩邊都設英文的話 `String(localized:)` 也會回英文，反而把
+「不跟著 App 語言切」這個 bug 藏起來。
+
 ## `Config.xcconfig`：device / headless 可調參數
 
 `Config.xcconfig`（進版控）定義 `TEST_DEVICE`（跑 UITests 的模擬器機型，預設 `iPhone 17`）與 `TEST_HEADLESS`（bool，預設 `true`＝不開 Simulator.app 視窗）。這是 Makefile 與 Xcode 專案共用的單一真實來源：

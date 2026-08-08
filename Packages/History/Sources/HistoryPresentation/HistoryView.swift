@@ -81,7 +81,9 @@ public struct HistoryView: View {
             )
         } else {
             VStack(alignment: .leading, spacing: TLSpace.section) {
-                TLSearchField(text: $viewModel.searchText, placeholder: localText("history.search.placeholder"))
+                TLSearchField(text: $viewModel.searchText,
+                              placeholder: localText("history.search.placeholder"),
+                              identifier: "history.search")
                 ForEach(monthGroups, id: \.key) { group in
                     monthSection(group.key, group.workouts)
                 }
@@ -105,6 +107,7 @@ public struct HistoryView: View {
             TLGroup {
                 ForEach(workouts) { summary in
                     workoutRow(summary)
+                        .accessibilityIdentifier("history.workoutRow")
                 }
             }
         }

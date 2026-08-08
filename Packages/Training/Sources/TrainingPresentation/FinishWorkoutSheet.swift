@@ -65,6 +65,7 @@ struct FinishWorkoutSheet: View {
                         }
                     } label: {
                         localText("training.finish.saveAndFinish")
+                            .accessibilityIdentifier("finishSheet.save")
                     }
                     .buttonStyle(.tlPrimary)
 

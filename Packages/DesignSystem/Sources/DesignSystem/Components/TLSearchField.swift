@@ -7,10 +7,17 @@ import SwiftUI
 public struct TLSearchField: View {
     @Binding private var text: String
     private let placeholder: Text
+    /// UITest 定位用（見 ARCHITECTURE.md 的命名規範）。
+    ///
+    /// 由呼叫端給、而不是全部共用一個固定值：動作庫清單與選動作 picker 的搜尋列
+    /// 長得一模一樣，而 picker 以 sheet 疊在清單上時**兩個都在無障礙樹裡**，
+    /// 共用 id 會讓測試打到背後那一個。
+    private let identifier: String
 
-    public init(text: Binding<String>, placeholder: Text) {
+    public init(text: Binding<String>, placeholder: Text, identifier: String) {
         self._text = text
         self.placeholder = placeholder
+        self.identifier = identifier
     }
 
     public var body: some View {
@@ -22,6 +29,7 @@ public struct TLSearchField: View {
                 .font(TLFont.zh(TLFont.rowTitle))
                 .foregroundStyle(TLColor.text)
                 .autocorrectionDisabled()
+                .accessibilityIdentifier(identifier)
             #if os(iOS)
             field.textInputAutocapitalization(.never)
             #else
@@ -37,7 +45,7 @@ public struct TLSearchField: View {
                 }
                 .buttonStyle(.plain)
                 // 只有 SF Symbol 沒有文字，UITest 沒有東西可以定位；給個穩定 id。
-                .accessibilityIdentifier("searchField.clear")
+                .accessibilityIdentifier("\(identifier).clear")
             }
         }
         .padding(.horizontal, TLSpace.rowInset)

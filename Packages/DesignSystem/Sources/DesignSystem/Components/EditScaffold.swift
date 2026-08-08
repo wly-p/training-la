@@ -77,7 +77,7 @@ public struct EditScaffold<Content: View>: View {
                     .foregroundStyle(canSave ? TLColor.accent700 : TLColor.neutral400)
             }
             .disabled(!canSave)
-            .accessibilityIdentifier("editScaffoldSave")
+            .accessibilityIdentifier("editScaffold.save")
         }
         .padding(.horizontal, TLSpace.page)
         .padding(.top, 14)
@@ -91,7 +91,7 @@ public struct EditScaffold<Content: View>: View {
                 .tracking(TLFont.pageTitle * -0.02)
                 .foregroundStyle(TLColor.text)
                 .focused($titleFocused)
-                .accessibilityIdentifier("editScaffoldTitle")
+                .accessibilityIdentifier("editScaffold.title")
             if let subtitle {
                 subtitle
                     .font(TLFont.zh(13, .regular))

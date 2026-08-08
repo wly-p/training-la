@@ -9,15 +9,15 @@ final class TrainingFlowUITests: XCTestCase {
 
         // 1. 先在動作庫建一個動作
         app.buttons["動作庫"].tap()
-        app.buttons["libraryAddButton"].tap()
+        app.buttons["library.add"].tap()
         let nameField = app.textFields["名稱（例：臥推）"]
         XCTAssertTrue(nameField.waitForExistence(timeout: 5))
         nameField.tap()
         nameField.typeText("測試深蹲")
         app.buttons["儲存"].tap()
-        app.searchExercises("測試深蹲")
+        app.searchExerciseList("測試深蹲")
         XCTAssertTrue(app.staticTexts["測試深蹲"].waitForExistence(timeout: 5))
-        app.clearExerciseSearch()
+        app.clearExerciseListSearch()
 
         // 2. 開始訓練 → 自動彈出選動作（保險起見沒彈出就手動點「加入動作」）
         app.buttons["訓練"].tap()

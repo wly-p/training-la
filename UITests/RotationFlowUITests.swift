@@ -12,18 +12,18 @@ final class RotationFlowUITests: XCTestCase {
 
         // 動作庫：建動作
         app.buttons["動作庫"].tap()
-        app.buttons["libraryAddButton"].tap()
+        app.buttons["library.add"].tap()
         let nameField = app.textFields["名稱（例：臥推）"]
         XCTAssertTrue(nameField.waitForExistence(timeout: 5))
         nameField.tap(); nameField.typeText("測試臥推")
         app.buttons["儲存"].tap()
-        app.searchExercises("測試臥推")
+        app.searchExerciseList("測試臥推")
         XCTAssertTrue(app.staticTexts["測試臥推"].waitForExistence(timeout: 5))
-        app.clearExerciseSearch()
+        app.clearExerciseListSearch()
 
         // 範本分段：建一個含測試臥推的課表範本（循環現在只能從範本匯入內容，見設計稿 12a）
         app.buttons["範本"].tap()
-        app.buttons["libraryAddButton"].tap()
+        app.buttons["library.add"].tap()
         let templateName = app.textFields["範本名稱"]
         XCTAssertTrue(templateName.waitForExistence(timeout: 5))
         templateName.tap(); templateName.typeText("推日")
@@ -35,7 +35,7 @@ final class RotationFlowUITests: XCTestCase {
 
         // 循環分段：「+」直接開建立頁（新增／編輯同一頁）→ 打名字 → 加入範本
         app.buttons["循環"].tap()
-        app.buttons["libraryAddButton"].tap()
+        app.buttons["library.add"].tap()
         let rotationTitle = app.textFields["名稱（例：推拉腿）"]
         XCTAssertTrue(rotationTitle.waitForExistence(timeout: 5))
         rotationTitle.tap(); rotationTitle.typeText("推拉腿")
