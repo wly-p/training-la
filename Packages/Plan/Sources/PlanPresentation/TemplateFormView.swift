@@ -654,23 +654,27 @@ private struct SetEditSheet: View {
     }
 
     var body: some View {
-        VStack(alignment: .leading, spacing: TLSpace.gapL) {
-            topBar
-            modeChips
-            DualValuePicker(
-                primaryValue: $weightValue,
-                primaryValues: weightValues,
-                primaryKicker: primaryKicker,
-                secondaryValue: $repsValue,
-                secondaryValues: repsValues,
-                secondaryKicker: localString("template.setNumber.reps", locale),
-                quickActions: quickActions
-            )
+        CompactSheet(
+            title: Text(verbatim: exerciseName) + Text(verbatim: " · ")
+                + localText("template.setNumber \(setNumber)"),
+            cancelTitle: localText("plan.cancel"),
+            confirmTitle: localText("plan.done"),
+            onCancel: { dismiss() },
+            onConfirm: { applyAndDismiss() }
+        ) {
+            VStack(alignment: .leading, spacing: TLSpace.gapL) {
+                modeChips
+                DualValuePicker(
+                    primaryValue: $weightValue,
+                    primaryValues: weightValues,
+                    primaryKicker: primaryKicker,
+                    secondaryValue: $repsValue,
+                    secondaryValues: repsValues,
+                    secondaryKicker: localString("template.setNumber.reps", locale),
+                    quickActions: quickActions
+                )
+            }
         }
-        .padding(TLSpace.page)
-        .padding(.top, TLSpace.gapL)
-        .background(TLColor.bg.ignoresSafeArea())
-        .presentationDetents([.height(560)])
     }
 
     private var primaryKicker: String {
@@ -681,33 +685,17 @@ private struct SetEditSheet: View {
         }
     }
 
-    private var topBar: some View {
-        HStack {
-            Button { dismiss() } label: { localText("plan.cancel") }
-                .font(TLFont.zh(15.5, .medium))
-                .foregroundStyle(TLColor.neutral600)
-            Spacer()
-            (Text(verbatim: exerciseName) + Text(verbatim: " · ") + localText("template.setNumber \(setNumber)"))
-                .font(TLFont.zh(TLFont.rowTitle, .semibold))
-                .foregroundStyle(TLColor.text)
-            Spacer()
-            Button {
-                switch mode {
-                case .relativeToLast:
-                    targetWeight = .relativeToLast(delta: Weight(value: weightValue, unit: .kg))
-                case .percentOfMax:
-                    targetWeight = .percentOfMax(weightValue)
-                case .absolute:
-                    targetWeight = .absolute(Weight(value: weightValue, unit: .kg))
-                }
-                targetReps = Int(repsValue)
-                dismiss()
-            } label: {
-                localText("plan.done")
-            }
-            .font(TLFont.zh(15.5, .bold))
-            .foregroundStyle(TLColor.accent700)
+    private func applyAndDismiss() {
+        switch mode {
+        case .relativeToLast:
+            targetWeight = .relativeToLast(delta: Weight(value: weightValue, unit: .kg))
+        case .percentOfMax:
+            targetWeight = .percentOfMax(weightValue)
+        case .absolute:
+            targetWeight = .absolute(Weight(value: weightValue, unit: .kg))
         }
+        targetReps = Int(repsValue)
+        dismiss()
     }
 
     private var modeChips: some View {

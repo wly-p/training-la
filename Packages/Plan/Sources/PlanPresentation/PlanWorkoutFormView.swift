@@ -351,36 +351,46 @@ private struct DraftEditSheet: View {
     private var repsValues: [Double] { Array(stride(from: 1, through: 30, by: 1)) }
 
     var body: some View {
-        VStack(alignment: .leading, spacing: TLSpace.gapL) {
-            topBar
-            TLGroup {
-                stepperRow(localText("plan.setCount \(sets)"), value: $sets, range: 1...20)
-                    .accessibilityIdentifier("draftSetCountStepper")
-                stepperRow(restLabel, value: $rest, range: 0...600, step: 15)
-                    .accessibilityIdentifier("draftRestStepper")
+        CompactSheet(
+            title: Text(verbatim: exerciseName),
+            cancelTitle: localText("plan.cancel"),
+            confirmTitle: localText("plan.done"),
+            onCancel: { dismiss() },
+            onConfirm: { applyAndDismiss() }
+        ) {
+            VStack(alignment: .leading, spacing: TLSpace.gapL) {
+                TLGroup {
+                    stepperRow(localText("plan.setCount \(sets)"), value: $sets, range: 1...20)
+                        .accessibilityIdentifier("draftSetCountStepper")
+                    stepperRow(restLabel, value: $rest, range: 0...600, step: 15)
+                        .accessibilityIdentifier("draftRestStepper")
+                }
+                DualValuePicker(
+                    primaryValue: $weightValue,
+                    primaryValues: weightValues,
+                    primaryKicker: localString("plan.weight", locale),
+                    secondaryValue: $repsValue,
+                    secondaryValues: repsValues,
+                    secondaryKicker: localString("plan.reps", locale),
+                    quickActions: [
+                        .init("-\(formatNumber(weightStep))") {
+                            weightValue = WeightRange.clamped(weightValue - weightStep, unit: weightUnit)
+                        },
+                        .init("+\(formatNumber(weightStep))") {
+                            weightValue = WeightRange.clamped(weightValue + weightStep, unit: weightUnit)
+                        },
+                    ]
+                )
             }
-            DualValuePicker(
-                primaryValue: $weightValue,
-                primaryValues: weightValues,
-                primaryKicker: localString("plan.weight", locale),
-                secondaryValue: $repsValue,
-                secondaryValues: repsValues,
-                secondaryKicker: localString("plan.reps", locale),
-                quickActions: [
-                    .init("-\(formatNumber(weightStep))") {
-                        weightValue = WeightRange.clamped(weightValue - weightStep, unit: weightUnit)
-                    },
-                    .init("+\(formatNumber(weightStep))") {
-                        weightValue = WeightRange.clamped(weightValue + weightStep, unit: weightUnit)
-                    },
-                ]
-            )
-            Spacer(minLength: 0)
         }
-        .padding(TLSpace.page)
-        .padding(.top, TLSpace.gapL)
-        .background(TLColor.bg.ignoresSafeArea())
-        .presentationDetents([.height(520)])
+    }
+
+    private func applyAndDismiss() {
+        setCount = sets
+        targetWeight = Weight(value: weightValue, unit: targetWeight?.unit ?? .kg)
+        targetReps = Int(repsValue)
+        restSec = rest > 0 ? rest : nil
+        dismiss()
     }
 
     private var restLabel: Text {
@@ -397,27 +407,4 @@ private struct DraftEditSheet: View {
         .frame(minHeight: TLSize.row)
     }
 
-    private var topBar: some View {
-        HStack {
-            Button { dismiss() } label: { localText("plan.cancel") }
-                .font(TLFont.zh(15.5, .medium))
-                .foregroundStyle(TLColor.neutral600)
-            Spacer()
-            Text(verbatim: exerciseName)
-                .font(TLFont.zh(TLFont.rowTitle, .semibold))
-                .foregroundStyle(TLColor.text)
-            Spacer()
-            Button {
-                setCount = sets
-                targetWeight = Weight(value: weightValue, unit: targetWeight?.unit ?? .kg)
-                targetReps = Int(repsValue)
-                restSec = rest > 0 ? rest : nil
-                dismiss()
-            } label: {
-                localText("plan.done")
-            }
-            .font(TLFont.zh(15.5, .bold))
-            .foregroundStyle(TLColor.accent700)
-        }
-    }
 }

@@ -902,36 +902,31 @@ public struct ActiveWorkoutView: View {
     }
 
     /// 大數字點開的重量／次數選擇器（取代 stepper）；重量依使用者的級距偏好、次數 1…40。
+    ///
+    /// 外框用 `CompactSheet`：高度跟著內容量測，不再寫死 —— 之前寫死 260 讓滾輪被壓扁，
+    /// 而且「好」是 NavigationStack 的 toolbar，浮在標題列上蓋到下面的欄名。
     private var valueEditorSheet: some View {
         let weightValues = WeightRange.values(for: viewModel.draftWeightUnit, step: viewModel.weightStep)
         let repsValues = (1...40).map(Double.init)
-        return NavigationStack {
-            VStack {
-                DualValuePicker(
-                    primaryValue: $viewModel.draftWeightValue,
-                    primaryValues: weightValues,
-                    primaryKicker: localString("training.weight", locale),
-                    primaryFormat: { "\(WeightDisplay.value($0)) \(viewModel.draftWeightUnit.rawValue)" },
-                    secondaryValue: Binding(
-                        get: { Double(viewModel.draftReps) },
-                        set: { viewModel.draftReps = Int($0) }
-                    ),
-                    secondaryValues: repsValues,
-                    secondaryKicker: localString("training.reps", locale),
-                    secondaryFormat: { "\(Int($0))" }
-                )
-                Spacer()
-            }
-            .padding(TLSpace.page)
-            .background(TLColor.bg.ignoresSafeArea())
-            .toolbar {
-                ToolbarItem(placement: .confirmationAction) {
-                    Button { showsValueEditor = false } label: { localText("training.ok") }
-                }
-            }
+        return CompactSheet(
+            title: Text(verbatim: viewModel.currentExerciseId.map { viewModel.name(for: $0) } ?? ""),
+            confirmTitle: localText("training.ok"),
+            onConfirm: { showsValueEditor = false }
+        ) {
+            DualValuePicker(
+                primaryValue: $viewModel.draftWeightValue,
+                primaryValues: weightValues,
+                primaryKicker: localString("training.weight", locale),
+                primaryFormat: { "\(WeightDisplay.value($0)) \(viewModel.draftWeightUnit.rawValue)" },
+                secondaryValue: Binding(
+                    get: { Double(viewModel.draftReps) },
+                    set: { viewModel.draftReps = Int($0) }
+                ),
+                secondaryValues: repsValues,
+                secondaryKicker: localString("training.reps", locale),
+                secondaryFormat: { "\(Int($0))" }
+            )
         }
-        .presentationDetents([.height(260)])
-        .presentationDragIndicator(.visible)
     }
 
     /// 「目標 80% 1RM · 已預填」；草稿一旦偏離目標就不再顯示（不然跟實際輸入矛盾）。
