@@ -179,6 +179,9 @@ struct AppDependencies {
             getActiveRestDay: GetActiveRestDay(
                 programRepository: programRepository, assignmentRepository: programAssignmentRepository
             ),
+            moveNextWorkout: MoveNextWorkoutToToday(
+                programRepository: programRepository, assignmentRepository: programAssignmentRepository
+            ),
             today: { DayDate(Date()) },
             listExercises: ListExercises(repository: exerciseRepository),
             currentLanguage: { languageStore.load() ?? .fallback }

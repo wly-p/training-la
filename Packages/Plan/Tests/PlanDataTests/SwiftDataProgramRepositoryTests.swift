@@ -84,4 +84,30 @@ struct SwiftDataProgramRepositoryTests {
         #expect(try await repo.forProgram(pid).map(\.id) == [aid])
         #expect(try await repo.all().count == 2)
     }
+
+    @Test func dayOverridesRoundTrip() async throws {
+        let container = try makeContainer()
+        let repo = PlanDataFactory.makeProgramAssignmentRepository(container: container)
+        let aid = UUID()
+        let moved = DayDate(year: 2026, month: 7, day: 25)
+        try await repo.save(ProgramAssignment(
+            id: aid, programId: UUID(), startDate: DayDate(year: 2026, month: 7, day: 20),
+            mode: .repeating, dayOverrides: [moved: 2, moved.adding(days: 1): 1]
+        ))
+
+        let a = try await repo.get(id: aid)!
+        #expect(a.dayOverrides == [moved: 2, moved.adding(days: 1): 1])
+    }
+
+    /// 沒搬過的套用讀回來要是空表，不是 nil 解碼失敗的殘骸。
+    @Test func emptyDayOverridesRoundTripAsEmpty() async throws {
+        let container = try makeContainer()
+        let repo = PlanDataFactory.makeProgramAssignmentRepository(container: container)
+        let aid = UUID()
+        try await repo.save(ProgramAssignment(
+            id: aid, programId: UUID(), startDate: DayDate(year: 2026, month: 7, day: 20), mode: .once
+        ))
+
+        #expect(try await repo.get(id: aid)!.dayOverrides.isEmpty)
+    }
 }
