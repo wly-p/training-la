@@ -180,7 +180,15 @@ struct AppDependencies {
                 programRepository: programRepository, assignmentRepository: programAssignmentRepository
             ),
             moveNextWorkout: MoveNextWorkoutToToday(
-                programRepository: programRepository, assignmentRepository: programAssignmentRepository
+                programRepository: programRepository,
+                assignmentRepository: programAssignmentRepository,
+                planRepository: planRepository,
+                materialize: MaterializeProjectedWorkout(
+                    planRepository: planRepository,
+                    preferences: trainingPreferences,
+                    lastPerformedWeightLookup: lastPerformedWeightLookup,
+                    abilityValueLookup: abilityValueLookup
+                )
             ),
             today: { DayDate(Date()) },
             listExercises: ListExercises(repository: exerciseRepository),

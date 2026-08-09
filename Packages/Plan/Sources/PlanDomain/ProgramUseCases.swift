@@ -311,18 +311,28 @@ public struct GetActiveRestDay: Sendable {
 ///
 /// 只搬「下一個有排課的日子」，不是死板的明天：中間若還有休息日，搬的是再往後那個訓練日
 /// （文案本來就寫出它的名字，使用者看得到自己搬的是哪一個）。
+///
+/// 搬完**必須把今天這則投影落地**：訓練首頁的「今天排課」讀的是真實的 `PlanWorkout`，
+/// 不是投影（補登只補到昨天，今天一律維持「建議」）。只改 `dayOverrides` 的話，課表月曆與
+/// 長期課表詳情會更新，訓練頁卻因為 `todaysPlan()` 查無資料而掉進「今天沒有排課」的空狀態。
 public struct MoveNextWorkoutToToday: Sendable {
     private let programRepository: any ProgramRepository
     private let assignmentRepository: any ProgramAssignmentRepository
+    private let planRepository: any PlanWorkoutRepository
+    private let materialize: MaterializeProjectedWorkout
     private let today: @Sendable () -> DayDate
 
     public init(
         programRepository: any ProgramRepository,
         assignmentRepository: any ProgramAssignmentRepository,
+        planRepository: any PlanWorkoutRepository,
+        materialize: MaterializeProjectedWorkout,
         today: @escaping @Sendable () -> DayDate = { DayDate(Date()) }
     ) {
         self.programRepository = programRepository
         self.assignmentRepository = assignmentRepository
+        self.planRepository = planRepository
+        self.materialize = materialize
         self.today = today
     }
 
@@ -341,11 +351,28 @@ public struct MoveNextWorkoutToToday: Sendable {
         for step in 1...limit {
             let date = todayDate.adding(days: step)
             guard let cycleDay = assignment.cycleDay(for: date, cycleLength: program.cycleLength),
-                  program.workout(dayIndex: cycleDay) != nil
+                  let spec = program.workout(dayIndex: cycleDay)
             else { continue }
             assignment.dayOverrides[todayDate] = cycleDay
             assignment.dayOverrides[date] = todayCycleDay
             try await assignmentRepository.save(assignment)
+
+            // 那天若已經被落地過（使用者從月曆「加入這天」），搬走之後不該還留在原地。
+            // 只刪還沒開始的；已經在練或已完成的是真實紀錄，不能因為搬動就消失。
+            for plan in try await planRepository.onDate(date)
+            where plan.assignmentId == assignment.id && plan.status == .notStarted {
+                try await planRepository.delete(id: plan.id)
+            }
+
+            // 今天落地成真實排課，訓練首頁才看得到（`MaterializeProjectedWorkout` 本身冪等）。
+            _ = try await materialize(ProjectedWorkout(
+                date: todayDate,
+                assignmentId: assignment.id,
+                programId: program.id,
+                programName: program.name,
+                spec: spec,
+                intensityFactor: spec.intensityFactor ?? program.intensityFactor
+            ))
             return
         }
     }
