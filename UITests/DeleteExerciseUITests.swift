@@ -4,7 +4,7 @@ final class DeleteExerciseUITests: XCTestCase {
     @MainActor
     func testDeletingReferencedExerciseIsBlocked() throws {
         let app = XCUIApplication()
-        app.launchArguments = ["--uitest-inmemory"]
+        app.launchArguments = uitestLaunchArguments()
         app.launch()
 
         // 建動作

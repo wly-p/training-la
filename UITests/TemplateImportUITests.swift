@@ -7,7 +7,7 @@ final class TemplateImportUITests: XCTestCase {
     @MainActor
     func testPickerSearchFiltersAndMultiSelectAddsAll() throws {
         let app = XCUIApplication()
-        app.launchArguments = ["--uitest-inmemory"]
+        app.launchArguments = uitestLaunchArguments()
         app.launch()
 
         // 動作庫：建兩個動作

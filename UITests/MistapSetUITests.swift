@@ -10,7 +10,7 @@ final class MistapSetUITests: XCTestCase {
     @MainActor
     func testTappingEmptyEditorAreaDoesNotRecordSet() throws {
         let app = XCUIApplication()
-        app.launchArguments = ["--uitest-inmemory"] // 乾淨的 in-memory store
+        app.launchArguments = uitestLaunchArguments() // 乾淨的 in-memory store
         app.launch()
 
         // 1. 動作庫建一個動作

@@ -21,7 +21,7 @@ final class EnglishLocalizationUITests: XCTestCase {
     func testNoChineseTextInEnglishLocale() throws {
         let app = XCUIApplication()
         // 乾淨的 store（畫面上不會有使用者輸入的中文資料）＋ app 語言強制英文（裝置維持繁中）
-        app.launchArguments = ["--uitest-inmemory", "--uitest-language=en"]
+        app.launchArguments = uitestLaunchArguments(["--uitest-language=en"])
         app.launch()
 
         XCTAssertTrue(

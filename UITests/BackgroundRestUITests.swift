@@ -7,7 +7,7 @@ final class BackgroundRestUITests: XCTestCase {
     @MainActor
     func testRestKeepsCountingWhileAppInBackground() throws {
         let app = XCUIApplication()
-        app.launchArguments = ["--uitest-inmemory"]
+        app.launchArguments = uitestLaunchArguments()
         app.launch()
 
         // 動作庫建一個動作

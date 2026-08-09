@@ -4,7 +4,7 @@ final class ExerciseListUITests: XCTestCase {
     @MainActor
     func testAddExerciseShowsUpInList() throws {
         let app = XCUIApplication()
-        app.launchArguments = ["--uitest-inmemory"] // 乾淨的 in-memory store
+        app.launchArguments = uitestLaunchArguments() // 乾淨的 in-memory store
         app.launch()
 
         app.buttons["動作庫"].tap()
@@ -38,7 +38,7 @@ final class ExerciseListUITests: XCTestCase {
     @MainActor
     func testBuiltInExerciseIsReadOnly() throws {
         let app = XCUIApplication()
-        app.launchArguments = ["--uitest-inmemory"]
+        app.launchArguments = uitestLaunchArguments()
         app.launch()
 
         app.buttons["動作庫"].tap()

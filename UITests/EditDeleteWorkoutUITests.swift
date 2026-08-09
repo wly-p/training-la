@@ -5,7 +5,7 @@ final class EditDeleteWorkoutUITests: XCTestCase {
     @MainActor
     func testEditSetThenDeleteWorkout() throws {
         let app = XCUIApplication()
-        app.launchArguments = ["--uitest-inmemory"]
+        app.launchArguments = uitestLaunchArguments()
         app.launch()
 
         recordOneWorkout(app, exerciseName: "測試深蹲")

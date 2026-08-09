@@ -6,7 +6,7 @@ final class RestReminderSettingsUITests: XCTestCase {
     @MainActor
     func testReminderTogglesRenderWithDefaultsAndToggle() throws {
         let app = XCUIApplication()
-        app.launchArguments = ["--uitest-inmemory"]
+        app.launchArguments = uitestLaunchArguments()
         app.launch()
 
         app.buttons["設定"].tap()

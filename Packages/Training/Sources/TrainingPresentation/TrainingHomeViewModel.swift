@@ -117,6 +117,10 @@ public final class TrainingHomeViewModel {
         (todaysPlan != nil ? 1 : 0) + rotations.count
     }
 
+    /// Header kicker 的日期。View 不要自己 `Date()`——那樣 UI 測試釘死「今天」時
+    /// 頁首會跟底下的內容對不上。
+    public var todayDate: DayDate { today() }
+
     private let startWorkout: StartWorkout
     private let resumeWorkout: ResumeWorkout
     private let recentWorkouts: RecentWorkouts?

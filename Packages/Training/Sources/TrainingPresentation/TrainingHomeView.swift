@@ -131,7 +131,7 @@ public struct TrainingHomeView: View {
     /// `M / D 週X`，有狀態才接 `· xxx`（進行中計畫數／休息日）。
     private var headerKicker: Text {
         let language = AppLanguage(locale: locale)
-        let dateText = Self.kickerDateFormatter(locale: locale).string(from: Date())
+        let dateText = Self.kickerDateFormatter(locale: locale).string(from: Self.date(of: viewModel.todayDate))
         if viewModel.activePlanCount > 0 {
             let format = language.localizedString("training.home.activePlans %lld", bundle: .module)
             let suffix = String(format: format, viewModel.activePlanCount)
@@ -149,6 +149,12 @@ public struct TrainingHomeView: View {
         formatter.locale = locale
         formatter.setLocalizedDateFormatFromTemplate("M/d EEEE")
         return formatter
+    }
+
+    /// `DayDate` 刻意不對外暴露底層 `Date` 換算（見 SharedKernel 的註解），這裡自己補一個。
+    private static func date(of day: DayDate) -> Date {
+        Calendar(identifier: .gregorian)
+            .date(from: DateComponents(year: day.year, month: day.month, day: day.day)) ?? Date()
     }
 
     // MARK: - 續練

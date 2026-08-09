@@ -7,7 +7,7 @@ final class RotationFlowUITests: XCTestCase {
     @MainActor
     func testBuildRotationThenStartFromHome() throws {
         let app = XCUIApplication()
-        app.launchArguments = ["--uitest-inmemory"]
+        app.launchArguments = uitestLaunchArguments()
         app.launch()
 
         // 動作庫：建動作

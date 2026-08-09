@@ -4,7 +4,7 @@ final class SettingsUITests: XCTestCase {
     @MainActor
     func testThemeSelectionDrillInUpdatesValue() throws {
         let app = XCUIApplication()
-        app.launchArguments = ["--uitest-inmemory"]
+        app.launchArguments = uitestLaunchArguments()
         app.launch()
 
         app.buttons["設定"].tap()
@@ -31,7 +31,7 @@ final class SettingsUITests: XCTestCase {
     @MainActor
     func testAppIconSelectionUpdatesValue() throws {
         let app = XCUIApplication()
-        app.launchArguments = ["--uitest-inmemory"]
+        app.launchArguments = uitestLaunchArguments()
         app.launch()
 
         app.buttons["設定"].tap()
@@ -70,7 +70,7 @@ final class SettingsUITests: XCTestCase {
     @MainActor
     func testLanguageRowShowsCurrentLanguage() throws {
         let app = XCUIApplication()
-        app.launchArguments = ["--uitest-inmemory"]
+        app.launchArguments = uitestLaunchArguments()
         app.launch()
 
         app.buttons["設定"].tap()
@@ -84,7 +84,7 @@ final class SettingsUITests: XCTestCase {
     @MainActor
     func testSwitchingLanguageToEnglishLocalizesSettings() throws {
         let app = XCUIApplication()
-        app.launchArguments = ["--uitest-inmemory"]
+        app.launchArguments = uitestLaunchArguments()
         app.launch()
 
         app.buttons["設定"].tap()
@@ -119,7 +119,7 @@ final class SettingsUITests: XCTestCase {
     @MainActor
     func testVersionRowShowsVersionAndBuild() throws {
         let app = XCUIApplication()
-        app.launchArguments = ["--uitest-inmemory"]
+        app.launchArguments = uitestLaunchArguments()
         app.launch()
 
         app.buttons["設定"].tap()

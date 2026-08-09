@@ -4,7 +4,7 @@ final class DeleteAllDataUITests: XCTestCase {
     @MainActor
     func testDeleteAllDataClearsExercisesAndReturnsToFreshState() throws {
         let app = XCUIApplication()
-        app.launchArguments = ["--uitest-inmemory"]
+        app.launchArguments = uitestLaunchArguments()
         app.launch()
 
         // 先建一筆資料
