@@ -72,12 +72,13 @@ public struct ActiveWorkoutView: View {
                 if dismissed { dismiss() }
             }
             .onChange(of: scenePhase) { _, phase in
-                // 切回前景：補算剩餘秒數並重啟 ticking；進背景：停掉 ticking，
+                // 切回前景：補算剩餘秒數並重啟 ticking；離開前景：停掉 ticking，
                 // 避免回前景時補跑「到點前景提醒」與背景已投遞的通知重複。
+                // `.background` 與 `.inactive` 要分開傳：只有前者會真的被系統通知提醒過。
                 if phase == .active {
                     viewModel.enterForeground()
                 } else {
-                    viewModel.suspendRestTicking()
+                    viewModel.suspendRestTicking(toBackground: phase == .background)
                 }
             }
             .alert(localText("training.restOver"), isPresented: Binding(

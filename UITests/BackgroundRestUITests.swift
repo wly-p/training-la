@@ -61,10 +61,20 @@ final class BackgroundRestUITests: XCTestCase {
         Thread.sleep(forTimeInterval: 17)
         app.activate()
 
-        // 切回前景後：休息已結束（沒有被暫停）→ 出現「休息結束」彈窗
+        // 切回前景後：休息已結束（沒有被暫停），而且**直接回到組表輸入態**。
+        // 背景到點時系統通知已經提醒過一次，這裡不該再彈一次「休息結束」要人多按一下
+        // （bug：組間休息提醒重複）。
         XCTAssertTrue(
-            app.staticTexts["休息結束"].waitForExistence(timeout: 5),
-            "背景期間倒數應持續進行，切回時休息應已結束"
+            app.buttons["完成此組"].waitForExistence(timeout: 5),
+            "背景期間倒數應持續進行，切回時休息應已結束並回到組表"
+        )
+        XCTAssertFalse(
+            app.staticTexts["休息中"].exists,
+            "休息已經到點，不該還停在休息畫面"
+        )
+        XCTAssertFalse(
+            app.staticTexts["休息結束"].exists,
+            "背景通知已經提醒過一次，回前景不該再彈一次彈窗"
         )
     }
 }

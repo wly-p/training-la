@@ -55,6 +55,9 @@ public final class ActiveWorkoutViewModel {
     private var adjustedRestByExercise: [UUID: Int] = [:]
     /// 排/取消通知的非同步工作（fire-and-forget，不擋 UI）；測試可 await 它確認已排。
     var pendingRestNotify: Task<Void, Never>?
+    /// 這段休息期間 App 真的被切到背景過（不只是 `.inactive`）。
+    /// 背景到點時系統通知已經提醒過一次，回前景就不該再彈一次彈窗（見 `enterForeground`）。
+    private var didEnterBackgroundDuringRest = false
 
     /// 剛做滿某動作的課表組數 → View 顯示完成卡片。
     public private(set) var showExerciseComplete = false
@@ -502,6 +505,7 @@ public final class ActiveWorkoutViewModel {
         restSeconds = seconds
         restExerciseId = currentExerciseId
         restEnded = false
+        didEnterBackgroundDuringRest = false
         scheduleReminder(at: end)
         startRestTicking()
     }
@@ -550,23 +554,41 @@ public final class ActiveWorkoutViewModel {
         restSeconds = nil
         restExerciseId = nil
         restEnded = false
+        didEnterBackgroundDuringRest = false
         cancelReminder()
     }
 
     /// 前景是否顯示「休息結束」彈窗（依使用者提醒偏好）。
     public var showsRestEndedAlert: Bool { restEnded && reminder.preference.popup }
 
-    /// App 進背景：停掉前景 ticking（保留結束時間）。避免回前景時補跑「到點前景提醒」，
+    /// App 離開前景：停掉前景 ticking（保留結束時間）。避免回前景時補跑「到點前景提醒」，
     /// 與背景已投遞的通知重複發聲。
-    public func suspendRestTicking() {
+    ///
+    /// - Parameter toBackground: 真的進背景（`.background`），而不是 `.inactive`（下拉通知中心、
+    ///   App 切換器預覽）。這兩者差別很大：`.inactive` 仍算前景，系統不會把那則通知投遞出來，
+    ///   所以回來時該照常彈窗；真的進背景才會被通知提醒過。
+    public func suspendRestTicking(toBackground: Bool = false) {
         restTask?.cancel()
         restTask = nil
+        if toBackground, restEndDate != nil { didEnterBackgroundDuringRest = true }
     }
 
     /// App 回前景：補算剩餘秒數；若還在休息就重啟 ticking。
+    ///
+    /// 休息是在背景期間到點的話，系統通知已經提醒過一次了 —— 再彈一次「休息結束」是第二次提醒，
+    /// 使用者得多按一下才能繼續（bug：組間休息提醒重複）。這種情況直接進下一組的輸入態。
     public func enterForeground() {
-        guard restEndDate != nil else { return }
-        if !refreshRest() { startRestTicking() }
+        guard restEndDate != nil else {
+            didEnterBackgroundDuringRest = false
+            return
+        }
+        let endedWhileAway = didEnterBackgroundDuringRest && reminder.preference.backgroundNotification
+        didEnterBackgroundDuringRest = false
+        if refreshRest() {
+            if endedWhileAway { dismissRest() }
+        } else {
+            startRestTicking()
+        }
     }
 
     /// 每秒重算一次剩餘秒數（僅前景；背景由 suspendRestTicking 停掉）。

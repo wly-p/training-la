@@ -438,6 +438,69 @@ struct ActiveWorkoutBackgroundRestTests {
         #expect(vm.restEnded)
         #expect(vm.showsRestEndedAlert == false)
     }
+
+    /// 休息在背景期間到點：系統通知已經提醒過一次，回前景不該再彈一次彈窗
+    /// （不然要多按一下「開始下一組」才能繼續）。直接進下一組的輸入態。
+    @Test func restEndedInBackgroundDoesNotAlertOnReturn() {
+        let clock = MutableClock(Date(timeIntervalSince1970: 1000))
+        let vm = makeViewModel(now: { clock.current })
+
+        vm.startRest(seconds: 60)
+        vm.suspendRestTicking(toBackground: true)
+        clock.advance(65)
+        vm.enterForeground()
+
+        #expect(vm.showsRestEndedAlert == false)
+        #expect(vm.restRemaining == nil)   // 已離開休息狀態＝回到組表輸入態
+        #expect(vm.restEnded == false)
+    }
+
+    /// `.inactive`（下拉通知中心、App 切換器）仍算前景，系統不會投遞那則通知
+    /// ——這種情況回來還是得彈窗，否則使用者完全沒被提醒。
+    @Test func restEndedWhileMerelyInactiveStillAlerts() {
+        let clock = MutableClock(Date(timeIntervalSince1970: 1000))
+        let vm = makeViewModel(now: { clock.current })
+
+        vm.startRest(seconds: 60)
+        vm.suspendRestTicking()   // toBackground: false
+        clock.advance(65)
+        vm.enterForeground()
+
+        #expect(vm.showsRestEndedAlert)
+    }
+
+    /// 背景通知偏好關掉時，背景期間根本沒有人提醒過 → 回前景照樣要彈窗。
+    @Test func restEndedInBackgroundStillAlertsWhenBackgroundNotificationDisabled() {
+        let clock = MutableClock(Date(timeIntervalSince1970: 1000))
+        let spy = SpyReminder(preference: .init(popup: true, sound: true, backgroundNotification: false))
+        let vm = makeViewModel(now: { clock.current }, reminder: spy)
+
+        vm.startRest(seconds: 60)
+        vm.suspendRestTicking(toBackground: true)
+        clock.advance(65)
+        vm.enterForeground()
+
+        #expect(vm.showsRestEndedAlert)
+    }
+
+    /// 進背景但休息還沒到點：回前景要繼續倒數，不能被誤判成「已經提醒過」。
+    @Test func returningFromBackgroundMidRestKeepsCountingDown() {
+        let clock = MutableClock(Date(timeIntervalSince1970: 1000))
+        let vm = makeViewModel(now: { clock.current })
+
+        vm.startRest(seconds: 60)
+        vm.suspendRestTicking(toBackground: true)
+        clock.advance(20)
+        vm.enterForeground()
+
+        #expect(vm.restRemaining == 40)
+        #expect(vm.restEnded == false)
+
+        // 回前景後才到點 → 這次是前景提醒，彈窗照舊。
+        clock.advance(45)
+        #expect(vm.refreshRest() == true)
+        #expect(vm.showsRestEndedAlert)
+    }
 }
 
 @MainActor
