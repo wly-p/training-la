@@ -7,6 +7,8 @@ import SwiftUI
 /// - 中央值：28pt Caprasimo、`neutral-900`
 /// - 上下各兩階遞減：20pt `neutral-500`（±1）→ 17pt `neutral-400`（±2）
 /// - 下方一排快捷 capsule（如 `−2.5` / `+2.5` / `同上組`）
+///
+/// 滾輪本體（渲染窗口、手勢、慣性）在 `WheelColumn`，跟 `DualValuePicker` 共用同一份。
 public struct ValuePicker: View {
     /// 快捷鍵。`flex` 控制寬度比例（README：−2.5 : +2.5 : 同上組 = 1 : 1 : 1.4）。
     public struct QuickAction: Identifiable {
@@ -26,8 +28,6 @@ public struct ValuePicker: View {
     private let kicker: String?
     private let format: (Double) -> String
     private let quickActions: [QuickAction]
-
-    @State private var dragOffset: CGFloat = 0
 
     private let rowHeight: CGFloat = 44
 
@@ -51,16 +51,6 @@ public struct ValuePicker: View {
         v == v.rounded() ? String(Int(v)) : String(v)
     }
 
-    private var currentIndex: Int {
-        values.firstIndex(of: value) ?? values.firstIndex(where: { $0 >= value }) ?? 0
-    }
-
-    /// 拖曳過程中即時對應到的 index（含未放開的位移），用於觸覺與吸附。
-    private var liveIndex: Int {
-        let steps = Int((-dragOffset / rowHeight).rounded())
-        return min(max(currentIndex + steps, 0), values.count - 1)
-    }
-
     public var body: some View {
         VStack(spacing: 16) {
             if let kicker {
@@ -77,7 +67,6 @@ public struct ValuePicker: View {
         .padding(TLSpace.rowInset)
         .background(TLColor.neutral100)
         .clipShape(RoundedRectangle(cornerRadius: TLRadius.container, style: .continuous))
-        .sensoryFeedback(.selection, trigger: liveIndex)
     }
 
     private var wheel: some View {
@@ -86,29 +75,10 @@ public struct ValuePicker: View {
                 .fill(TLColor.neutral300)
                 .frame(height: rowHeight)
 
-            ForEach(-2...2, id: \.self) { k in
-                let idx = currentIndex + k
-                if values.indices.contains(idx) {
-                    Text(format(values[idx]))
-                        .font(TLFont.display(fontSize(for: k)))
-                        .foregroundStyle(color(for: k))
-                        .offset(y: CGFloat(k) * rowHeight + dragOffset)
-                }
-            }
+            WheelColumn(value: $value, values: values, format: format, rowHeight: rowHeight)
         }
         .frame(height: rowHeight * 5)
         .clipped()
-        .contentShape(Rectangle())
-        .gesture(
-            DragGesture()
-                .onChanged { dragOffset = $0.translation.height }
-                .onEnded { g in
-                    let steps = Int((-g.translation.height / rowHeight).rounded())
-                    let newIndex = min(max(currentIndex + steps, 0), values.count - 1)
-                    value = values[newIndex]
-                    withAnimation(.easeOut(duration: 0.15)) { dragOffset = 0 }
-                }
-        )
     }
 
     private var quickRow: some View {
@@ -134,21 +104,5 @@ public struct ValuePicker: View {
             }
         }
         .frame(height: 44)
-    }
-
-    // ±0 中央 28pt neutral900、±1 20pt neutral500、±2 17pt neutral400。
-    private func fontSize(for k: Int) -> CGFloat {
-        switch abs(k) {
-        case 0: return 28
-        case 1: return 20
-        default: return 17
-        }
-    }
-    private func color(for k: Int) -> Color {
-        switch abs(k) {
-        case 0: return TLColor.neutral900
-        case 1: return TLColor.neutral500
-        default: return TLColor.neutral400
-        }
     }
 }

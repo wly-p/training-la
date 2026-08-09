@@ -1,8 +1,8 @@
 .PHONY: test test-unit test-uitest test-uitest-en test-e2e generate lint report
 
-# 8 個 SPM local package，各自跑 `swift test`（純邏輯 / in-memory SwiftData，秒級、免模擬器）。
-# DesignSystem 不在此列：純 UI 元件，無邏輯可測，沒有 Tests/。
-PACKAGES := SharedKernel Spec Training Plan History Settings Reminders Ability
+# 9 個 SPM local package，各自跑 `swift test`（純邏輯 / in-memory SwiftData，秒級、免模擬器）。
+# DesignSystem 只測純函式（滾輪幾何 WheelGeometry），元件本身是 View 測不動。
+PACKAGES := SharedKernel Spec Training Plan History Settings Reminders Ability DesignSystem
 
 SCHEME := TrainingLa-Dev
 
