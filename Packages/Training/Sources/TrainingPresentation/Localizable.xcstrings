@@ -918,18 +918,66 @@
         }
       }
     },
-    "training.home.noPlanMessage": {
+    "training.home.kicker.restDay": {
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "You don't have any active plan. Pick a template to start, or just train freely."
+            "value": "Rest Day"
           }
         },
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "你目前沒有進行中的計畫。挑一份範本開始，或直接隨手練。"
+            "value": "休息日"
+          }
+        }
+      }
+    },
+    "training.home.minuteCount %lld": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld min"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld 分"
+          }
+        }
+      }
+    },
+    "training.home.noPlan.cardTitle": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "You have no active plan"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "你目前沒有進行中的計畫"
+          }
+        }
+      }
+    },
+    "training.home.noPlanMessage": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pick a template to start, or just train freely. Want a steady rhythm? Enable a rotation or long-term program."
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "挑一份範本開始，或直接隨手練。想固定節奏，再啟用循環或長期計畫。"
           }
         }
       }
@@ -950,6 +998,22 @@
         }
       }
     },
+    "training.home.recentlyTrained": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Recently Trained"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "最近練過"
+          }
+        }
+      }
+    },
     "training.home.repeatLast": {
       "localizations": {
         "en": {
@@ -966,18 +1030,82 @@
         }
       }
     },
-    "training.home.restDay.headline %@": {
+    "training.home.restDay.day %lld": {
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "“%@” — today is a rest day."
+            "value": "D%lld"
           }
         },
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "「%@」今天是休息日。"
+            "value": "D%lld"
+          }
+        }
+      }
+    },
+    "training.home.restDay.headline %@ %@": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ · %2$@ is a rest day"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ · %2$@ 是休息日"
+          }
+        }
+      }
+    },
+    "training.home.restDay.moveHint": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Moving affects only this round — the rhythm after it stays the same."
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "挪動只影響這一輪，之後的節奏照舊。"
+          }
+        }
+      }
+    },
+    "training.home.restDay.moveLater %@ %@": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Move “%2$@” from %1$@ to today"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "把 %1$@ 的「%2$@」挪到今天"
+          }
+        }
+      }
+    },
+    "training.home.restDay.moveTomorrow %@": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Move tomorrow’s “%@” to today"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "把明天的「%@」挪到今天"
           }
         }
       }
@@ -1030,6 +1158,22 @@
         }
       }
     },
+    "training.home.restDay.round %lld %lld": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Round %1$lld · D%2$lld"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "第 %1$lld 輪 D%2$lld"
+          }
+        }
+      }
+    },
     "training.home.restDay.startAnyway": {
       "localizations": {
         "en": {
@@ -1058,6 +1202,38 @@
           "stringUnit": {
             "state": "translated",
             "value": "今天休息"
+          }
+        }
+      }
+    },
+    "training.home.restDay.weekRecap %lld %@": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "You've trained %1$lld times this week, %2$@ kg in total."
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "這週已經練了 %1$lld 次、%2$@ kg。"
+          }
+        }
+      }
+    },
+    "training.home.setCount %lld": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld sets"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld 組"
           }
         }
       }
@@ -1126,22 +1302,6 @@
         }
       }
     },
-    "training.home.title.none": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Today"
-          }
-        },
-        "zh-Hant": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "今天"
-          }
-        }
-      }
-    },
     "training.home.todaySpecified": {
       "localizations": {
         "en": {
@@ -1154,6 +1314,22 @@
           "stringUnit": {
             "state": "translated",
             "value": "今天指定"
+          }
+        }
+      }
+    },
+    "training.home.trainAgain": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Train Again"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "再練一次"
           }
         }
       }
@@ -1186,6 +1362,22 @@
           "stringUnit": {
             "state": "translated",
             "value": "次訓練"
+          }
+        }
+      }
+    },
+    "training.home.yesterday": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Yesterday"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "昨天"
           }
         }
       }

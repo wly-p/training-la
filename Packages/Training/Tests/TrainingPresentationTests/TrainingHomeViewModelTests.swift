@@ -39,6 +39,8 @@ private actor MockPlannedProvider: PlannedWorkoutProvider {
     private(set) var startRotationCallCount = 0
     /// 呼叫紀錄：驗證有「今天指定」排課時不該再查休息日（兩者互斥）。
     private(set) var activeRestDayCallCount = 0
+    /// 呼叫紀錄：驗證「把明天的腿日挪到今天」有真的打到 Plan 那一側。
+    private(set) var moveNextWorkoutCallCount = 0
 
     init(
         plan: PlannedWorkoutBlueprint?,
@@ -69,6 +71,10 @@ private actor MockPlannedProvider: PlannedWorkoutProvider {
         activeRestDayCallCount += 1
         return restDay
     }
+    func moveNextWorkoutToToday() async throws {
+        moveNextWorkoutCallCount += 1
+        restDay = nil
+    }
 }
 
 private struct ThrowingPlannedProvider: PlannedWorkoutProvider {
@@ -81,6 +87,7 @@ private struct ThrowingPlannedProvider: PlannedWorkoutProvider {
     func previewRotation(id: UUID) async throws -> PlannedWorkoutBlueprint? { throw Failure() }
     func startRotation(id: UUID) async throws -> PlannedWorkoutBlueprint? { throw Failure() }
     func activeRestDay() async throws -> RestDayInfo? { throw Failure() }
+    func moveNextWorkoutToToday() async throws { throw Failure() }
 }
 
 @MainActor
@@ -160,7 +167,10 @@ struct TrainingHomeViewModelTests {
 
     @Test func refreshPopulatesRestDayWhenNoTodaysPlan() async {
         let repo = MockHomeWorkoutRepo()
-        let restDay = RestDayInfo(programName: "推拉腿", nextWorkoutDate: DayDate(year: 2026, month: 7, day: 28), nextWorkoutName: "腿日")
+        let restDay = RestDayInfo(
+            programName: "推拉腿", dayNumber: 3, roundNumber: 7,
+            nextWorkoutDate: DayDate(year: 2026, month: 7, day: 28), nextWorkoutName: "腿日"
+        )
         let vm = TrainingHomeViewModel(
             startWorkout: StartWorkout(repository: repo),
             resumeWorkout: ResumeWorkout(repository: repo),
@@ -175,7 +185,9 @@ struct TrainingHomeViewModelTests {
     @Test func refreshSkipsRestDayQueryWhenTodaysPlanExists() async {
         let repo = MockHomeWorkoutRepo()
         let plan = PlannedWorkoutBlueprint(planWorkoutId: UUID(), name: "推日", targets: [])
-        let restDay = RestDayInfo(programName: "推拉腿", nextWorkoutDate: nil, nextWorkoutName: nil)
+        let restDay = RestDayInfo(
+            programName: "推拉腿", dayNumber: 3, roundNumber: nil, nextWorkoutDate: nil, nextWorkoutName: nil
+        )
         let provider = MockPlannedProvider(plan: plan, restDay: restDay)
         let vm = TrainingHomeViewModel(
             startWorkout: StartWorkout(repository: repo),
@@ -536,5 +548,84 @@ struct TrainingHomeWeekSummaryTests {
         await vm.refresh()
 
         #expect(vm.lastSession == nil)
+    }
+
+    /// 13f 左的綠卡要寫「這週已經練了 3 次、9,140 kg」，總量只算 `.done` 的組、且先換算成公斤。
+    @Test func weekSummarySumsVolumeInKilogramsAcrossThisWeek() {
+        func set(_ weight: Weight, reps: Int, status: WorkoutSetStatus = .done) -> WorkoutSet {
+            WorkoutSet(id: UUID(), exerciseId: UUID(), exerciseIndex: 0, setIndex: 0,
+                       weight: weight, reps: reps, status: status)
+        }
+        let thisWeek = Workout(id: UUID(), day: monday, sets: [
+            set(Weight(value: 100, unit: .kg), reps: 5),                     // 500
+            set(Weight(value: 100, unit: .kg), reps: 5, status: .skipped),   // 跳過的不算
+        ])
+        let lastWeek = Workout(id: UUID(), day: monday.adding(days: -1), sets: [
+            set(Weight(value: 100, unit: .kg), reps: 10),                    // 上週，不算
+        ])
+
+        let summary = TrainingHomeViewModel.weekSummary(from: [thisWeek, lastWeek], today: today)
+
+        #expect(summary.totalVolume == 500)
+    }
+
+    @Test func recentSessionsListsNamedSessionsNewestFirst() async {
+        let repo = MockHomeWorkoutRepo()
+        let planWorkoutId = UUID()
+        let start = Date(timeIntervalSince1970: 0)
+        let workout = Workout(id: UUID(), day: today, planWorkoutId: planWorkoutId,
+                              startedAt: start, endedAt: start.addingTimeInterval(72 * 60))
+        await repo.setFinished([workout])
+        let plan = PlannedWorkoutBlueprint(planWorkoutId: planWorkoutId, name: "推日", targets: [])
+        let vm = TrainingHomeViewModel(
+            startWorkout: StartWorkout(repository: repo),
+            resumeWorkout: ResumeWorkout(repository: repo),
+            recentWorkouts: RecentWorkouts(repository: repo),
+            plannedProvider: MockPlannedProvider(plan: plan)
+        )
+
+        await vm.refresh()
+
+        #expect(vm.recentSessions.map(\.name) == ["推日"])
+        #expect(vm.recentSessions.first?.minutes == 72)
+        #expect(vm.recentSessions.first?.planWorkoutId == planWorkoutId)
+    }
+
+    /// 自由訓練沒有名字，「最近練過」列不出東西，不該混進清單。
+    @Test func recentSessionsSkipsFreeTraining() async {
+        let repo = MockHomeWorkoutRepo()
+        await repo.setFinished([Workout(id: UUID(), day: today, startedAt: Date(), endedAt: Date())])
+        let vm = TrainingHomeViewModel(
+            startWorkout: StartWorkout(repository: repo),
+            resumeWorkout: ResumeWorkout(repository: repo),
+            recentWorkouts: RecentWorkouts(repository: repo),
+            plannedProvider: MockPlannedProvider(plan: nil)
+        )
+
+        await vm.refresh()
+
+        #expect(vm.recentSessions.isEmpty)
+    }
+
+    /// 挪課要真的打到 Plan 那一側，而且挪完會 refresh —— 今天不再是休息日。
+    @Test func moveNextWorkoutToTodayCallsProviderAndRefreshes() async {
+        let repo = MockHomeWorkoutRepo()
+        let restDay = RestDayInfo(
+            programName: "推拉腿", dayNumber: 3, roundNumber: 7,
+            nextWorkoutDate: DayDate(year: 2026, month: 7, day: 27), nextWorkoutName: "腿日"
+        )
+        let provider = MockPlannedProvider(plan: nil, restDay: restDay)
+        let vm = TrainingHomeViewModel(
+            startWorkout: StartWorkout(repository: repo),
+            resumeWorkout: ResumeWorkout(repository: repo),
+            plannedProvider: provider
+        )
+        await vm.refresh()
+        #expect(vm.restDay == restDay)
+
+        await vm.moveNextWorkoutToToday()
+
+        #expect(await provider.moveNextWorkoutCallCount == 1)
+        #expect(vm.restDay == nil)
     }
 }
