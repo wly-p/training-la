@@ -473,6 +473,19 @@ public final class ActiveWorkoutViewModel {
     /// 完成當前動作後，課表是否全部做完（沒有下一個未做的課表動作）。
     public var isPlanFullyDone: Bool { nextPlannedExerciseId == nil }
 
+    /// 剛做完這個動作的成績（16b 副行「3 組 · 22.5 kg · 總量 540 kg」）。
+    /// 重量取最重的一組——逐組不同重量時，「做到多重」講的是那個上限。
+    public var completedExerciseStats: (setCount: Int, heaviest: Weight?, volume: Double) {
+        let done = currentBlockSets.filter { $0.status == .done }
+        return (done.count, done.map(\.weight).max(), FinishSummaryFormatting.totalVolume(done))
+    }
+
+    /// 整場的成績（16e 說明行「4 個動作 · 12 組 · 1920 kg」）。
+    public var sessionStats: (exerciseCount: Int, setCount: Int, volume: Double) {
+        let done = workout.sets.filter { $0.status == .done }
+        return (Set(done.map(\.exerciseId)).count, done.count, FinishSummaryFormatting.totalVolume(done))
+    }
+
     /// 「再做一組」：留在原動作，關掉卡片。
     public func continueSameExercise() {
         showExerciseComplete = false

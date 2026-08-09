@@ -41,15 +41,18 @@ final class ExerciseCompletionUITests: XCTestCase {
         XCTAssertTrue(app.staticTexts["第2組"].waitForExistence(timeout: 5))
         complete.tap()
 
-        // 第 3 組後 → 完成卡片
-        XCTAssertTrue(app.staticTexts["測試臥推 完成"].waitForExistence(timeout: 5))
-        XCTAssertTrue(app.staticTexts["接下來：測試深蹲"].exists)
-        XCTAssertTrue(app.buttons["再做一組"].exists) // 繼續做的小按鈕
+        // 第 3 組後 → 就地把輸入色帶換成完成區（16b），**不開彈窗**
+        let completeBand = app.buttons["activeWorkout.completeBandPrimary"]
+        XCTAssertTrue(completeBand.waitForExistence(timeout: 5))
+        XCTAssertTrue(app.staticTexts["這個動作做完了"].exists)
+        XCTAssertTrue(app.buttons["activeWorkout.completeBandSecondary"].exists)
+        // 組表沒被蓋住：最後一組的 ↩ 還在原位，誤按的復原成本是零。
+        XCTAssertTrue(app.buttons["activeWorkout.undoSet"].exists)
 
-        // 點「下一個動作」→ 進到測試深蹲
-        app.buttons["下一個動作"].tap()
+        // 點「下一個 · 測試深蹲 →」→ 進到測試深蹲
+        app.buttons["activeWorkout.completeBandPrimary"].tap()
         XCTAssertTrue(app.navigationBars["測試深蹲"].waitForExistence(timeout: 5))
-        XCTAssertFalse(app.staticTexts["測試臥推 完成"].exists)
+        XCTAssertFalse(app.staticTexts["這個動作做完了"].exists)
     }
 
     // MARK: - Helpers
