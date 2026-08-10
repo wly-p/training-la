@@ -24,20 +24,9 @@ final class ScheduleFlowUITests: XCTestCase {
     @MainActor
     private func runScheduleFlow(inEnglish: Bool) throws {
         let app = XCUIApplication()
-        app.launchArguments = uitestLaunchArguments(inEnglish ? ["--uitest-language=en"] : [])
-        app.launch()
-
-        // 先確認語言真的切了。
-        //
-        // 這條不能省：測試主體只用 identifier，跟語言無關——所以 `--uitest-language=en` 萬一
-        // 失效（參數改名、seed 邏輯變動），英文版會**照樣全過**，變成一支假的英文覆蓋。
-        // 同樣形狀的假通過在 PR #54 發生過一次。
-        let trainingTab = app.buttons["tabBar.item.training"]
-        XCTAssertTrue(trainingTab.waitForExistence(timeout: 10), "找不到自訂分頁列")
-        XCTAssertEqual(
-            Self.containsHan(trainingTab.label), !inEnglish,
-            "App 語言不是預期的那個（分頁標籤＝「\(trainingTab.label)」，inEnglish=\(inEnglish)）"
-        )
+        // 明確指定語言（而不是吃這一輪的預設）：這兩支的重點就是「同一條旅程中英各跑一次」。
+        // 語言守衛在 `launchForUITest` 裡，失效的話這裡會直接紅。
+        launchForUITest(app, extra: ["--uitest-language=\(inEnglish ? "en" : "zh-Hant")"])
 
         let benchPress = "測試臥推"
         let squat = "測試深蹲"
@@ -125,13 +114,6 @@ final class ScheduleFlowUITests: XCTestCase {
             "沒有任何已完成的組",
             file: file, line: line
         )
-    }
-
-    /// 是否含 CJK 統一表意文字（含擴充 A）。標點與英數不算。
-    private static func containsHan(_ text: String) -> Bool {
-        text.unicodeScalars.contains { scalar in
-            (0x4E00...0x9FFF).contains(scalar.value) || (0x3400...0x4DBF).contains(scalar.value)
-        }
     }
 
     @MainActor private func addExercise(_ app: XCUIApplication, name: String) {

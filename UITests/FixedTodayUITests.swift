@@ -12,8 +12,9 @@ final class FixedTodayUITests: XCTestCase {
     @MainActor
     func testTrainingHeaderFollowsTheInjectedToday() throws {
         let app = XCUIApplication()
-        app.launchArguments = ["--uitest-inmemory", "--uitest-today=2026-03-15"]
-        app.launch()
+        // 日期與語言都自己指定（`extra` 排在最前面，會蓋過這一輪的預設）：
+        // 這支要驗的是日期注入，不該被英文那一輪換掉語言而讓下面的期望字串失準。
+        launchForUITest(app, extra: ["--uitest-today=2026-03-15", "--uitest-language=zh-Hant"])
 
         // 訓練頁 header 的 kicker：沒有任何計畫時就只有日期本身。
         // 期望值用跟 View 同一組 formatter 算，才不會綁死某個語系的寫法。
