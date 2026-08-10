@@ -348,6 +348,7 @@ struct TemplateFormView: View {
             onTap: { pickingExercise = true },
             leading: { CircleBadge(icon: "plus", fill: TLColor.neutral200, tint: TLColor.neutral600) }
         )
+        .accessibilityIdentifier("templateForm.addExercise")
     }
 
     // MARK: - 刪除

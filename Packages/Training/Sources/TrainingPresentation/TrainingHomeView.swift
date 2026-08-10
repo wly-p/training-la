@@ -402,6 +402,7 @@ public struct TrainingHomeView: View {
                 localText("training.home.startRotationCard")
             }
             .buttonStyle(.tlSecondary)
+            .accessibilityIdentifier("training.startRotation")
         }
     }
 

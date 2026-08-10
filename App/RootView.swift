@@ -137,7 +137,7 @@ private struct LibraryTabView: View {
                     .init(.templates, Text("library.templates")),
                     .init(.rotation, Text("library.rotation")),
                     .init(.program, Text("library.program")),
-                ])
+                ], identifierPrefix: "library.segment")
                 .padding(.horizontal, TLSpace.page)
                 .padding(.top, TLSpace.gapL)
                 .padding(.bottom, TLSpace.gapM)

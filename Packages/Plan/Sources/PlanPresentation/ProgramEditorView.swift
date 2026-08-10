@@ -283,6 +283,8 @@ public struct ProgramEditorView: View {
             }
         )
         .background(isNext ? TLColor.accent.opacity(0.07) : Color.clear)
+        // 列的標題會隨狀態換文案（提示／範本名／休息／未指派），測試改認「第幾天」這個不變量。
+        .accessibilityIdentifier("programEditor.day.\(index + 1)")
     }
 
     private func rowTitle(state: DayCellState, isNext: Bool, spec: WorkoutSpec?) -> Text {

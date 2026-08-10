@@ -238,9 +238,6 @@ TEST_DATA = {
 PENDING = {
     "DeleteHistoryRevertsPlanUITests.swift",
     "EditDeleteWorkoutUITests.swift",
-    "ProgramFlowUITests.swift",
-    "RotationFlowUITests.swift",
-    "TemplateImportUITests.swift",
 }
 
 HAN = r"[一-鿿]"

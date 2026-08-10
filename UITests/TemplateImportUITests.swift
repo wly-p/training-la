@@ -1,52 +1,32 @@
 import XCTest
 
 /// 共用選擇器 sheet（設計稿 12c/12d）：循環「加入範本」的搜尋過濾＋多選一次加入。
-/// 這裡驗證 picker 本身的行為（搜尋只留相符範本、多選累計、底部按鈕依已選數量變文字），
+/// 這裡驗證 picker 本身的行為（搜尋只留相符範本、多選累計、確認後兩個都進清單），
 /// 跟 RotationFlowUITests 的端到端建立流程分開測。
 final class TemplateImportUITests: XCTestCase {
     @MainActor
     func testPickerSearchFiltersAndMultiSelectAddsAll() throws {
         let app = XCUIApplication()
-        app.launchArguments = uitestLaunchArguments()
-        app.launch()
+        launchForUITest(app)
 
         // 動作庫：建兩個動作
-        app.buttons["動作庫"].tap()
-        for name in ["測試臥推", "測試深蹲"] {
-            app.buttons["library.add"].tap()
-            let nameField = app.textFields["名稱（例：臥推）"]
-            XCTAssertTrue(nameField.waitForExistence(timeout: 5))
-            nameField.tap(); nameField.typeText(name)
-            app.buttons["儲存"].tap()
-            app.searchExerciseList(name)
-            XCTAssertTrue(app.staticTexts[name].waitForExistence(timeout: 5))
-            app.clearExerciseListSearch()
-        }
+        app.addExercise(named: "測試臥推")
+        app.addExercise(named: "測試深蹲")
 
         // 範本分段：建兩個範本，各帶一個動作
-        app.buttons["範本"].tap()
-        for (templateName, exerciseName) in [("推日", "測試臥推"), ("腿日", "測試深蹲")] {
-            app.buttons["library.add"].tap()
-            let field = app.textFields["範本名稱"]
-            XCTAssertTrue(field.waitForExistence(timeout: 5))
-            field.tap(); field.typeText(templateName)
-            app.buttons["從動作庫加入"].tap()
-            app.pickExercise(exerciseName)
-            app.buttons["加入 1 個動作"].tap()
-            app.buttons["儲存"].tap()
-            XCTAssertTrue(app.staticTexts[templateName].waitForExistence(timeout: 5))
-        }
+        app.addTemplate(named: "推日", exercise: "測試臥推")
+        app.addTemplate(named: "腿日", exercise: "測試深蹲")
 
         // 循環分段：開建立頁 → 開「加入範本」picker
-        app.buttons["循環"].tap()
+        app.buttons["library.segment.rotation"].tap()
         app.buttons["library.add"].tap()
-        let rotationTitle = app.textFields["名稱（例：推拉腿）"]
+        let rotationTitle = app.textFields["editScaffold.title"]
         XCTAssertTrue(rotationTitle.waitForExistence(timeout: 5))
         rotationTitle.tap(); rotationTitle.typeText("測試循環")
-        app.buttons["加入範本"].tap()
+        app.buttons["rotationEditor.addTemplate"].tap()
 
-        // 搜尋「推」只留「推日」，「腿日」被濾掉
-        let searchField = app.textFields["搜尋範本"]
+        // 搜尋「推」只留「推日」，「腿日」被濾掉（範本名是測試自己輸入的資料）
+        let searchField = app.textFields["picker.search"]
         XCTAssertTrue(searchField.waitForExistence(timeout: 5))
         searchField.tap()
         searchField.typeText("推")
@@ -59,14 +39,14 @@ final class TemplateImportUITests: XCTestCase {
         app.staticTexts["推日"].firstMatch.tap()
         app.staticTexts["腿日"].firstMatch.tap()
 
-        // 底部按鈕依已選數量顯示「加入 2 個範本」
-        let confirmButton = app.buttons["加入 2 個範本"]
+        // 底部按鈕帶已選數量（「加入 2 個範本」），文字會跟著語言與數量變，所以認 id。
+        let confirmButton = app.buttons["picker.confirm"]
         XCTAssertTrue(confirmButton.waitForExistence(timeout: 5))
         confirmButton.tap()
 
         // 循環編輯頁的清單裡兩個範本都出現
         XCTAssertTrue(app.staticTexts["推日"].waitForExistence(timeout: 5))
         XCTAssertTrue(app.staticTexts["腿日"].waitForExistence(timeout: 5))
-        app.buttons["儲存"].tap()
+        app.buttons["editScaffold.save"].tap()
     }
 }

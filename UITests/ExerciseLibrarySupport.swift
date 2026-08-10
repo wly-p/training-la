@@ -68,6 +68,26 @@ extension XCUIApplication {
         clearExerciseListSearch()
     }
 
+    /// 動作庫的「範本」分段：建一個含指定動作的課表範本。
+    @MainActor func addTemplate(
+        named templateName: String, exercise: String,
+        file: StaticString = #filePath, line: UInt = #line
+    ) {
+        buttons["library.segment.templates"].tap()
+        buttons["library.add"].tap()
+        let field = textFields["editScaffold.title"]
+        XCTAssertTrue(field.waitForExistence(timeout: 5), "範本表單沒開", file: file, line: line)
+        field.tap()
+        field.typeText(templateName)
+        buttons["templateForm.addExercise"].tap()
+        pickExercise(exercise, file: file, line: line)
+        buttons["picker.confirm"].tap()
+        buttons["editScaffold.save"].tap()
+        XCTAssertTrue(
+            staticTexts[templateName].waitForExistence(timeout: 5), "範本沒存成功", file: file, line: line
+        )
+    }
+
     /// 排課表單裡加一個動作：PickerSheet 是多選，選完要按確認鈕。
     @MainActor func addExerciseToPlan(
         named name: String, file: StaticString = #filePath, line: UInt = #line

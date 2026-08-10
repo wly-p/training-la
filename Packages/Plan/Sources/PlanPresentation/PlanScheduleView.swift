@@ -40,6 +40,7 @@ public struct PlanScheduleView: View {
                             } label: {
                                 Label { localText("plan.applyProgram") } icon: { Image(systemName: "calendar.badge.clock") }
                             }
+                            .accessibilityIdentifier("plan.applyProgram")
                         } label: {
                             Image(systemName: "plus")
                                 .font(.system(size: 18, weight: .semibold))
@@ -232,6 +233,7 @@ public struct PlanScheduleView: View {
                         .foregroundStyle(TLColor.accent700)
                 }
                 .buttonStyle(.plain)
+                .accessibilityIdentifier("plan.addThisDay")
             }
         )
     }

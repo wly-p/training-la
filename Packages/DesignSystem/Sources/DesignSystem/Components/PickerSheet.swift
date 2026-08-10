@@ -232,6 +232,7 @@ public struct PickerSheet<Item: PickerSheetItem>: View {
         .padding(.horizontal, TLSpace.rowInset)
         .frame(minHeight: 58)
         .contentShape(Rectangle())
+        .modifier(OptionalIdentifier(id: item.accessibilityIdentifier))
     }
 
     /// 搜尋時把相符字串用 `accent-200` 底標出。
@@ -306,10 +307,14 @@ public protocol PickerSheetItem: Identifiable {
     var subtitle: String { get }
     /// 右側說明（如「已在此範本」）；多數情境用 nil。
     var trailingNote: String? { get }
+    /// UI test 的定位用 id。使用者資料（動作名、範本名）本來就與語言無關，用文字定位即可，
+    /// 所以預設 nil；只有「休息」這種**本地化的合成選項**才需要給 id。
+    var accessibilityIdentifier: String? { get }
 }
 
 public extension PickerSheetItem {
     var trailingNote: String? { nil }
+    var accessibilityIdentifier: String? { nil }
 }
 
 /// 篩選膠囊（如肌群）。獨立於 `PickerSheet<Item>` 之外，讓不同 Item 型別的 picker 能共用同一套
