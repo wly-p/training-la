@@ -15,6 +15,8 @@ let package = Package(
             // Caprasimo 打包成 bundle 資源，runtime 用 CoreText 註冊（見 FontRegistration.swift）。
             // SPM package 的字體不能只靠 App 的 Info.plist UIAppFonts（那只掃 main bundle）。
             resources: [.process("Resources")]
-        )
+        ),
+        // 元件本身測不動（View），但滾輪的幾何運算是純函式，測得到也值得測。
+        .testTarget(name: "DesignSystemTests", dependencies: ["DesignSystem"])
     ]
 )
