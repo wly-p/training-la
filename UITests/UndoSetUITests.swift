@@ -6,7 +6,7 @@ final class UndoSetUITests: XCTestCase {
     @MainActor
     func testUndoRemovesJustRecordedSet() throws {
         let app = XCUIApplication()
-        app.launchArguments = ["--uitest-inmemory"] // 乾淨的 in-memory store
+        app.launchArguments = uitestLaunchArguments() // 乾淨的 in-memory store
         app.launch()
 
         // 1. 動作庫建一個動作
@@ -54,7 +54,7 @@ final class UndoSetUITests: XCTestCase {
     @MainActor
     func testUndoFromExerciseCompleteCard() throws {
         let app = XCUIApplication()
-        app.launchArguments = ["--uitest-inmemory"]
+        app.launchArguments = uitestLaunchArguments()
         app.launch()
 
         addExercise(app, name: "測試臥推")

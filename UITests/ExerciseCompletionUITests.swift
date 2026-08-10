@@ -4,7 +4,7 @@ final class ExerciseCompletionUITests: XCTestCase {
     @MainActor
     func testCompletionCardAppearsAndAdvances() throws {
         let app = XCUIApplication()
-        app.launchArguments = ["--uitest-inmemory"]
+        app.launchArguments = uitestLaunchArguments()
         app.launch()
 
         addExercise(app, name: "測試臥推")

@@ -4,7 +4,7 @@ final class TrainingFlowUITests: XCTestCase {
     @MainActor
     func testRecordWorkoutHappyPath() throws {
         let app = XCUIApplication()
-        app.launchArguments = ["--uitest-inmemory"] // 乾淨的 in-memory store
+        app.launchArguments = uitestLaunchArguments() // 乾淨的 in-memory store
         app.launch()
 
         // 1. 先在動作庫建一個動作

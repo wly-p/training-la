@@ -24,7 +24,7 @@ final class ScheduleFlowUITests: XCTestCase {
     @MainActor
     private func runScheduleFlow(inEnglish: Bool) throws {
         let app = XCUIApplication()
-        app.launchArguments = ["--uitest-inmemory"] + (inEnglish ? ["--uitest-language=en"] : [])
+        app.launchArguments = uitestLaunchArguments(inEnglish ? ["--uitest-language=en"] : [])
         app.launch()
 
         // 先確認語言真的切了。

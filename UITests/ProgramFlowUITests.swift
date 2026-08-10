@@ -7,7 +7,7 @@ final class ProgramFlowUITests: XCTestCase {
     @MainActor
     func testBuildProgramThenApplyShowsProjection() throws {
         let app = XCUIApplication()
-        app.launchArguments = ["--uitest-inmemory"]
+        app.launchArguments = uitestLaunchArguments()
         app.launch()
 
         // 動作庫：建動作
