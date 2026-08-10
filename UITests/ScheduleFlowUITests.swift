@@ -1,32 +1,18 @@
 import XCTest
 
-/// 排課 → 訓練 → 歷史的完整旅程，**兩種語言各跑一次**。
+/// 排課 → 訓練 → 歷史的完整旅程。
 ///
 /// 這是 identifier 化的第一條旅程（見 `ARCHITECTURE.md` 的命名規範）。測試主體裡沒有任何
 /// 介面文字，只有 identifier 與「測試自己輸入的資料」（動作名、排課名）——後者是測試自己打進去的
 /// 字串，本來就跟介面語言無關。
 ///
-/// ⚠️ 英文版跑的組合是「**裝置語系繁中 ＋ App 語言英文**」。兩邊都設英文的話 `String(localized:)`
-/// 也會回英文，反而把「不跟著 App 語言切」這個 bug 藏起來——這個盲點讓同一個根因來要帳三次。
+/// 原本這裡寫了中英兩支 func 手動各跑一次。現在整套測試都會跑兩輪（`make test-uitest`），
+/// 這條旅程自然中英各跑一次，那份重複就收掉了。
 final class ScheduleFlowUITests: XCTestCase {
     @MainActor
     func testScheduleThenTrainFromPlan() throws {
-        try runScheduleFlow(inEnglish: false)
-    }
-
-    @MainActor
-    func testScheduleThenTrainFromPlanInEnglish() throws {
-        try runScheduleFlow(inEnglish: true)
-    }
-
-    // MARK: - 旅程本體
-
-    @MainActor
-    private func runScheduleFlow(inEnglish: Bool) throws {
         let app = XCUIApplication()
-        // 明確指定語言（而不是吃這一輪的預設）：這兩支的重點就是「同一條旅程中英各跑一次」。
-        // 語言守衛在 `launchForUITest` 裡，失效的話這裡會直接紅。
-        launchForUITest(app, extra: ["--uitest-language=\(inEnglish ? "en" : "zh-Hant")"])
+        launchForUITest(app)
 
         let benchPress = "測試臥推"
         let squat = "測試深蹲"

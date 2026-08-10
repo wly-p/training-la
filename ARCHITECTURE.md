@@ -83,7 +83,7 @@ Packages/
     Sources/
       RemindersDomain/    ← 純邏輯：偏好、channel ports、dispatcher（可被任何 domain import）
       RemindersKit/       ← 平台實作：UN 本地通知、系統音、UserDefaults（只有 App 接線時 import）
-  DesignSystem/           ← 共用 UI 元件與 design token（無 domain 邏輯，故無 Tests/）
+  DesignSystem/           ← 共用 UI 元件與 design token（無 domain 邏輯；Tests/ 只放純函式）
 ```
 
 相依方向：`SpecData → SpecDomain`、`SpecPresentation → SpecDomain`、`SpecDomain → SharedKernel`。
@@ -132,7 +132,7 @@ Training 的休息倒數不認識任何提醒手段，只呼叫 `RestEndRemindin
 
 三類測試，各自獨立：
 
-1. **Unit test**：八個 package（SharedKernel/Spec/Training/Plan/History/Settings/Reminders/Ability）各自的 `Tests/`，用 Swift Testing（`import Testing`）。DesignSystem 沒有 `Tests/`——純 UI 元件，無邏輯可測。
+1. **Unit test**：九個 package（SharedKernel/Spec/Training/Plan/History/Settings/Reminders/Ability/DesignSystem）各自的 `Tests/`，用 Swift Testing（`import Testing`）。DesignSystem 只測純函式（滾輪幾何），元件本身是 View 測不動。
    - `*DomainTests`：UseCase 注 mock repository，純邏輯測，秒級、免模擬器。
    - `*DataTests`：Repository 用 in-memory SwiftData 測。
    - `*PresentationTests`：ViewModel 注 mock repository/port 測。
@@ -143,6 +143,7 @@ Training 的休息倒數不認識任何提醒手段，只呼叫 `RestEndRemindin
 
 - `make test-unit`：逐 package 執行 `swift test`（不需模擬器，最快）。
 - `make test-uitest`：`xcodegen generate` 重生專案後，用 `UITests.xctestplan` 跑 `TrainingLaUITests`。
+  **跑兩輪**：同一批 case，App 繁中一輪、App 英文一輪（見下方「英文覆蓋」）。
 - `make test-e2e`：目前是佔位（echo 提示尚無真實後端）。
 - `make test`：`test-unit` + `test-uitest`。
 
@@ -170,7 +171,7 @@ UI test 原本一律靠中文標籤查元素（`app.buttons["儲存"]`）。那�
 還在用中文查找的測試——**但這也表示「漏改了某一處」不會被測出來**。轉換完成與否要看
 「UITests 裡的中文字面值歸零」，不能只看測試綠不綠。這條由 `make lint` 的規則 5 機器擋：
 `UITests/` 裡凡是用中文查元素（subscript、`NSPredicate`）一律失敗，只放行測試自己輸入的資料
-（白名單）。還沒轉完的檔案列在腳本的 `PENDING`，每個轉換 PR 移除自己那批，清空即完成。
+（白名單）。轉換已完成，腳本的 `PENDING` 是空的——新增測試不該再往裡面加。
 
 ### 英文覆蓋：同一批測試跑兩輪
 
@@ -178,8 +179,9 @@ UI test 原本一律靠中文標籤查元素（`app.buttons["儲存"]`）。那�
 反而把「不跟著 App 語言切」這個 bug 藏起來。
 
 ```
-make test-uitest      # App 繁中那一輪
-make test-uitest-en   # 同一批測試，App 英文那一輪
+make test-uitest      # 兩輪都跑（預設，CI 也是這個）
+make test-uitest-zh   # 只跑 App 繁中那一輪
+make test-uitest-en   # 只跑 App 英文那一輪
 make test-uitest-en ONLY="SettingsUITests ExerciseListUITests"   # 只跑指定類別
 ```
 

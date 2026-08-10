@@ -80,6 +80,7 @@ public struct HistoryView: View {
                 title: localString("history.empty", locale),
                 message: localString("history.empty.hint", locale)
             )
+            .accessibilityIdentifier("history.empty")
         } else {
             VStack(alignment: .leading, spacing: TLSpace.section) {
                 TLSearchField(text: $viewModel.searchText,
@@ -156,6 +157,7 @@ public struct HistoryView: View {
                 title: localString("history.empty", locale),
                 message: localString("history.empty.hint", locale)
             )
+            .accessibilityIdentifier("history.empty")
         } else {
             TLGroup {
                 ForEach(viewModel.exerciseOptions) { option in

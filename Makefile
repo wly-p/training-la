@@ -1,4 +1,4 @@
-.PHONY: test test-unit test-uitest test-uitest-en uitest-run test-e2e generate lint report
+.PHONY: test test-unit test-uitest test-uitest-zh test-uitest-en uitest-run test-e2e generate lint report
 
 # 9 個 SPM local package，各自跑 `swift test`（純邏輯 / in-memory SwiftData，秒級、免模擬器）。
 # DesignSystem 只測純函式（滾輪幾何 WheelGeometry），元件本身是 View 測不動。
@@ -65,18 +65,21 @@ generate:
 
 # 只跑 UITests.xctestplan（跟 unit test 分開的獨立 Test Plan，見 project.yml）。
 #
-# `test-uitest` ＝ app 繁中那一輪。英文覆蓋是**同一批測試再跑一輪**（`test-uitest-en`），
-# 不是每支 case 寫中英兩份 func——差別只在注入給測試 runner 的 UITEST_APP_LANGUAGE。
+# 英文覆蓋是**同一批測試再跑一輪**（`test-uitest-en`），不是每支 case 寫中英兩份 func
+# ——差別只在注入給測試 runner 的 UITEST_APP_LANGUAGE。所以 `test-uitest` ＝ 兩輪都跑；
+# 開發中只想跑一種語言就直接叫 `test-uitest-zh` / `test-uitest-en`。
 #
 # 裝置語系兩輪都維持繁中（configuration 不動）。要驗的是「app 語言 ≠ 裝置語系」的中英混雜；
 # 兩邊都設英文的話 `String(localized:)` 也會回英文，反而把 bug 藏起來。
 #
 # ONLY：只跑指定的測試類別，空白分隔（`make test-uitest-en ONLY="SettingsUITests ExerciseListUITests"`）。
-# identifier 化還沒轉完的期間，英文那一輪只能限定在已轉好的檔案上跑。
 ONLY ?=
 UITEST_ONLY_FLAGS := $(foreach t,$(ONLY),-only-testing:TrainingLaUITests/$(t))
 
-test-uitest: generate
+# 預設兩輪都跑：同一批 case，app 繁中一輪、app 英文一輪。
+test-uitest: test-uitest-zh test-uitest-en
+
+test-uitest-zh: generate
 	@$(MAKE) --no-print-directory uitest-run LANG_TAG=$(LANGUAGE) APP_LANGUAGE=
 
 # 英文那一輪：裝置語系照舊，只把 app 的語言設定改成英文。

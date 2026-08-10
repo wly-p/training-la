@@ -95,6 +95,7 @@ struct WorkoutDetailView: View {
         // 呈現且錨點不在觸發按鈕上；alert 固定置中、無箭頭。
         .alert(localText("history.deleteConfirm.title"), isPresented: $showsDeleteConfirm) {
             Button(role: .destructive) { Task { await viewModel.delete() } } label: { localText("history.delete") }
+                .accessibilityIdentifier("workoutDetail.deleteConfirm")
             Button(role: .cancel) {} label: { localText("history.cancel") }
         } message: {
             localText("history.deleteConfirm.message")
@@ -304,6 +305,8 @@ struct WorkoutDetailView: View {
                         .foregroundStyle(TLColor.neutral500)
                         .padding(.horizontal, 8).padding(.vertical, 3)
                         .background(Capsule().fill(TLColor.neutral200))
+                        // 標籤文字（跳過／中斷）會跟著語言換，測試認狀態本身。
+                        .accessibilityIdentifier("workoutDetail.setStatus.\(set.status)")
                 }
             }
             .frame(maxWidth: .infinity, alignment: .leading)
@@ -378,7 +381,8 @@ struct WorkoutDetailView: View {
                         .init(.done, localText(HistoryFormatting.statusLabel(.done))),
                         .init(.skipped, localText(HistoryFormatting.statusLabel(.skipped))),
                         .init(.interrupted, localText(HistoryFormatting.statusLabel(.interrupted))),
-                    ]
+                    ],
+                    identifierPrefix: "workoutDetail.statusSegment"
                 )
             }
             .padding(.vertical, 12)

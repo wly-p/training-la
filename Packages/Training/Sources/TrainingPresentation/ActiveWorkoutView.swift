@@ -712,11 +712,11 @@ public struct ActiveWorkoutView: View {
             text = "—"
         }
         return HStack(spacing: 0) {
-            // 已完成的組沿用既有「第N組」文案，但不視覺化顯示（11c 的表格不畫這行）——
-            // 純粹讓大量既有 UITest（斷言完成後看得到「第N組」）繼續能找到這個節點，換掉字面
-            // 顯示（改成打勾圖示）但保留可被 accessibility 找到的節點，避免一次弄壞一堆測試。
+            // 11c 的表格不畫「第N組」這行（視覺上是打勾圖示），但測試要能數出「記了幾組」，
+            // 所以留一個 0 尺寸的錨點。文字用 verbatim 的序號而非本地化字串——它不會被看到，
+            // 進 String Catalog 只是徒增翻譯負擔。
             if row.status == .done {
-                localText("training.setIndex \(row.setIndex + 1)")
+                Text(verbatim: "\(row.setIndex + 1)")
                     .font(.system(size: 1))
                     .foregroundStyle(.clear)
                     .frame(width: 0, height: 0)
@@ -762,10 +762,8 @@ public struct ActiveWorkoutView: View {
             // 下一組），所以可見顯示改「現在這組」、另外保留一個 0 尺寸的「第N組」節點給測試找，
             // 跟已完成列同一招，不弄壞既有測試。
             HStack(spacing: 0) {
-                // 這個 0 尺寸節點原本只是為了讓舊測試找得到「第N組」字面值；identifier 化之後
-                // 它的用途變成「帶序號的目前組」錨點——測試靠序號判斷有沒有多記／少記一組。
-                // 文字本身等 PR 4（歷史那批）也轉完就可以拿掉。
-                localText("training.setIndex \(row.setIndex + 1)")
+                // 同上：0 尺寸錨點，讓測試能定位「目前停在第幾組」。
+                Text(verbatim: "\(row.setIndex + 1)")
                     .font(.system(size: 1))
                     .foregroundStyle(.clear)
                     .frame(width: 0, height: 0)

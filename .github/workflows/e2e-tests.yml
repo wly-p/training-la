@@ -1,8 +1,8 @@
 name: E2E Tests
 
 "on":
-  # 只手動觸發：一輪 UITests 本機實測約 12 分鐘，託管機只會更久，
-  # 不值得掛在每個 PR 上。要驗 UI flow 時自己按。
+  # 只手動觸發：UITests 現在跑兩輪（app 繁中一輪、app 英文一輪），本機實測約 33 分鐘，
+  # 託管機只會更久，不值得掛在每個 PR 上。要驗 UI flow 時自己按。
   workflow_dispatch:
     inputs:
       device:
@@ -21,8 +21,8 @@ jobs:
     # 接進一個任何人都能開 PR 的 repo。等 App 上架、repo 轉私有（託管機開始 10 倍計費、
     # 且不再有 fork PR 風險）時，這行改成 [self-hosted, macOS] 即可，其餘不用動。
     runs-on: macos-15
-    # 本機 22 個 case 約 12 分鐘，託管機更慢，留足餘裕。
-    timeout-minutes: 90
+    # 本機 26 個 case × 2 種語言約 33 分鐘，託管機更慢，留足餘裕。
+    timeout-minutes: 120
 
     steps:
       - name: Checkout
@@ -56,6 +56,7 @@ jobs:
           fi
 
       # 只跑 UITests.xctestplan（跟 unit test 分開的獨立 test plan，見 project.yml）。
+      # `test-uitest` 跑兩輪：同一批 case，app 繁中一輪、app 英文一輪（見 Makefile）。
       # HEADLESS 維持預設 true：模擬器一律把畫面算進 framebuffer，Simulator.app 視窗只是給人看的，
       # CI 上沒有人看，開視窗只是浪費。
       - name: make test-uitest

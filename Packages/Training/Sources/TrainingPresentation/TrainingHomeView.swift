@@ -606,11 +606,15 @@ public struct TrainingHomeView: View {
         VStack(alignment: .leading, spacing: TLSpace.section) {
             // 卡片裡不放按鈕（01-training A 節）：動作一律降到下方的群組清單，
             // 否則這張沙卡跟休息日那張綠卡高度不一樣、視覺重量也不對等。
+            // 「今天沒有排課」這張沙卡，測試用它驗排課有沒有被標成完成／還原。
+            // id 掛在卡片上而不是整個 section——套在容器上會讓它變成單一無障礙元素，
+            // 底下的按鈕整批查不到。
             EmptyState(
                 systemImage: "waveform.path.ecg",
                 title: localString("training.home.noPlan.cardTitle", locale),
                 message: localString("training.home.noPlanMessage", locale)
             )
+            .accessibilityIdentifier("training.noPlanCard")
 
             if !viewModel.recentSessions.isEmpty { recentSessionsSection }
 

@@ -163,6 +163,29 @@ extension XCUIApplication {
         pickExercise(exerciseName, file: file, line: line)
     }
 
+    /// 自由訓練記 `sets` 組再結束存檔，產生一筆歷史紀錄。感受固定選「很硬」（＝5）。
+    @MainActor func recordFreeWorkout(
+        with exerciseName: String, sets: Int = 1,
+        file: StaticString = #filePath, line: UInt = #line
+    ) {
+        startFreeTraining(with: exerciseName, file: file, line: line)
+        let complete = buttons["activeWorkout.completeSet"]
+        XCTAssertTrue(complete.waitForExistence(timeout: 5), "記錄面板沒出現", file: file, line: line)
+        for n in 1...sets {
+            complete.tap()
+            waitForCurrentSet(n + 1, file: file, line: line)
+        }
+        buttons["activeWorkout.finish"].tap()
+        let save = buttons["finishSheet.save"]
+        XCTAssertTrue(save.waitForExistence(timeout: 5), "結束訓練 sheet 沒開", file: file, line: line)
+        buttons["finishSheet.feeling.5"].firstMatch.tap()
+        save.tap()
+        XCTAssertTrue(
+            buttons["training.startFree"].waitForExistence(timeout: 5), "沒有回到訓練首頁",
+            file: file, line: line
+        )
+    }
+
     /// 已完成的組數。
     ///
     /// 比斷言「第N組」可靠：那段文字在「目前這組」與「已完成的組」各有一個節點，

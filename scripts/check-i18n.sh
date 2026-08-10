@@ -235,10 +235,8 @@ TEST_DATA = {
     "推日", "腿日", "推拉腿", "推", "背景測試", "休息測試",
 }
 # 尚未轉換的檔案（每個轉換 PR 移除自己那批；清空＝完成）。
-PENDING = {
-    "DeleteHistoryRevertsPlanUITests.swift",
-    "EditDeleteWorkoutUITests.swift",
-}
+# 全部轉完了。這個清單留著是給下一次大改用的——新增測試不該再往裡面加。
+PENDING: set[str] = set()
 
 HAN = r"[一-鿿]"
 # 定位用法：["..."]（subscript）與 NSPredicate(format: "...")。
