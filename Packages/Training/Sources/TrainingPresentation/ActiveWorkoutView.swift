@@ -86,6 +86,7 @@ public struct ActiveWorkoutView: View {
                 set: { if !$0 { viewModel.dismissRest() } }
             )) {
                 Button { viewModel.dismissRest() } label: { localText("training.startNextSet") }
+                    .accessibilityIdentifier("activeWorkout.restEnded.next")
             } message: {
                 localText("training.restOver.message")
             }
@@ -162,6 +163,8 @@ public struct ActiveWorkoutView: View {
                     : localText("training.done.exercise.title"))
                     .font(TLFont.zh(15, .semibold))
                     .foregroundStyle(TLColor.sage900)
+                    // 動作做完／課表做完是兩句不同的文案，測試只認「完成區的標題在不在」。
+                    .accessibilityIdentifier("activeWorkout.completeBandTitle")
             } icon: {
                 Image(systemName: viewModel.isPlanFullyDone ? "flag" : "checkmark")
                     .font(.system(size: 15, weight: .bold))
@@ -273,6 +276,7 @@ public struct ActiveWorkoutView: View {
                 title: localString("training.pickToStart", locale),
                 message: localString("training.pickToStart.hint", locale),
                 actionTitle: localString("training.addExercise", locale),
+                actionIdentifier: "activeWorkout.addExercise",
                 action: { showsExercisePicker = true }
             )
             .padding(.horizontal, TLSpace.page)
@@ -316,6 +320,7 @@ public struct ActiveWorkoutView: View {
         let remaining = viewModel.restRemaining ?? 0
         return VStack(spacing: 16) {
             localText("training.resting")
+                .accessibilityIdentifier("activeWorkout.resting")
                 .font(TLFont.zh(TLFont.kicker, .semibold))
                 .tracking(TLFont.kickerTracking)
                 .textCase(.uppercase)
@@ -509,6 +514,7 @@ public struct ActiveWorkoutView: View {
                     .accessibilityIdentifier("activeWorkout.targetColumn")
                 Spacer()
                 localText("training.table.actual")
+                    .accessibilityIdentifier("activeWorkout.actualColumn")
             }
             .font(.caption2.weight(.semibold))
             .textCase(.uppercase)
@@ -715,7 +721,6 @@ public struct ActiveWorkoutView: View {
                     .foregroundStyle(.clear)
                     .frame(width: 0, height: 0)
                     .accessibilityHidden(false)
-                    .accessibilityIdentifier("activeWorkout.currentSet")
                     .accessibilityIdentifier("activeWorkout.completedSet")
             }
             Text(verbatim: text)
@@ -757,11 +762,15 @@ public struct ActiveWorkoutView: View {
             // 下一組），所以可見顯示改「現在這組」、另外保留一個 0 尺寸的「第N組」節點給測試找，
             // 跟已完成列同一招，不弄壞既有測試。
             HStack(spacing: 0) {
+                // 這個 0 尺寸節點原本只是為了讓舊測試找得到「第N組」字面值；identifier 化之後
+                // 它的用途變成「帶序號的目前組」錨點——測試靠序號判斷有沒有多記／少記一組。
+                // 文字本身等 PR 4（歷史那批）也轉完就可以拿掉。
                 localText("training.setIndex \(row.setIndex + 1)")
                     .font(.system(size: 1))
                     .foregroundStyle(.clear)
                     .frame(width: 0, height: 0)
                     .accessibilityHidden(false)
+                    .accessibilityIdentifier("activeWorkout.currentSet.\(row.setIndex + 1)")
                 localText("training.table.currentSet")
                     .font(.footnote)
                     .foregroundStyle(TLColor.accent700)

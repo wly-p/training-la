@@ -32,8 +32,8 @@ final class ScheduleFlowUITests: XCTestCase {
         let squat = "測試深蹲"
         let planName = "測試推日"
 
-        addExercise(app, name: benchPress)
-        addExercise(app, name: squat)
+        app.addExercise(named: benchPress)
+        app.addExercise(named: squat)
 
         // 課表：新增一個含兩個動作、當日（預設今天）的排課
         app.buttons["tabBar.item.plan"].tap()
@@ -43,8 +43,8 @@ final class ScheduleFlowUITests: XCTestCase {
         XCTAssertTrue(nameField.waitForExistence(timeout: 5))
         nameField.tap()
         nameField.typeText(planName)
-        addExerciseToPlan(app, name: benchPress)
-        addExerciseToPlan(app, name: squat)
+        app.addExerciseToPlan(named: benchPress)
+        app.addExerciseToPlan(named: squat)
         app.buttons["editScaffold.save"].tap()
         XCTAssertTrue(app.staticTexts[planName].waitForExistence(timeout: 5))
 
@@ -68,7 +68,7 @@ final class ScheduleFlowUITests: XCTestCase {
         // 完成一組 → 「本場動作」清單列出未做的第二個動作，點它直接跳過去（不是打開全動作庫）
         // 組表＋輸入色帶（11c 改版）變高了，「本場動作」要往下捲才會進 List 的可視/實例化範圍。
         completeButton.tap()
-        assertSetRecorded(app)
+        app.waitForCompletedSet()
         let nextExercise = app.staticTexts[squat]
         if !nextExercise.waitForExistence(timeout: 3) {
             app.swipeUp()
@@ -82,7 +82,7 @@ final class ScheduleFlowUITests: XCTestCase {
 
         // 完成第二個動作一組 → 記錄下來
         app.buttons["activeWorkout.completeSet"].tap()
-        assertSetRecorded(app)
+        app.waitForCompletedSet()
 
         // 結束
         app.buttons["activeWorkout.finish"].tap()
@@ -102,37 +102,4 @@ final class ScheduleFlowUITests: XCTestCase {
 
     // MARK: - Helpers
 
-    /// 有組被記錄下來了。
-    ///
-    /// 比原本斷言「第1組」強：那段文字在完成前後都在（當前組與已完成的組各有一個節點），
-    /// 所以完成與否都會通過。這裡只認「已完成」那個節點。
-    @MainActor private func assertSetRecorded(
-        _ app: XCUIApplication, file: StaticString = #filePath, line: UInt = #line
-    ) {
-        XCTAssertTrue(
-            app.staticTexts["activeWorkout.completedSet"].firstMatch.waitForExistence(timeout: 5),
-            "沒有任何已完成的組",
-            file: file, line: line
-        )
-    }
-
-    @MainActor private func addExercise(_ app: XCUIApplication, name: String) {
-        app.buttons["tabBar.item.exercises"].tap()
-        app.buttons["library.add"].tap()
-        let field = app.textFields["editScaffold.title"]
-        XCTAssertTrue(field.waitForExistence(timeout: 5))
-        field.tap()
-        field.typeText(name)
-        app.buttons["editScaffold.save"].tap()
-        app.searchExerciseList(name)
-        XCTAssertTrue(app.staticTexts[name].waitForExistence(timeout: 5))
-        app.clearExerciseListSearch()
-    }
-
-    @MainActor private func addExerciseToPlan(_ app: XCUIApplication, name: String) {
-        // 空白排課表單用 PickerSheet（多選）：搜尋 → 點名字選取 → 按確認鈕。
-        app.buttons["planForm.addExercise"].tap()
-        app.pickExercise(name)
-        app.buttons["picker.confirm"].tap()
-    }
 }

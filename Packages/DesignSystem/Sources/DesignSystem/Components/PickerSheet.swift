@@ -124,6 +124,8 @@ public struct PickerSheet<Item: PickerSheetItem>: View {
             title
                 .font(TLFont.zh(TLFont.rowTitle, .semibold))
                 .foregroundStyle(TLColor.text)
+                // 測試用它判斷 sheet 開了沒；標題文字各處不同又會跟著語言換，所以認 id。
+                .accessibilityIdentifier("picker.title")
             Spacer()
             if let onCreateNew {
                 Button {

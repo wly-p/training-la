@@ -630,6 +630,7 @@ public struct TrainingHomeView: View {
                     trailing: nil,
                     onTap: { Task { await viewModel.startFree() } }
                 )
+                .accessibilityIdentifier("training.startFree")
                 if let openSchedule {
                     orRow(
                         icon: "flag", iconColor: TLColor.neutral600,

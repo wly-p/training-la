@@ -236,17 +236,11 @@ TEST_DATA = {
 }
 # 尚未轉換的檔案（每個轉換 PR 移除自己那批；清空＝完成）。
 PENDING = {
-    "BackgroundRestUITests.swift",
     "DeleteHistoryRevertsPlanUITests.swift",
     "EditDeleteWorkoutUITests.swift",
-    "ExerciseCompletionUITests.swift",
-    "MistapSetUITests.swift",
     "ProgramFlowUITests.swift",
-    "RestTimerUITests.swift",
     "RotationFlowUITests.swift",
     "TemplateImportUITests.swift",
-    "TrainingFlowUITests.swift",
-    "UndoSetUITests.swift",
 }
 
 HAN = r"[一-鿿]"

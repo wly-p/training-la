@@ -23,7 +23,8 @@ public struct HistoryView: View {
                         options: [
                             .init(.byDate, localText("history.byDate")),
                             .init(.byExercise, localText("history.byExercise")),
-                        ]
+                        ],
+                        identifierPrefix: "history.segment"
                     )
                     .padding(.top, TLSpace.gapM)
 
