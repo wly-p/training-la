@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<title>隱私政策 · Training La</title>
+<meta name="description" content="Training La 不收集任何資料。沒有帳號、沒有網路請求、沒有分析或第三方 SDK，你記錄的一切都留在你自己的裝置上。">
+<meta name="robots" content="index,follow">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='9' fill='%23c67139'/%3E%3Crect x='6' y='13.5' width='20' height='5' rx='2.5' fill='%23f5ead8'/%3E%3Crect x='4' y='10' width='4.5' height='12' rx='2.25' fill='%23f5ead8'/%3E%3Crect x='23.5' y='10' width='4.5' height='12' rx='2.25' fill='%23f5ead8'/%3E%3C/svg%3E">
+<style>
+:root{
+  --bg:#f5ead8; --ink:#201e1d;
+  --s1:#f9f4ed; --s2:#efe4d2; --s3:#ded3c2;
+  --m1:#8a8177; --m2:#6f6862; --m3:#514c47;
+  --acc:#c67139; --acc-deep:#8c491a; --acc-mid:#a85a25;
+  --sage:#e1eecc; --sage-ink:#3f4a2b; --sage-ink2:#57683a;
+  --rule:rgba(32,30,29,.12);
+  --tc:-apple-system,BlinkMacSystemFont,"PingFang TC","Noto Sans TC","Microsoft JhengHei",system-ui,sans-serif;
+  --en:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  --r:28px;
+}
+@media (prefers-color-scheme:dark){
+  :root{
+    --bg:#1a1715; --ink:#f2e9db;
+    --s1:#262220; --s2:#322d29; --s3:#3d3833;
+    --m1:#8c8377; --m2:#a89e92; --m3:#c1b7aa;
+    --acc:#d98c50; --acc-deep:#eeb183; --acc-mid:#f0c19c;
+    --sage:#2b3324; --sage-ink:#d8e4bf; --sage-ink2:#bccc9b;
+    --rule:rgba(242,233,219,.14);
+  }
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--tc);text-wrap:pretty;-webkit-font-smoothing:antialiased}
+.wrap{min-height:100vh;display:flex;flex-direction:column;align-items:center;padding:0 clamp(20px,5vw,48px)}
+.col{width:100%;max-width:920px}
+a{color:var(--acc-deep);text-decoration-thickness:1px;text-underline-offset:3px}
+a:hover{color:var(--acc-mid)}
+a:focus-visible,button:focus-visible{outline:2px solid var(--acc);outline-offset:3px;border-radius:6px}
+::selection{background:rgba(198,113,57,.24)}
+
+header.top{display:flex;align-items:center;gap:16px;padding:clamp(20px,4vw,34px) 0;flex-wrap:wrap}
+.brand{font:700 17px/1 var(--en);letter-spacing:-.01em}
+.spacer{flex:1}
+.seg{display:flex;gap:4px;background:var(--s2);border-radius:999px;padding:4px}
+.seg button{border:0;cursor:pointer;background:transparent;border-radius:999px;padding:8px 16px;font:600 13px/1 var(--tc);color:var(--m2)}
+.seg button:hover{background:var(--s3)}
+.seg button[aria-pressed=true]{background:var(--bg);color:var(--ink);box-shadow:0 1px 3px rgba(0,0,0,.10)}
+
+main{padding-bottom:clamp(56px,10vw,110px)}
+.kicker{font:600 11px/1 var(--en);letter-spacing:.18em;text-transform:uppercase;color:var(--acc-deep);margin-bottom:clamp(14px,2.5vw,20px)}
+h1{margin:0;font:700 clamp(30px,6vw,52px)/1.2 var(--tc);letter-spacing:-.025em;max-width:16em}
+.lead{margin:clamp(20px,3vw,26px) 0 0;max-width:34em;font:400 clamp(15.5px,1.7vw,18px)/1.75 var(--tc);color:var(--m3)}
+.meta{display:flex;flex-wrap:wrap;gap:8px 22px;margin-top:clamp(24px,3.5vw,32px);font:500 13px/1.5 var(--tc);color:var(--m1)}
+.meta span{white-space:nowrap}
+.meta b{font-weight:500;color:var(--m3)}
+
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(255px,1fr));gap:clamp(14px,1.8vw,18px);margin-top:clamp(38px,6vw,60px)}
+.card{background:var(--s1);border-radius:var(--r);padding:clamp(22px,2.6vw,28px)}
+.card.sage{background:var(--sage);color:var(--sage-ink)}
+.card h2{margin:0 0 14px;font:700 clamp(17px,1.9vw,19px)/1.35 var(--tc)}
+.card p{margin:0 0 14px;font:400 13.5px/1.7 var(--tc);color:var(--m2)}
+.card.sage p{color:var(--sage-ink2)}
+.card ul{margin:0;padding-left:1.15em;display:flex;flex-direction:column;gap:9px;font:400 13.5px/1.65 var(--tc);color:var(--m3)}
+.card.sage ul{gap:11px;color:var(--sage-ink)}
+.card ul b{font-weight:600}
+.card .fine{margin:16px 0 0;font:400 12.5px/1.7 var(--tc);color:var(--m1)}
+.card.sage .fine{color:var(--sage-ink2)}
+code{font:400 11.5px ui-monospace,SFMono-Regular,Menlo,monospace;background:var(--s2);padding:2px 5px;border-radius:5px}
+
+.prose{max-width:34em;margin-top:clamp(44px,7vw,72px);display:flex;flex-direction:column;gap:clamp(30px,4vw,42px)}
+.prose h2{margin:0 0 12px;font:700 clamp(19px,2.2vw,23px)/1.35 var(--tc)}
+.prose p{margin:0 0 12px;font:400 15px/1.8 var(--tc);color:var(--m3)}
+.prose p:last-child{margin-bottom:0}
+.prose b{font-weight:600;color:var(--ink)}
+
+footer{border-top:1px solid var(--rule);padding:26px 0 40px;display:flex;flex-wrap:wrap;gap:10px 20px;align-items:baseline}
+footer .brand{font-size:13px}
+footer time{font:400 12.5px/1.5 var(--en);color:var(--m1)}
+
+[lang=en] h1,[lang=en] .lead,[lang=en] .meta,[lang=en] .card h2,[lang=en] .card p,[lang=en] .card ul,[lang=en] .card .fine,[lang=en] .prose h2,[lang=en] .prose p{font-family:var(--en)}
+[lang=en] h1{letter-spacing:-.03em;line-height:1.15;max-width:20em}
+[lang=en] .lead,[lang=en] .prose{max-width:36em}
+[hidden]{display:none!important}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header class="top col">
+  <span class="brand">Training La</span>
+  <span class="spacer"></span>
+  <div class="seg" role="group" aria-label="Language">
+    <button type="button" id="btn-zh" aria-pressed="true">中文</button>
+    <button type="button" id="btn-en" aria-pressed="false">English</button>
+  </div>
+</header>
+
+<main class="col" id="doc-zh" lang="zh-Hant">
+  <p class="kicker">隱私政策</p>
+  <h1>Training La 不收集任何資料。</h1>
+  <p class="lead">這個 App 沒有帳號系統、不會發出任何網路請求，也沒有分析工具、廣告或任何第三方 SDK。你記錄的一切都留在你自己的裝置上。</p>
+  <p class="meta"><span>生效日期 <b>2026-08-07</b></span><span>最後更新 <b>2026-08-07</b></span></p>
+
+  <div class="cards">
+    <section class="card">
+      <h2>App 在你裝置上儲存了什麼</h2>
+      <p>以下全部儲存在你的裝置本機，不會離開裝置：</p>
+      <ul>
+        <li><b>你建立的動作</b> — 名稱、肌群、器材、說明</li>
+        <li><b>課表與範本</b> — 排定的訓練、循環、長期課表</li>
+        <li><b>訓練紀錄</b> — 組數、重量、次數、日期與備註</li>
+        <li><b>能力值</b> — 每個動作記錄到的最大重量</li>
+        <li><b>偏好設定</b> — 介面語言、外觀主題、重量單位（公斤／磅）、重量與休息級距、休息提醒設定</li>
+      </ul>
+      <p class="fine">訓練內容使用 Apple 的 SwiftData 框架儲存，偏好設定存在 <code>UserDefaults</code>。兩者都在 App 自己的私有儲存空間裡。</p>
+    </section>
+
+    <section class="card">
+      <h2>App 不會做的事</h2>
+      <ul>
+        <li>沒有帳號、不需登入、不產生任何使用者識別碼</li>
+        <li>不發出網路請求——完全離線也能使用全部功能</li>
+        <li>沒有分析、當機回報或使用行為統計</li>
+        <li>沒有廣告，也沒有 Apple「App 追蹤透明度」定義下的追蹤行為</li>
+        <li>沒有任何第三方 SDK</li>
+        <li>不販售、不分享、不傳輸任何資料給任何人</li>
+      </ul>
+    </section>
+
+    <section class="card sage">
+      <h2>刪除你的資料</h2>
+      <ul>
+        <li><b>在 App 內：</b>設定 → 刪除所有資料，會清除裝置上全部的動作、課表與訓練紀錄。</li>
+        <li><b>移除 App：</b>把 Training La 從裝置上刪除，會一併移除所有資料，包含偏好設定。</li>
+      </ul>
+      <p class="fine">因為資料從未離開你的裝置，我們這邊沒有任何東西可以刪除，你也不需要提出資料存取請求。</p>
+    </section>
+  </div>
+
+  <div class="prose">
+    <section>
+      <h2>通知</h2>
+      <p>如果你開啟休息提醒，App 會請求發送<b>本機</b>通知的權限。這些通知完全在你的裝置上排程與送出，通知內容不會傳送到任何伺服器，包括 Apple 的推播通知服務。</p>
+      <p>你可以隨時在 iOS 的「設定」中收回這個權限。</p>
+    </section>
+    <section>
+      <h2>兒童</h2>
+      <p>本 App 不向任何人收集資料，包含 13 歲以下的兒童。</p>
+    </section>
+    <section>
+      <h2>政策變更</h2>
+      <p>如果 App 的資料處理方式改變——例如未來版本加入選用的雲端同步——這份政策會在該版本發布<b>之前</b>更新，上方的生效日期也會隨之改變。重大變更同時會反映在 App Store 上的隱私資訊。</p>
+    </section>
+    <section>
+      <h2>聯絡方式</h2>
+      <!-- TODO(上架前)：換成真實信箱。中英兩處都要改，另外 docs/privacy-policy.md 也有一份。 -->
+      <p>對本政策有疑問：<a href="mailto:test@test.com"><code>test@test.com</code></a></p>
+    </section>
+  </div>
+</main>
+
+<main class="col" id="doc-en" lang="en" hidden>
+  <p class="kicker">Privacy Policy</p>
+  <h1>Training La does not collect any data.</h1>
+  <p class="lead">The app has no account system, makes no network requests, and contains no analytics, advertising, or third-party SDKs. Everything you record stays on your device.</p>
+  <p class="meta"><span>Effective date <b>2026-08-07</b></span><span>Last updated <b>2026-08-07</b></span></p>
+
+  <div class="cards">
+    <section class="card">
+      <h2>What the app stores on your device</h2>
+      <p>All of the following is stored locally on your device and never leaves it:</p>
+      <ul>
+        <li><b>Exercises</b> you create — name, muscle group, equipment, description</li>
+        <li><b>Plans and templates</b> — scheduled workouts, routines, and long-term programs</li>
+        <li><b>Workout records</b> — sets, weights, repetitions, dates, and notes</li>
+        <li><b>Ability values</b> — the maximum weight recorded for each exercise</li>
+        <li><b>Preferences</b> — interface language, appearance theme, weight unit (kg/lb), weight and rest increments, and rest-reminder settings</li>
+      </ul>
+      <p class="fine">Workout content is stored using Apple's SwiftData framework; preferences are stored in <code>UserDefaults</code>. Both are private to the app's own storage on your device.</p>
+    </section>
+
+    <section class="card">
+      <h2>What the app does not do</h2>
+      <ul>
+        <li>No account, no sign-in, no user identifier</li>
+        <li>No network requests — the app works entirely offline</li>
+        <li>No analytics, crash reporting, or usage measurement</li>
+        <li>No advertising and no tracking, as defined by Apple's App Tracking Transparency</li>
+        <li>No third-party SDKs of any kind</li>
+        <li>No data is sold, shared, or transmitted to anyone</li>
+      </ul>
+    </section>
+
+    <section class="card sage">
+      <h2>Deleting your data</h2>
+      <ul>
+        <li><b>Inside the app:</b> Settings → Delete All Data removes every exercise, plan, and workout record from your device.</li>
+        <li><b>Removing the app:</b> deleting Training La from your device removes all of its data, including preferences.</li>
+      </ul>
+      <p class="fine">Because no data ever leaves your device, there is nothing for us to delete on our side and no data-access request to make.</p>
+    </section>
+  </div>
+
+  <div class="prose">
+    <section>
+      <h2>Notifications</h2>
+      <p>If you enable rest reminders, the app asks for permission to send <b>local</b> notifications. These are scheduled and delivered entirely on your device. No notification content is sent to any server, including Apple's push notification service.</p>
+      <p>You can revoke this permission at any time in the iOS Settings app.</p>
+    </section>
+    <section>
+      <h2>Children</h2>
+      <p>The app collects no data from anyone, including children under 13.</p>
+    </section>
+    <section>
+      <h2>Changes to this policy</h2>
+      <p>If the app's data handling changes — for example if optional cloud sync is added in a future version — this policy will be updated before that version is released, and the effective date above will change. Material changes will also be reflected in the app's privacy information on the App Store.</p>
+    </section>
+    <section>
+      <h2>Contact</h2>
+      <!-- TODO(上架前)：換成真實信箱（同上）。 -->
+      <p>Questions about this policy: <a href="mailto:test@test.com"><code>test@test.com</code></a></p>
+    </section>
+  </div>
+</main>
+
+<footer class="col">
+  <span class="brand">Training La</span>
+  <span class="spacer"></span>
+  <time datetime="2026-08-07">2026-08-07</time>
+</footer>
+
+</div>
+
+<script>
+(function () {
+  // 聯絡信箱直接寫死在 HTML 裡，不由這段 JS 填——Apple 要求的可聯絡方式不該依賴 JS。
+  var zh = document.getElementById('doc-zh'), en = document.getElementById('doc-en');
+  var bZh = document.getElementById('btn-zh'), bEn = document.getElementById('btn-en');
+
+  function set(lang, remember) {
+    var isEn = lang === 'en';
+    zh.hidden = isEn; en.hidden = !isEn;
+    bZh.setAttribute('aria-pressed', String(!isEn));
+    bEn.setAttribute('aria-pressed', String(isEn));
+    document.documentElement.lang = isEn ? 'en' : 'zh-Hant';
+    document.title = isEn ? 'Privacy Policy · Training La' : '隱私政策 · Training La';
+    if (remember) { try { localStorage.setItem('tl-privacy-lang', lang); } catch (e) {} }
+  }
+
+  // 語言優先序：網址 hash > 上次選擇 > 瀏覽器語言。
+  // App 從設定頁開這頁時會帶 #zh-Hant / #en——伺服器只看得到 Accept-Language（＝裝置語系），
+  // 判斷不了 app 語言（兩者可以不同），所以語言只能由 URL 帶進來。
+  // 用 /^zh/ 前綴比對而不是等值，App 才能直接送 AppLanguage 的 rawValue，兩邊不必各養一份對照表。
+  var hash = (location.hash || '').slice(1);
+  var saved = null;
+  try { saved = localStorage.getItem('tl-privacy-lang'); } catch (e) {}
+  var initial = hash ? (/^zh/i.test(hash) ? 'zh' : 'en')
+                     : (saved || (/^zh/i.test(navigator.language || '') ? 'zh' : 'en'));
+  set(initial, false);
+
+  bZh.addEventListener('click', function () { set('zh', true); });
+  bEn.addEventListener('click', function () { set('en', true); });
+})();
+</script>
+</body>
+</html>
