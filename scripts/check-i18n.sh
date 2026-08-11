@@ -214,6 +214,56 @@ if [ -n "$missing" ]; then
     fail=1
 fi
 
+# --- 規則 5 ------------------------------------------------------------------
+# UITest 不准用中文查元素。
+#
+# 為什麼要機器擋：`XCUIElement` 的 subscript **同時**比對 identifier 與 label，所以
+# 「某一處漏改」的測試會繼續靠中文命中、永遠不會紅——轉換完成與否根本看不出來
+# （ARCHITECTURE.md 的命名規範章節也是這樣寫的）。
+#
+# 只擋「拿來定位元素」的中文：subscript 與 NSPredicate。斷言訊息裡的中文是給人看的，不擋。
+# 測試自己打進去的資料（動作名、課表名）照規範保留文字定位，列在下方白名單。
+#
+# PENDING：還沒 identifier 化的檔案。每個轉換 PR 移除自己那批，清空即代表轉換完成。
+
+uitest=$(python3 - <<'PY'
+import pathlib, re
+
+# 測試自己輸入的資料——與介面語言無關，照規範維持文字定位。
+TEST_DATA = {
+    "測試臥推", "測試深蹲", "測試推日", "測試課表", "測試循環",
+    "推日", "腿日", "推拉腿", "推", "背景測試", "休息測試",
+}
+# 尚未轉換的檔案（每個轉換 PR 移除自己那批；清空＝完成）。
+# 全部轉完了。這個清單留著是給下一次大改用的——新增測試不該再往裡面加。
+PENDING: set[str] = set()
+
+HAN = r"[一-鿿]"
+# 定位用法：["..."]（subscript）與 NSPredicate(format: "...")。
+LOCATORS = re.compile(rf'\[\s*"([^"]*{HAN}[^"]*)"\s*\]|NSPredicate\(format:\s*"([^"]*{HAN}[^"]*)"')
+
+violations = []
+for path in sorted(pathlib.Path("UITests").glob("*.swift")):
+    if path.name in PENDING:
+        continue
+    for i, line in enumerate(path.read_text().split("\n"), 1):
+        code = line.split("//")[0]
+        for m in LOCATORS.finditer(code):
+            literal = m.group(1) or m.group(2)
+            if literal in TEST_DATA:
+                continue
+            violations.append(f"{path}:{i}:{literal}")
+
+print("\n".join(violations))
+PY
+)
+
+if [ -n "$uitest" ]; then
+    echo "✘ UITest 還在用中文查元素——請改用 accessibilityIdentifier（見 ARCHITECTURE.md）："
+    echo "$uitest" | sed 's/^/    /'
+    fail=1
+fi
+
 if [ "$fail" -eq 0 ]; then
     echo "✔ i18n 檢查通過"
 fi

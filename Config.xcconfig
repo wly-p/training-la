@@ -14,11 +14,11 @@ TEST_DEVICE = iPhone 17
 TEST_HEADLESS = true
 
 // TEST_LANGUAGE：跑 UITests 時要用哪個 test plan configuration（＝模擬器的裝置語系）。
-// 目前有 zh-Hant（預設）與 en 兩個，定義在 UITests.xctestplan。
+// UITests.xctestplan 只留 zh-Hant 一個——把裝置語系釘死，測試才不依賴跑測試的那台機器
+// （E2E 第一次上 CI 就是栽在英文模擬器）。
 //
-// 注意：既有的 22 個 UITest 靠中文標籤查元素，但 app 在 UI 測試模式下語言固定 seed 成繁中
-// （見 AppDependencies），所以改這個值不會讓它們崩——它只換裝置語系，不換 app 語言。
-// 要驗「app 語言 ≠ 裝置語系」的中英混雜問題，跑 `make test-uitest-en`。
+// 這裡換的是**裝置語系**，不是 app 語言。要驗「app 語言 ≠ 裝置語系」的中英混雜問題，
+// 跑 `make test-uitest-en`——它把同一批測試再跑一輪，只把 app 語言換成英文。
 TEST_LANGUAGE = zh-Hant
 
 // TEST_REPORT（bool：true/false）：false（預設）＝ 跟沒有這個功能之前完全一樣，不產生任何檔案；

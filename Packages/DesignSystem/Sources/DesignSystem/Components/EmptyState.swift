@@ -8,6 +8,8 @@ public struct EmptyState: View {
     private let title: String
     private let message: String
     private let actionTitle: String?
+    /// 行動鈕的 accessibilityIdentifier。按鈕文字會跟著語言換，UI test 要靠 id 定位。
+    private let actionIdentifier: String?
     private let action: (() -> Void)?
 
     public init(
@@ -15,12 +17,14 @@ public struct EmptyState: View {
         title: String,
         message: String,
         actionTitle: String? = nil,
+        actionIdentifier: String? = nil,
         action: (() -> Void)? = nil
     ) {
         self.systemImage = systemImage
         self.title = title
         self.message = message
         self.actionTitle = actionTitle
+        self.actionIdentifier = actionIdentifier
         self.action = action
     }
 
@@ -48,6 +52,7 @@ public struct EmptyState: View {
                     .buttonStyle(.tlPrimary)
                     .fixedSize(horizontal: true, vertical: false)
                     .padding(.top, 4)
+                    .modifier(OptionalIdentifier(id: actionIdentifier))
             }
         }
         .frame(maxWidth: .infinity)

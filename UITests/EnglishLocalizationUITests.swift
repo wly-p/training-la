@@ -21,13 +21,7 @@ final class EnglishLocalizationUITests: XCTestCase {
     func testNoChineseTextInEnglishLocale() throws {
         let app = XCUIApplication()
         // 乾淨的 store（畫面上不會有使用者輸入的中文資料）＋ app 語言強制英文（裝置維持繁中）
-        app.launchArguments = uitestLaunchArguments(["--uitest-language=en"])
-        app.launch()
-
-        XCTAssertTrue(
-            app.buttons["tabBar.item.training"].waitForExistence(timeout: 10),
-            "找不到自訂分頁列"
-        )
+        launchForUITest(app, extra: ["--uitest-language=en"])
 
         var offenders: [String] = []
         var previous: [String] = []
@@ -46,7 +40,7 @@ final class EnglishLocalizationUITests: XCTestCase {
             )
             previous = labels
 
-            for label in labels where Self.containsHan(label) {
+            for label in labels where containsHan(label) {
                 offenders.append("[\(name)] \(label)")
             }
         }
@@ -84,10 +78,4 @@ final class EnglishLocalizationUITests: XCTestCase {
         }
     }
 
-    /// 是否含 CJK 統一表意文字（含擴充 A）。標點與英數不算。
-    private static func containsHan(_ text: String) -> Bool {
-        text.unicodeScalars.contains { scalar in
-            (0x4E00...0x9FFF).contains(scalar.value) || (0x3400...0x4DBF).contains(scalar.value)
-        }
-    }
 }

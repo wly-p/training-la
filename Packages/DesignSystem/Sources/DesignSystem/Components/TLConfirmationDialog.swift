@@ -88,7 +88,9 @@ private struct TLConfirmationDialogModifier: ViewModifier {
     }
 }
 
-private struct OptionalIdentifier: ViewModifier {
+/// 選擇性套 accessibilityIdentifier（`nil` 就什麼都不做）。
+/// 元件的 identifier 一律由呼叫端決定——同一個元件在不同畫面用，寫死在元件裡就撞名了。
+struct OptionalIdentifier: ViewModifier {
     let id: String?
     func body(content: Content) -> some View {
         if let id {

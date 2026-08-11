@@ -24,11 +24,16 @@ public struct TLSegmentedControl<Value: Hashable>: View {
 
     @Binding private var selection: Value
     private let options: [Option]
+    /// 每一段的 accessibilityIdentifier 前綴：第 n 段會拿到 `<prefix>.<value>`
+    /// （例：`history.segment.byExercise`）。段落文字會跟著語言換，UI test 要靠 id 定位。
+    /// 呼叫端決定前綴——同一個元件在多個畫面用，寫死在元件裡就撞名了。
+    private let identifierPrefix: String?
     @Namespace private var pill
 
-    public init(selection: Binding<Value>, options: [Option]) {
+    public init(selection: Binding<Value>, options: [Option], identifierPrefix: String? = nil) {
         self._selection = selection
         self.options = options
+        self.identifierPrefix = identifierPrefix
     }
 
     public var body: some View {
@@ -54,6 +59,7 @@ public struct TLSegmentedControl<Value: Hashable>: View {
                         .contentShape(Capsule())
                 }
                 .buttonStyle(.plain)
+                .modifier(OptionalIdentifier(id: identifierPrefix.map { "\($0).\(option.value)" }))
             }
         }
         .padding(4)

@@ -361,9 +361,9 @@ private struct DraftEditSheet: View {
             VStack(alignment: .leading, spacing: TLSpace.gapL) {
                 TLGroup {
                     stepperRow(localText("plan.setCount \(sets)"), value: $sets, range: 1...20)
-                        .accessibilityIdentifier("draftSetCountStepper")
+                        .accessibilityIdentifier("planForm.setCountStepper")
                     stepperRow(restLabel, value: $rest, range: 0...600, step: 15)
-                        .accessibilityIdentifier("draftRestStepper")
+                        .accessibilityIdentifier("planForm.restStepper")
                 }
                 DualValuePicker(
                     primaryValue: $weightValue,

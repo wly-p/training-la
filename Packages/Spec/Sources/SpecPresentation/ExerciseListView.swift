@@ -95,6 +95,7 @@ public struct ExerciseListView: View {
             )
         ) {
             Button(role: .cancel) {} label: { localText("spec.ok") }
+                .accessibilityIdentifier("exerciseList.error.ok")
         } message: {
             Text(viewModel.errorMessage ?? "")
         }
@@ -119,6 +120,9 @@ public struct ExerciseListView: View {
                 CircleBadge(muscle: exercise.muscleGroup.badgeText(locale))
             }
         )
+        // 內建動作的名稱會跟著 app 語言換，測試沒辦法用名字找到它——改認這個 id。
+        // 使用者自建的動作名是測試自己輸入的資料，照舊用文字定位。
+        .accessibilityIdentifier(isOfficial ? "exerciseList.officialRow" : "exerciseList.row")
         // 整個 modifier 拿掉、而不是留一個空的 menu：空 menu 長按仍會有抬起動畫卻沒有選項。
         .contextMenu(isOfficial ? nil : ContextMenu {
             Button(role: .destructive) {
@@ -126,6 +130,7 @@ public struct ExerciseListView: View {
             } label: {
                 Label { localText("spec.delete") } icon: { Image(systemName: "trash") }
             }
+            .accessibilityIdentifier("exerciseList.delete")
         })
     }
 
@@ -143,6 +148,8 @@ public struct ExerciseListView: View {
         }
         .frame(maxWidth: .infinity)
         .padding(.vertical, 40)
+        // 兩種文案共用一個 id：測試要驗的是「空狀態出現了」，文案本身歸 unit test。
+        .accessibilityIdentifier("exerciseList.empty")
     }
 
     // MARK: - 分組（純前端）

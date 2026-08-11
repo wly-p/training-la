@@ -249,6 +249,7 @@ public struct RotationEditorView: View {
             onTap: { pickingTemplates = true },
             leading: { CircleBadge(icon: "plus", fill: TLColor.neutral200, tint: TLColor.neutral600) }
         )
+        .accessibilityIdentifier("rotationEditor.addTemplate")
     }
 
     private var hintLine: some View {

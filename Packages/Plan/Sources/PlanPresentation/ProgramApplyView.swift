@@ -126,6 +126,7 @@ struct ProgramApplyView: View {
                 localText("program.apply.confirm").frame(maxWidth: .infinity)
             }
             .buttonStyle(.tlPrimary)
+            .accessibilityIdentifier("programApply.confirm")
             .disabled(selectedProgramId == nil)
 
             localText("program.apply.hint")

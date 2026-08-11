@@ -78,11 +78,14 @@ public struct CompactSheet<Content: View>: View {
                 Button(action: onCancel) { cancelTitle }
                     .font(TLFont.zh(15.5, .medium))
                     .foregroundStyle(TLColor.neutral600)
+                    .accessibilityIdentifier("compactSheet.cancel")
             }
             Spacer(minLength: TLSpace.gapM)
             Button(action: onConfirm) { confirmTitle }
                 .font(TLFont.zh(15.5, .bold))
                 .foregroundStyle(TLColor.accent700)
+                // 「完成」「好」各處文字不同又會跟著語言換，測試一律認這兩個 id。
+                .accessibilityIdentifier("compactSheet.confirm")
         }
         .overlay {
             title

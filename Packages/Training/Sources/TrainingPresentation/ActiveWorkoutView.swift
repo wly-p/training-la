@@ -86,6 +86,7 @@ public struct ActiveWorkoutView: View {
                 set: { if !$0 { viewModel.dismissRest() } }
             )) {
                 Button { viewModel.dismissRest() } label: { localText("training.startNextSet") }
+                    .accessibilityIdentifier("activeWorkout.restEnded.next")
             } message: {
                 localText("training.restOver.message")
             }
@@ -162,6 +163,8 @@ public struct ActiveWorkoutView: View {
                     : localText("training.done.exercise.title"))
                     .font(TLFont.zh(15, .semibold))
                     .foregroundStyle(TLColor.sage900)
+                    // 動作做完／課表做完是兩句不同的文案，測試只認「完成區的標題在不在」。
+                    .accessibilityIdentifier("activeWorkout.completeBandTitle")
             } icon: {
                 Image(systemName: viewModel.isPlanFullyDone ? "flag" : "checkmark")
                     .font(.system(size: 15, weight: .bold))
@@ -273,6 +276,7 @@ public struct ActiveWorkoutView: View {
                 title: localString("training.pickToStart", locale),
                 message: localString("training.pickToStart.hint", locale),
                 actionTitle: localString("training.addExercise", locale),
+                actionIdentifier: "activeWorkout.addExercise",
                 action: { showsExercisePicker = true }
             )
             .padding(.horizontal, TLSpace.page)
@@ -316,6 +320,7 @@ public struct ActiveWorkoutView: View {
         let remaining = viewModel.restRemaining ?? 0
         return VStack(spacing: 16) {
             localText("training.resting")
+                .accessibilityIdentifier("activeWorkout.resting")
                 .font(TLFont.zh(TLFont.kicker, .semibold))
                 .tracking(TLFont.kickerTracking)
                 .textCase(.uppercase)
@@ -509,6 +514,7 @@ public struct ActiveWorkoutView: View {
                     .accessibilityIdentifier("activeWorkout.targetColumn")
                 Spacer()
                 localText("training.table.actual")
+                    .accessibilityIdentifier("activeWorkout.actualColumn")
             }
             .font(.caption2.weight(.semibold))
             .textCase(.uppercase)
@@ -706,16 +712,15 @@ public struct ActiveWorkoutView: View {
             text = "—"
         }
         return HStack(spacing: 0) {
-            // 已完成的組沿用既有「第N組」文案，但不視覺化顯示（11c 的表格不畫這行）——
-            // 純粹讓大量既有 UITest（斷言完成後看得到「第N組」）繼續能找到這個節點，換掉字面
-            // 顯示（改成打勾圖示）但保留可被 accessibility 找到的節點，避免一次弄壞一堆測試。
+            // 11c 的表格不畫「第N組」這行（視覺上是打勾圖示），但測試要能數出「記了幾組」，
+            // 所以留一個 0 尺寸的錨點。文字用 verbatim 的序號而非本地化字串——它不會被看到，
+            // 進 String Catalog 只是徒增翻譯負擔。
             if row.status == .done {
-                localText("training.setIndex \(row.setIndex + 1)")
+                Text(verbatim: "\(row.setIndex + 1)")
                     .font(.system(size: 1))
                     .foregroundStyle(.clear)
                     .frame(width: 0, height: 0)
                     .accessibilityHidden(false)
-                    .accessibilityIdentifier("activeWorkout.currentSet")
                     .accessibilityIdentifier("activeWorkout.completedSet")
             }
             Text(verbatim: text)
@@ -757,11 +762,13 @@ public struct ActiveWorkoutView: View {
             // 下一組），所以可見顯示改「現在這組」、另外保留一個 0 尺寸的「第N組」節點給測試找，
             // 跟已完成列同一招，不弄壞既有測試。
             HStack(spacing: 0) {
-                localText("training.setIndex \(row.setIndex + 1)")
+                // 同上：0 尺寸錨點，讓測試能定位「目前停在第幾組」。
+                Text(verbatim: "\(row.setIndex + 1)")
                     .font(.system(size: 1))
                     .foregroundStyle(.clear)
                     .frame(width: 0, height: 0)
                     .accessibilityHidden(false)
+                    .accessibilityIdentifier("activeWorkout.currentSet.\(row.setIndex + 1)")
                 localText("training.table.currentSet")
                     .font(.footnote)
                     .foregroundStyle(TLColor.accent700)

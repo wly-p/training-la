@@ -33,6 +33,7 @@ public struct SettingsView: View {
             ScrollView {
                 VStack(alignment: .leading, spacing: 0) {
                     PageHeader(localText("settings.title"))
+                        .accessibilityIdentifier("settings.title")
 
                     VStack(alignment: .leading, spacing: TLSpace.section) {
                         appearanceSection
@@ -60,7 +61,7 @@ public struct SettingsView: View {
                 confirmLabel: localText("settings.eraseAll.button"),
                 cancelLabel: localText("settings.common.cancel"),
                 role: .destructive,
-                confirmIdentifier: "eraseConfirmButton",
+                confirmIdentifier: "settings.eraseAll.confirm",
                 onConfirm: { Task { await viewModel.eraseAllData() } }
             )
             .alert(
@@ -88,6 +89,7 @@ public struct SettingsView: View {
                 ) {
                     SettingsValue(localText(viewModel.theme.displayName))
                 }
+                .accessibilityIdentifier("settings.row.theme")
                 SettingsRow(
                     localText("settings.language.title"),
                     showChevron: true,
@@ -96,6 +98,7 @@ public struct SettingsView: View {
                 ) {
                     SettingsValue(Text(verbatim: viewModel.language.nativeName))
                 }
+                .accessibilityIdentifier("settings.row.language")
                 SettingsRow(
                     localText("settings.appIcon.title"),
                     showChevron: true,
@@ -107,6 +110,7 @@ public struct SettingsView: View {
                         .frame(width: 30, height: 30)
                         .clipShape(RoundedRectangle(cornerRadius: 7, style: .continuous))
                 }
+                .accessibilityIdentifier("settings.row.appIcon")
                 SettingsRow(localText("settings.weightUnit.title")) {
                     TLSegmentedControl(
                         selection: Binding(
@@ -117,6 +121,7 @@ public struct SettingsView: View {
                     )
                     .frame(width: 128)
                 }
+                .accessibilityIdentifier("settings.row.weightUnit")
                 SettingsRow(
                     localText("settings.weightStep.title"),
                     showChevron: true,
@@ -127,6 +132,7 @@ public struct SettingsView: View {
                         .font(TLFont.zh(TLFont.rowSub))
                         .foregroundStyle(TLColor.neutral500)
                 }
+                .accessibilityIdentifier("settings.row.weightStep")
                 SettingsRow(
                     localText("settings.restStep.title"),
                     showChevron: true,
@@ -137,6 +143,7 @@ public struct SettingsView: View {
                         .font(TLFont.zh(TLFont.rowSub))
                         .foregroundStyle(TLColor.neutral500)
                 }
+                .accessibilityIdentifier("settings.row.restStep")
             }
         }
     }
@@ -147,20 +154,24 @@ public struct SettingsView: View {
         VStack(alignment: .leading, spacing: 8) {
             VStack(alignment: .leading, spacing: 0) {
                 SectionHeader(localText("settings.restReminder.section"))
+                    .accessibilityIdentifier("settings.restReminder.header")
                 TLGroup {
                     SettingsToggleRow(
                         localText("settings.restReminder.popup"),
                         isOn: $viewModel.restReminder.popup
                     )
+                    .accessibilityIdentifier("settings.toggle.popup")
                     SettingsToggleRow(
                         localText("settings.restReminder.sound"),
                         hint: localText("settings.restReminder.sound.hint"),
                         isOn: $viewModel.restReminder.sound
                     )
+                    .accessibilityIdentifier("settings.toggle.sound")
                     SettingsToggleRow(
                         localText("settings.restReminder.background.toggle"),
                         isOn: $viewModel.restReminder.backgroundNotification
                     )
+                    .accessibilityIdentifier("settings.toggle.background")
                 }
             }
             localText("settings.restReminder.footer")
@@ -182,6 +193,7 @@ public struct SettingsView: View {
                     showChevron: true,
                     onTap: { route = .ability }
                 )
+                .accessibilityIdentifier("settings.row.ability")
             }
         }
     }
@@ -196,6 +208,7 @@ public struct SettingsView: View {
                 SettingsRow(localText("settings.export.title"), showChevron: true) {
                     EmptyView()
                 }
+                .accessibilityIdentifier("settings.row.export")
                 .opacity(0.4)
                 .allowsHitTesting(false)
 
@@ -206,7 +219,7 @@ public struct SettingsView: View {
                 ) {
                     if viewModel.isErasing { ProgressView() }
                 }
-                .accessibilityIdentifier("deleteAllDataButton")
+                .accessibilityIdentifier("settings.row.eraseAll")
             }
         }
     }
@@ -220,7 +233,7 @@ public struct SettingsView: View {
                 .font(TLFont.display(13))
                 .foregroundStyle(TLColor.neutral500)
                 .frame(maxWidth: .infinity, alignment: .center)
-                .accessibilityIdentifier("appVersion")
+                .accessibilityIdentifier("settings.version")
         }
     }
 

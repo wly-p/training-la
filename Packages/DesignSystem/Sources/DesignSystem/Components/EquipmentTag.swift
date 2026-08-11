@@ -24,6 +24,8 @@ public struct EquipmentTag: View {
             .padding(.vertical, 5)
             .padding(.horizontal, 9)
             .background(Capsule().fill(TLColor.sage200))
+            // 器材名會跟著 app 語言換，測試只驗「這一列有掛器材標」，內容正確性歸 unit test。
+            .accessibilityIdentifier("equipmentTag")
     }
 }
 
