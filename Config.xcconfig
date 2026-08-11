@@ -26,6 +26,16 @@ TEST_LANGUAGE = zh-Hant
 // 上傳失敗只印警告，不會改變 make 的結束碼——exit code 要反映測試結果本身。
 TEST_REPORT = false
 
+// PRIVACY_POLICY_URL：隱私政策頁的網址。build 時展開進 Info.plist 的 `PrivacyPolicyURL`
+// （見 project.yml），App 只從那裡讀 —— Swift 裡永遠不出現網址字串（同 AppEnvironment.swift 的規矩）。
+// 政策頁還沒部署，目前指向本機 mock server：
+//   cd ../mock-url && python3 -m http.server 8000
+// 上線後只改這一行（換成正式網址），Swift 與 View 都不用動。
+//
+// 雙斜線用 SLASH 繞開：xcconfig 把 `//` 當註解起點，直接寫 http://... 的值會被截成 `http:`。
+SLASH = /
+PRIVACY_POLICY_URL = http:$(SLASH)$(SLASH)localhost:8000$(SLASH)privacy-policy.html
+
 // 本機簽章設定（gitignored，開源 repo 不放任何人的 Team ID）。
 // 實機建置前自己建一份 Signing.secrets.xcconfig，內容一行：
 //   DEVELOPMENT_TEAM = <你的 Team ID>

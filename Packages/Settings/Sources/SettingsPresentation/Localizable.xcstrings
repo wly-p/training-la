@@ -423,6 +423,22 @@
         }
       }
     },
+    "settings.privacy.title" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Privacy Policy"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "隱私政策"
+          }
+        }
+      }
+    },
     "settings.restReminder.background.footer" : {
       "extractionState" : "stale",
       "localizations" : {

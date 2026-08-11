@@ -122,6 +122,33 @@ final class SettingsUITests: XCTestCase {
         )
     }
 
+    /// 隱私政策入口：點了要在 App 內開起 Safari（`SFSafariViewController`），不跳出 App。
+    /// 刻意不驗頁面內容——政策頁是線上的、由 `PRIVACY_POLICY_URL` 注入，測試機不保證連得到。
+    /// Safari 就算載入失敗也還是會 present，所以這條不依賴網路；網址與語言 fragment 的正確性
+    /// 由 SharedKernel 的 `PrivacyPolicyTests` 釘死。
+    @MainActor
+    func testPrivacyPolicyRowOpensInAppBrowser() throws {
+        let app = XCUIApplication()
+        launchForUITest(app)
+
+        app.buttons["tabBar.item.settings"].tap()
+
+        // 這一列在「資料」區最底，捲到底才進 hierarchy（同版號那條）
+        let row = app.buttons["settings.row.privacy"]
+        if !row.waitForExistence(timeout: 3) {
+            app.swipeUp()
+            XCTAssertTrue(row.waitForExistence(timeout: 5))
+        }
+        row.tap()
+
+        XCTAssertTrue(
+            app.webViews.firstMatch.waitForExistence(timeout: 10),
+            "點隱私政策應在 App 內開啟瀏覽器"
+        )
+        // 還在自己的 App 裡（SFSafariViewController 是 in-app，不是切到 Safari）
+        XCTAssertEqual(app.state, .runningForeground)
+    }
+
     @MainActor
     func testVersionRowShowsVersionAndBuild() throws {
         let app = XCUIApplication()

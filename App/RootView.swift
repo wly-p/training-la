@@ -60,6 +60,9 @@ struct RootView: View {
             SettingsView(
                 viewModel: settingsViewModel,
                 appVersion: AppVersion.displayString(infoDictionary: Bundle.main.infoDictionary ?? [:]),
+                // 政策頁網址由 Config.xcconfig 經 Info.plist 注入（Swift 裡不寫死網址）；
+                // 語言 fragment 由設定頁依當下 app 語言現算。
+                privacyPolicyBaseURL: PrivacyPolicy.baseURL(infoDictionary: Bundle.main.infoDictionary ?? [:]),
                 // 能力值編輯的 ± 與刻度尺跟隨「設定 › 重量調整級距」，不寫死（handoff-15 G 節）。
                 abilityDestination: {
                     AnyView(AbilityListView(
