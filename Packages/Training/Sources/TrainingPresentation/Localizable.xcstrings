@@ -2216,22 +2216,6 @@
         }
       }
     },
-    "training.setIndex %lld": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Set %lld"
-          }
-        },
-        "zh-Hant": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "第%lld組"
-          }
-        }
-      }
-    },
     "training.skipRest": {
       "localizations": {
         "en": {
