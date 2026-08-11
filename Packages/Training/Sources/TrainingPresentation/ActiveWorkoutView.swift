@@ -504,15 +504,39 @@ public struct ActiveWorkoutView: View {
         }
     }
 
+    /// 組表的欄位幾何。**表頭與資料列共用同一組**——這是這張表唯一的欄位定義。
+    ///
+    /// 原本兩邊各寫各的（表頭用三個 Spacer 均分、資料列用固定 badge ＋ 兩個彈性欄），
+    /// 所以欄名跟值怎麼樣都對不齊，而且欄名的位置會隨「組／實際」的字寬變動——切英文就漂掉。
+    private enum SetColumn {
+        /// 組欄固定寬：badge 是圓形固定尺寸，本來就不該跟著伸縮。
+        /// 28 而非 badge 的 24——留給兩位數組序，第 10 組以上圓圈裡的數字才不會擠。
+        static let indexWidth: CGFloat = 28
+        static let gap: CGFloat = 12
+    }
+
+    /// 一列（表頭或資料列）的欄位排版：組欄固定寬靠左，剩下的寬度平分給目標／實際，兩欄各自靠右。
+    private func setTableColumns(
+        @ViewBuilder index: () -> some View,
+        @ViewBuilder target: () -> some View,
+        @ViewBuilder actual: () -> some View
+    ) -> some View {
+        HStack(spacing: SetColumn.gap) {
+            index().frame(width: SetColumn.indexWidth, alignment: .leading)
+            target().frame(maxWidth: .infinity, alignment: .trailing)
+            actual().frame(maxWidth: .infinity, alignment: .trailing)
+        }
+    }
+
     /// 組表（11c）：動作級摘要（已在 header）＋「組/目標/實際」欄名 ＋ 每組一列圓角列。
     private var setTableCard: some View {
         VStack(alignment: .leading, spacing: TLSpace.gapS) {
-            HStack {
+            setTableColumns {
                 localText("training.table.set")
-                Spacer()
+            } target: {
                 localText("training.table.target")
                     .accessibilityIdentifier("activeWorkout.targetColumn")
-                Spacer()
+            } actual: {
                 localText("training.table.actual")
                     .accessibilityIdentifier("activeWorkout.actualColumn")
             }
@@ -664,13 +688,12 @@ public struct ActiveWorkoutView: View {
     /// 未做的整列淡出。取代原本靠 List row background 的做法（已移出 List）。
     @ViewBuilder
     private func setTableRow(_ row: ActiveWorkoutViewModel.SetTableRow) -> some View {
-        HStack(spacing: 12) {
+        setTableColumns {
             setRowBadge(row)
-                .frame(width: 24)
+        } target: {
             setRowTarget(row)
-                .frame(maxWidth: .infinity, alignment: .leading)
+        } actual: {
             setRowActual(row)
-                .frame(maxWidth: .infinity, alignment: .trailing)
         }
         .padding(.horizontal, TLSpace.rowInset)
         .padding(.vertical, row.status == .current ? 14 : 11)
