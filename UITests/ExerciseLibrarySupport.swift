@@ -47,6 +47,18 @@ extension XCUIApplication {
     }
 }
 
+/// 輪詢等待某個條件成立。`XCUIElement` 的 `waitForExistence` 只能等「出現」，
+/// 等「消失」或等 `isHittable` 都得自己輪詢。
+@MainActor
+func waitUntil(deadline seconds: TimeInterval, _ condition: () -> Bool) -> Bool {
+    let end = Date().addingTimeInterval(seconds)
+    while Date() < end {
+        if condition() { return true }
+        usleep(200_000)
+    }
+    return condition()
+}
+
 // MARK: - 各測試共用的建置步驟
 
 /// 「先建個動作 → 排進課表 → 去訓練頁開練」這串前置動作在十幾個測試裡逐字重複。
@@ -192,6 +204,28 @@ extension XCUIApplication {
     /// 所以完成與否都會命中——這裡只數已完成的那種。
     @MainActor var completedSetCount: Int {
         staticTexts.matching(identifier: "activeWorkout.completedSet").count
+    }
+
+    /// 收掉「休息結束」彈窗，並確認真的回到組表輸入態。
+    ///
+    /// 為什麼不是單純 `tap()`：`waitForExistence` 只保證元素**存在**，此時 alert 可能還在
+    /// 呈現動畫中，這一下會落在背後的遮罩上被吃掉——彈窗留在原地、測試才在後面才炸。
+    /// 所以要等到可點才點，點完再確認彈窗收掉；沒收掉就再點一次。
+    /// 實測是低機率、只在整輪跑到後段（模擬器負載高）時出現。
+    @MainActor func dismissRestEndedAlert(
+        timeout: TimeInterval = 20, file: StaticString = #filePath, line: UInt = #line
+    ) {
+        let alert = alerts.firstMatch
+        XCTAssertTrue(alert.waitForExistence(timeout: timeout), "休息到點沒有彈窗", file: file, line: line)
+
+        for _ in 1...3 {
+            let next = alerts.buttons["activeWorkout.restEnded.next"].firstMatch
+            // isHittable 為 false ＝ 還在動畫中或被遮住，等它穩定下來再點。
+            guard waitUntil(deadline: 5, { next.isHittable }) else { continue }
+            next.tap()
+            if waitUntil(deadline: 5, { !self.alerts.element.exists }) { return }
+        }
+        XCTFail("點了三次「開始下一組」，休息結束彈窗仍未收掉", file: file, line: line)
     }
 
     /// 至少有一組被記錄下來了。
