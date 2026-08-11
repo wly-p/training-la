@@ -80,15 +80,22 @@ UITEST_ONLY_FLAGS := $(foreach t,$(ONLY),-only-testing:TrainingLaUITests/$(t))
 test-uitest: test-uitest-zh test-uitest-en
 
 test-uitest-zh: generate
-	@$(MAKE) --no-print-directory uitest-run LANG_TAG=$(LANGUAGE) APP_LANGUAGE=
+	@$(MAKE) --no-print-directory uitest-run LANG_TAG=$(LANGUAGE) CONFIGURATION=$(LANGUAGE)
 
 # 英文那一輪：裝置語系照舊，只把 app 的語言設定改成英文。
-# `TEST_RUNNER_` 前綴會被 xcodebuild 剝掉再塞進測試 runner 的環境變數，
-# `UITests/UITestSupport.swift` 讀到就把 `--uitest-language=en` 併進 launch arguments。
+#
+# 語言由 test plan 的 `en-app` configuration 用 environmentVariableEntries 注入
+# （`UITEST_APP_LANGUAGE=en`），`UITests/UITestSupport.swift` 讀到就把
+# `--uitest-language=en` 併進 launch arguments。
+#
+# ⚠️ 不能用 `xcodebuild test TEST_RUNNER_UITEST_APP_LANGUAGE=en`：帶了 `-testPlan` 之後
+# 命令列的 TEST_RUNNER_* 會被**靜默忽略**，測試照樣跑但語言沒切——實測踩過，
+# 而且因為期望值也是從同一個變數算出來的，守衛不會紅。
 test-uitest-en: generate
-	@$(MAKE) --no-print-directory uitest-run LANG_TAG=$(LANGUAGE)-app-en APP_LANGUAGE=en
+	@$(MAKE) --no-print-directory uitest-run LANG_TAG=$(LANGUAGE)-app-en CONFIGURATION=en-app
 
-# 兩個 target 共用的執行本體。APP_LANGUAGE 空＝app 走預設語言（繁中）。
+# 兩個 target 共用的執行本體。CONFIGURATION 決定跑 test plan 的哪一組
+# （zh-Hant＝app 走預設語言；en-app＝同一組裝置語系、app 切英文）。
 uitest-run:
 	@if [ "$(HEADLESS)" = "false" ]; then \
 		echo "==> headless=false：開 Simulator.app"; open -a Simulator; \
@@ -102,10 +109,9 @@ uitest-run:
 		-scheme $(SCHEME) \
 		-testPlan UITests \
 		-destination '$(DESTINATION)' \
-		-only-test-configuration $(LANGUAGE) \
+		-only-test-configuration $(CONFIGURATION) \
 		$(UITEST_ONLY_FLAGS) \
-		$(UITEST_REPORT_FLAGS) \
-		$(if $(APP_LANGUAGE),TEST_RUNNER_UITEST_APP_LANGUAGE=$(APP_LANGUAGE),)
+		$(UITEST_REPORT_FLAGS)
 ifeq ($(REPORT),true)
 	@$(MAKE) --no-print-directory report KIND=ui LANG_TAG=$(LANG_TAG)
 endif

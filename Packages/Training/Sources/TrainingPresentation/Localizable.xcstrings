@@ -185,7 +185,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Finish Workout →"
+            "value": "Finish →"
           }
         },
         "zh-Hant": {
@@ -249,7 +249,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Add a Set"
+            "value": "Add Set"
           }
         },
         "zh-Hant": {
@@ -265,13 +265,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "%1$lld exercises · %2$lld sets · %3$@ kg. Add extra work if you want, or go see the summary."
+            "value": "%1$lld exercises · %2$lld sets · %3$@ kg. Add more if you want, or wrap up this session."
           }
         },
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "%1$lld 個動作 · %2$lld 組 · %3$@ kg。還想加練就加，不然去看這場的摘要。"
+            "value": "%1$lld 個動作 · %2$lld 組 · %3$@ kg。還想練就加，不然結束這場。"
           }
         }
       }

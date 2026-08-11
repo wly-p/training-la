@@ -59,10 +59,14 @@ public final class ActiveWorkoutViewModel {
     /// 背景到點時系統通知已經提醒過一次，回前景就不該再彈一次彈窗（見 `enterForeground`）。
     private var didEnterBackgroundDuringRest = false
 
-    /// 剛做滿某動作的課表組數 → View 顯示完成卡片。
+    /// 剛做滿某動作的課表組數 → View 顯示完成區。
     public private(set) var showExerciseComplete = false
-    /// 每個動作只跳一次完成卡片（選「再做一組」後不再重複跳）。
-    private var completionShownFor: Set<UUID> = []
+    /// 每個動作「上次是在第幾組顯示完成區」。
+    ///
+    /// 記組數而不是記「顯示過沒有」：按了「加一組」之後每多做一組都要再問一次要不要往下走，
+    /// 用布林旗標的話第一次顯示完就永久擋掉，使用者會一路接著做到第 7、8 組都沒人問
+    /// （bug：加一組後不再回到完成區）。
+    private var completionShownAtSetCount: [UUID: Int] = [:]
 
     /// 剛記錄（完成/跳過）的那一組 id，供「復原上一組」撤銷用。
     /// 切換動作即清空 → 單層 undo，只撤銷「當下這格剛按的」那組。
@@ -341,6 +345,9 @@ public final class ActiveWorkoutViewModel {
 
     public func select(exerciseId: UUID) async {
         lastRecordedSetId = nil // 換動作 → 先前那組不再可撤銷
+        // 換動作代表完成區過期了。清除放在這裡而不是各個呼叫端：漏掉任何一條路徑，
+        // 完成區就會蓋在新動作上面，看起來像「選了沒反應」（bug：加練選完動作沒切過去）。
+        showExerciseComplete = false
         currentExerciseId = exerciseId
         if lastPerformances[exerciseId] == nil {
             let sets = (try? await lastPerformance(exerciseId: exerciseId, excludingWorkout: workout.id)) ?? []
@@ -451,7 +458,8 @@ public final class ActiveWorkoutViewModel {
         dismissRest()
         showExerciseComplete = false
         if let exerciseId = currentExerciseId {
-            completionShownFor.remove(exerciseId)
+            // 清掉「上次在第幾組顯示過」，撤銷後重做同一組才會再問一次。
+            completionShownAtSetCount[exerciseId] = nil
         }
         workout.removeSet(id: id)
         lastRecordedSetId = nil
@@ -495,15 +503,18 @@ public final class ActiveWorkoutViewModel {
         showExerciseComplete = false
     }
 
-    /// append 後檢查：剛好做滿課表組數 → 觸發完成卡片（每動作一次）。
+    /// append 後檢查：做滿（或超過）課表組數 → 觸發完成區。
+    ///
+    /// 條件是 `>=` 而不是 `==`：加一組之後組數會超過目標，用「剛好等於」就再也不會命中。
+    /// 同一個組數只觸發一次，所以撤銷再重做不會連跳兩次。
     private func maybeTriggerExerciseComplete() {
         guard let id = currentExerciseId else { return }
         let planned = effectivePlannedSetCount(id)
-        guard planned > 0, !completionShownFor.contains(id) else { return }
-        if currentBlockSets.count == planned {
-            completionShownFor.insert(id)
-            showExerciseComplete = true
-        }
+        guard planned > 0 else { return }
+        let count = currentBlockSets.count
+        guard count >= planned, completionShownAtSetCount[id] != count else { return }
+        completionShownAtSetCount[id] = count
+        showExerciseComplete = true
     }
 
     // MARK: - 休息倒數
