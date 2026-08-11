@@ -47,14 +47,14 @@ final class UndoSetUITests: XCTestCase {
         complete.tap()
         app.waitForCurrentSet(3)
         complete.tap()
-        XCTAssertTrue(app.buttons["activeWorkout.completeBandPrimary"].waitForExistence(timeout: 5))
+        XCTAssertTrue(app.buttons["activeWorkout.completeBand.primary"].waitForExistence(timeout: 5))
 
         // 完成區不蓋住組表，所以復原就用組表上原本那顆 ↩（不再另外開一顆卡片專用的）。
         let undo = app.buttons["activeWorkout.undoSet"]
         XCTAssertTrue(undo.waitForExistence(timeout: 5))
         undo.tap()
         XCTAssertFalse(
-            app.buttons["activeWorkout.completeBandPrimary"].waitForExistence(timeout: 2),
+            app.buttons["activeWorkout.completeBand.primary"].waitForExistence(timeout: 2),
             "復原後完成區應收掉、換回輸入色帶"
         )
         app.waitForCurrentSet(3)

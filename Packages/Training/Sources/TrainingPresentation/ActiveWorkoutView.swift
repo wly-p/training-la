@@ -199,49 +199,64 @@ public struct ActiveWorkoutView: View {
         )
     }
 
-    /// 副按鈕 hug 寬度、主按鈕吃滿剩下的寬度（設計稿的比例就是這樣來的，不寫死 flex）。
+    /// 按鈕列（v13 C1）：副按鈕各固定 80pt、主按鈕吃滿剩餘，gap 6。
+    ///
+    /// 16b 是「加一組 ｜ 下一個」兩顆，16e 中間多插一顆「加練」。固定欄寬的用意是讓
+    /// **「加一組」在兩張卡的位置與尺寸完全相同** —— 最後一個動作同時是「再一組」與
+    /// 「加練」的最後機會，兩個層級都要在（v13 明列的決定）。
     private var completeBandActions: some View {
-        HStack(spacing: TLSpace.gapS) {
-            Button {
-                if viewModel.isPlanFullyDone {
-                    showsExercisePicker = true
-                } else {
-                    viewModel.continueSameExercise()
-                }
-            } label: {
-                Label {
-                    viewModel.isPlanFullyDone
-                        ? localText("training.done.addExtra")
-                        : localText("training.done.oneMoreSet")
-                } icon: {
-                    Image(systemName: "plus")
-                }
-                .font(TLFont.zh(TLFont.rowTitle, .semibold))
-                .foregroundStyle(TLColor.sage900)
-                .padding(.horizontal, 18)
-                .padding(.vertical, 12)
-                .overlay(Capsule().strokeBorder(TLColor.sage400, lineWidth: 1.5))
-                .contentShape(Capsule())
+        HStack(spacing: 6) {
+            // 動作層級：同一個動作再來一組。兩張卡都有。
+            outlineBandButton(localText("training.done.oneMoreSet"), id: "addSet") {
+                viewModel.continueSameExercise()
             }
-            .buttonStyle(.plain)
-            .fixedSize(horizontal: true, vertical: false)
-            .accessibilityIdentifier("activeWorkout.completeBandSecondary")
-
+            // 訓練層級：開選擇器加一個新動作。只有課表做完（16e）才需要。
+            if viewModel.isPlanFullyDone {
+                outlineBandButton(localText("training.done.addExtra"), id: "addExtra") {
+                    showsExercisePicker = true
+                }
+            }
             Button {
                 if viewModel.isPlanFullyDone {
                     viewModel.dismissExerciseComplete()
                     showsFinishSheet = true
                 } else {
-                    viewModel.dismissExerciseComplete()
                     Task { await viewModel.advanceToNextPlanned() }
                 }
             } label: {
                 Text(verbatim: completePrimaryTitle)
+                    .lineLimit(1)
+                    // 16e 三顆並排時主按鈕只剩約 135pt，英文比中文長，留一點縮放空間當保險。
+                    .minimumScaleFactor(0.75)
                     .frame(maxWidth: .infinity)
             }
             .buttonStyle(.tlPrimary)
-            .accessibilityIdentifier("activeWorkout.completeBandPrimary")
+            .accessibilityIdentifier("activeWorkout.completeBand.primary")
         }
+    }
+
+    /// 完成區的 outline 副按鈕。
+    ///
+    /// 寬度是 **`minWidth: 80` 而不是固定 80**：設計稿的 80pt 是照中文字寬訂的，中文兩顆都會
+    /// 剛好落在 80（padding 之後仍不足 80，由 minWidth 撐開），所以「加一組在 16b 與 16e
+    /// 位置尺寸相同」這條規格照樣成立；英文字長很多，固定寬會直接被截成 `Add…`（實測過），
+    /// 所以讓它只往外長。主按鈕吃剩餘寬度，三顆並排仍放得下。
+    private func outlineBandButton(_ title: Text, id: String, action: @escaping () -> Void) -> some View {
+        Button(action: action) {
+            Label { title } icon: { Image(systemName: "plus") }
+                .font(TLFont.zh(TLFont.rowTitle, .semibold))
+                .foregroundStyle(TLColor.sage900)
+                .lineLimit(1)
+                .padding(.vertical, 12)
+                // 左右內距不能省：中文在 80pt 裡若不留白，字會頂到膠囊框線上。
+                .padding(.horizontal, 6)
+                .frame(minWidth: 80)
+                .overlay(Capsule().strokeBorder(TLColor.sage400, lineWidth: 1.5))
+                .contentShape(Capsule())
+        }
+        .buttonStyle(.plain)
+        .fixedSize(horizontal: true, vertical: false)
+        .accessibilityIdentifier("activeWorkout.completeBand.\(id)")
     }
 
     /// 「下一個 · 臥推 →」／「結束訓練 →」。動作名是 DB 資料，套進本地化模板。

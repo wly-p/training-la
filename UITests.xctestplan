@@ -7,6 +7,20 @@
         "language": "zh-Hant",
         "region": "TW"
       }
+    },
+    {
+      "id": "7C1D9F42-58A0-4E3B-9D6A-0B2F4E8A1C37",
+      "name": "en-app",
+      "options": {
+        "language": "zh-Hant",
+        "region": "TW",
+        "environmentVariableEntries": [
+          {
+            "key": "UITEST_APP_LANGUAGE",
+            "value": "en"
+          }
+        ]
+      }
     }
   ],
   "defaultOptions": {

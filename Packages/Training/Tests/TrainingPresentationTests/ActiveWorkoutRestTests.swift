@@ -247,17 +247,66 @@ struct ActiveWorkoutCompletionTests {
         #expect(vm.nextPlannedName == "深蹲")
     }
 
-    @Test func continueSameExerciseDoesNotRetrigger() async {
+    /// 加一組之後**每多做一組都要再問一次**。
+    ///
+    /// 這條原本的斷言是相反的（「每個動作只跳一次」），那是刻意的設計；實機用下來發現不對：
+    /// 按過一次「加一組」之後就再也沒人問要不要往下一個動作走，使用者會一路接著做到
+    /// 第 7、8 組。決定改成每加一組都回到完成區。
+    @Test func showsAgainForEveryExtraSetAfterAddingOne() async {
         let vm = makeViewModel(benchSets: 3, squatSets: 3)
         await vm.onAppear()
         await complete(vm, times: 3)
         #expect(vm.showExerciseComplete == true)
 
-        vm.continueSameExercise()       // 選「再做一組」
+        vm.continueSameExercise()       // 選「加一組」
         #expect(vm.showExerciseComplete == false)
 
-        await complete(vm, times: 1)    // 加練第 4 組
-        #expect(vm.showExerciseComplete == false) // 不再重複跳
+        await complete(vm, times: 1)    // 第 4 組
+        #expect(vm.showExerciseComplete == true)
+
+        vm.continueSameExercise()
+        await complete(vm, times: 1)    // 第 5 組
+        #expect(vm.showExerciseComplete == true)
+    }
+
+    /// 關掉之後不會自己又跳回來——沒有新的一組被記錄，狀態就不該變。
+    @Test func staysClosedUntilAnotherSetIsRecorded() async {
+        let vm = makeViewModel(benchSets: 2, squatSets: 2)
+        await vm.onAppear()
+        await complete(vm, times: 2)
+        #expect(vm.showExerciseComplete == true)
+
+        vm.dismissExerciseComplete()
+        #expect(vm.showExerciseComplete == false)
+        vm.bumpWeight(1)                       // 動了草稿但沒記錄新的一組
+        #expect(vm.showExerciseComplete == false)
+    }
+
+    /// 撤銷後重做同一組，仍然要問。
+    @Test func showsAgainAfterUndoingAndRedoingTheSameSet() async {
+        let vm = makeViewModel(benchSets: 2, squatSets: 2)
+        await vm.onAppear()
+        await complete(vm, times: 2)
+        #expect(vm.showExerciseComplete == true)
+
+        await vm.undoLastSet()
+        #expect(vm.showExerciseComplete == false)
+
+        await complete(vm, times: 1)
+        #expect(vm.showExerciseComplete == true)
+    }
+
+    /// 換動作一定要把完成區收掉，否則它會蓋在新動作上面——這就是「加練選完動作沒反應」的樣子。
+    @Test func selectingAnotherExerciseClosesTheBand() async {
+        let vm = makeViewModel(benchSets: 1, squatSets: 1)
+        await vm.onAppear()
+        await complete(vm, times: 1)
+        #expect(vm.showExerciseComplete == true)
+
+        await vm.select(exerciseId: squatId)
+
+        #expect(vm.showExerciseComplete == false)
+        #expect(vm.currentExerciseId == squatId)
     }
 
     @Test func lastExerciseMarksPlanFullyDone() async {
