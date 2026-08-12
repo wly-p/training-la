@@ -34,7 +34,7 @@ public struct ExerciseListView: View {
                 .init(.equipment, localText("spec.equipment")),
                 .init(.frequent, localText("spec.group.frequent")),
                 .init(.all, localText("spec.all")),
-            ])
+            ], identifierPrefix: "exerciseList.group")
             .padding(.horizontal, TLSpace.page)
             .padding(.bottom, TLSpace.gapM)
 
@@ -103,21 +103,34 @@ public struct ExerciseListView: View {
 
     // MARK: - 列
 
+    /// 尾欄標籤：**分組依據不在列上重複**（18b）。
+    /// 按器材分組時群組標題已經寫了「槓鈴 · 8」，列上再印一次是零資訊——改標肌群，
+    /// 位置與 pill 形狀不變。肌群用全名而不是圓章那個兩字縮寫，尾欄放得下。
+    private func tailTag(for exercise: Exercise) -> (label: String, identifier: String) {
+        switch grouping {
+        case .equipment:
+            (exercise.muscleGroup.displayName(locale), "muscleTag")
+        case .muscle, .frequent, .all:
+            (exercise.equipment.displayName(locale), "equipmentTag")
+        }
+    }
+
     @ViewBuilder
     private func row(for exercise: Exercise) -> some View {
         // 內建動作（OfficialExerciseCatalog）唯讀：不進編輯表單、沒有刪除選單，
         // 也不顯示 chevron——留著箭頭卻點不動比沒有箭頭更難懂。
         let isOfficial = exercise.source == .official
         ListRow(
-            // 器材從右欄灰字移到名稱右側的 pill（handoff-15 15c）——右欄那個位置離名稱太遠，
-            // 同名動作要左右來回對才看得出差別。
             title: Text(verbatim: exercise.name),
-            equipment: exercise.equipment.displayName(locale),
             showChevron: !isOfficial,
             onTap: isOfficial ? nil : { editingTarget = .edit(exercise) },
-            leading: {
-                // 肌群縮寫圓章（sage）。displayName 可能多字（功能性訓練／核心），圓章取前二字。
-                CircleBadge(muscle: exercise.muscleGroup.badgeText(locale))
+            trailing: {
+                // 18b：唯一的彩色元素，固定尾欄靠右。
+                // 80pt 是「槓鈴」「機械」那些兩字標籤的欄寬，但「自體重量」比它寬——用 minWidth
+                // 讓長標往左長、右緣仍然對齊；寫死 width 會把長標壓成兩行。
+                let tail = tailTag(for: exercise)
+                EquipmentTag(tail.label, identifier: tail.identifier)
+                    .frame(minWidth: 80, alignment: .trailing)
             }
         )
         // 內建動作的名稱會跟著 app 語言換，測試沒辦法用名字找到它——改認這個 id。

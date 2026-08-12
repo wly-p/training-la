@@ -93,6 +93,7 @@ public enum TLRadius {
 public enum TLSize {
     public static let row: CGFloat        = 56  // 標準列高（設定列）
     public static let rowWithSub: CGFloat = 62  // 有副標的列
+    public static let rowWithDetail: CGFloat = 68  // 有細節行的列（器材 pill ＋ 重量，見 19a）
     public static let rowHistory: CGFloat = 66  // 歷史列
     public static let badge: CGFloat      = 36  // 列左側圓章
     public static let iconButton: CGFloat = 44  // 標題右側圓鈕（＝最小觸控）
