@@ -57,6 +57,14 @@ enum PlanFormatting {
         return String(format: format, program.days.count, program.cycleLength)
     }
 
+    // MARK: - 動作列的規格（19a）
+
+    /// 「組數 × 次數」。排課草稿（每組相同）與範本的各組相同分支共用同一個寫法，
+    /// 兩個畫面的同一種列不該長得不一樣。
+    static func spec(setCount: Int, reps: Int) -> String {
+        "\(setCount) × \(reps)"
+    }
+
     // MARK: - 範本摺疊列（19a）
 
     /// 主行右側的規格。**講的是次數**，不是重量——重量在細節行（見 ``blockWeight(sets:language:)``）。
@@ -73,7 +81,7 @@ enum PlanFormatting {
         let reps = sets.map { $0.targetReps ?? 0 }
         guard let first = reps.first else { return "" }
         if reps.allSatisfy({ $0 == first }) {
-            return "\(sets.count) × \(first)"
+            return spec(setCount: sets.count, reps: first)
         }
         if sets.count <= 4 {
             return reps.map(String.init).joined(separator: " · ")
