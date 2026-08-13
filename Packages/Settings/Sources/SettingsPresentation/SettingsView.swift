@@ -8,8 +8,12 @@ public struct SettingsView: View {
     @Bindable private var viewModel: SettingsViewModel
     /// App 版號顯示字串（例："1.0.0 (1)"）；nil＝不顯示。
     private let appVersion: String?
+    /// 隱私政策頁網址（不含語言 fragment，由 App 層從 Info.plist 讀進來）；
+    /// nil＝不顯示那一列，寧可沒有入口也不要給一個點了沒反應的列。
+    private let privacyPolicyBaseURL: URL?
 
     @State private var showEraseConfirm = false
+    @State private var showPrivacyPolicy = false
     @State private var route: SettingsRoute?
     /// 「我的能力值」畫面住在 Ability package（Presentation-to-Presentation 不互相 import，
     /// 靠 App 層組裝時注入這個 view builder，型別抹成 AnyView）。nil＝不顯示這一列
@@ -21,10 +25,12 @@ public struct SettingsView: View {
     public init(
         viewModel: SettingsViewModel,
         appVersion: String? = nil,
+        privacyPolicyBaseURL: URL? = nil,
         abilityDestination: (() -> AnyView)? = nil
     ) {
         self.viewModel = viewModel
         self.appVersion = appVersion
+        self.privacyPolicyBaseURL = privacyPolicyBaseURL
         self.abilityDestination = abilityDestination
     }
 
@@ -72,6 +78,14 @@ public struct SettingsView: View {
             } message: {
                 localText("settings.eraseFailed.message")
             }
+            #if os(iOS)
+            .sheet(isPresented: $showPrivacyPolicy) {
+                if let privacyPolicyURL {
+                    SafariView(url: privacyPolicyURL)
+                        .ignoresSafeArea()
+                }
+            }
+            #endif
         }
     }
 
@@ -220,8 +234,26 @@ public struct SettingsView: View {
                     if viewModel.isErasing { ProgressView() }
                 }
                 .accessibilityIdentifier("settings.row.eraseAll")
+
+                // 隱私政策沒有自己的設計稿；併進「資料」區而不是另開一個只有一列的「關於」群組。
+                if privacyPolicyBaseURL != nil {
+                    SettingsRow(
+                        localText("settings.privacy.title"),
+                        showChevron: true,
+                        onTap: { showPrivacyPolicy = true }
+                    ) {
+                        EmptyView()
+                    }
+                    .accessibilityIdentifier("settings.row.privacy")
+                }
             }
         }
+    }
+
+    /// 政策頁是線上的單一來源，App 不打包副本——所以開的是網址，離線就是 Safari 的錯誤頁。
+    /// 語言 fragment **在開啟當下才算**：使用者可能上一秒才在這一頁把語言改掉。
+    private var privacyPolicyURL: URL? {
+        privacyPolicyBaseURL.map { PrivacyPolicy.localizedURL(base: $0, language: viewModel.language) }
     }
 
     // MARK: - 版號（設計稿未含；保留以免回退已上線功能與 UITest）

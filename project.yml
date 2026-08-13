@@ -52,6 +52,8 @@ targets:
       properties:
         # 由 per-config 的 build settings 注入、build 時展開；App 啟動讀成 AppEnvironment
         AppEnv: $(APP_ENV)
+        # 隱私政策頁網址；值在 Config.xcconfig，App 讀成 PrivacyPolicy.baseURL
+        PrivacyPolicyURL: $(PRIVACY_POLICY_URL)
         CFBundleDisplayName: $(APP_DISPLAY_NAME)
         CFBundleShortVersionString: $(MARKETING_VERSION)
         CFBundleVersion: $(CURRENT_PROJECT_VERSION)
