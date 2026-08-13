@@ -34,6 +34,31 @@ final class ExerciseListUITests: XCTestCase {
         XCTAssertTrue(app.staticTexts["exerciseList.empty"].waitForExistence(timeout: 5))
     }
 
+    /// 18b：分組依據不在列上重複。按肌群分組時尾欄標器材，切到按器材分組就換成肌群
+    /// ——群組標題已經寫了「槓鈴 · 8」，列上再印一次器材是零資訊。
+    @MainActor
+    func testTailTagFollowsGrouping() throws {
+        let app = XCUIApplication()
+        launchForUITest(app)
+
+        app.buttons["tabBar.item.exercises"].tap()
+        // 內建動作是唯讀列（沒有 onTap 就不是 Button），列內元素不會被曝進 accessibility tree，
+        // 標本身找不到。所以這裡自建一筆可點的動作，並搜尋縮到只剩它——不然「還有沒有器材標」
+        // 這種整批斷言會被其他列干擾。
+        app.addExercise(named: "測試臥推")
+        app.searchExerciseList("測試臥推")
+
+        // 預設按肌群分組 → 尾欄是器材
+        XCTAssertTrue(app.staticTexts["equipmentTag"].firstMatch.waitForExistence(timeout: 5))
+        XCTAssertFalse(app.staticTexts["muscleTag"].firstMatch.exists)
+
+        app.buttons["exerciseList.group.equipment"].tap()
+
+        // 切成按器材分組 → 尾欄換成肌群，器材標消失
+        XCTAssertTrue(app.staticTexts["muscleTag"].firstMatch.waitForExistence(timeout: 5))
+        XCTAssertFalse(app.staticTexts["equipmentTag"].firstMatch.exists)
+    }
+
     /// 內建動作是唯讀的：長按不給刪除選單。
     @MainActor
     func testBuiltInExerciseIsReadOnly() throws {

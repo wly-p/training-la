@@ -8,11 +8,20 @@ import SwiftUI
 ///
 /// 存在的理由是動作名允許重複（肩推有槓鈴／啞鈴／機械三筆），
 /// 名稱不塞器材前綴，改用這個標來分辨（見 `docs/exercise-glossary.md`）。
+///
+/// 擺放位置有兩種，依畫面而定：
+///   - **尾欄**（動作庫 `18b`）：列的右緣、靠右對齊。分組依據不在列上重複，所以按器材分組時
+///     這個位置改放**肌群**——同一個尾欄、同一個 pill 形狀，只是內容換掉，故 `identifier` 可換。
+///   - **細節行**（範本 `19a`）：退到第二行、與名稱共用左緣。
+///   - 名稱右側（訓練中、預覽 sheet、歷史詳情、能力值）：見 ``ExerciseNameWithEquipment``。
 public struct EquipmentTag: View {
     private let label: String
+    private let identifier: String
 
-    public init(_ label: String) {
+    /// - Parameter identifier: 尾欄放肌群時傳 `"muscleTag"`，UITest 才分得出這一列現在標的是什麼。
+    public init(_ label: String, identifier: String = "equipmentTag") {
         self.label = label
+        self.identifier = identifier
     }
 
     public var body: some View {
@@ -24,12 +33,16 @@ public struct EquipmentTag: View {
             .padding(.vertical, 5)
             .padding(.horizontal, 9)
             .background(Capsule().fill(TLColor.sage200))
-            // 器材名會跟著 app 語言換，測試只驗「這一列有掛器材標」，內容正確性歸 unit test。
-            .accessibilityIdentifier("equipmentTag")
+            // 標籤文字會跟著 app 語言換，測試只驗「這一列掛的是哪一種標」，內容正確性歸 unit test。
+            .accessibilityIdentifier(identifier)
     }
 }
 
-/// 動作名 ＋ 器材小標的標準組合（handoff-15 B 節的擺放規則）。
+/// 動作名 ＋ 緊跟在後的器材小標。
+///
+/// ⚠️ 這是**單一動作**的標頭排法（訓練中、預覽 sheet、歷史詳情、能力值四處）。
+/// **清單列不要用它**：動作庫的器材在尾欄（`18b`）、範本的在細節行（`19a`），
+/// 因為 pill 跟著名稱浮動時左緣每列不同，整份清單會出現鋸齒。
 ///
 /// 規則寫成元件而不是散在各畫面，是因為它有兩個容易做錯的細節：
 /// 名稱要 `lineLimit(1)` + tail truncate、而 pill 要靠 `layoutPriority` 保住不被壓縮。

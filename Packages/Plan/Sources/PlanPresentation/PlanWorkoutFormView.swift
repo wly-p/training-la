@@ -151,19 +151,18 @@ struct PlanWorkoutFormView: View {
         }
     }
 
+    /// 跟範本編輯（19a）同一個列型：主行「名稱 ＋ 組數 × 次數」，器材與技術欄位退到細節行。
+    /// 同一種列在兩個畫面不該長得不一樣。
     private func draftRow(_ draft: ExerciseTargetDraft) -> some View {
         ListRow(
             title: Text(verbatim: name(for: draft.exerciseId)),
-            subtitle: Text(verbatim: summary(for: draft)),
-            equipment: equipmentName(for: draft.exerciseId),
             onTap: { editingDraftId = draft.id },
+            detail: { detailLine(for: draft) },
             trailing: {
-                Text(verbatim: capsuleText(for: draft))
+                Text(verbatim: PlanFormatting.spec(setCount: draft.setCount, reps: draft.targetReps ?? 0))
                     .font(TLFont.display(15))
                     .foregroundStyle(TLColor.text)
-                    .padding(.horizontal, 12)
-                    .padding(.vertical, 6)
-                    .background(Capsule().fill(TLColor.neutral200))
+                    .lineLimit(1)
             }
         )
         .contextMenu {
@@ -217,16 +216,17 @@ struct PlanWorkoutFormView: View {
                     EditSection(localText("plan.exercises")) {
                         TLGroup {
                             ForEach(drafts) { draft in
+                                // 唯讀版跟可編輯版同一個列型，只是不能點。
                                 ListRow(
                                     title: Text(verbatim: name(for: draft.exerciseId)),
-                                    subtitle: Text(verbatim: summary(for: draft)),
+                                    detail: { detailLine(for: draft) },
                                     trailing: {
-                                        Text(verbatim: capsuleText(for: draft))
-                                            .font(TLFont.display(15))
-                                            .foregroundStyle(TLColor.text)
-                                            .padding(.horizontal, 12)
-                                            .padding(.vertical, 6)
-                                            .background(Capsule().fill(TLColor.neutral200))
+                                        Text(verbatim: PlanFormatting.spec(
+                                            setCount: draft.setCount, reps: draft.targetReps ?? 0
+                                        ))
+                                        .font(TLFont.display(15))
+                                        .foregroundStyle(TLColor.text)
+                                        .lineLimit(1)
                                     }
                                 )
                             }
@@ -283,22 +283,26 @@ struct PlanWorkoutFormView: View {
         (catalog.first { $0.id == id }?.equipment ?? .other).displayName(locale)
     }
 
-    private func summary(for draft: ExerciseTargetDraft) -> String {
-        var text = String(format: localString("template.stats.sets %lld", locale), draft.setCount)
-        if let rest = draft.restSec, rest > 0 {
-            text += " · " + String(format: localString("plan.restSeconds %lld", locale), rest)
+    /// 細節行：器材 pill ＋ 重量 ＋ 休息。組數已經在主行，這裡不重複。
+    /// 重量走 `Weight.displayString` 而不是自己拼——那份格式化會把浮點雜訊去掉。
+    @ViewBuilder
+    private func detailLine(for draft: ExerciseTargetDraft) -> some View {
+        HStack(spacing: 6) {
+            EquipmentTag(equipmentName(for: draft.exerciseId))
+            let parts = [
+                draft.targetWeight?.displayString,
+                (draft.restSec ?? 0) > 0
+                    ? String(format: localString("plan.restSeconds %lld", locale), draft.restSec ?? 0)
+                    : nil,
+            ].compactMap { $0 }
+            if !parts.isEmpty {
+                Text(verbatim: "· " + parts.joined(separator: " · "))
+                    .font(TLFont.zh(TLFont.rowSub, .regular))
+                    .foregroundStyle(TLColor.neutral600)
+                    .lineLimit(1)
+                    .truncationMode(.tail)
+            }
         }
-        return text
-    }
-
-    /// 右側膠囊統一成「重量單位 × 次數」（例「20kg × 8」），跟範本編輯同一個格式。
-    /// 走 `Weight.displayString` 而不是自己拼——那份格式化會把浮點雜訊去掉。
-    private func capsuleText(for draft: ExerciseTargetDraft) -> String {
-        let reps = draft.targetReps ?? 0
-        if let weight = draft.targetWeight {
-            return "\(weight.displayString) × \(reps)"
-        }
-        return "× \(reps)"
     }
 }
 
