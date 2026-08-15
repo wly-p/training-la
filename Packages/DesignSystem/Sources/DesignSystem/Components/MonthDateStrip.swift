@@ -73,7 +73,6 @@ public struct MonthDateStrip: View {
         static let barWidth: CGFloat = 22
         static let barHeight: CGFloat = 4
         static let rowGap: CGFloat = 8
-        static let rows = 6                   // 固定 6 列，切月時高度不跳
         /// 一格的高度＝圓 ＋ 間距 ＋ 短槓。短槓空間**恆常保留**，不論那天是不是今天。
         static var cellHeight: CGFloat { circle + circleToBar + barHeight }
     }
