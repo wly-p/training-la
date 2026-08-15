@@ -3,6 +3,14 @@ import Observation
 import PlanDomain
 import SharedKernel
 
+/// 某天的排課狀態（給月曆的格子）。原本住在 `MonthCalendarView`（原生 `UICalendarView`
+/// 的包裝，已隨月檢視 sheet 一起刪掉），它其實是 view model 的輸出，搬回這裡。
+public enum DayMark: Equatable, Sendable {
+    case scheduled   // 有未完成排課（真實紀錄）
+    case done        // 當天排課都已完成
+    case projected   // 長期課表投影，尚未按「加入這天」落地
+}
+
 @MainActor
 @Observable
 public final class PlanScheduleViewModel {
@@ -38,7 +46,9 @@ public final class PlanScheduleViewModel {
     private let projectSchedule: ProjectSchedule
     private let materializeProjection: MaterializeProjectedWorkout
     private let exerciseCatalog: any PlanExerciseCatalog
-    private let today: DayDate
+    /// 由外部注入（UI test 用 `--uitest-today` 釘死），月曆的「今天」短槓也吃這一個，
+    /// 不讀時鐘 —— 否則跨午夜或測試注入日期時會跟 app 其他地方對不上。
+    let today: DayDate
 
     public init(
         listPlanWorkouts: ListPlanWorkouts,
