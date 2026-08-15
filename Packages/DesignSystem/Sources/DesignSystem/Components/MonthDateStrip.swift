@@ -403,11 +403,19 @@ public struct MonthDateStrip: View {
 
     // MARK: - 系統符號
 
+    /// 星期標頭：中文要一個字（`日 一 二 …`，設計稿 `22h`），英文要三個字母（`SUN`）。
+    ///
+    /// 判斷方式不是「是不是中文」，而是**七格分不分得出來**：`veryShort` 在中文是
+    /// 日一二三四五六（七個都不同，可用），在英文是 S M T W T F S（週日與週六、週二與
+    /// 週四撞在一起，不可用），這時退回 `short` 的 Sun／Mon。標頭的職責就是可分辨，
+    /// 拿這個當條件比拿語系當條件準確。
     private var weekdaySymbols: [String] {
         let formatter = DateFormatter()
         formatter.calendar = calendar
         formatter.locale = locale
-        let symbols = formatter.shortWeekdaySymbols ?? []
+        let short = formatter.shortWeekdaySymbols ?? []
+        let veryShort = formatter.veryShortWeekdaySymbols ?? []
+        let symbols = (veryShort.count == 7 && Set(veryShort).count == 7) ? veryShort : short
         guard symbols.count == 7 else { return symbols }
         let first = calendar.firstWeekday - 1
         return (0..<7).map { symbols[($0 + first) % 7] }
