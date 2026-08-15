@@ -41,6 +41,26 @@ public struct TLSecondaryButtonStyle: ButtonStyle {
     }
 }
 
+/// 次要（列內小尺寸）：同樣的線框膠囊，但縮到「一列的動作」該有的份量。
+/// 13pt weight 600、padding 14/5.5，整顆約 26pt 高——放進 56pt 的列裡還留得下空白。
+///
+/// ⚠️ 不要拿 `tlSecondary` 塞進列裡：那是頁面級 CTA 的尺寸（上下 padding 17.5），
+/// 高度會逼近列高，一個「順便可以做的事」看起來就跟卡片上的主要動作一樣重。
+public struct TLSecondarySmallButtonStyle: ButtonStyle {
+    public init() {}
+    public func makeBody(configuration: Configuration) -> some View {
+        configuration.label
+            .font(TLFont.zh(13, .semibold))
+            .foregroundStyle(TLColor.text)
+            .padding(.horizontal, 14)
+            .padding(.vertical, 5.5)
+            .background(configuration.isPressed ? TLColor.text.opacity(0.06) : Color.clear)
+            .overlay(Capsule().strokeBorder(TLColor.text.opacity(0.18), lineWidth: 1))
+            .clipShape(Capsule())
+            .contentShape(Capsule())
+    }
+}
+
 /// 文字動作：accent-700、14pt weight 600。
 public struct TLTextButtonStyle: ButtonStyle {
     public init() {}
@@ -125,6 +145,9 @@ public extension ButtonStyle where Self == TLPrimaryButtonStyle {
 }
 public extension ButtonStyle where Self == TLSecondaryButtonStyle {
     static var tlSecondary: TLSecondaryButtonStyle { .init() }
+}
+public extension ButtonStyle where Self == TLSecondarySmallButtonStyle {
+    static var tlSecondarySmall: TLSecondarySmallButtonStyle { .init() }
 }
 public extension ButtonStyle where Self == TLTextButtonStyle {
     static var tlText: TLTextButtonStyle { .init() }
