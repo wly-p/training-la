@@ -687,7 +687,8 @@ public struct TrainingHomeView: View {
             } label: {
                 localText("training.home.trainAgain")
             }
-            .buttonStyle(.tlSecondary)
+            // 列內動作的尺寸，不是頁面級 CTA——tlSecondary 的高度會把 56pt 的列撐滿。
+            .buttonStyle(.tlSecondarySmall)
             // 「再練一次」不能被壓成兩行，寬度讓給它、由左邊的名稱先截斷。
             .fixedSize(horizontal: true, vertical: false)
             .accessibilityIdentifier("training.trainAgain")
