@@ -98,11 +98,6 @@ public final class PlanScheduleViewModel {
         projectionsByDate[date] ?? []
     }
 
-    /// 有標記的日子（月曆畫點用）：真實排課 ∪ 投影。
-    public var markedDates: Set<DayDate> {
-        Set(planWorkouts.map(\.date)).union(projectionsByDate.keys)
-    }
-
     /// 某天的月曆標記：真實排課優先（全完成＝done，否則 scheduled）；只有投影＝projected。
     public func mark(on date: DayDate) -> DayMark? {
         let items = planWorkouts.filter { $0.date == date }

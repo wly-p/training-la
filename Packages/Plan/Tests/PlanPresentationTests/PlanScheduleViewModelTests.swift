@@ -142,7 +142,6 @@ struct PlanScheduleViewModelTests {
         await vm.load()
 
         #expect(vm.workouts(on: day1).map(\.name) == ["d1a", "d1b"])
-        #expect(vm.markedDates == [day1, day2])
         #expect(vm.mark(on: day1) == .scheduled)   // 有一個未完成
         #expect(vm.mark(on: day2) == .done)         // 全部完成
         #expect(vm.mark(on: DayDate(year: 2026, month: 7, day: 12)) == nil)
