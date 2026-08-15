@@ -1,7 +1,10 @@
 import SwiftUI
 
-/// 月曆條（handoff-21／22）：**週列與月檢視是同一個元件的兩個高度**，原地展開。
-/// 沒有 sheet、沒有遮罩、沒有「取消」。
+/// 月曆條（handoff-21／22）：固定六列的月檢視，沒有 sheet、沒有遮罩、沒有「取消」。
+///
+/// handoff-21 原本設計成「週列與月檢視是同一個元件的兩個高度」（原地展開），實測後
+/// 決定不做收合 —— 課表頁常態就是整月。連帶作廢的有 grabber、收合態的換週、以及
+/// handoff-22 G 節那條「一週橫跨兩個月時月名算誰的」規則（月視窗沒有這個歧義）。
 ///
 /// 一格要同時表達四件事——是不是今天／有沒有課／做了沒／有沒有被選取。可用的視覺通道
 /// 也剛好四個：填色、外框、圓圈外、圓圈下。填色與外框被課表狀態佔走，所以**今天只能長
@@ -37,8 +40,6 @@ public struct MonthDateStrip: View {
         public let legendSelected: Text
         public let previousMonth: Text
         public let nextMonth: Text
-        public let expand: Text
-        public let collapse: Text
 
         public init(
             today: Text,
@@ -48,9 +49,7 @@ public struct MonthDateStrip: View {
             legendToday: Text,
             legendSelected: Text,
             previousMonth: Text,
-            nextMonth: Text,
-            expand: Text,
-            collapse: Text
+            nextMonth: Text
         ) {
             self.today = today
             self.legendCompleted = legendCompleted
@@ -60,8 +59,6 @@ public struct MonthDateStrip: View {
             self.legendSelected = legendSelected
             self.previousMonth = previousMonth
             self.nextMonth = nextMonth
-            self.expand = expand
-            self.collapse = collapse
         }
     }
 
@@ -78,9 +75,8 @@ public struct MonthDateStrip: View {
     }
 
     @Binding private var selectedDate: Date
-    /// 視窗錨點：目前看的是哪一週／哪一個月。滑動只動它。
+    /// 視窗錨點：目前看的是哪一個月。滑動與 `‹ ›` 只動它。
     @Binding private var anchorDate: Date
-    @Binding private var isExpanded: Bool
 
     private let today: Date
     private let calendar: Calendar
@@ -95,7 +91,6 @@ public struct MonthDateStrip: View {
     public init(
         selectedDate: Binding<Date>,
         anchorDate: Binding<Date>,
-        isExpanded: Binding<Bool>,
         today: Date,
         calendar: Calendar = .current,
         identifierPrefix: String,
@@ -104,7 +99,6 @@ public struct MonthDateStrip: View {
     ) {
         self._selectedDate = selectedDate
         self._anchorDate = anchorDate
-        self._isExpanded = isExpanded
         self.today = today
         self.calendar = calendar
         self.identifierPrefix = identifierPrefix
@@ -114,31 +108,12 @@ public struct MonthDateStrip: View {
 
     private var geometry: CalendarStripGeometry { CalendarStripGeometry(calendar: calendar) }
 
-    /// 標題列顯示哪個月。展開態＝視窗那個月；收合態走 handoff-22 G 的規則。
-    public static func displayedMonth(
-        anchor: Date,
-        selection: Date,
-        isExpanded: Bool,
-        calendar: Calendar
-    ) -> Date {
-        let geometry = CalendarStripGeometry(calendar: calendar)
-        if isExpanded {
-            return geometry.startOfMonth(for: anchor) ?? anchor
-        }
-        return geometry.displayedMonth(window: geometry.week(containing: anchor), selection: selection)
-    }
-
+    /// 視窗就是一整個月，月名沒有歧義。
     private var visibleMonth: Date {
-        Self.displayedMonth(
-            anchor: anchorDate,
-            selection: selectedDate,
-            isExpanded: isExpanded,
-            calendar: calendar
-        )
+        geometry.startOfMonth(for: anchorDate) ?? anchorDate
     }
 
     private var rows: [[Date]] {
-        guard isExpanded else { return [geometry.week(containing: anchorDate)] }
         let grid = geometry.monthGrid(containing: anchorDate)
         return stride(from: 0, to: grid.count, by: 7).map { Array(grid[$0..<min($0 + 7, grid.count)]) }
     }
@@ -150,13 +125,9 @@ public struct MonthDateStrip: View {
             weekdayHeader
                 .padding(.bottom, 10)
             grid
-            if isExpanded {
-                legend.padding(.top, TLSpace.gapL)
-            }
-            grabber.padding(.top, TLSpace.gapM)
+            legend.padding(.top, TLSpace.gapL)
         }
         .padding(.horizontal, TLSpace.gapL)
-        .animation(.easeOut(duration: 0.22), value: isExpanded)
         // 外部（例如頁面自己改選取日）動了選取，視窗要跟過去。
         .onChange(of: selectedDate) { _, new in anchorDate = new }
     }
@@ -255,8 +226,7 @@ public struct MonthDateStrip: View {
     }
 
     private func cell(for day: Date) -> some View {
-        // 溢出日只有展開態才有意義 —— 收合態的一週可能橫跨兩個月，把其中六格灰掉會像壞掉。
-        let isOverflow = isExpanded && geometry.isOverflow(day, in: visibleMonth)
+        let isOverflow = geometry.isOverflow(day, in: visibleMonth)
         let state = isOverflow ? DayMark.none : mark(day)
         let isToday = calendar.isDate(day, inSameDayAs: today)
         let isSelected = calendar.isDate(day, inSameDayAs: selectedDate)
@@ -329,7 +299,8 @@ public struct MonthDateStrip: View {
 
     // MARK: - 圖例與 grabber
 
-    /// 只在展開態顯示 —— 收合態一列七格看得完。英文的長標籤要能換行（handoff-21 F.4）。
+    /// 六種畫法全靠形狀區分，沒有文字的話「實線圓 vs 虛線圓」要自己猜。
+    /// 英文的長標籤要能換行（handoff-21 F.4）。
     private var legend: some View {
         FlowLayout(spacing: 16, lineSpacing: TLSpace.gapS) {
             legendItem(labels.legendCompleted) {
@@ -363,41 +334,11 @@ public struct MonthDateStrip: View {
         .fixedSize()
     }
 
-    /// 收合改成置中的 grabber、不放文字 —— 原本「收合成一週」和圖例擠同一行，
-    /// 英文一定換行（handoff-21 F.3）。
-    private var grabber: some View {
-        Button { toggle() } label: {
-            Image(systemName: isExpanded ? "chevron.up" : "chevron.down")
-                .font(.system(size: 15, weight: .semibold))
-                .foregroundStyle(TLColor.neutral600)
-                .frame(width: 64, height: 26)
-                .background(TLColor.neutral200)
-                .clipShape(RoundedRectangle(cornerRadius: 13, style: .continuous))
-                .frame(minHeight: TLSize.minTap)
-                .contentShape(Rectangle())
-        }
-        .buttonStyle(.plain)
-        .accessibilityLabel(isExpanded ? labels.collapse : labels.expand)
-        .accessibilityIdentifier("\(identifierPrefix).toggle")
-    }
-
     // MARK: - 視窗移動
 
     private func step(_ delta: Int) {
-        let component: Calendar.Component = isExpanded ? .month : .weekOfYear
-        guard let moved = calendar.date(byAdding: component, value: delta, to: anchorDate) else { return }
+        guard let moved = calendar.date(byAdding: .month, value: delta, to: anchorDate) else { return }
         withAnimation(.easeOut(duration: 0.2)) { anchorDate = moved }
-    }
-
-    private func toggle() {
-        if isExpanded {
-            // 收合 → 回到選取日所在的那一週。
-            anchorDate = selectedDate
-        } else {
-            // 展開 → 展開成目前月名顯示的那個月（不是 anchor 那一週所屬的月）。
-            anchorDate = visibleMonth
-        }
-        isExpanded.toggle()
     }
 
     // MARK: - 系統符號

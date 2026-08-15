@@ -10,10 +10,9 @@ public struct PlanScheduleView: View {
     @State private var editing: PlanFormTarget?
     @State private var pickingTemplate = false
     @State private var applyingProgram = false
-    /// 月曆的視窗錨點與展開狀態。錨點放在頁面這一層，是因為大標上方的年份 kicker
-    /// 要跟著月名走（收合滑到 12/27–1/2 時年份也得跳）。
+    /// 月曆的視窗錨點。放在頁面這一層，是因為大標上方的年份 kicker 要跟著月曆走
+    /// （翻到 12 月再往下一個月，年份得跳到隔年）。
     @State private var calendarAnchor: Date?
-    @State private var calendarExpanded = false
     @Environment(\.locale) private var locale
 
     public init(viewModel: PlanScheduleViewModel) {
@@ -58,7 +57,6 @@ public struct PlanScheduleView: View {
                     MonthDateStrip(
                         selectedDate: selectedDateBinding,
                         anchorDate: calendarAnchorBinding,
-                        isExpanded: $calendarExpanded,
                         today: viewModel.today.asDate,
                         calendar: Self.calendar,
                         identifierPrefix: "plan.calendar",
@@ -173,22 +171,14 @@ public struct PlanScheduleView: View {
             legendToday: localText("plan.calendar.legend.today"),
             legendSelected: localText("plan.calendar.legend.selected"),
             previousMonth: localText("plan.calendar.prevMonth"),
-            nextMonth: localText("plan.calendar.nextMonth"),
-            expand: localText("plan.calendar.expand"),
-            collapse: localText("plan.calendar.collapse")
+            nextMonth: localText("plan.calendar.nextMonth")
         )
     }
 
-    /// 大標上方的 kicker 是**年份**（`22h`）；月名移進月曆的標題列。
-    /// 跟著月曆顯示的月走，所以收合滑到跨年的那一週時年份也會跳。
+    /// 大標上方的 kicker 是**年份**（`22h`）；月名在月曆自己的標題列。
+    /// 跟著月曆的視窗走，翻月翻過年就會跳。
     private var monthKicker: Text {
-        let month = MonthDateStrip.displayedMonth(
-            anchor: calendarAnchorBinding.wrappedValue,
-            selection: viewModel.selectedDate.asDate,
-            isExpanded: calendarExpanded,
-            calendar: Self.calendar
-        )
-        return Text(verbatim: "\(Self.calendar.component(.year, from: month))")
+        Text(verbatim: "\(Self.calendar.component(.year, from: calendarAnchorBinding.wrappedValue))")
     }
 
     // MARK: - 當天課表
@@ -197,7 +187,12 @@ public struct PlanScheduleView: View {
         let items = viewModel.workouts(on: viewModel.selectedDate)
         let projected = viewModel.projections(on: viewModel.selectedDate)
         return VStack(alignment: .leading, spacing: 0) {
-            SectionHeader(dayHeader(exerciseCount: items.count + projected.count))
+            SectionHeader(dayHeader(
+                // 一列是一份排課，裡面可能有好幾個動作 —— 標題寫的是「動作」，
+                // 就得數動作（blocks 一塊一個動作），不是數列數。
+                exerciseCount: items.reduce(0) { $0 + $1.blocks.count }
+                    + projected.reduce(0) { $0 + $1.spec.blocks.count }
+            ))
             if items.isEmpty && projected.isEmpty {
                 emptyDay
             } else {

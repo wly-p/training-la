@@ -210,38 +210,6 @@
         }
       }
     },
-    "plan.calendar.collapse" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Show week"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "收合成一週"
-          }
-        }
-      }
-    },
-    "plan.calendar.expand" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Show month"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "展開月檢視"
-          }
-        }
-      }
-    },
     "plan.calendar.legend.completed" : {
       "localizations" : {
         "en" : {
