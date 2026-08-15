@@ -23,6 +23,7 @@ public struct SettingsRow<Trailing: View>: View {
     private let role: Role
     private let showChevron: Bool
     private let accessibilityValue: Text?
+    private let trailingGap: CGFloat
     private let onTap: (() -> Void)?
     private let trailing: Trailing
 
@@ -33,6 +34,7 @@ public struct SettingsRow<Trailing: View>: View {
         role: Role = .normal,
         showChevron: Bool = false,
         accessibilityValue: Text? = nil,
+        trailingGap: CGFloat = TLSpace.gapS,
         onTap: (() -> Void)? = nil,
         @ViewBuilder trailing: () -> Trailing
     ) {
@@ -42,6 +44,7 @@ public struct SettingsRow<Trailing: View>: View {
         self.role = role
         self.showChevron = showChevron
         self.accessibilityValue = accessibilityValue
+        self.trailingGap = trailingGap
         self.onTap = onTap
         self.trailing = trailing()
     }
@@ -49,19 +52,23 @@ public struct SettingsRow<Trailing: View>: View {
     private var titleColor: Color { role == .destructive ? TLColor.danger700 : TLColor.text }
 
     private var content: some View {
-        HStack(spacing: TLSpace.gapM) {
+        // spacing 0 ＋ 各自的 padding：左側圖示與右側 chevron 的間距規格不同
+        // （破壞性圖示 10、一般圖示 13、值→chevron 8、圖示預覽→chevron 10）。
+        HStack(spacing: 0) {
             if role == .destructive {
                 Image(systemName: systemImage ?? "trash")
-                    .font(.system(size: 15, weight: .semibold))
+                    .font(.system(size: 17, weight: .semibold))
                     .foregroundStyle(TLColor.danger700)
+                    .padding(.trailing, 10)
             } else if let systemImage {
                 Image(systemName: systemImage)
                     .font(.system(size: 15, weight: .medium))
                     .foregroundStyle(TLColor.neutral600)
+                    .padding(.trailing, TLSpace.gapM)
             }
             HStack(alignment: .firstTextBaseline, spacing: 6) {
                 title
-                    .font(TLFont.zh(TLFont.rowTitle))
+                    .font(TLFont.zh(TLFont.rowTitle, role == .destructive ? .semibold : .medium))
                     .foregroundStyle(titleColor)
                 if let hint {
                     hint
@@ -71,7 +78,7 @@ public struct SettingsRow<Trailing: View>: View {
             }
             Spacer(minLength: TLSpace.gapS)
             trailing
-            if showChevron { Chevron() }
+            if showChevron { Chevron().padding(.leading, trailingGap) }
         }
         .padding(.horizontal, TLSpace.rowInset)
         .frame(minHeight: TLSize.row)
@@ -113,54 +120,71 @@ public extension SettingsRow where Trailing == EmptyView {
         role: Role = .normal,
         showChevron: Bool = false,
         accessibilityValue: Text? = nil,
+        trailingGap: CGFloat = TLSpace.gapS,
         onTap: (() -> Void)? = nil
     ) {
         self.init(title, hint: hint, systemImage: systemImage, role: role,
                   showChevron: showChevron, accessibilityValue: accessibilityValue,
-                  onTap: onTap) { EmptyView() }
+                  trailingGap: trailingGap, onTap: onTap) { EmptyView() }
     }
 }
 
-/// 設定列右側的值文字（15pt、neutral-500）。搭配 `showChevron: true` 呈現「值＋chevron」。
+/// 設定列右側的值文字（14pt weight 500、`neutral-600`）。搭配 `showChevron: true` 呈現「值＋chevron」。
+/// 比標題小一號、比 chevron 深一階：值是列的答案，不該跟標題一樣重，也不該淡到讀不到。
 public struct SettingsValue: View {
     private let text: Text
     public init(_ text: Text) { self.text = text }
     public var body: some View {
         text
-            .font(TLFont.zh(TLFont.rowTitle))
-            .foregroundStyle(TLColor.neutral500)
+            .font(TLFont.zh(14))
+            .foregroundStyle(TLColor.neutral600)
     }
 }
 
 /// 開關型設定列。底層是 `Toggle` + `TLSwitchToggleStyle`，保留 switch 無障礙語意。
-/// `hint` 為標題後方小灰字（如「含震動」），但**不計入 switch 的無障礙標籤**（標籤只用標題）。
+///
+/// 說明文字有兩種放法，都**不計入 switch 的無障礙標籤**（標籤只用標題）：
+///   - `hint`：標題後方同一行的小灰字，短詞用（如「含震動」）
+///   - `subtitle`：標題下方第二行，整句用（如「App 不在前景時以系統通知提醒」）。列高改吃 62。
+///
+/// 說明文字固定屬於某一列，不要放在群組下方——那會產生「這段在解釋整組還是最後一列」的歧義。
 public struct SettingsToggleRow: View {
     private let title: Text
     private let hint: Text?
+    private let subtitle: Text?
     @Binding private var isOn: Bool
 
-    public init(_ title: Text, hint: Text? = nil, isOn: Binding<Bool>) {
+    public init(_ title: Text, hint: Text? = nil, subtitle: Text? = nil, isOn: Binding<Bool>) {
         self.title = title
         self.hint = hint
+        self.subtitle = subtitle
         self._isOn = isOn
     }
 
     public var body: some View {
         Toggle(isOn: $isOn) {
-            HStack(alignment: .firstTextBaseline, spacing: 6) {
-                title
-                    .font(TLFont.zh(TLFont.rowTitle))
-                    .foregroundStyle(TLColor.text)
-                if let hint {
-                    hint
+            VStack(alignment: .leading, spacing: 3) {
+                HStack(alignment: .firstTextBaseline, spacing: 6) {
+                    title
+                        .font(TLFont.zh(TLFont.rowTitle))
+                        .foregroundStyle(TLColor.text)
+                    if let hint {
+                        hint
+                            .font(TLFont.zh(TLFont.rowSub, .regular))
+                            .foregroundStyle(TLColor.neutral500)
+                    }
+                }
+                if let subtitle {
+                    subtitle
                         .font(TLFont.zh(TLFont.rowSub, .regular))
                         .foregroundStyle(TLColor.neutral500)
+                        .fixedSize(horizontal: false, vertical: true)
                 }
             }
         }
         .toggleStyle(.tlSwitch)
-        .accessibilityLabel(title)   // 讓 switch 標籤只含標題、排除 hint（UITest 用 switches["聲音"] 查得到）
+        .accessibilityLabel(title)   // 讓 switch 標籤只含標題、排除 hint／subtitle（UITest 用 switches["聲音"] 查得到）
         .padding(.horizontal, TLSpace.rowInset)
-        .frame(minHeight: TLSize.row)
+        .frame(minHeight: subtitle == nil ? TLSize.row : TLSize.rowWithSub)
     }
 }
