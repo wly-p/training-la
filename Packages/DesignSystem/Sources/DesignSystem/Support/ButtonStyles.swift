@@ -52,7 +52,47 @@ public struct TLTextButtonStyle: ButtonStyle {
     }
 }
 
-/// 破壞性（實心）：danger-600 底 / 按下 danger-800。用於確認對話框的確認鍵。
+// 確認對話框專用的一對（handoff-20 E 節）。
+//
+// 原本是「刪除＝實心紅（在上）／取消＝線框」，紅色又大又亮又在最上面，看起來就是這個彈窗的
+// 預設動作，手會往紅色去。改成**填色給取消**：刪除維持在上（iOS destructive 的慣例位置），
+// 但只有安全的那一顆有填色。兩顆都是滿寬 50pt 膠囊，跟一般按鈕的 padding 式高度不同，
+// 所以自成一對，不要拿 tlPrimary / tlSecondary 硬套。
+
+/// 對話框的破壞性鍵（外框）：透明底、1.5pt `danger-400` 邊、`danger-700` 字。按下 → `danger-200` 底。
+public struct TLDialogDestructiveButtonStyle: ButtonStyle {
+    public init() {}
+    public func makeBody(configuration: Configuration) -> some View {
+        configuration.label
+            .font(TLFont.zh(15, .semibold))
+            .foregroundStyle(TLColor.danger700)
+            .padding(.horizontal, 24)
+            .frame(maxWidth: .infinity, minHeight: 50)
+            .background(configuration.isPressed ? TLColor.danger200 : Color.clear)
+            .overlay(Capsule().strokeBorder(TLColor.danger400, lineWidth: 1.5))
+            .clipShape(Capsule())
+            .contentShape(Capsule())
+    }
+}
+
+/// 對話框的安全鍵（實心）：`accent` 底、`bg` 字。按下 → `accent-600`。
+public struct TLDialogPrimaryButtonStyle: ButtonStyle {
+    public init() {}
+    public func makeBody(configuration: Configuration) -> some View {
+        configuration.label
+            .font(TLFont.zh(15, .bold))
+            .foregroundStyle(TLColor.bg)
+            .padding(.horizontal, 24)
+            .frame(maxWidth: .infinity, minHeight: 50)
+            .background(configuration.isPressed ? TLColor.accent600 : TLColor.accent)
+            .clipShape(Capsule())
+            .contentShape(Capsule())
+    }
+}
+
+/// 破壞性（實心）：danger-600 底 / 按下 danger-800。
+/// ⚠️ handoff-20 E 節把確認對話框的確認鍵改成外框後，**目前全 App 沒有使用者**。
+/// 保留 API：未來若出現非對話框的實心破壞性按鈕（例如整頁的「永久刪除帳號」）還會用到。
 public struct TLDestructiveButtonStyle: ButtonStyle {
     public init() {}
     public func makeBody(configuration: Configuration) -> some View {
@@ -91,6 +131,12 @@ public extension ButtonStyle where Self == TLTextButtonStyle {
 }
 public extension ButtonStyle where Self == TLDestructiveButtonStyle {
     static var tlDestructive: TLDestructiveButtonStyle { .init() }
+}
+public extension ButtonStyle where Self == TLDialogDestructiveButtonStyle {
+    static var tlDialogDestructive: TLDialogDestructiveButtonStyle { .init() }
+}
+public extension ButtonStyle where Self == TLDialogPrimaryButtonStyle {
+    static var tlDialogPrimary: TLDialogPrimaryButtonStyle { .init() }
 }
 public extension ButtonStyle where Self == TLDestructiveTextButtonStyle {
     static var tlDestructiveText: TLDestructiveTextButtonStyle { .init() }

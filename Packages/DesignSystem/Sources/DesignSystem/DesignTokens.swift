@@ -62,13 +62,16 @@ public enum TLColor {
 
     // 警示 danger — 本專案新增，Organic 原本沒有
     // 只用於：破壞性動作、確認對話框的確認鍵、輸入驗證錯誤
-    public static let danger100 = Color(hex: 0xFFF0ED)
-    public static let danger200 = Color(hex: 0xFFDCD5)
-    public static let danger300 = Color(hex: 0xFFBCB0)
-    public static let danger400 = Color(hex: 0xF88A78)
+    //
+    // handoff-20 D 節：原本是生紅（色相約 4°），與整頁赭色系（accent 約 24°）不同調。
+    // 淺階往赭色靠、色相收在 9～17° 之間，看起來才像同一套色票裡的「警示版本」。
+    public static let danger100 = Color(hex: 0xFAEDE8)
+    public static let danger200 = Color(hex: 0xF3DDD6)  // 外框破壞性按鈕的按下底色
+    public static let danger300 = Color(hex: 0xD9A89B)
+    public static let danger400 = Color(hex: 0xB8776A)  // 外框破壞性按鈕的邊
     public static let danger    = Color(hex: 0xD96552)
-    public static let danger600 = Color(hex: 0xB74736)  // 實心底
-    public static let danger700 = Color(hex: 0x8F3122)  // 淺底上的文字
+    public static let danger600 = Color(hex: 0xB74736)  // 實心底（見 TLDestructiveButtonStyle：目前無使用者）
+    public static let danger700 = Color(hex: 0x7E3123)  // 淺底上的文字、圖示、外框按鈕的字
     public static let danger800 = Color(hex: 0x661F14)
     public static let danger900 = Color(hex: 0x40140D)
 }
