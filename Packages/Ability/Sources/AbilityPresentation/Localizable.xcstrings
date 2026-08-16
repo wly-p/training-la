@@ -55,13 +55,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Scheduled weights are locked in — changing this won't affect them."
+            "value" : "Changes only affect future sessions; weights already scheduled stay as they are."
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "已排定的課表重量已鎖定，改這裡不會動到。"
+            "value" : "改完只影響之後排的課表；已排定的重量不會變。"
           }
         }
       }
@@ -120,13 +120,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Updating an ability value never changes schedules already generated — those weights were resolved and locked in at that moment."
+            "value" : "Updating your maxes only affects future sessions. Weights already on your schedule stay as they are."
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "改能力值不會動到已排定的課表——那些重量在排課那一刻就已經算好、寫死了。"
+            "value" : "更新能力值只影響之後排的課表；已排定的課表重量不會變。"
           }
         }
       }
