@@ -134,6 +134,7 @@ enum PlanFormatting {
         }
     }
 
+    /// 當日課表的區塊標題，例：`8 / 15 週五`（設計稿 `22h`）。
     /// 星期依 `locale` 取當地縮寫（由 View 傳 `@Environment(\.locale)`）。
     static func dayLabel(_ day: DayDate, locale: Locale) -> String {
         var components = DateComponents()
@@ -145,9 +146,9 @@ enum PlanFormatting {
             let formatter = DateFormatter()
             formatter.locale = locale
             let weekday = cal.component(.weekday, from: date)
-            suffix = " (\(formatter.shortWeekdaySymbols[(weekday - 1) % 7]))"
+            suffix = " \(formatter.shortWeekdaySymbols[(weekday - 1) % 7])"
         }
-        return "\(day.month)/\(day.day)\(suffix)"
+        return "\(day.month) / \(day.day)\(suffix)"
     }
 }
 

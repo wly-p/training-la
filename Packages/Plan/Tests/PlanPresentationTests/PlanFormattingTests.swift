@@ -27,9 +27,10 @@ struct PlanFormattingTests {
     }
 
     @Test func dayLabelIncludesMonthDayAndLocalizedWeekday() {
+        // 設計稿 22h 的區塊標題是「8 / 15 週五」——斜線兩側有空白、星期不加括號。
         let zh = PlanFormatting.dayLabel(DayDate(year: 2026, month: 1, day: 1), locale: Locale(identifier: "zh-Hant"))
-        #expect(zh.hasPrefix("1/1 ("))
-        #expect(zh.hasSuffix(")"))
+        #expect(zh.hasPrefix("1 / 1 "))
+        #expect(!zh.contains("("))
         let en = PlanFormatting.dayLabel(DayDate(year: 2026, month: 1, day: 1), locale: Locale(identifier: "en"))
         #expect(en.contains("Thu"))
     }

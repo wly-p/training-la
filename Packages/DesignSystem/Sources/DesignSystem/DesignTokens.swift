@@ -100,6 +100,7 @@ public enum TLSize {
     public static let rowHistory: CGFloat = 66  // 歷史列
     public static let badge: CGFloat      = 36  // 列左側圓章
     public static let iconButton: CGFloat = 44  // 標題右側圓鈕（＝最小觸控）
+    public static let iconButtonSmall: CGFloat = 34  // 月曆標題列的 ‹ ›，觸控區另外補到 44
     public static let minTap: CGFloat     = 44
     public static let switchW: CGFloat    = 46
     public static let switchH: CGFloat    = 28
