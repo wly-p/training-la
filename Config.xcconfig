@@ -28,13 +28,23 @@ TEST_REPORT = false
 
 // PRIVACY_POLICY_URL：隱私政策頁的網址。build 時展開進 Info.plist 的 `PrivacyPolicyURL`
 // （見 project.yml），App 只從那裡讀 —— Swift 裡永遠不出現網址字串（同 AppEnvironment.swift 的規矩）。
-// 政策頁還沒部署，目前指向本機 mock server：
-//   cd ../mock-url && python3 -m http.server 8000
-// 上線後只改這一行（換成正式網址），Swift 與 View 都不用動。
 //
-// 雙斜線用 SLASH 繞開：xcconfig 把 `//` 當註解起點，直接寫 http://... 的值會被截成 `http:`。
+// 頁面的來源與部署在 training-la-web repo（Cloudflare Pages）。這個 repo **不留副本**：
+// 政策可以在不發版的情況下更新，副本會直接變成錯的內容，而政策與實際行為不符是可以
+// 導致下架的（見 PrivacyPolicy.swift 的註解）。
+//
+// 要改文案就去那個 repo 改、按 Deploy workflow，這裡完全不用動。
+//
+// 雙斜線用 SLASH 繞開：xcconfig 把 `//` 當註解起點，直接寫 https://... 的值會被截成 `https:`。
 SLASH = /
-PRIVACY_POLICY_URL = http:$(SLASH)$(SLASH)localhost:8000$(SLASH)privacy-policy.html
+PRIVACY_POLICY_URL = https:$(SLASH)$(SLASH)training-la.wly.lol$(SLASH)privacy-policy
+
+// 要指到本機那份草稿時改用下面這行（training-la-web repo 跑 `make preview`）：
+// PRIVACY_POLICY_URL = http:$(SLASH)$(SLASH)localhost:8000$(SLASH)privacy-policy
+//
+// 實機測試不能用 http:// 的區網 IP —— App 沒有任何 ATS 例外，純 http 只有 localhost
+// 免驗。實機要看本機草稿就開個臨時隧道拿 HTTPS，把它印出來的網址填進來：
+//   cloudflared tunnel --url http:$(SLASH)$(SLASH)localhost:8788
 
 // 本機簽章設定（gitignored，開源 repo 不放任何人的 Team ID）。
 // 實機建置前自己建一份 Signing.secrets.xcconfig，內容一行：

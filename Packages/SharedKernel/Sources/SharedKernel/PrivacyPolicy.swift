@@ -21,7 +21,7 @@ public enum PrivacyPolicy {
         return url
     }
 
-    /// 依 **App 語言**補上 fragment（例：`…/privacy-policy.html#zh-Hant`）。
+    /// 依 **App 語言**補上 fragment（例：`…/privacy-policy#zh-Hant`）。
     ///
     /// 語言只能由 URL 帶：伺服器只看得到 `Accept-Language`＝**裝置語系**，而 app 語言可以跟它不同
     /// （見 ``AppLanguage``），所以內容協商在這裡是錯的訊號。頁面那端用 `/^zh/` 前綴比對 hash，
