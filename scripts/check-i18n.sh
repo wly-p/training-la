@@ -108,6 +108,162 @@ if [ -n "$dates" ]; then
     fail=1
 fi
 
+# --- 規則 4 ------------------------------------------------------------------
+# 程式碼查表用的 key，必須真的存在於該 target 的 String Catalog。
+#
+# 查不到時 `localizedString` 回傳 key 本身，畫面就直接顯示 "template.block.percentOfMax 3"
+# 這種東西——而且**兩種語言一起壞**，切語言看不出差別，翻譯齊備性的測試也抓不到
+# （它只檢查 catalog 裡已有的 key 翻譯齊不齊，不知道有 key 根本沒進 catalog）。
+#
+# 實際踩過：1RM → 最大重量 更名時改了程式碼的 key，翻譯卻留在舊 key 底下。
+# rename 很容易再犯，所以用機器擋。
+
+missing=$(python3 - <<'PY'
+import json, pathlib, re, sys
+
+# 各 package 的本地化 helper。key 一律是呼叫的第一個字串字面值。
+HELPERS = re.compile(
+    r'\b(?:localText|localString|localizedString)\s*\('
+    r'|\.(?:plan|spec|training|history)\s*\('
+    r'|\bText\s*\((?=[^)]*bundle:)'
+)
+
+
+def literals_in_call(text: str, start: int) -> list[str]:
+    """從 `(` 之後掃到對應的 `)`，回傳這一段裡的所有字串字面值。
+
+    要自己數括號而不是用正則：key 常帶插值（"a \\(n)"），`[^)]*` 會在插值的
+    `)` 就停掉。順帶也涵蓋三元寫法 localText(cond ? "a" : "b")。
+    """
+    depth, i, out, n = 0, start, [], len(text)
+    while i < n:
+        c = text[i]
+        if c == '"':
+            j = i + 1
+            while j < n and text[j] != '"':
+                j += 2 if text[j] == '\\' else 1
+            out.append(text[i + 1:j])
+            i = j + 1
+            continue
+        if c == '(':
+            depth += 1
+        elif c == ')':
+            depth -= 1
+            if depth == 0:
+                return out
+        elif c == '\n' and depth == 0:
+            return out
+        i += 1
+    return out
+
+
+def catalog_for(path: pathlib.Path) -> pathlib.Path | None:
+    """往上找該 target 自帶的 Localizable.xcstrings。"""
+    for parent in path.parents:
+        candidate = parent / "Localizable.xcstrings"
+        if candidate.exists():
+            return candidate
+        if parent.name in ("Sources", "Packages") or parent == pathlib.Path("."):
+            return None
+    return None
+
+
+catalogs: dict[pathlib.Path, set[str]] = {}
+violations = []
+
+for path in sorted(pathlib.Path(".").glob("Packages/*/Sources/**/*.swift")) + \
+            sorted(pathlib.Path("App").glob("**/*.swift")):
+    source = path.read_text()
+    cat_path = catalog_for(path)
+    if cat_path is None:
+        continue
+    if cat_path not in catalogs:
+        data = json.loads(cat_path.read_text())
+        source_language = data.get("sourceLanguage")
+        # 只有「來源語言有值」的 key 才算數。光是 key 存在不夠——Xcode 掃到程式碼裡的新 key
+        # 會自動補一個空殼進 catalog，那時查表仍然回傳 key 本身，畫面照樣壞。
+        # percentOfMax 那個 bug 就是這個形狀，只檢查 key 在不在會漏掉。
+        catalogs[cat_path] = {
+            key
+            for key, entry in data.get("strings", {}).items()
+            if (entry.get("localizations", {})
+                     .get(source_language, {})
+                     .get("stringUnit", {})
+                     .get("value") or "").strip()
+        }
+    keys = catalogs[cat_path]
+
+    for m in HELPERS.finditer(source):
+        for raw in literals_in_call(source, m.end() - 1):
+            # 插值的 key（"a \(n)"）在 catalog 裡是 "a %lld" 之類，比前綴就好。
+            prefix = raw.split("\\(")[0]
+            if not re.match(r'^[A-Za-z][A-Za-z0-9_]*\.', prefix):
+                continue          # 不像 key（格式參數、verbatim 文字…），跳過
+            if any(k.startswith(prefix) for k in keys):
+                continue
+            line = source[:m.start()].count("\n") + 1
+            violations.append(f"{path}:{line}:{raw}  →  {cat_path}")
+
+print("\n".join(sorted(set(violations))))
+PY
+)
+
+if [ -n "$missing" ]; then
+    echo "✘ 這些 key 在 String Catalog 裡沒有翻譯——畫面會直接顯示 key 本身（中英文都會壞）："
+    echo "$missing" | sed 's/^/    /'
+    fail=1
+fi
+
+# --- 規則 5 ------------------------------------------------------------------
+# UITest 不准用中文查元素。
+#
+# 為什麼要機器擋：`XCUIElement` 的 subscript **同時**比對 identifier 與 label，所以
+# 「某一處漏改」的測試會繼續靠中文命中、永遠不會紅——轉換完成與否根本看不出來
+# （ARCHITECTURE.md 的命名規範章節也是這樣寫的）。
+#
+# 只擋「拿來定位元素」的中文：subscript 與 NSPredicate。斷言訊息裡的中文是給人看的，不擋。
+# 測試自己打進去的資料（動作名、課表名）照規範保留文字定位，列在下方白名單。
+#
+# PENDING：還沒 identifier 化的檔案。每個轉換 PR 移除自己那批，清空即代表轉換完成。
+
+uitest=$(python3 - <<'PY'
+import pathlib, re
+
+# 測試自己輸入的資料——與介面語言無關，照規範維持文字定位。
+TEST_DATA = {
+    "測試臥推", "測試深蹲", "測試推日", "測試課表", "測試循環",
+    "推日", "腿日", "推拉腿", "推", "背景測試", "休息測試",
+}
+# 尚未轉換的檔案（每個轉換 PR 移除自己那批；清空＝完成）。
+# 全部轉完了。這個清單留著是給下一次大改用的——新增測試不該再往裡面加。
+PENDING: set[str] = set()
+
+HAN = r"[一-鿿]"
+# 定位用法：["..."]（subscript）與 NSPredicate(format: "...")。
+LOCATORS = re.compile(rf'\[\s*"([^"]*{HAN}[^"]*)"\s*\]|NSPredicate\(format:\s*"([^"]*{HAN}[^"]*)"')
+
+violations = []
+for path in sorted(pathlib.Path("UITests").glob("*.swift")):
+    if path.name in PENDING:
+        continue
+    for i, line in enumerate(path.read_text().split("\n"), 1):
+        code = line.split("//")[0]
+        for m in LOCATORS.finditer(code):
+            literal = m.group(1) or m.group(2)
+            if literal in TEST_DATA:
+                continue
+            violations.append(f"{path}:{i}:{literal}")
+
+print("\n".join(violations))
+PY
+)
+
+if [ -n "$uitest" ]; then
+    echo "✘ UITest 還在用中文查元素——請改用 accessibilityIdentifier（見 ARCHITECTURE.md）："
+    echo "$uitest" | sed 's/^/    /'
+    fail=1
+fi
+
 if [ "$fail" -eq 0 ]; then
     echo "✔ i18n 檢查通過"
 fi

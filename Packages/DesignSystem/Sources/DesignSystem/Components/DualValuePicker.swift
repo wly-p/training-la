@@ -3,6 +3,8 @@ import SwiftUI
 /// 模板 8 變體：兩個數值並排的選擇器（設計稿 4a「08 · 數值選擇器」：重量／次數共用一個容器、
 /// 一條高亮帶、一排快捷）。單一數值的情境仍用 `ValuePicker`；這個給「重量 ＋ 次數」一次編兩個值用
 /// （範本逐組編輯 11b）。
+///
+/// 兩欄滾輪本體（渲染窗口、手勢、慣性）在 `WheelColumn`，跟 `ValuePicker` 共用同一份。
 public struct DualValuePicker: View {
     public typealias QuickAction = ValuePicker.QuickAction
 
@@ -15,9 +17,6 @@ public struct DualValuePicker: View {
     private let primaryFormat: (Double) -> String
     private let secondaryFormat: (Double) -> String
     private let quickActions: [QuickAction]
-
-    @State private var primaryDrag: CGFloat = 0
-    @State private var secondaryDrag: CGFloat = 0
 
     private let rowHeight: CGFloat = 44
 
@@ -55,8 +54,14 @@ public struct DualValuePicker: View {
                     .fill(TLColor.neutral300)
                     .frame(height: rowHeight)
                 HStack(spacing: 0) {
-                    column(value: $primaryValue, values: primaryValues, format: primaryFormat, dragOffset: $primaryDrag)
-                    column(value: $secondaryValue, values: secondaryValues, format: secondaryFormat, dragOffset: $secondaryDrag)
+                    WheelColumn(
+                        value: $primaryValue, values: primaryValues,
+                        format: primaryFormat, rowHeight: rowHeight
+                    )
+                    WheelColumn(
+                        value: $secondaryValue, values: secondaryValues,
+                        format: secondaryFormat, rowHeight: rowHeight
+                    )
                 }
             }
             .frame(height: rowHeight * 5)
@@ -66,8 +71,6 @@ public struct DualValuePicker: View {
         .padding(TLSpace.rowInset)
         .background(TLColor.neutral100)
         .clipShape(RoundedRectangle(cornerRadius: TLRadius.container, style: .continuous))
-        .sensoryFeedback(.selection, trigger: liveIndex(value: primaryValue, drag: primaryDrag, in: primaryValues))
-        .sensoryFeedback(.selection, trigger: liveIndex(value: secondaryValue, drag: secondaryDrag, in: secondaryValues))
     }
 
     private func kickerText(_ s: String) -> some View {
@@ -76,44 +79,6 @@ public struct DualValuePicker: View {
             .tracking(TLFont.kickerTracking)
             .textCase(.uppercase)
             .foregroundStyle(TLColor.neutral500)
-    }
-
-    private func column(
-        value: Binding<Double>, values: [Double], format: @escaping (Double) -> String, dragOffset: Binding<CGFloat>
-    ) -> some View {
-        let currentIndex = index(of: value.wrappedValue, in: values)
-        return ZStack {
-            ForEach(-2...2, id: \.self) { k in
-                let idx = currentIndex + k
-                if values.indices.contains(idx) {
-                    Text(format(values[idx]))
-                        .font(TLFont.display(fontSize(for: k)))
-                        .foregroundStyle(color(for: k))
-                        .offset(y: CGFloat(k) * rowHeight + dragOffset.wrappedValue)
-                }
-            }
-        }
-        .frame(maxWidth: .infinity)
-        .contentShape(Rectangle())
-        .gesture(
-            DragGesture()
-                .onChanged { dragOffset.wrappedValue = $0.translation.height }
-                .onEnded { g in
-                    let steps = Int((-g.translation.height / rowHeight).rounded())
-                    let newIndex = min(max(currentIndex + steps, 0), values.count - 1)
-                    value.wrappedValue = values[newIndex]
-                    withAnimation(.easeOut(duration: 0.15)) { dragOffset.wrappedValue = 0 }
-                }
-        )
-    }
-
-    private func index(of value: Double, in values: [Double]) -> Int {
-        values.firstIndex(of: value) ?? values.firstIndex(where: { $0 >= value }) ?? 0
-    }
-
-    private func liveIndex(value: Double, drag: CGFloat, in values: [Double]) -> Int {
-        let steps = Int((-drag / rowHeight).rounded())
-        return min(max(index(of: value, in: values) + steps, 0), values.count - 1)
     }
 
     private var quickRow: some View {
@@ -138,20 +103,5 @@ public struct DualValuePicker: View {
             }
         }
         .frame(height: 44)
-    }
-
-    private func fontSize(for k: Int) -> CGFloat {
-        switch abs(k) {
-        case 0: return 28
-        case 1: return 20
-        default: return 17
-        }
-    }
-    private func color(for k: Int) -> Color {
-        switch abs(k) {
-        case 0: return TLColor.neutral900
-        case 1: return TLColor.neutral500
-        default: return TLColor.neutral400
-        }
     }
 }

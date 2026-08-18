@@ -63,19 +63,25 @@ public struct ProgramAssignment: Identifiable, Equatable, Sendable {
     public var mode: ProgramRunMode
     /// 補登進度：已補到哪一天（含）。nil＝還沒補過。冪等掃描用。
     public var lastReconciledDate: DayDate?
+    /// 單日覆寫：日期 → 那天實際要用的 cycleDay。給「把明天的腿日挪到今天」這種臨時搬動用。
+    /// 只影響列出來的那幾天，週期公式本身不動 ⇒ 沒被覆寫的日子節奏照舊（13f 左那句
+    /// 「挪動只影響這一輪，之後的節奏照舊」就是靠這個成立）。
+    public var dayOverrides: [DayDate: Int]
 
     public init(
         id: UUID,
         programId: UUID,
         startDate: DayDate,
         mode: ProgramRunMode,
-        lastReconciledDate: DayDate? = nil
+        lastReconciledDate: DayDate? = nil,
+        dayOverrides: [DayDate: Int] = [:]
     ) {
         self.id = id
         self.programId = programId
         self.startDate = startDate
         self.mode = mode
         self.lastReconciledDate = lastReconciledDate
+        self.dayOverrides = dayOverrides
     }
 }
 
@@ -84,9 +90,17 @@ public struct ProgramAssignment: Identifiable, Equatable, Sendable {
 extension ProgramAssignment {
     /// 給定某日期，算它落在這份套用的「第幾天」（0-based，從起始日算 offset）。
     /// 起始日之前＝nil；once 模式 offset 超過週期天數＝nil；repeating 模式對 cycleLength 取模。
+    ///
+    /// 這是所有投影的單一咽喉點（今日排課、休息日、月曆），所以 `dayOverrides` 只在這裡套一次，
+    /// 其他呼叫端不必知道有搬動這回事。
     /// - Parameter cycleLength: 對應 program 的週期天數。
     public func cycleDay(for date: DayDate, cycleLength: Int) -> Int? {
-        guard cycleLength > 0, date >= startDate else { return nil }
+        guard cycleLength > 0 else { return nil }
+        // 覆寫優先，且不受「起始日之前／once 已結束」限制——搬動是使用者明確指定的那一天。
+        if let overridden = dayOverrides[date] {
+            return (0..<cycleLength).contains(overridden) ? overridden : nil
+        }
+        guard date >= startDate else { return nil }
         let offset = startDate.days(to: date)   // date >= startDate ⇒ offset >= 0
         switch mode {
         case .once:

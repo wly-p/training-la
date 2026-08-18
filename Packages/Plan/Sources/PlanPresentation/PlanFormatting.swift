@@ -57,6 +57,84 @@ enum PlanFormatting {
         return String(format: format, program.days.count, program.cycleLength)
     }
 
+    // MARK: - 動作列的規格（19a）
+
+    /// 「組數 × 次數」。排課草稿（每組相同）與範本的各組相同分支共用同一個寫法，
+    /// 兩個畫面的同一種列不該長得不一樣。
+    static func spec(setCount: Int, reps: Int) -> String {
+        "\(setCount) × \(reps)"
+    }
+
+    // MARK: - 範本摺疊列（19a）
+
+    /// 主行右側的規格。**講的是次數**，不是重量——重量在細節行（見 ``blockWeight(sets:language:)``）。
+    ///
+    /// | 情況 | 顯示 |
+    /// |---|---|
+    /// | 各組相同 | `3 × 10`（組數 × 次數） |
+    /// | 不同、≤4 組 | `12 · 10 · 8`（直接給數值，遞減看數字就知道） |
+    /// | 不同、≥5 組 | `5 組 · 遞增`／`遞減`／`各組不同`（一列排 6 個數字沒人讀得完） |
+    ///
+    /// ⚠️ 不要跟舊的膠囊搞混：舊的是「**重量** × 次數」（`80% × 8`），這裡是「**組數** × 次數」。
+    /// 方向也依次數判定（主行整段講次數）；重量的變化用細節行的箭頭表達。
+    static func blockSpec(sets: [PlanSet], language: AppLanguage) -> String {
+        let reps = sets.map { $0.targetReps ?? 0 }
+        guard let first = reps.first else { return "" }
+        if reps.allSatisfy({ $0 == first }) {
+            return spec(setCount: sets.count, reps: first)
+        }
+        if sets.count <= 4 {
+            return reps.map(String.init).joined(separator: " · ")
+        }
+        let pairs = zip(reps, reps.dropFirst())
+        let key: String
+        if pairs.allSatisfy(<) {
+            key = "template.block.progressive %lld"
+        } else if pairs.allSatisfy(>) {
+            key = "template.block.decreasing %lld"
+        } else {
+            key = "template.block.mixed %lld"
+        }
+        return String(format: language.localizedString(key, bundle: .module), sets.count)
+    }
+
+    /// 細節行接在器材 pill 後面的重量；沒設重量回 nil（那一行就只有 pill）。
+    ///
+    /// 各組相同就直接印那一個（`60kg` / `80% 最大重量` / `上次+2.5kg`）；
+    /// 各組不同用箭頭表示首→末（`60 → 70kg`），這是 19a 自己舉的例子。
+    static func blockWeight(sets: [PlanSet], language: AppLanguage) -> String? {
+        let expressions = sets.map(\.targetWeight)
+        let present = expressions.compactMap { $0 }
+        guard let firstExpression = present.first, let lastExpression = present.last else { return nil }
+
+        if present.count == expressions.count, expressions.allSatisfy({ $0 == firstExpression }) {
+            return weightLabel(firstExpression, language: language)
+        }
+        // 同單位的絕對重量才壓成「60 → 70kg」（單位只印一次）；其他組合各印各的完整標籤，
+        // 混用百分比與公斤時才不會變成看不懂的「70 → 85kg」。
+        if case .absolute(let from) = firstExpression, case .absolute(let to) = lastExpression,
+           from.unit == to.unit, from != to {
+            return "\(Weight.formatted(from.value)) → \(to.displayString)"
+        }
+        guard firstExpression != lastExpression else { return weightLabel(firstExpression, language: language) }
+        return "\(weightLabel(firstExpression, language: language)) → \(weightLabel(lastExpression, language: language))"
+    }
+
+    /// 重量一律帶單位（`Weight.displayString`＝「20kg」）：kg 與 lb 的 20 差很多。百分比不是重量，沒有單位。
+    static func weightLabel(_ expression: WeightExpression, language: AppLanguage) -> String {
+        switch expression {
+        case .absolute(let weight):
+            weight.displayString
+        case .relativeToLast(let delta):
+            String(format: language.localizedString("plan.weight.relativeToLast %@", bundle: .module),
+                   (delta.value >= 0 ? "+" : "") + delta.displayString)
+        case .percentOfMax(let percent):
+            String(format: language.localizedString("plan.weight.percentOfMax %@", bundle: .module),
+                   "\(Weight.formatted(percent))%")
+        }
+    }
+
+    /// 當日課表的區塊標題，例：`8 / 15 週五`（設計稿 `22h`）。
     /// 星期依 `locale` 取當地縮寫（由 View 傳 `@Environment(\.locale)`）。
     static func dayLabel(_ day: DayDate, locale: Locale) -> String {
         var components = DateComponents()
@@ -68,9 +146,9 @@ enum PlanFormatting {
             let formatter = DateFormatter()
             formatter.locale = locale
             let weekday = cal.component(.weekday, from: date)
-            suffix = " (\(formatter.shortWeekdaySymbols[(weekday - 1) % 7]))"
+            suffix = " \(formatter.shortWeekdaySymbols[(weekday - 1) % 7])"
         }
-        return "\(day.month)/\(day.day)\(suffix)"
+        return "\(day.month) / \(day.day)\(suffix)"
     }
 }
 

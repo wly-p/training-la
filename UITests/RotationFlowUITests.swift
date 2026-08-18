@@ -7,57 +7,37 @@ final class RotationFlowUITests: XCTestCase {
     @MainActor
     func testBuildRotationThenStartFromHome() throws {
         let app = XCUIApplication()
-        app.launchArguments = ["--uitest-inmemory"]
-        app.launch()
+        launchForUITest(app)
 
-        // 動作庫：建動作
-        app.buttons["動作庫"].tap()
-        app.buttons["libraryAddButton"].tap()
-        let nameField = app.textFields["名稱（例：臥推）"]
-        XCTAssertTrue(nameField.waitForExistence(timeout: 5))
-        nameField.tap(); nameField.typeText("測試臥推")
-        app.buttons["儲存"].tap()
-        app.searchExercises("測試臥推")
-        XCTAssertTrue(app.staticTexts["測試臥推"].waitForExistence(timeout: 5))
-        app.clearExerciseSearch()
-
-        // 範本分段：建一個含測試臥推的課表範本（循環現在只能從範本匯入內容，見設計稿 12a）
-        app.buttons["範本"].tap()
-        app.buttons["libraryAddButton"].tap()
-        let templateName = app.textFields["範本名稱"]
-        XCTAssertTrue(templateName.waitForExistence(timeout: 5))
-        templateName.tap(); templateName.typeText("推日")
-        app.buttons["從動作庫加入"].tap()
-        app.pickExercise("測試臥推")
-        app.buttons["加入 1 個動作"].tap()
-        app.buttons["儲存"].tap()
-        XCTAssertTrue(app.staticTexts["推日"].waitForExistence(timeout: 5))
+        app.addExercise(named: "測試臥推")
+        // 循環現在只能從範本匯入內容（見設計稿 12a），所以先建一個範本
+        app.addTemplate(named: "推日", exercise: "測試臥推")
 
         // 循環分段：「+」直接開建立頁（新增／編輯同一頁）→ 打名字 → 加入範本
-        app.buttons["循環"].tap()
-        app.buttons["libraryAddButton"].tap()
-        let rotationTitle = app.textFields["名稱（例：推拉腿）"]
+        app.buttons["library.segment.rotation"].tap()
+        app.buttons["library.add"].tap()
+        let rotationTitle = app.textFields["editScaffold.title"]
         XCTAssertTrue(rotationTitle.waitForExistence(timeout: 5))
         rotationTitle.tap(); rotationTitle.typeText("推拉腿")
-        app.buttons["加入範本"].tap()
-        let pick = app.staticTexts["推日"].firstMatch
+        app.buttons["rotationEditor.addTemplate"].tap()
+        let pick = app.staticTexts["推日"].firstMatch   // 範本名是測試自己輸入的資料
         XCTAssertTrue(pick.waitForExistence(timeout: 5))
         pick.tap()
-        app.buttons["加入 1 個範本"].tap()
+        app.buttons["picker.confirm"].tap()
         XCTAssertTrue(app.staticTexts["推日"].waitForExistence(timeout: 5))
-        app.buttons["儲存"].tap()
+        app.buttons["editScaffold.save"].tap()
 
         // 訓練首頁：「隨時可做」卡標題顯示今天輪到的 workout 名（推日）
-        app.buttons["訓練"].tap()
+        app.buttons["tabBar.item.training"].tap()
         XCTAssertTrue(app.staticTexts["推日"].waitForExistence(timeout: 5))
-        app.buttons["開始循環"].tap()
+        app.buttons["training.startRotation"].tap()
         // 13d 開練前預覽 sheet：確認開始才真正落地
-        let confirmStart = app.buttons["開始訓練"]
+        let confirmStart = app.buttons["trainingPreview.start"]
         XCTAssertTrue(confirmStart.waitForExistence(timeout: 5))
         confirmStart.tap()
 
         // 記錄畫面：自動選到循環的動作（測試臥推）
         XCTAssertTrue(app.navigationBars["測試臥推"].waitForExistence(timeout: 5))
-        XCTAssertTrue(app.buttons["完成此組"].waitForExistence(timeout: 5))
+        XCTAssertTrue(app.buttons["activeWorkout.completeSet"].waitForExistence(timeout: 5))
     }
 }

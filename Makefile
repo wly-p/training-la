@@ -1,8 +1,9 @@
-.PHONY: test test-unit test-uitest test-uitest-en test-e2e generate lint report
+.PHONY: test test-unit test-uitest test-uitest-zh test-uitest-en uitest-run test-e2e generate lint report
 
-# 8 個 SPM local package，各自跑 `swift test`（純邏輯 / in-memory SwiftData，秒級、免模擬器）。
-# DesignSystem 不在此列：純 UI 元件，無邏輯可測，沒有 Tests/。
-PACKAGES := SharedKernel Spec Training Plan History Settings Reminders Ability
+# 9 個 SPM local package，各自跑 `swift test`（純邏輯 / in-memory SwiftData，秒級、免模擬器）。
+# DesignSystem 只測純函式（滾輪幾何 WheelGeometry、月曆格線 CalendarStripGeometry），
+# 元件本身是 View 測不動。
+PACKAGES := SharedKernel Spec Training Plan History Settings Reminders Ability DesignSystem
 
 SCHEME := TrainingLa-Dev
 
@@ -26,7 +27,7 @@ REPORT_DIR := test-reports
 # REPORT=true 才追加的旗標。刻意讓 REPORT=false 的指令跟加這個開關之前逐字相同——
 # 預設路徑不該因為多了一個報告功能而改變行為（`-resultBundlePath` 會搬動 xcresult 的落點）。
 ifeq ($(REPORT),true)
-UITEST_REPORT_FLAGS := -resultBundlePath $(REPORT_DIR)/uitest-$(LANGUAGE).xcresult
+UITEST_REPORT_FLAGS := -resultBundlePath $(REPORT_DIR)/uitest-$(LANG_TAG).xcresult
 else
 UITEST_REPORT_FLAGS :=
 endif
@@ -65,39 +66,56 @@ generate:
 
 # 只跑 UITests.xctestplan（跟 unit test 分開的獨立 Test Plan，見 project.yml）。
 #
-# 既有的 22 個測試靠中文標籤查元素，所以測試計畫的 configuration 決定裝置語系；
-# EnglishLocalizationUITests 是唯一與語言無關的一支，另外跑（見 test-uitest-en），這裡排除。
-test-uitest: generate
+# 英文覆蓋是**同一批測試再跑一輪**（`test-uitest-en`），不是每支 case 寫中英兩份 func
+# ——差別只在注入給測試 runner 的 UITEST_APP_LANGUAGE。所以 `test-uitest` ＝ 兩輪都跑；
+# 開發中只想跑一種語言就直接叫 `test-uitest-zh` / `test-uitest-en`。
+#
+# 裝置語系兩輪都維持繁中（configuration 不動）。要驗的是「app 語言 ≠ 裝置語系」的中英混雜；
+# 兩邊都設英文的話 `String(localized:)` 也會回英文，反而把 bug 藏起來。
+#
+# ONLY：只跑指定的測試類別，空白分隔（`make test-uitest-en ONLY="SettingsUITests ExerciseListUITests"`）。
+ONLY ?=
+UITEST_ONLY_FLAGS := $(foreach t,$(ONLY),-only-testing:TrainingLaUITests/$(t))
+
+# 預設兩輪都跑：同一批 case，app 繁中一輪、app 英文一輪。
+test-uitest: test-uitest-zh test-uitest-en
+
+test-uitest-zh: generate
+	@$(MAKE) --no-print-directory uitest-run LANG_TAG=$(LANGUAGE) CONFIGURATION=$(LANGUAGE)
+
+# 英文那一輪：裝置語系照舊，只把 app 的語言設定改成英文。
+#
+# 語言由 test plan 的 `en-app` configuration 用 environmentVariableEntries 注入
+# （`UITEST_APP_LANGUAGE=en`），`UITests/UITestSupport.swift` 讀到就把
+# `--uitest-language=en` 併進 launch arguments。
+#
+# ⚠️ 不能用 `xcodebuild test TEST_RUNNER_UITEST_APP_LANGUAGE=en`：帶了 `-testPlan` 之後
+# 命令列的 TEST_RUNNER_* 會被**靜默忽略**，測試照樣跑但語言沒切——實測踩過，
+# 而且因為期望值也是從同一個變數算出來的，守衛不會紅。
+test-uitest-en: generate
+	@$(MAKE) --no-print-directory uitest-run LANG_TAG=$(LANGUAGE)-app-en CONFIGURATION=en-app
+
+# 兩個 target 共用的執行本體。CONFIGURATION 決定跑 test plan 的哪一組
+# （zh-Hant＝app 走預設語言；en-app＝同一組裝置語系、app 切英文）。
+uitest-run:
 	@if [ "$(HEADLESS)" = "false" ]; then \
 		echo "==> headless=false：開 Simulator.app"; open -a Simulator; \
 	fi
 	@# xcodebuild 遇到既有的 result bundle 會直接報 error 64（不會覆寫），所以先清掉上一次的。
 	@if [ "$(REPORT)" = "true" ]; then \
-		mkdir -p $(REPORT_DIR); rm -rf $(REPORT_DIR)/uitest-$(LANGUAGE).xcresult; \
+		mkdir -p $(REPORT_DIR); rm -rf $(REPORT_DIR)/uitest-$(LANG_TAG).xcresult; \
 	fi
 	xcodebuild test \
 		-project TrainingLa.xcodeproj \
 		-scheme $(SCHEME) \
 		-testPlan UITests \
 		-destination '$(DESTINATION)' \
-		-only-test-configuration $(LANGUAGE) \
-		-skip-testing:TrainingLaUITests/EnglishLocalizationUITests \
+		-only-test-configuration $(CONFIGURATION) \
+		$(UITEST_ONLY_FLAGS) \
 		$(UITEST_REPORT_FLAGS)
 ifeq ($(REPORT),true)
-	@$(MAKE) --no-print-directory report KIND=ui LANG_TAG=$(LANGUAGE)
+	@$(MAKE) --no-print-directory report KIND=ui LANG_TAG=$(LANG_TAG)
 endif
-
-# 英文本地化的 smoke test：裝置語系維持繁中、只把 app 的語言設定改成英文
-# （靠 `--uitest-language=en` launch argument）。兩邊都設英文的話 `String(localized:)` 也會回英文，
-# 反而看不出「不跟著 app 語言切」這個 bug——所以這裡刻意不動 configuration。
-test-uitest-en: generate
-	xcodebuild test \
-		-project TrainingLa.xcodeproj \
-		-scheme $(SCHEME) \
-		-testPlan UITests \
-		-destination '$(DESTINATION)' \
-		-only-test-configuration zh-Hant \
-		-only-testing:TrainingLaUITests/EnglishLocalizationUITests
 
 # i18n 迴歸防護：擋裸 String(localized:) 與寫死的中文字串（見 scripts/check-i18n.sh）。
 lint:

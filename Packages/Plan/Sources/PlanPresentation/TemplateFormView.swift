@@ -4,9 +4,9 @@ import SharedKernel
 import SwiftUI
 import UniformTypeIdentifiers
 
-/// 課表範本編輯（設計稿 9b/11b）：套 `EditScaffold`。逐組編輯——每個動作收起顯示摘要膠囊，
-/// 點膠囊/整列展開才逐組編輯（組N／重量表達式／次數）。重量表達式只支援絕對值／相對上次，
-/// **不做 %1RM**（本次設計範圍外，見動作庫 v3 README J 節）。
+/// 課表範本編輯（設計稿 9b/11b/19a）：套 `EditScaffold`。逐組編輯——每個動作收起顯示兩行摘要
+/// （主行「名稱 ＋ 組數 × 次數」、細節行「器材 pill ＋ 重量」），點整列展開才逐組編輯
+/// （組N／重量表達式／次數）。
 struct TemplateFormView: View {
     /// 目前語言：`localString` 要靠它才能查到 app 設定的語言（而非手機語系）。
     @Environment(\.locale) private var locale
@@ -207,31 +207,45 @@ struct TemplateFormView: View {
         }
     }
 
+    /// 19a：主行「名稱靠左 ＋ 規格靠右」兩個元素兩條線；器材退到細節行、與名稱共用左緣。
+    /// 舊排法把把手、名稱、器材、規格四個元素塞進同一行，三條垂直線在 345pt 裡互相爭。
     private func collapsedRow(_ block: PlanBlock) -> some View {
         ListRow(
             title: Text(verbatim: name(for: block.exerciseId)),
-            subtitle: subtitle(for: block.sets),
-            equipment: equipmentName(for: block.exerciseId),
             onTap: { expandedExerciseIndex = block.exerciseIndex },
             leading: { dragHandle },
-            trailing: { capsule(for: block.sets) }
+            detail: { detailLine(for: block) },
+            trailing: {
+                // 純數值，不套膠囊：填色 pill 在這套系統是標籤與按鈕的形狀，
+                // 用在靜態數值上會讓人以為它可以單獨點。點擊目標是整列。
+                Text(verbatim: PlanFormatting.blockSpec(sets: block.sets, language: AppLanguage(locale: locale)))
+                    .font(TLFont.display(15))
+                    .foregroundStyle(TLColor.text)
+                    .lineLimit(1)
+            }
         )
         .contextMenu { blockMenu(block) }
+    }
+
+    /// 細節行：器材 pill ＋（有設重量時）重量。日後要接別的技術欄位也在這一行往後加。
+    @ViewBuilder
+    private func detailLine(for block: PlanBlock) -> some View {
+        HStack(spacing: 6) {
+            EquipmentTag(equipmentName(for: block.exerciseId))
+            if let weight = PlanFormatting.blockWeight(sets: block.sets, language: AppLanguage(locale: locale)) {
+                Text(verbatim: "· \(weight)")
+                    .font(TLFont.zh(TLFont.rowSub, .regular))
+                    .foregroundStyle(TLColor.neutral600)
+                    .lineLimit(1)
+                    .truncationMode(.tail)
+            }
+        }
     }
 
     private var dragHandle: some View {
         Image(systemName: "line.3.horizontal")
             .font(.system(size: 14, weight: .semibold))
             .foregroundStyle(TLColor.neutral400)
-    }
-
-    private func capsule(for sets: [PlanSet]) -> some View {
-        Text(verbatim: capsuleText(for: sets))
-            .font(TLFont.display(15))
-            .foregroundStyle(TLColor.text)
-            .padding(.horizontal, 12)
-            .padding(.vertical, 6)
-            .background(Capsule().fill(TLColor.neutral200))
     }
 
     @ViewBuilder
@@ -348,6 +362,7 @@ struct TemplateFormView: View {
             onTap: { pickingExercise = true },
             leading: { CircleBadge(icon: "plus", fill: TLColor.neutral200, tint: TLColor.neutral600) }
         )
+        .accessibilityIdentifier("templateForm.addExercise")
     }
 
     // MARK: - 刪除
@@ -477,53 +492,9 @@ struct TemplateFormView: View {
         }
     }
 
-    private enum BlockWeightMode {
-        case uniform(WeightExpression?)
-        case varying
-    }
-
-    private func weightMode(for sets: [PlanSet]) -> BlockWeightMode {
-        guard let first = sets.first?.targetWeight else {
-            return sets.allSatisfy { $0.targetWeight == nil } ? .uniform(nil) : .varying
-        }
-        return sets.allSatisfy { $0.targetWeight == first } ? .uniform(first) : .varying
-    }
-
-    private func subtitle(for sets: [PlanSet]) -> Text {
-        switch weightMode(for: sets) {
-        case .uniform(.some(.absolute)), .uniform(nil):
-            localText("template.block.same \(sets.count)")
-        case .uniform(.some(.relativeToLast)):
-            localText("template.block.relativeToLast \(sets.count)")
-        case .uniform(.some(.percentOfMax)):
-            localText("template.block.percentOfMax \(sets.count)")
-        case .varying:
-            localText("template.block.progressive \(sets.count)")
-        }
-    }
-
     /// 器材顯示名（動作名允許重複，靠它分辨）。
     private func equipmentName(for exerciseId: UUID) -> String {
         (catalog.first { $0.id == exerciseId }?.equipment ?? .other).displayName(locale)
-    }
-
-    /// 右側膠囊統一成「重量單位 × 次數」（例「20kg × 8」），跟課表編輯同一個格式。
-    /// 組數不放進來——列的副標已經寫了「3 組」，重複印一次只是佔位置。
-    private func capsuleText(for sets: [PlanSet]) -> String {
-        let reps = sets.first?.targetReps ?? 0
-        switch weightMode(for: sets) {
-        case .uniform(.some(.absolute(let w))):
-            return "\(w.displayString) × \(reps)"
-        case .uniform(.some(.relativeToLast(let delta))):
-            let last = String(format: localString("plan.weight.relativeToLast %@", locale), signedDelta(delta))
-            return "\(last) × \(reps)"
-        case .uniform(.some(.percentOfMax(let percent))):
-            return "\(formatNumber(percent))% × \(reps)"
-        case .uniform(nil):
-            return "× \(reps)"
-        case .varying:
-            return String(format: localString("template.stats.sets %lld", locale), sets.count)
-        }
     }
 }
 
@@ -654,23 +625,27 @@ private struct SetEditSheet: View {
     }
 
     var body: some View {
-        VStack(alignment: .leading, spacing: TLSpace.gapL) {
-            topBar
-            modeChips
-            DualValuePicker(
-                primaryValue: $weightValue,
-                primaryValues: weightValues,
-                primaryKicker: primaryKicker,
-                secondaryValue: $repsValue,
-                secondaryValues: repsValues,
-                secondaryKicker: localString("template.setNumber.reps", locale),
-                quickActions: quickActions
-            )
+        CompactSheet(
+            title: Text(verbatim: exerciseName) + Text(verbatim: " · ")
+                + localText("template.setNumber \(setNumber)"),
+            cancelTitle: localText("plan.cancel"),
+            confirmTitle: localText("plan.done"),
+            onCancel: { dismiss() },
+            onConfirm: { applyAndDismiss() }
+        ) {
+            VStack(alignment: .leading, spacing: TLSpace.gapL) {
+                modeChips
+                DualValuePicker(
+                    primaryValue: $weightValue,
+                    primaryValues: weightValues,
+                    primaryKicker: primaryKicker,
+                    secondaryValue: $repsValue,
+                    secondaryValues: repsValues,
+                    secondaryKicker: localString("template.setNumber.reps", locale),
+                    quickActions: quickActions
+                )
+            }
         }
-        .padding(TLSpace.page)
-        .padding(.top, TLSpace.gapL)
-        .background(TLColor.bg.ignoresSafeArea())
-        .presentationDetents([.height(560)])
     }
 
     private var primaryKicker: String {
@@ -681,33 +656,17 @@ private struct SetEditSheet: View {
         }
     }
 
-    private var topBar: some View {
-        HStack {
-            Button { dismiss() } label: { localText("plan.cancel") }
-                .font(TLFont.zh(15.5, .medium))
-                .foregroundStyle(TLColor.neutral600)
-            Spacer()
-            (Text(verbatim: exerciseName) + Text(verbatim: " · ") + localText("template.setNumber \(setNumber)"))
-                .font(TLFont.zh(TLFont.rowTitle, .semibold))
-                .foregroundStyle(TLColor.text)
-            Spacer()
-            Button {
-                switch mode {
-                case .relativeToLast:
-                    targetWeight = .relativeToLast(delta: Weight(value: weightValue, unit: .kg))
-                case .percentOfMax:
-                    targetWeight = .percentOfMax(weightValue)
-                case .absolute:
-                    targetWeight = .absolute(Weight(value: weightValue, unit: .kg))
-                }
-                targetReps = Int(repsValue)
-                dismiss()
-            } label: {
-                localText("plan.done")
-            }
-            .font(TLFont.zh(15.5, .bold))
-            .foregroundStyle(TLColor.accent700)
+    private func applyAndDismiss() {
+        switch mode {
+        case .relativeToLast:
+            targetWeight = .relativeToLast(delta: Weight(value: weightValue, unit: .kg))
+        case .percentOfMax:
+            targetWeight = .percentOfMax(weightValue)
+        case .absolute:
+            targetWeight = .absolute(Weight(value: weightValue, unit: .kg))
         }
+        targetReps = Int(repsValue)
+        dismiss()
     }
 
     private var modeChips: some View {

@@ -83,7 +83,7 @@ Packages/
     Sources/
       RemindersDomain/    ← 純邏輯：偏好、channel ports、dispatcher（可被任何 domain import）
       RemindersKit/       ← 平台實作：UN 本地通知、系統音、UserDefaults（只有 App 接線時 import）
-  DesignSystem/           ← 共用 UI 元件與 design token（無 domain 邏輯，故無 Tests/）
+  DesignSystem/           ← 共用 UI 元件與 design token（無 domain 邏輯；Tests/ 只放純函式）
 ```
 
 相依方向：`SpecData → SpecDomain`、`SpecPresentation → SpecDomain`、`SpecDomain → SharedKernel`。
@@ -132,7 +132,7 @@ Training 的休息倒數不認識任何提醒手段，只呼叫 `RestEndRemindin
 
 三類測試，各自獨立：
 
-1. **Unit test**：八個 package（SharedKernel/Spec/Training/Plan/History/Settings/Reminders/Ability）各自的 `Tests/`，用 Swift Testing（`import Testing`）。DesignSystem 沒有 `Tests/`——純 UI 元件，無邏輯可測。
+1. **Unit test**：九個 package（SharedKernel/Spec/Training/Plan/History/Settings/Reminders/Ability/DesignSystem）各自的 `Tests/`，用 Swift Testing（`import Testing`）。DesignSystem 只測純函式（滾輪幾何），元件本身是 View 測不動。
    - `*DomainTests`：UseCase 注 mock repository，純邏輯測，秒級、免模擬器。
    - `*DataTests`：Repository 用 in-memory SwiftData 測。
    - `*PresentationTests`：ViewModel 注 mock repository/port 測。
@@ -143,10 +143,57 @@ Training 的休息倒數不認識任何提醒手段，只呼叫 `RestEndRemindin
 
 - `make test-unit`：逐 package 執行 `swift test`（不需模擬器，最快）。
 - `make test-uitest`：`xcodegen generate` 重生專案後，用 `UITests.xctestplan` 跑 `TrainingLaUITests`。
+  **跑兩輪**：同一批 case，App 繁中一輪、App 英文一輪（見下方「英文覆蓋」）。
 - `make test-e2e`：目前是佔位（echo 提示尚無真實後端）。
 - `make test`：`test-unit` + `test-uitest`。
 
 同一份 `swift test` 也能在 Xcode 裡跑：`project.yml` 把每個 package 的 unit test target 都掛進 `UnitTests.xctestplan`，跟只含 `TrainingLaUITests` 的 `UITests.xctestplan` 是兩個獨立的 Test Plan（scheme 的 Test Plan 下拉選單可切換），Test Navigator 兩邊都看得到、能分開跑，不會混在一起。
+
+## UI test 怎麼定位元素：`accessibilityIdentifier` 命名
+
+UI test 原本一律靠中文標籤查元素（`app.buttons["儲存"]`）。那在單一語言下沒問題，但 App 支援
+在設定裡切語言之後，**任何寫死語言文字的測試就再也跑不了另一種語言**——而「切語言後畫面壞掉」
+正是最需要自動化守住的東西。所以要定位的元件一律掛 identifier。
+
+這是**為了測試與工具化**，不是無障礙工程。加 identifier 不等於做了 VoiceOver 支援，
+也不要拿它當無障礙覆蓋率的指標。
+
+- **格式 `screen.element`**，點分隔，需要再細分往後接：
+  `exerciseForm.save`、`activeWorkout.completeSet`、`tabBar.item.training`、`picker.confirm`。
+  早期有一派 camelCase 寫法（`libraryAddButton`、`eraseConfirmButton`），逐步收斂掉，不要再新增。
+- **只給測試真的要定位的元件加**，不是全畫面掛滿。
+- **測試自己輸入的資料照舊用文字定位**（動作名、課表名）——那是測試自己打進去的字串，
+  本來就與介面語言無關。
+- **斷言動態內容時只驗「帶這個 id 的元件存在」**，內容正確性歸 unit test。
+  測試一旦斷言「目標 60kg × 8」這種字串，就又把自己綁死在某個語言上了。
+
+`XCUIElement` 的 subscript 同時比對 identifier 與 label，所以加 identifier 不會弄壞既有那些
+還在用中文查找的測試——**但這也表示「漏改了某一處」不會被測出來**。轉換完成與否要看
+「UITests 裡的中文字面值歸零」，不能只看測試綠不綠。這條由 `make lint` 的規則 5 機器擋：
+`UITests/` 裡凡是用中文查元素（subscript、`NSPredicate`）一律失敗，只放行測試自己輸入的資料
+（白名單）。轉換已完成，腳本的 `PENDING` 是空的——新增測試不該再往裡面加。
+
+### 英文覆蓋：同一批測試跑兩輪
+
+**裝置語系兩輪都維持繁中，只換 App 語言**。兩邊都設英文的話 `String(localized:)` 也會回英文，
+反而把「不跟著 App 語言切」這個 bug 藏起來。
+
+```
+make test-uitest      # 兩輪都跑（預設，CI 也是這個）
+make test-uitest-zh   # 只跑 App 繁中那一輪
+make test-uitest-en   # 只跑 App 英文那一輪
+make test-uitest-en ONLY="SettingsUITests ExerciseListUITests"   # 只跑指定類別
+```
+
+英文那一輪靠 `xcodebuild test TEST_RUNNER_UITEST_APP_LANGUAGE=en` 把語言注入測試 runner，
+`UITests/UITestSupport.swift` 讀到就把 `--uitest-language=en` 併進 launch arguments。
+測試碼一行都不用重複 —— 不需要每支 case 寫中英兩份 func。
+
+**新測試一律用 `launchForUITest(app)` 啟動**，不要自己設 `launchArguments`。它除了帶齊
+`--uitest-inmemory` / `--uitest-today` 之外，還會確認 App 語言真的是這一輪期望的那個：
+測試主體改成 identifier 定位之後就跟語言無關了，所以參數萬一失效，英文那一輪會**照樣全過**，
+變成假的英文覆蓋（PR #54 發生過一次）。要固定語言（例如「測語言切換本身」的 case）
+就傳 `extra: ["--uitest-language=zh-Hant"]`，`extra` 會蓋過該輪的預設。
 
 ## `Config.xcconfig`：device / headless 可調參數
 

@@ -6,21 +6,21 @@ final class RestReminderSettingsUITests: XCTestCase {
     @MainActor
     func testReminderTogglesRenderWithDefaultsAndToggle() throws {
         let app = XCUIApplication()
-        app.launchArguments = ["--uitest-inmemory"]
-        app.launch()
+        launchForUITest(app)
 
-        app.buttons["設定"].tap()
+        app.buttons["tabBar.item.settings"].tap()
 
         // 改版後前景／背景兩區併成單一「休息結束提醒」群組（三個開關同組）。
-        XCTAssertTrue(app.staticTexts["休息結束提醒"].waitForExistence(timeout: 5))
+        XCTAssertTrue(app.staticTexts["settings.restReminder.header"].waitForExistence(timeout: 5))
 
-        let popup = app.switches["彈窗"]
-        let sound = app.switches["聲音"]
-        let background = app.switches["背景通知"]
+        let popup = app.switches["settings.toggle.popup"]
+        let sound = app.switches["settings.toggle.sound"]
+        let background = app.switches["settings.toggle.background"]
         XCTAssertTrue(popup.waitForExistence(timeout: 5))
         XCTAssertTrue(sound.exists)
         XCTAssertTrue(background.exists)
-        XCTAssertFalse(app.switches["震動"].exists) // 震動設定已移除（跟隨系統，App 控不了）
+        // 震動設定已移除（跟隨系統，App 控不了）——群組裡就只有這三個開關。
+        XCTAssertEqual(app.switches.matching(NSPredicate(format: "identifier BEGINSWITH 'settings.toggle.'")).count, 3)
 
         // 預設：全開
         XCTAssertEqual(popup.value as? String, "1")

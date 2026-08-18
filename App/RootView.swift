@@ -60,6 +60,9 @@ struct RootView: View {
             SettingsView(
                 viewModel: settingsViewModel,
                 appVersion: AppVersion.displayString(infoDictionary: Bundle.main.infoDictionary ?? [:]),
+                // 政策頁網址由 Config.xcconfig 經 Info.plist 注入（Swift 裡不寫死網址）；
+                // 語言 fragment 由設定頁依當下 app 語言現算。
+                privacyPolicyBaseURL: PrivacyPolicy.baseURL(infoDictionary: Bundle.main.infoDictionary ?? [:]),
                 // 能力值編輯的 ± 與刻度尺跟隨「設定 › 重量調整級距」，不寫死（handoff-15 G 節）。
                 abilityDestination: {
                     AnyView(AbilityListView(
@@ -77,11 +80,16 @@ struct RootView: View {
             // tab 文字走 App target 自帶的 Localizable.xcstrings（在 main bundle，Text 預設查 main，
             // 不需 bundle: 參數）；隨根部注入的 \.locale 即時切換。
             TLTabBar(selection: $selection, items: [
-                .init(0, systemImage: "figure.strengthtraining.traditional", label: Text("tab.training")),
-                .init(1, systemImage: "books.vertical", label: Text("tab.exercises")),
-                .init(2, systemImage: "calendar", label: Text("tab.plan")),
-                .init(3, systemImage: "chart.line.uptrend.xyaxis", label: Text("tab.history")),
-                .init(4, systemImage: "gearshape", label: Text("tab.settings")),
+                .init(0, systemImage: "figure.strengthtraining.traditional",
+                      label: Text("tab.training"), identifier: "training"),
+                .init(1, systemImage: "books.vertical",
+                      label: Text("tab.exercises"), identifier: "exercises"),
+                .init(2, systemImage: "calendar",
+                      label: Text("tab.plan"), identifier: "plan"),
+                .init(3, systemImage: "chart.line.uptrend.xyaxis",
+                      label: Text("tab.history"), identifier: "history"),
+                .init(4, systemImage: "gearshape",
+                      label: Text("tab.settings"), identifier: "settings"),
             ])
         }
         // 主題套在根部：設定 tab 一改，整個 App 立即換色
@@ -120,7 +128,7 @@ private struct LibraryTabView: View {
                 PageHeader(Text("tab.exercises")) {
                     CircleIconButton(systemImage: "plus", filled: true) { createToken += 1 }
                         .accessibilityLabel(Text("library.add"))
-                        .accessibilityIdentifier("libraryAddButton")
+                        .accessibilityIdentifier("library.add")
                         // 長按 → 跨類新增選單（設計稿 10a）；短按維持直接新增當前分頁。
                         .simultaneousGesture(
                             LongPressGesture(minimumDuration: 0.4)
@@ -132,7 +140,7 @@ private struct LibraryTabView: View {
                     .init(.templates, Text("library.templates")),
                     .init(.rotation, Text("library.rotation")),
                     .init(.program, Text("library.program")),
-                ])
+                ], identifierPrefix: "library.segment")
                 .padding(.horizontal, TLSpace.page)
                 .padding(.top, TLSpace.gapL)
                 .padding(.bottom, TLSpace.gapM)

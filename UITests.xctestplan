@@ -1,34 +1,40 @@
 {
-  "configurations" : [
+  "configurations": [
     {
-      "id" : "A010CCF7-BA7E-4CB4-BB15-9D264BFF382F",
-      "name" : "zh-Hant",
-      "options" : {
-        "language" : "zh-Hant",
-        "region" : "TW"
+      "id": "A010CCF7-BA7E-4CB4-BB15-9D264BFF382F",
+      "name": "zh-Hant",
+      "options": {
+        "language": "zh-Hant",
+        "region": "TW"
       }
     },
     {
-      "id" : "6F2E1C4B-9A73-4D58-8E11-2B7C5D0F3A96",
-      "name" : "en",
-      "options" : {
-        "language" : "en",
-        "region" : "US"
+      "id": "7C1D9F42-58A0-4E3B-9D6A-0B2F4E8A1C37",
+      "name": "en-app",
+      "options": {
+        "language": "zh-Hant",
+        "region": "TW",
+        "environmentVariableEntries": [
+          {
+            "key": "UITEST_APP_LANGUAGE",
+            "value": "en"
+          }
+        ]
       }
     }
   ],
-  "defaultOptions" : {
-    "language" : "zh-Hant",
-    "region" : "TW"
+  "defaultOptions": {
+    "language": "zh-Hant",
+    "region": "TW"
   },
-  "testTargets" : [
+  "testTargets": [
     {
-      "target" : {
-        "containerPath" : "container:TrainingLa.xcodeproj",
-        "identifier" : "TrainingLaUITests",
-        "name" : "TrainingLaUITests"
+      "target": {
+        "containerPath": "container:TrainingLa.xcodeproj",
+        "identifier": "TrainingLaUITests",
+        "name": "TrainingLaUITests"
       }
     }
   ],
-  "version" : 1
+  "version": 1
 }

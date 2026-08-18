@@ -199,6 +199,7 @@ struct TrainingPreviewSheet: View {
                 localText("training.preview.start")
             }
             .buttonStyle(.tlPrimary)
+            .accessibilityIdentifier("trainingPreview.start")
             HStack(spacing: TLSpace.gapM) {
                 if let onAdjustOnce {
                     Button {

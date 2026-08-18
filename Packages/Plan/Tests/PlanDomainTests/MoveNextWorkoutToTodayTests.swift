@@ -1,0 +1,211 @@
+import Foundation
+import PlanDomain
+import SharedKernel
+import Testing
+
+private func moveSpec(_ name: String) -> WorkoutSpec {
+    WorkoutSpec(name: name, sets: [
+        PlanSet(id: UUID(), exerciseId: UUID(), exerciseIndex: 0, setIndex: 0,
+                targetWeight: .absolute(Weight(value: 60, unit: .kg)), targetReps: 8, restSec: 60),
+    ])
+}
+
+private func moveProgram(id: UUID, cycleLength: Int, days: [Int: WorkoutSpec]) -> Program {
+    Program(id: id, name: "推拉腿", orderIndex: 0, cycleLength: cycleLength, days: days,
+            createdAt: Date(), updatedAt: Date())
+}
+
+private let moveStart = DayDate(year: 2026, month: 7, day: 15)
+
+/// 搬完要把今天落地成真實排課，所以 use case 需要 plan repo ＋ materialize。
+private func makeMoveUseCase(
+    _ programRepo: MockProgramRepository,
+    _ assignRepo: MockAssignmentRepository,
+    _ planRepo: MockPlanWorkoutRepository,
+    today: DayDate
+) -> MoveNextWorkoutToToday {
+    MoveNextWorkoutToToday(
+        programRepository: programRepo,
+        assignmentRepository: assignRepo,
+        planRepository: planRepo,
+        materialize: MaterializeProjectedWorkout(
+            planRepository: planRepo,
+            preferences: InMemoryTrainingPreferenceStore(),
+            lastPerformedWeightLookup: MockLastPerformedWeightLookup(),
+            abilityValueLookup: MockAbilityValueLookup()
+        ),
+        today: { today }
+    )
+}
+
+/// 「把明天的腿日挪到今天」（13f 左）。重點是**只有被搬的那兩天變**，其餘節奏照舊。
+struct MoveNextWorkoutToTodayTests {
+    /// 第0天推、第1天休、第2天拉；今天站在第1天（休息）。
+    private func seedThreeDayCycle(
+        _ programRepo: MockProgramRepository, _ assignRepo: MockAssignmentRepository,
+        mode: ProgramRunMode = .repeating
+    ) async -> (assignmentId: UUID, programId: UUID) {
+        let pid = UUID()
+        let aid = UUID()
+        await programRepo.seed(moveProgram(id: pid, cycleLength: 3,
+                                           days: [0: moveSpec("推日"), 2: moveSpec("拉日")]))
+        await assignRepo.seed(ProgramAssignment(id: aid, programId: pid, startDate: moveStart, mode: mode))
+        return (aid, pid)
+    }
+
+    @Test func swapsTodayWithNextWorkoutDay() async throws {
+        let programRepo = MockProgramRepository()
+        let assignRepo = MockAssignmentRepository()
+        let (aid, _) = await seedThreeDayCycle(programRepo, assignRepo)
+        let today = moveStart.adding(days: 1)   // 第1天＝休息
+        let planRepo = MockPlanWorkoutRepository()
+        let useCase = makeMoveUseCase(programRepo, assignRepo, planRepo, today: today)
+
+        try await useCase(assignmentId: aid)
+
+        let saved = try #require(try await assignRepo.get(id: aid))
+        // 今天拿到「拉日」那天的 cycleDay（2），明天拿到今天原本的休息 cycleDay（1）。
+        #expect(saved.cycleDay(for: today, cycleLength: 3) == 2)
+        #expect(saved.cycleDay(for: today.adding(days: 1), cycleLength: 3) == 1)
+    }
+
+    @Test func laterDaysKeepTheirOriginalRhythm() async throws {
+        let programRepo = MockProgramRepository()
+        let assignRepo = MockAssignmentRepository()
+        let (aid, _) = await seedThreeDayCycle(programRepo, assignRepo)
+        let today = moveStart.adding(days: 1)
+        let planRepo = MockPlanWorkoutRepository()
+        let useCase = makeMoveUseCase(programRepo, assignRepo, planRepo, today: today)
+
+        try await useCase(assignmentId: aid)
+
+        let saved = try #require(try await assignRepo.get(id: aid))
+        // 被搬的兩天之外一律照週期公式：第3天回到 cycleDay 0、第4天 1、第5天 2……
+        for step in 2...5 {
+            let date = today.adding(days: step)
+            #expect(saved.cycleDay(for: date, cycleLength: 3) == (1 + step) % 3)
+        }
+    }
+
+    @Test func doesNothingWhenTodayAlreadyHasAWorkout() async throws {
+        let programRepo = MockProgramRepository()
+        let assignRepo = MockAssignmentRepository()
+        let (aid, _) = await seedThreeDayCycle(programRepo, assignRepo)
+        let planRepo = MockPlanWorkoutRepository()
+        let useCase = makeMoveUseCase(programRepo, assignRepo, planRepo, today: moveStart)
+
+        try await useCase(assignmentId: aid)
+
+        let saved = try #require(try await assignRepo.get(id: aid))
+        #expect(saved.dayOverrides.isEmpty)
+    }
+
+    @Test func doesNothingWhenOnceModeHasNoWorkoutLeft() async throws {
+        let programRepo = MockProgramRepository()
+        let assignRepo = MockAssignmentRepository()
+        let pid = UUID()
+        let aid = UUID()
+        // once 模式、3 天週期，只有第0天有排課 → 站在第1天時往後已經沒有訓練日。
+        await programRepo.seed(moveProgram(id: pid, cycleLength: 3, days: [0: moveSpec("推日")]))
+        await assignRepo.seed(ProgramAssignment(id: aid, programId: pid, startDate: moveStart, mode: .once))
+        let planRepo = MockPlanWorkoutRepository()
+        let useCase = makeMoveUseCase(programRepo, assignRepo, planRepo, today: moveStart.adding(days: 1))
+
+        try await useCase(assignmentId: aid)
+
+        let saved = try #require(try await assignRepo.get(id: aid))
+        #expect(saved.dayOverrides.isEmpty)
+    }
+
+    @Test func restDayInfoReflectsTheSwapAndDropsRoundNumber() async throws {
+        let programRepo = MockProgramRepository()
+        let assignRepo = MockAssignmentRepository()
+        let (aid, _) = await seedThreeDayCycle(programRepo, assignRepo)
+        let today = moveStart.adding(days: 1)
+        let planRepo = MockPlanWorkoutRepository()
+        try await makeMoveUseCase(programRepo, assignRepo, planRepo, today: today)(assignmentId: aid)
+
+        // 挪完今天就有排課了 → 不再是休息日。
+        let restDayToday = try await GetActiveRestDay(
+            programRepository: programRepo, assignmentRepository: assignRepo, today: { today }
+        )()
+        #expect(restDayToday == nil)
+
+        // 明天變成休息日；那天已被搬過，算不出「第幾輪」，文案要退成只寫 D 幾。
+        let restDayTomorrow = try await GetActiveRestDay(
+            programRepository: programRepo, assignmentRepository: assignRepo,
+            today: { today.adding(days: 1) }
+        )()
+        #expect(restDayTomorrow?.dayNumber == 2)
+        #expect(restDayTomorrow?.roundNumber == nil)
+    }
+
+    /// 回歸：只翻 `dayOverrides` 的話，課表月曆／長期課表會更新，訓練首頁卻因為
+    /// `TodaysWorkout` 查的是真實 `PlanWorkout`（補登只補到昨天）而掉進「今天沒有排課」。
+    /// 搬完必須把今天落地。
+    @Test func materializesTodaySoTrainingHomeSeesIt() async throws {
+        let programRepo = MockProgramRepository()
+        let assignRepo = MockAssignmentRepository()
+        let planRepo = MockPlanWorkoutRepository()
+        let (aid, _) = await seedThreeDayCycle(programRepo, assignRepo)
+        let today = moveStart.adding(days: 1)
+
+        try await makeMoveUseCase(programRepo, assignRepo, planRepo, today: today)(assignmentId: aid)
+
+        let todays = try await TodaysWorkout(repository: planRepo, today: { today })()
+        #expect(todays?.name == "拉日")
+        #expect(todays?.assignmentId == aid)
+        #expect(todays?.status == .notStarted)
+    }
+
+    /// 被搬走的那天如果已經落地過（月曆「加入這天」），不該還留在原地變成兩份。
+    @Test func removesNotStartedPlanOnTheDayItWasMovedFrom() async throws {
+        let programRepo = MockProgramRepository()
+        let assignRepo = MockAssignmentRepository()
+        let planRepo = MockPlanWorkoutRepository()
+        let (aid, _) = await seedThreeDayCycle(programRepo, assignRepo)
+        let today = moveStart.adding(days: 1)
+        let sourceDay = today.adding(days: 1)
+        await planRepo.seed([PlanWorkout(
+            id: UUID(), name: "拉日", date: sourceDay, status: .notStarted,
+            origin: .program, assignmentId: aid, orderIndex: 0, sets: []
+        )])
+
+        try await makeMoveUseCase(programRepo, assignRepo, planRepo, today: today)(assignmentId: aid)
+
+        #expect(try await planRepo.onDate(sourceDay).isEmpty)
+        #expect(try await planRepo.onDate(today).count == 1)
+    }
+
+    /// 已經開始／完成的那天是真實紀錄，不能因為搬動就被刪掉。
+    @Test func keepsAlreadyStartedPlanOnTheSourceDay() async throws {
+        let programRepo = MockProgramRepository()
+        let assignRepo = MockAssignmentRepository()
+        let planRepo = MockPlanWorkoutRepository()
+        let (aid, _) = await seedThreeDayCycle(programRepo, assignRepo)
+        let today = moveStart.adding(days: 1)
+        let sourceDay = today.adding(days: 1)
+        await planRepo.seed([PlanWorkout(
+            id: UUID(), name: "拉日", date: sourceDay, status: .done,
+            origin: .program, assignmentId: aid, orderIndex: 0, sets: []
+        )])
+
+        try await makeMoveUseCase(programRepo, assignRepo, planRepo, today: today)(assignmentId: aid)
+
+        #expect(try await planRepo.onDate(sourceDay).count == 1)
+    }
+
+    @Test func resetProgressClearsOverrides() async throws {
+        let programRepo = MockProgramRepository()
+        let assignRepo = MockAssignmentRepository()
+        let (aid, pid) = await seedThreeDayCycle(programRepo, assignRepo)
+        let today = moveStart.adding(days: 1)
+        let planRepo = MockPlanWorkoutRepository()
+        try await makeMoveUseCase(programRepo, assignRepo, planRepo, today: today)(assignmentId: aid)
+
+        try await ResetProgramProgress(repository: assignRepo)(programId: pid, today: today)
+
+        let saved = try #require(try await assignRepo.get(id: aid))
+        #expect(saved.dayOverrides.isEmpty)
+    }
+}

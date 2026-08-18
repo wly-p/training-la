@@ -14,6 +14,8 @@ public struct WeekTrainingSummary: Equatable, Sendable {
 
     public let sessionCount: Int
     public let totalMinutes: Int
+    /// 本週實際總量（公斤）；13f 左的綠卡要寫「這週已經練了 3 次、9,140 kg」。
+    public let totalVolume: Double
     /// 週一到週日。
     public let days: [Day]
 }
@@ -52,13 +54,19 @@ public struct LastWorkoutComparison: Equatable, Sendable {
     }
 }
 
-/// 訓練首頁「重複上次」列：最近一場已完成場次的摘要。
-public struct RecentSessionSummary: Equatable, Sendable {
+/// 訓練首頁「重複上次」列（6b）與「最近練過」清單（13f 右）：一場已完成場次的摘要。
+public struct RecentSessionSummary: Equatable, Sendable, Identifiable {
     public let workoutId: UUID
     public let day: DayDate
     /// 範本/排課名；nil＝那場是自由訓練。
     public let name: String?
     public let setCount: Int
+    /// 那場練了幾分鐘；算不出（缺起訖時間）＝nil，副標就不寫時長。
+    public let minutes: Int?
+    /// 照哪個排課做的；nil＝自由訓練，「再練一次」只能開自由訓練。
+    public let planWorkoutId: UUID?
+
+    public var id: UUID { workoutId }
 }
 
 /// 中斷後恢復（13b）：有未結束場次時，一次性對話框用的摘要。
@@ -93,6 +101,8 @@ public final class TrainingHomeViewModel {
     public private(set) var weekSummary: WeekTrainingSummary?
     /// 最近一場已完成場次（「重複上次」列）；nil＝完全沒練過。
     public private(set) var lastSession: RecentSessionSummary?
+    /// 「最近練過」清單（13f 右）：最近幾場已完成場次，最新在前。
+    public private(set) var recentSessions: [RecentSessionSummary] = []
     /// 已完成場次快取（最近在前）；供開練前預覽「和上次比」同步試算，不用再打一次 repo。
     private var recentFinished: [Workout] = []
     /// 非 nil → 呈現記錄畫面。
@@ -106,6 +116,10 @@ public final class TrainingHomeViewModel {
     public var activePlanCount: Int {
         (todaysPlan != nil ? 1 : 0) + rotations.count
     }
+
+    /// Header kicker 的日期。View 不要自己 `Date()`——那樣 UI 測試釘死「今天」時
+    /// 頁首會跟底下的內容對不上。
+    public var todayDate: DayDate { today() }
 
     private let startWorkout: StartWorkout
     private let resumeWorkout: ResumeWorkout
@@ -177,15 +191,38 @@ public final class TrainingHomeViewModel {
         let finished = try await recentWorkouts?() ?? []
         recentFinished = finished
         weekSummary = Self.weekSummary(from: finished, today: today())
+        // 13f 右的「最近練過」只給兩列（設計稿如此）；自由訓練沒有名字、列不出東西，先濾掉。
+        var summaries: [RecentSessionSummary] = []
+        for workout in finished where workout.planWorkoutId != nil {
+            guard summaries.count < Self.recentSessionLimit else { break }
+            guard let planWorkoutId = workout.planWorkoutId,
+                  let name = try await plannedProvider?.blueprint(planWorkoutId: planWorkoutId)?.name
+            else { continue }
+            summaries.append(Self.summary(for: workout, name: name))
+        }
+        recentSessions = summaries
         if let latest = finished.first {
             var name: String?
             if let planWorkoutId = latest.planWorkoutId {
                 name = try await plannedProvider?.blueprint(planWorkoutId: planWorkoutId)?.name
             }
-            lastSession = RecentSessionSummary(workoutId: latest.id, day: latest.day, name: name, setCount: latest.sets.count)
+            lastSession = Self.summary(for: latest, name: name)
         } else {
             lastSession = nil
         }
+    }
+
+    private static let recentSessionLimit = 2
+
+    private static func summary(for workout: Workout, name: String?) -> RecentSessionSummary {
+        var minutes: Int?
+        if let start = workout.startedAt, let end = workout.endedAt {
+            minutes = max(0, Int(end.timeIntervalSince(start) / 60))
+        }
+        return RecentSessionSummary(
+            workoutId: workout.id, day: workout.day, name: name, setCount: workout.sets.count,
+            minutes: minutes, planWorkoutId: workout.planWorkoutId
+        )
     }
 
     /// 週一到週日 7 天，依 `finished`（已完成場次）標記完成日；`today` 落在哪天標 `isToday`。
@@ -199,10 +236,13 @@ public final class TrainingHomeViewModel {
             guard let start = workout.startedAt, let end = workout.endedAt else { return sum }
             return sum + max(0, Int(end.timeIntervalSince(start) / 60))
         }
+        let totalVolume = thisWeek.reduce(0.0) { $0 + FinishSummaryFormatting.totalVolume($1.sets) }
         let days = weekDates.map { date in
             WeekTrainingSummary.Day(date: date, isToday: date == today, completed: doneDates.contains(date))
         }
-        return WeekTrainingSummary(sessionCount: thisWeek.count, totalMinutes: totalMinutes, days: days)
+        return WeekTrainingSummary(
+            sessionCount: thisWeek.count, totalMinutes: totalMinutes, totalVolume: totalVolume, days: days
+        )
     }
 
     /// 自由訓練（不帶課表）。
@@ -213,6 +253,32 @@ public final class TrainingHomeViewModel {
     /// 重複上次：開一場新的自由訓練（沿用「上次」提示的既有機制，選動作時會自動帶上次紀錄預填）。
     public func startRepeatingLast() async {
         await start(blueprint: nil)
+    }
+
+    /// 「最近練過 · 再練一次」（13f 右）：照那場當初的排課藍圖再開一場；
+    /// 藍圖查不回來（排課被刪了）就退成自由訓練，不讓按鈕變成死的。
+    public func startRepeating(_ session: RecentSessionSummary) async {
+        guard let planWorkoutId = session.planWorkoutId else {
+            await start(blueprint: nil)
+            return
+        }
+        do {
+            let blueprint = try await plannedProvider?.blueprint(planWorkoutId: planWorkoutId)
+            await start(blueprint: blueprint)
+        } catch {
+            errorMessage = .training("training.error.startFailed \(error.localizedDescription)")
+        }
+    }
+
+    /// 「把明天的腿日挪到今天」（13f 左）：對調今天與下一個訓練日，然後重新整理 —— 挪完今天就
+    /// 有排課了，畫面自然從休息日狀態切成 6b。
+    public func moveNextWorkoutToToday() async {
+        do {
+            try await plannedProvider?.moveNextWorkoutToToday()
+            await refresh()
+        } catch {
+            errorMessage = .training("training.error.saveFailed \(error.localizedDescription)")
+        }
     }
 
     /// 照今天的課表開始。

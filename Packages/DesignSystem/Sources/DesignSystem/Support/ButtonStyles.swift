@@ -41,6 +41,26 @@ public struct TLSecondaryButtonStyle: ButtonStyle {
     }
 }
 
+/// 次要（列內小尺寸）：同樣的線框膠囊，但縮到「一列的動作」該有的份量。
+/// 13pt weight 600、padding 14/5.5，整顆約 26pt 高——放進 56pt 的列裡還留得下空白。
+///
+/// ⚠️ 不要拿 `tlSecondary` 塞進列裡：那是頁面級 CTA 的尺寸（上下 padding 17.5），
+/// 高度會逼近列高，一個「順便可以做的事」看起來就跟卡片上的主要動作一樣重。
+public struct TLSecondarySmallButtonStyle: ButtonStyle {
+    public init() {}
+    public func makeBody(configuration: Configuration) -> some View {
+        configuration.label
+            .font(TLFont.zh(13, .semibold))
+            .foregroundStyle(TLColor.text)
+            .padding(.horizontal, 14)
+            .padding(.vertical, 5.5)
+            .background(configuration.isPressed ? TLColor.text.opacity(0.06) : Color.clear)
+            .overlay(Capsule().strokeBorder(TLColor.text.opacity(0.18), lineWidth: 1))
+            .clipShape(Capsule())
+            .contentShape(Capsule())
+    }
+}
+
 /// 文字動作：accent-700、14pt weight 600。
 public struct TLTextButtonStyle: ButtonStyle {
     public init() {}
@@ -52,7 +72,47 @@ public struct TLTextButtonStyle: ButtonStyle {
     }
 }
 
-/// 破壞性（實心）：danger-600 底 / 按下 danger-800。用於確認對話框的確認鍵。
+// 確認對話框專用的一對（handoff-20 E 節）。
+//
+// 原本是「刪除＝實心紅（在上）／取消＝線框」，紅色又大又亮又在最上面，看起來就是這個彈窗的
+// 預設動作，手會往紅色去。改成**填色給取消**：刪除維持在上（iOS destructive 的慣例位置），
+// 但只有安全的那一顆有填色。兩顆都是滿寬 50pt 膠囊，跟一般按鈕的 padding 式高度不同，
+// 所以自成一對，不要拿 tlPrimary / tlSecondary 硬套。
+
+/// 對話框的破壞性鍵（外框）：透明底、1.5pt `danger-400` 邊、`danger-700` 字。按下 → `danger-200` 底。
+public struct TLDialogDestructiveButtonStyle: ButtonStyle {
+    public init() {}
+    public func makeBody(configuration: Configuration) -> some View {
+        configuration.label
+            .font(TLFont.zh(15, .semibold))
+            .foregroundStyle(TLColor.danger700)
+            .padding(.horizontal, 24)
+            .frame(maxWidth: .infinity, minHeight: 50)
+            .background(configuration.isPressed ? TLColor.danger200 : Color.clear)
+            .overlay(Capsule().strokeBorder(TLColor.danger400, lineWidth: 1.5))
+            .clipShape(Capsule())
+            .contentShape(Capsule())
+    }
+}
+
+/// 對話框的安全鍵（實心）：`accent` 底、`bg` 字。按下 → `accent-600`。
+public struct TLDialogPrimaryButtonStyle: ButtonStyle {
+    public init() {}
+    public func makeBody(configuration: Configuration) -> some View {
+        configuration.label
+            .font(TLFont.zh(15, .bold))
+            .foregroundStyle(TLColor.bg)
+            .padding(.horizontal, 24)
+            .frame(maxWidth: .infinity, minHeight: 50)
+            .background(configuration.isPressed ? TLColor.accent600 : TLColor.accent)
+            .clipShape(Capsule())
+            .contentShape(Capsule())
+    }
+}
+
+/// 破壞性（實心）：danger-600 底 / 按下 danger-800。
+/// ⚠️ handoff-20 E 節把確認對話框的確認鍵改成外框後，**目前全 App 沒有使用者**。
+/// 保留 API：未來若出現非對話框的實心破壞性按鈕（例如整頁的「永久刪除帳號」）還會用到。
 public struct TLDestructiveButtonStyle: ButtonStyle {
     public init() {}
     public func makeBody(configuration: Configuration) -> some View {
@@ -86,41 +146,94 @@ public extension ButtonStyle where Self == TLPrimaryButtonStyle {
 public extension ButtonStyle where Self == TLSecondaryButtonStyle {
     static var tlSecondary: TLSecondaryButtonStyle { .init() }
 }
+public extension ButtonStyle where Self == TLSecondarySmallButtonStyle {
+    static var tlSecondarySmall: TLSecondarySmallButtonStyle { .init() }
+}
 public extension ButtonStyle where Self == TLTextButtonStyle {
     static var tlText: TLTextButtonStyle { .init() }
 }
 public extension ButtonStyle where Self == TLDestructiveButtonStyle {
     static var tlDestructive: TLDestructiveButtonStyle { .init() }
 }
+public extension ButtonStyle where Self == TLDialogDestructiveButtonStyle {
+    static var tlDialogDestructive: TLDialogDestructiveButtonStyle { .init() }
+}
+public extension ButtonStyle where Self == TLDialogPrimaryButtonStyle {
+    static var tlDialogPrimary: TLDialogPrimaryButtonStyle { .init() }
+}
 public extension ButtonStyle where Self == TLDestructiveTextButtonStyle {
     static var tlDestructiveText: TLDestructiveTextButtonStyle { .init() }
 }
 
-/// 圓形圖示鈕：44×44 capsule。預設赭紅實心＋白色圖示（如頁首 `+`）。
+/// 圓形圖示鈕：預設 44×44 赭紅實心＋白色圖示（如頁首 `+`）。
 public struct CircleIconButton: View {
+    /// 三種材質。`neutral` 是月曆標題列那組導航（`‹ ›`）用的——與「今天」膠囊同材質，
+    /// 赭色留給日期格子的「已排定」，導航鍵不跟狀態搶同一個顏色。
+    public enum Style: Sendable {
+        case accent     // 赭紅實心、白圖示
+        case outline    // 線框、赭色圖示
+        case neutral    // neutral-200 實心、深墨圖示
+    }
+
     private let systemImage: String
     private let action: () -> Void
-    private let filled: Bool
+    private let style: Style
+    private let size: CGFloat
+    private let iconSize: CGFloat
+    private let iconWeight: Font.Weight
 
-    /// - Parameter filled: true＝赭紅實心白圖示；false＝線框。
-    public init(systemImage: String, filled: Bool = true, action: @escaping () -> Void) {
+    public init(
+        systemImage: String,
+        style: Style = .accent,
+        size: CGFloat = TLSize.iconButton,
+        iconSize: CGFloat = 18,
+        iconWeight: Font.Weight = .semibold,
+        action: @escaping () -> Void
+    ) {
         self.systemImage = systemImage
-        self.filled = filled
+        self.style = style
+        self.size = size
+        self.iconSize = iconSize
+        self.iconWeight = iconWeight
         self.action = action
+    }
+
+    /// 舊呼叫端相容：`filled: true/false` ＝ `.accent` / `.outline`。
+    public init(systemImage: String, filled: Bool, action: @escaping () -> Void) {
+        self.init(systemImage: systemImage, style: filled ? .accent : .outline, action: action)
+    }
+
+    private var foreground: Color {
+        switch style {
+        case .accent: TLColor.bg
+        case .outline: TLColor.accent700
+        case .neutral: TLColor.text
+        }
+    }
+
+    private var background: Color {
+        switch style {
+        case .accent: TLColor.accent
+        case .outline: Color.clear
+        case .neutral: TLColor.neutral200
+        }
     }
 
     public var body: some View {
         Button(action: action) {
             Image(systemName: systemImage)
-                .font(.system(size: 18, weight: .semibold))
-                .foregroundStyle(filled ? TLColor.bg : TLColor.accent700)
-                .frame(width: TLSize.iconButton, height: TLSize.iconButton)
-                .background(filled ? TLColor.accent : Color.clear)
+                .font(.system(size: iconSize, weight: iconWeight))
+                .foregroundStyle(foreground)
+                .frame(width: size, height: size)
+                .background(background)
                 .overlay(
-                    Capsule().strokeBorder(TLColor.text.opacity(0.18), lineWidth: filled ? 0 : 1)
+                    Capsule().strokeBorder(TLColor.text.opacity(0.18), lineWidth: style == .outline ? 1 : 0)
                 )
                 .clipShape(Capsule())
-                .contentShape(Capsule())
+                // 小尺寸（月曆的 34pt）本身低於最小觸控，外圈補到 44 才點得到；
+                // contentShape 掛在補完的方框上，不是視覺的膠囊。
+                .frame(minWidth: TLSize.minTap, minHeight: TLSize.minTap)
+                .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
     }

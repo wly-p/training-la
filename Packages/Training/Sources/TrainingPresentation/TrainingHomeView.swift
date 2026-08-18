@@ -124,15 +124,21 @@ public struct TrainingHomeView: View {
     private var headerTitle: Text {
         if hasAnyPlan { return localText("training.home.title") }
         if viewModel.restDay != nil { return localText("training.home.restDay.title") }
-        return localText("training.home.title.none")
+        // 13f 右：主標直接寫結論，卡片標題（「你目前沒有進行中的計畫」）才是另一句話。
+        return localText("training.noPlanToday")
     }
 
+    /// `M / D 週X`，有狀態才接 `· xxx`（進行中計畫數／休息日）。
     private var headerKicker: Text {
         let language = AppLanguage(locale: locale)
-        let dateText = Self.kickerDateFormatter(locale: locale).string(from: Date())
+        let dateText = Self.kickerDateFormatter(locale: locale).string(from: Self.date(of: viewModel.todayDate))
         if viewModel.activePlanCount > 0 {
             let format = language.localizedString("training.home.activePlans %lld", bundle: .module)
             let suffix = String(format: format, viewModel.activePlanCount)
+            return Text(verbatim: "\(dateText) · \(suffix)")
+        }
+        if viewModel.restDay != nil {
+            let suffix = language.localizedString("training.home.kicker.restDay", bundle: .module)
             return Text(verbatim: "\(dateText) · \(suffix)")
         }
         return Text(verbatim: dateText)
@@ -143,6 +149,12 @@ public struct TrainingHomeView: View {
         formatter.locale = locale
         formatter.setLocalizedDateFormatFromTemplate("M/d EEEE")
         return formatter
+    }
+
+    /// `DayDate` 刻意不對外暴露底層 `Date` 換算（見 SharedKernel 的註解），這裡自己補一個。
+    private static func date(of day: DayDate) -> Date {
+        Calendar(identifier: .gregorian)
+            .date(from: DateComponents(year: day.year, month: day.month, day: day.day)) ?? Date()
     }
 
     // MARK: - 續練
@@ -382,6 +394,7 @@ public struct TrainingHomeView: View {
                 localText("training.home.startCard")
             }
             .buttonStyle(.tlPrimary)
+            .accessibilityIdentifier("training.startCard")
         case .rotation(let id):
             Button {
                 Task { await viewModel.previewRotation(id: id) }
@@ -389,6 +402,7 @@ public struct TrainingHomeView: View {
                 localText("training.home.startRotationCard")
             }
             .buttonStyle(.tlSecondary)
+            .accessibilityIdentifier("training.startRotation")
         }
     }
 
@@ -490,13 +504,13 @@ public struct TrainingHomeView: View {
 
                 // 課表名是使用者資料（verbatim），套進本地化模板組成整句。
                 Text(verbatim: String(
-                    format: localString("training.home.restDay.headline %@", locale),
-                    restDay.programName
+                    format: localString("training.home.restDay.headline %@ %@", locale),
+                    restDay.programName, cyclePositionText(restDay)
                 ))
                 .font(TLFont.zh(16, .bold))
                 .foregroundStyle(TLColor.text)
 
-                Text(verbatim: nextWorkoutText(restDay))
+                Text(verbatim: restDayRecapText(restDay))
                     .font(TLFont.zh(12.5, .regular))
                     .foregroundStyle(TLColor.sage800)
             }
@@ -506,21 +520,72 @@ public struct TrainingHomeView: View {
             .background(TLColor.sage200)
             .clipShape(RoundedRectangle(cornerRadius: TLRadius.container, style: .continuous))
 
-            // 設計稿另外畫了「把明天的腿日挪到今天」（改動 Program 排程的寫入操作），
-            // 這次範圍只做「讀取並顯示休息日狀態」，先不做，誠實留白而非遺漏。
-            TLGroup {
-                orRow(
-                    icon: "flame.fill", iconColor: TLColor.accent700,
-                    title: localText("training.home.restDay.startAnyway"), titleColor: TLColor.accent700,
-                    trailing: nil,
-                    onTap: { Task { await viewModel.startFree() } }
-                )
+            VStack(alignment: .leading, spacing: TLSpace.gapS) {
+                TLGroup {
+                    orRow(
+                        icon: "flame.fill", iconColor: TLColor.accent700,
+                        title: localText("training.home.restDay.startAnyway"), titleColor: TLColor.accent700,
+                        trailing: nil,
+                        onTap: { Task { await viewModel.startFree() } }
+                    )
+                    // 下一個訓練日存在才給得出「把 X 挪到今天」——沒有下一場就沒得挪。
+                    if let moveTitle = moveHereTitle(restDay) {
+                        orRow(
+                            icon: "arrow.left.arrow.right", iconColor: TLColor.neutral600,
+                            title: Text(verbatim: moveTitle), titleColor: TLColor.text,
+                            trailing: nil,
+                            onTap: { Task { await viewModel.moveNextWorkoutToToday() } }
+                        )
+                        .accessibilityIdentifier("training.moveNextWorkoutHere")
+                    }
+                }
+                if moveHereTitle(restDay) != nil {
+                    // 健身房的臨時應變不該回頭改壞課表節奏，這句話要寫出來。
+                    localText("training.home.restDay.moveHint")
+                        .font(TLFont.zh(TLFont.rowSub, .regular))
+                        .foregroundStyle(TLColor.neutral500)
+                        .padding(.horizontal, TLSpace.rowInset)
+                }
             }
 
             if let weekSummary = viewModel.weekSummary {
                 weekSection(weekSummary)
             }
         }
+    }
+
+    /// 綠卡主句後半段：repeating 有輪次就寫「第 7 輪 D3」，否則只寫「D3」。
+    private func cyclePositionText(_ restDay: RestDayInfo) -> String {
+        guard let round = restDay.roundNumber else {
+            return String(format: localString("training.home.restDay.day %lld", locale), restDay.dayNumber)
+        }
+        return String(
+            format: localString("training.home.restDay.round %lld %lld", locale), round, restDay.dayNumber
+        )
+    }
+
+    /// 綠卡副句：下一個訓練日 ＋ 本週已練的次數與總量（`明天是「腿日」。這週已經練了 3 次、9,140 kg。`）。
+    private func restDayRecapText(_ restDay: RestDayInfo) -> String {
+        var parts = [nextWorkoutText(restDay)]
+        if let week = viewModel.weekSummary, week.sessionCount > 0 {
+            parts.append(String(
+                format: localString("training.home.restDay.weekRecap %lld %@", locale),
+                week.sessionCount, WeightDisplay.value(week.totalVolume)
+            ))
+        }
+        return parts.joined(separator: " ")
+    }
+
+    /// 「把明天的腿日挪到今天」；不是明天就寫出日期。沒有下一個訓練日＝nil，整列不出現。
+    private func moveHereTitle(_ restDay: RestDayInfo) -> String? {
+        guard let date = restDay.nextWorkoutDate, let name = restDay.nextWorkoutName else { return nil }
+        if date == DayDate(Date()).adding(days: 1) {
+            return String(format: localString("training.home.restDay.moveTomorrow %@", locale), name)
+        }
+        return String(
+            format: localString("training.home.restDay.moveLater %@ %@", locale),
+            "\(date.month)/\(date.day)", name
+        )
     }
 
     /// 下一個訓練日文案：明天/未來某天有排課就報日期＋名稱；once 模式已經跑完週期就誠實說沒有了。
@@ -539,17 +604,30 @@ public struct TrainingHomeView: View {
 
     private var noPlanSection: some View {
         VStack(alignment: .leading, spacing: TLSpace.section) {
+            // 卡片裡不放按鈕（01-training A 節）：動作一律降到下方的群組清單，
+            // 否則這張沙卡跟休息日那張綠卡高度不一樣、視覺重量也不對等。
+            // 「今天沒有排課」這張沙卡，測試用它驗排課有沒有被標成完成／還原。
+            // id 掛在卡片上而不是整個 section——套在容器上會讓它變成單一無障礙元素，
+            // 底下的按鈕整批查不到。
             EmptyState(
-                systemImage: "dumbbell",
-                title: localString("training.noPlanToday", locale),
-                message: localString("training.home.noPlanMessage", locale),
-                actionTitle: viewModel.templates.isEmpty ? nil : localString("training.home.pickTemplateToStart", locale),
-                action: { showsTemplatePicker = true }
+                systemImage: "waveform.path.ecg",
+                title: localString("training.home.noPlan.cardTitle", locale),
+                message: localString("training.home.noPlanMessage", locale)
             )
-            // 這裡原本還有一塊「最近練過 ＋ 再練一次」。拿掉的理由：跟有排課時的「重複上次」
-            // 是同一件事卻長得完全不同（另一套元件、另一套文案、另一種互動），而空狀態的重點
-            // 是「挑一份範本開始」與「自由訓練」這兩條出路，多一塊反而稀釋掉它們。
+            .accessibilityIdentifier("training.noPlanCard")
+
+            if !viewModel.recentSessions.isEmpty { recentSessionsSection }
+
             TLGroup {
+                if !viewModel.templates.isEmpty {
+                    orRow(
+                        icon: "square.grid.2x2", iconColor: TLColor.accent700,
+                        title: localText("training.home.pickTemplateToStart"), titleColor: TLColor.accent700,
+                        trailing: nil,
+                        onTap: { showsTemplatePicker = true }
+                    )
+                    .accessibilityIdentifier("training.pickTemplateToStart")
+                }
                 orRow(
                     icon: "plus", iconColor: TLColor.accent700,
                     title: localText("training.free") + Text(verbatim: " · ") + localText("training.home.freeTrainingHint"),
@@ -557,6 +635,7 @@ public struct TrainingHomeView: View {
                     trailing: nil,
                     onTap: { Task { await viewModel.startFree() } }
                 )
+                .accessibilityIdentifier("training.startFree")
                 if let openSchedule {
                     orRow(
                         icon: "flag", iconColor: TLColor.neutral600,
@@ -573,5 +652,61 @@ public struct TrainingHomeView: View {
                 weekSection(weekSummary)
             }
         }
+    }
+
+    /// 「最近練過」（13f 右）：冷啟動之外的人，這是最短的一條出路——上次練的那份再來一次。
+    private var recentSessionsSection: some View {
+        VStack(alignment: .leading, spacing: TLSpace.gapM) {
+            localText("training.home.recentlyTrained")
+                .font(TLFont.zh(TLFont.kicker, .semibold))
+                .tracking(TLFont.kickerTracking)
+                .textCase(.uppercase)
+                .foregroundStyle(TLColor.neutral500)
+            TLGroup {
+                ForEach(viewModel.recentSessions) { session in
+                    recentSessionRow(session)
+                }
+            }
+        }
+    }
+
+    private func recentSessionRow(_ session: RecentSessionSummary) -> some View {
+        HStack(spacing: TLSpace.gapS) {
+            VStack(alignment: .leading, spacing: 2) {
+                // 範本名是使用者資料（verbatim）。
+                Text(verbatim: session.name ?? freeTrainingLabel)
+                    .font(TLFont.zh(TLFont.rowTitle, .semibold))
+                    .foregroundStyle(TLColor.text)
+                Text(verbatim: recentSessionSubtitle(session))
+                    .font(TLFont.zh(TLFont.rowSub, .regular))
+                    .foregroundStyle(TLColor.neutral500)
+            }
+            Spacer(minLength: TLSpace.gapS)
+            Button {
+                Task { await viewModel.startRepeating(session) }
+            } label: {
+                localText("training.home.trainAgain")
+            }
+            // 列內動作的尺寸，不是頁面級 CTA——tlSecondary 的高度會把 56pt 的列撐滿。
+            .buttonStyle(.tlSecondarySmall)
+            // 「再練一次」不能被壓成兩行，寬度讓給它、由左邊的名稱先截斷。
+            .fixedSize(horizontal: true, vertical: false)
+            .accessibilityIdentifier("training.trainAgain")
+        }
+        .padding(.horizontal, TLSpace.rowInset)
+        .frame(minHeight: TLSize.row)
+    }
+
+    /// `昨天 · 13 組 · 72 分`；不是昨天就寫日期，算不出時長就只到組數。
+    private func recentSessionSubtitle(_ session: RecentSessionSummary) -> String {
+        let today = DayDate(Date())
+        let dayText = session.day == today.adding(days: -1)
+            ? localString("training.home.yesterday", locale)
+            : "\(session.day.month)/\(session.day.day)"
+        var parts = [dayText, String(format: localString("training.home.setCount %lld", locale), session.setCount)]
+        if let minutes = session.minutes {
+            parts.append(String(format: localString("training.home.minuteCount %lld", locale), minutes))
+        }
+        return parts.joined(separator: " · ")
     }
 }

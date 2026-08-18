@@ -14,40 +14,34 @@ import XCTest
 /// 兩邊都設英文的話 `String(localized:)` 也會回英文，反而把 bug 藏起來——正是這個盲點讓它一路活到現在。
 /// 所以本測試在預設的 `zh-Hant` configuration 下跑，靠 `--uitest-language=en` 只改 app 自己的語言偏好。
 final class EnglishLocalizationUITests: XCTestCase {
-    /// 分頁列由左到右：訓練 / 課表 / 動作庫 / 歷史 / 設定。用索引而非標籤，才不依賴語言。
-    private let tabCount = 5
+    /// 分頁列由左到右。用 identifier 而非標籤，才不依賴語言（見 ARCHITECTURE.md 的命名規範）。
+    private let tabs = ["training", "exercises", "plan", "history", "settings"]
 
     @MainActor
     func testNoChineseTextInEnglishLocale() throws {
         let app = XCUIApplication()
         // 乾淨的 store（畫面上不會有使用者輸入的中文資料）＋ app 語言強制英文（裝置維持繁中）
-        app.launchArguments = ["--uitest-inmemory", "--uitest-language=en"]
-        app.launch()
-
-        XCTAssertTrue(
-            app.buttons["tabBar.item.0"].waitForExistence(timeout: 10),
-            "找不到自訂分頁列"
-        )
+        launchForUITest(app, extra: ["--uitest-language=en"])
 
         var offenders: [String] = []
         var previous: [String] = []
 
-        for index in 0..<tabCount {
+        for name in tabs {
             // 用自訂分頁列的 identifier，不用 app.tabBars——原生分頁列被隱藏了但仍在無障礙樹裡，
             // 點它不會真的換頁（這正是本測試原本漏掉整個課表頁的原因）。
-            let tab = app.buttons["tabBar.item.\(index)"]
-            XCTAssertTrue(tab.waitForExistence(timeout: 5), "找不到分頁 \(index)")
+            let tab = app.buttons["tabBar.item.\(name)"]
+            XCTAssertTrue(tab.waitForExistence(timeout: 5), "找不到分頁 \(name)")
             tab.tap()
 
             let labels = waitForContentChange(in: app, from: previous)
             XCTAssertNotEqual(
                 labels, previous,
-                "分頁 \(index) 的內容與前一頁相同——很可能是還沒換頁就取值了，這一頁等於沒測到"
+                "分頁 \(name) 的內容與前一頁相同——很可能是還沒換頁就取值了，這一頁等於沒測到"
             )
             previous = labels
 
-            for label in labels where Self.containsHan(label) {
-                offenders.append("[分頁 \(index)] \(label)")
+            for label in labels where containsHan(label) {
+                offenders.append("[\(name)] \(label)")
             }
         }
 
@@ -84,10 +78,4 @@ final class EnglishLocalizationUITests: XCTestCase {
         }
     }
 
-    /// 是否含 CJK 統一表意文字（含擴充 A）。標點與英數不算。
-    private static func containsHan(_ text: String) -> Bool {
-        text.unicodeScalars.contains { scalar in
-            (0x4E00...0x9FFF).contains(scalar.value) || (0x3400...0x4DBF).contains(scalar.value)
-        }
-    }
 }

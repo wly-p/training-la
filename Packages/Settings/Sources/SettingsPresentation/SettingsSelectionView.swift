@@ -48,6 +48,12 @@ struct SettingsSelectionView<Value: Hashable & Identifiable>: View {
         .padding(.top, 12)
     }
 
+    /// 選項的 id 由 `Identifiable.id` 推出來（`AppTheme` / `AppLanguage` / `AppIcon` 的
+    /// `id` 都是 rawValue），所以測試點「深色」是 `settings.option.dark`，跟顯示文字無關。
+    private func identifier(for option: Value) -> String {
+        "settings.option.\(option.id)"
+    }
+
     private func row(for option: Value) -> some View {
         ListRow(
             title: label(option),
@@ -71,5 +77,6 @@ struct SettingsSelectionView<Value: Hashable & Identifiable>: View {
                 }
             }
         )
+        .accessibilityIdentifier(identifier(for: option))
     }
 }

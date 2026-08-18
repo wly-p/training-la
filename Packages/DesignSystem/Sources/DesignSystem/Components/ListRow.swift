@@ -7,7 +7,11 @@ import SwiftUI
 //   2. 純文字 ＋ 右值
 //   3. 可勾選（22pt 赭紅圓形勾）
 //
-// 副標永遠是「組成摘要」；狀態一律放右側 meta。
+// 標題下方有兩種第二行，擇一：
+//   - `subtitle`（純文字）＝「組成摘要」，例如範本列出它含哪些動作
+//   - `detail`（ViewBuilder）＝「細節行」，放得下 pill 這類非文字元素（18b/19a）
+//
+// 狀態一律放右側 meta。
 
 /// 左側 36pt 圓章。內容可為肌群字（動作）、數字（範本）、圖示（循環／長期）。
 public struct CircleBadge<Content: View>: View {
@@ -114,12 +118,16 @@ public struct RowValue: View {
     }
 }
 
-public struct ListRow<Leading: View, Trailing: View>: View {
+public struct ListRow<Leading: View, Detail: View, Trailing: View>: View {
     private let leading: Leading
     private let title: Text
     private let subtitle: Text?
-    /// 動作名右側的器材小標；nil＝不是動作列。名稱允許重複，靠它分辨（handoff-15 B 節）。
+    /// 動作名右側的器材小標；nil＝不用這個排法。
+    ///
+    /// ⚠️ 動作庫（`18b`）與範本（`19a`）已經**不走這條** —— 器材在那兩處是尾欄／細節行。
+    /// 這裡留給訓練中、預覽 sheet、歷史詳情、能力值那四個「名稱後面跟一顆 pill」的位置。
     private let equipment: String?
+    private let detail: Detail
     private let trailing: Trailing
     private let showChevron: Bool
     private let onTap: (() -> Void)?
@@ -131,6 +139,7 @@ public struct ListRow<Leading: View, Trailing: View>: View {
         showChevron: Bool = false,
         onTap: (() -> Void)? = nil,
         @ViewBuilder leading: () -> Leading = { EmptyView() },
+        @ViewBuilder detail: () -> Detail = { EmptyView() },
         @ViewBuilder trailing: () -> Trailing = { EmptyView() }
     ) {
         self.title = title
@@ -139,7 +148,14 @@ public struct ListRow<Leading: View, Trailing: View>: View {
         self.showChevron = showChevron
         self.onTap = onTap
         self.leading = leading()
+        self.detail = detail()
         self.trailing = trailing()
+    }
+
+    /// 有細節行 68 > 有副標 62 > 單行 56。細節行放的是 pill，比一行文字高。
+    private var minHeight: CGFloat {
+        if Detail.self != EmptyView.self { return TLSize.rowWithDetail }
+        return subtitle == nil ? TLSize.row : TLSize.rowWithSub
     }
 
     private var content: some View {
@@ -163,13 +179,15 @@ public struct ListRow<Leading: View, Trailing: View>: View {
                         .lineLimit(1)
                         .truncationMode(.tail)
                 }
+                // 細節行與標題共用同一條左緣——器材不再需要自己的欄，對齊問題自然消失（19a）。
+                detail
             }
             Spacer(minLength: TLSpace.gapS)
             trailing
             if showChevron { Chevron() }
         }
         .padding(.horizontal, TLSpace.rowInset)
-        .frame(minHeight: subtitle == nil ? TLSize.row : TLSize.rowWithSub)
+        .frame(minHeight: minHeight)
         .contentShape(Rectangle())
     }
 

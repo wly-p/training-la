@@ -14,17 +14,37 @@ TEST_DEVICE = iPhone 17
 TEST_HEADLESS = true
 
 // TEST_LANGUAGE：跑 UITests 時要用哪個 test plan configuration（＝模擬器的裝置語系）。
-// 目前有 zh-Hant（預設）與 en 兩個，定義在 UITests.xctestplan。
+// UITests.xctestplan 只留 zh-Hant 一個——把裝置語系釘死，測試才不依賴跑測試的那台機器
+// （E2E 第一次上 CI 就是栽在英文模擬器）。
 //
-// 注意：既有的 22 個 UITest 靠中文標籤查元素，但 app 在 UI 測試模式下語言固定 seed 成繁中
-// （見 AppDependencies），所以改這個值不會讓它們崩——它只換裝置語系，不換 app 語言。
-// 要驗「app 語言 ≠ 裝置語系」的中英混雜問題，跑 `make test-uitest-en`。
+// 這裡換的是**裝置語系**，不是 app 語言。要驗「app 語言 ≠ 裝置語系」的中英混雜問題，
+// 跑 `make test-uitest-en`——它把同一批測試再跑一輪，只把 app 語言換成英文。
 TEST_LANGUAGE = zh-Hant
 
 // TEST_REPORT（bool：true/false）：false（預設）＝ 跟沒有這個功能之前完全一樣，不產生任何檔案；
 // true ＝ 測試完把結果解析後上傳 Notion 的 Test Result 資料庫，產物落在 gitignored 的 test-reports/。
 // 上傳失敗只印警告，不會改變 make 的結束碼——exit code 要反映測試結果本身。
 TEST_REPORT = false
+
+// PRIVACY_POLICY_URL：隱私政策頁的網址。build 時展開進 Info.plist 的 `PrivacyPolicyURL`
+// （見 project.yml），App 只從那裡讀 —— Swift 裡永遠不出現網址字串（同 AppEnvironment.swift 的規矩）。
+//
+// 頁面的來源與部署在 training-la-web repo（Cloudflare Pages）。這個 repo **不留副本**：
+// 政策可以在不發版的情況下更新，副本會直接變成錯的內容，而政策與實際行為不符是可以
+// 導致下架的（見 PrivacyPolicy.swift 的註解）。
+//
+// 要改文案就去那個 repo 改、按 Deploy workflow，這裡完全不用動。
+//
+// 雙斜線用 SLASH 繞開：xcconfig 把 `//` 當註解起點，直接寫 https://... 的值會被截成 `https:`。
+SLASH = /
+PRIVACY_POLICY_URL = https:$(SLASH)$(SLASH)training-la.wly.lol$(SLASH)privacy-policy
+
+// 要指到本機那份草稿時改用下面這行（training-la-web repo 跑 `make preview`）：
+// PRIVACY_POLICY_URL = http:$(SLASH)$(SLASH)localhost:8000$(SLASH)privacy-policy
+//
+// 實機測試不能用 http:// 的區網 IP —— App 沒有任何 ATS 例外，純 http 只有 localhost
+// 免驗。實機要看本機草稿就開個臨時隧道拿 HTTPS，把它印出來的網址填進來：
+//   cloudflared tunnel --url http:$(SLASH)$(SLASH)localhost:8788
 
 // 本機簽章設定（gitignored，開源 repo 不放任何人的 Team ID）。
 // 實機建置前自己建一份 Signing.secrets.xcconfig，內容一行：

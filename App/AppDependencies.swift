@@ -46,6 +46,20 @@ struct AppDependencies {
             .flatMap { AppLanguage(rawValue: String($0.dropFirst(prefix.count))) }
     }
 
+    /// UI 測試指定的「今天」（`--uitest-today=2026-08-10`）；沒帶或格式不對就回 nil。
+    /// 同樣只在 `inMemory` 模式下生效。
+    ///
+    /// 為什麼需要：整輪 UITest 約 16 分鐘，跑到一半跨過午夜的話，排課建在前一天、
+    /// 訓練頁再查「今天」時已經是新的一天，`todaysPlan()` 變 nil、畫面掉進
+    /// 「今天沒有排課」空狀態，那批「建排課再去訓練頁」的測試就整組失敗
+    /// （2026-08-09 23:45 那輪的 `testUndoFromExerciseCompleteCard` 就是這樣掛的）。
+    private static var uitestTodayOverride: DayDate? {
+        let prefix = "--uitest-today="
+        return CommandLine.arguments
+            .first { $0.hasPrefix(prefix) }
+            .flatMap { DayDate(isoString: String($0.dropFirst(prefix.count))) }
+    }
+
     /// 正式組裝：SwiftData 落地儲存，各 domain 的 models 併進同一個 Schema。
     /// `inMemory`：UI 測試用，換成不落地的 store（每次啟動都是乾淨狀態）。
     static func live(inMemory: Bool = false) throws -> AppDependencies {
@@ -63,6 +77,14 @@ struct AppDependencies {
         let programRepository = PlanDataFactory.makeProgramRepository(container: container)
         let programAssignmentRepository = PlanDataFactory.makeProgramAssignmentRepository(container: container)
         let abilityValueRepository = AbilityDataFactory.makeAbilityValueRepository(container: container)
+        // 「今天」的唯一來源。正式啟動每次都重讀系統時鐘（app 一直開著也要能跨日），
+        // UI 測試才用 `--uitest-today=` 釘死一天。
+        let today: @Sendable () -> DayDate
+        if inMemory, let fixed = uitestTodayOverride {
+            today = { fixed }
+        } else {
+            today = { DayDate(Date()) }
+        }
         // 本地落實 in_use：刪動作前查 Training / Plan / 範本 / 循環 / 長期 有沒有引用
         let usageChecker = ExerciseUsageChecker(
             workoutRepository: workoutRepository,
@@ -118,6 +140,7 @@ struct AppDependencies {
             languageStore: languageStore,
             weightUnitStore: weightUnitStore,
             trainingPreferences: trainingPreferences,
+            today: today,
             dataEraser: SwiftDataEraser(container: container, modelTypes: allModels)
         )
     }
@@ -137,6 +160,9 @@ struct AppDependencies {
         languageStore: any LanguagePreferenceStoring = InMemoryLanguageStore(),
         weightUnitStore: any WeightUnitPreferenceStoring = InMemoryWeightUnitStore(),
         trainingPreferences: any TrainingPreferenceStoring = InMemoryTrainingPreferenceStore(),
+        // 整張相依圖共用同一個「今天」——散在各處的 `= { DayDate(Date()) }` 預設值都要
+        // 被這個覆蓋掉，不然 UI 測試釘死日期只會釘到其中幾個。
+        today: @escaping @Sendable () -> DayDate = { DayDate(Date()) },
         dataEraser: any DataErasing = NoopDataEraser()
     ) -> AppDependencies {
         // Training 的 ExerciseCatalog port ← Spec 的 use case
@@ -157,7 +183,7 @@ struct AppDependencies {
         )
         // Training ↔ Plan 的兩條 port（今天排課、標記完成）
         let plannedProvider = PlanProviderAdapter(
-            todaysWorkout: TodaysWorkout(repository: planRepository),
+            todaysWorkout: TodaysWorkout(repository: planRepository, today: today),
             getPlanWorkout: { try await planRepository.get(id: $0) },
             listTemplates: ListTemplates(repository: templateRepository),
             instantiateTemplate: InstantiateTemplate(
@@ -177,9 +203,22 @@ struct AppDependencies {
                 abilityValueLookup: abilityValueLookup
             ),
             getActiveRestDay: GetActiveRestDay(
-                programRepository: programRepository, assignmentRepository: programAssignmentRepository
+                programRepository: programRepository, assignmentRepository: programAssignmentRepository,
+                today: today
             ),
-            today: { DayDate(Date()) },
+            moveNextWorkout: MoveNextWorkoutToToday(
+                programRepository: programRepository,
+                assignmentRepository: programAssignmentRepository,
+                planRepository: planRepository,
+                materialize: MaterializeProjectedWorkout(
+                    planRepository: planRepository,
+                    preferences: trainingPreferences,
+                    lastPerformedWeightLookup: lastPerformedWeightLookup,
+                    abilityValueLookup: abilityValueLookup
+                ),
+                today: today
+            ),
+            today: today,
             listExercises: ListExercises(repository: exerciseRepository),
             currentLanguage: { languageStore.load() ?? .fallback }
         )
@@ -201,12 +240,13 @@ struct AppDependencies {
             },
             makeTrainingHomeViewModel: {
                 TrainingHomeViewModel(
-                    startWorkout: StartWorkout(repository: workoutRepository),
+                    startWorkout: StartWorkout(repository: workoutRepository, today: today),
                     resumeWorkout: ResumeWorkout(repository: workoutRepository),
                     recentWorkouts: RecentWorkouts(repository: workoutRepository),
                     finishWorkout: FinishWorkout(repository: workoutRepository, planProgress: planProgress),
                     discardWorkout: DiscardWorkout(repository: workoutRepository),
-                    plannedProvider: plannedProvider
+                    plannedProvider: plannedProvider,
+                    today: today
                 )
             },
             makeActiveWorkoutViewModel: { workout in
@@ -263,7 +303,8 @@ struct AppDependencies {
                         abilityValueLookup: abilityValueLookup
                     ),
                     exerciseCatalog: planCatalog,
-                    preferences: trainingPreferences
+                    preferences: trainingPreferences,
+                    today: today
                 )
             },
             makeTemplateListViewModel: {
@@ -319,7 +360,7 @@ struct AppDependencies {
                     applyProgram: ApplyProgram(repository: programAssignmentRepository),
                     listTemplates: ListTemplates(repository: templateRepository),
                     exerciseCatalog: planCatalog,
-                    today: { DayDate(Date()) }
+                    today: today
                 )
             },
             makeProgramDetailViewModel: { programId in
@@ -337,7 +378,7 @@ struct AppDependencies {
                         assignmentRepository: programAssignmentRepository
                     ),
                     exerciseCatalog: planCatalog,
-                    today: { DayDate(Date()) }
+                    today: today
                 )
             },
             makeSettingsViewModel: { onErased in

@@ -18,6 +18,7 @@ struct PlanProviderAdapter: PlannedWorkoutProvider {
     let previewRotationUseCase: PreviewRotationWorkout
     let startRotationUseCase: StartRotation
     let getActiveRestDay: GetActiveRestDay
+    let moveNextWorkout: MoveNextWorkoutToToday
     let today: @Sendable () -> DayDate
     let listExercises: ListExercises
     /// 目前的 app 語言。這裡是 composition root、拿不到 SwiftUI Environment，
@@ -80,9 +81,18 @@ struct PlanProviderAdapter: PlannedWorkoutProvider {
         guard let info = try await getActiveRestDay() else { return nil }
         return RestDayInfo(
             programName: info.programName,
+            dayNumber: info.dayNumber,
+            roundNumber: info.roundNumber,
             nextWorkoutDate: info.nextWorkoutDate,
             nextWorkoutName: info.nextWorkoutName
         )
+    }
+
+    /// 挪課的對象就是「今天這個休息日」所屬的那筆套用，所以在這裡重查一次，
+    /// Training 端不必認得 Plan 的 assignment id。今天已經不是休息日了就自然變成 no-op。
+    func moveNextWorkoutToToday() async throws {
+        guard let info = try await getActiveRestDay() else { return }
+        try await moveNextWorkout(assignmentId: info.assignmentId)
     }
 
     private func blueprint(from plan: PlanWorkout, kicker: String? = nil) async throws -> PlannedWorkoutBlueprint {

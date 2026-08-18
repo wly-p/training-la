@@ -54,6 +54,13 @@ enum DayAssignmentPickerItem: PickerSheetItem, Identifiable {
         case .template(_, _, let subtitle): subtitle
         }
     }
+    /// 只有「休息」需要——它的標題是本地化文案；範本用自己的名字（使用者資料）定位就好。
+    var accessibilityIdentifier: String? {
+        switch self {
+        case .rest: "picker.row.rest"
+        case .template: nil
+        }
+    }
 
     static func template(_ template: WorkoutTemplate, name: (UUID) -> String) -> DayAssignmentPickerItem {
         .template(id: template.id, title: template.name, subtitle: PlanFormatting.exerciseNamesSummary(sets: template.sets, name: name))

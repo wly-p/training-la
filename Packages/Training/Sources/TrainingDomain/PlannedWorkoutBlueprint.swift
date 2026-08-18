@@ -164,12 +164,24 @@ public struct PlannedRotationSummary: Identifiable, Equatable, Sendable {
 /// 訓練首頁「今天休息」空狀態（13f 左）用：今天是哪份長期課表的休息日、下一個訓練日是哪天/叫什麼。
 public struct RestDayInfo: Equatable, Sendable {
     public let programName: String
+    /// 今天在週期裡的第幾天（1-based，＝設計稿的 `D3`）。
+    public let dayNumber: Int
+    /// 跑到第幾輪（1-based）；nil＝算不出／不適用，文案就不出現「第 N 輪」。
+    public let roundNumber: Int?
     /// 下一個訓練日；nil＝這份套用之後都不會再有訓練日了（once 模式已經跑完週期，且往後沒有訓練日）。
     public let nextWorkoutDate: DayDate?
     public let nextWorkoutName: String?
 
-    public init(programName: String, nextWorkoutDate: DayDate?, nextWorkoutName: String?) {
+    public init(
+        programName: String,
+        dayNumber: Int,
+        roundNumber: Int?,
+        nextWorkoutDate: DayDate?,
+        nextWorkoutName: String?
+    ) {
         self.programName = programName
+        self.dayNumber = dayNumber
+        self.roundNumber = roundNumber
         self.nextWorkoutDate = nextWorkoutDate
         self.nextWorkoutName = nextWorkoutName
     }
@@ -192,6 +204,9 @@ public protocol PlannedWorkoutProvider: Sendable {
     func startRotation(id: UUID) async throws -> PlannedWorkoutBlueprint?
     /// 今天是否剛好是某份長期課表的休息日（13f 左）；只掃長期課表，循環課表沒有休息日概念。
     func activeRestDay() async throws -> RestDayInfo?
+    /// 「把明天的腿日挪到今天」（13f 左）：跟 `activeRestDay()` 同一筆套用，把今天與下一個訓練日對調。
+    /// 只影響那兩天，之後的節奏照舊。
+    func moveNextWorkoutToToday() async throws
 }
 
 /// port：訓練結束時回報排課進度（App 接到 Plan domain 的標記完成）。

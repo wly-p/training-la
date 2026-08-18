@@ -35,6 +35,7 @@ private struct MockPlanProvider: PlannedWorkoutProvider {
     func previewRotation(id: UUID) async throws -> PlannedWorkoutBlueprint? { blueprint }
     func startRotation(id: UUID) async throws -> PlannedWorkoutBlueprint? { blueprint }
     func activeRestDay() async throws -> RestDayInfo? { nil }
+    func moveNextWorkoutToToday() async throws {}
 }
 
 @MainActor
@@ -246,17 +247,66 @@ struct ActiveWorkoutCompletionTests {
         #expect(vm.nextPlannedName == "深蹲")
     }
 
-    @Test func continueSameExerciseDoesNotRetrigger() async {
+    /// 加一組之後**每多做一組都要再問一次**。
+    ///
+    /// 這條原本的斷言是相反的（「每個動作只跳一次」），那是刻意的設計；實機用下來發現不對：
+    /// 按過一次「加一組」之後就再也沒人問要不要往下一個動作走，使用者會一路接著做到
+    /// 第 7、8 組。決定改成每加一組都回到完成區。
+    @Test func showsAgainForEveryExtraSetAfterAddingOne() async {
         let vm = makeViewModel(benchSets: 3, squatSets: 3)
         await vm.onAppear()
         await complete(vm, times: 3)
         #expect(vm.showExerciseComplete == true)
 
-        vm.continueSameExercise()       // 選「再做一組」
+        vm.continueSameExercise()       // 選「加一組」
         #expect(vm.showExerciseComplete == false)
 
-        await complete(vm, times: 1)    // 加練第 4 組
-        #expect(vm.showExerciseComplete == false) // 不再重複跳
+        await complete(vm, times: 1)    // 第 4 組
+        #expect(vm.showExerciseComplete == true)
+
+        vm.continueSameExercise()
+        await complete(vm, times: 1)    // 第 5 組
+        #expect(vm.showExerciseComplete == true)
+    }
+
+    /// 關掉之後不會自己又跳回來——沒有新的一組被記錄，狀態就不該變。
+    @Test func staysClosedUntilAnotherSetIsRecorded() async {
+        let vm = makeViewModel(benchSets: 2, squatSets: 2)
+        await vm.onAppear()
+        await complete(vm, times: 2)
+        #expect(vm.showExerciseComplete == true)
+
+        vm.dismissExerciseComplete()
+        #expect(vm.showExerciseComplete == false)
+        vm.bumpWeight(1)                       // 動了草稿但沒記錄新的一組
+        #expect(vm.showExerciseComplete == false)
+    }
+
+    /// 撤銷後重做同一組，仍然要問。
+    @Test func showsAgainAfterUndoingAndRedoingTheSameSet() async {
+        let vm = makeViewModel(benchSets: 2, squatSets: 2)
+        await vm.onAppear()
+        await complete(vm, times: 2)
+        #expect(vm.showExerciseComplete == true)
+
+        await vm.undoLastSet()
+        #expect(vm.showExerciseComplete == false)
+
+        await complete(vm, times: 1)
+        #expect(vm.showExerciseComplete == true)
+    }
+
+    /// 換動作一定要把完成區收掉，否則它會蓋在新動作上面——這就是「加練選完動作沒反應」的樣子。
+    @Test func selectingAnotherExerciseClosesTheBand() async {
+        let vm = makeViewModel(benchSets: 1, squatSets: 1)
+        await vm.onAppear()
+        await complete(vm, times: 1)
+        #expect(vm.showExerciseComplete == true)
+
+        await vm.select(exerciseId: squatId)
+
+        #expect(vm.showExerciseComplete == false)
+        #expect(vm.currentExerciseId == squatId)
     }
 
     @Test func lastExerciseMarksPlanFullyDone() async {
@@ -437,6 +487,69 @@ struct ActiveWorkoutBackgroundRestTests {
         #expect(vm.refreshRest() == true)
         #expect(vm.restEnded)
         #expect(vm.showsRestEndedAlert == false)
+    }
+
+    /// 休息在背景期間到點：系統通知已經提醒過一次，回前景不該再彈一次彈窗
+    /// （不然要多按一下「開始下一組」才能繼續）。直接進下一組的輸入態。
+    @Test func restEndedInBackgroundDoesNotAlertOnReturn() {
+        let clock = MutableClock(Date(timeIntervalSince1970: 1000))
+        let vm = makeViewModel(now: { clock.current })
+
+        vm.startRest(seconds: 60)
+        vm.suspendRestTicking(toBackground: true)
+        clock.advance(65)
+        vm.enterForeground()
+
+        #expect(vm.showsRestEndedAlert == false)
+        #expect(vm.restRemaining == nil)   // 已離開休息狀態＝回到組表輸入態
+        #expect(vm.restEnded == false)
+    }
+
+    /// `.inactive`（下拉通知中心、App 切換器）仍算前景，系統不會投遞那則通知
+    /// ——這種情況回來還是得彈窗，否則使用者完全沒被提醒。
+    @Test func restEndedWhileMerelyInactiveStillAlerts() {
+        let clock = MutableClock(Date(timeIntervalSince1970: 1000))
+        let vm = makeViewModel(now: { clock.current })
+
+        vm.startRest(seconds: 60)
+        vm.suspendRestTicking()   // toBackground: false
+        clock.advance(65)
+        vm.enterForeground()
+
+        #expect(vm.showsRestEndedAlert)
+    }
+
+    /// 背景通知偏好關掉時，背景期間根本沒有人提醒過 → 回前景照樣要彈窗。
+    @Test func restEndedInBackgroundStillAlertsWhenBackgroundNotificationDisabled() {
+        let clock = MutableClock(Date(timeIntervalSince1970: 1000))
+        let spy = SpyReminder(preference: .init(popup: true, sound: true, backgroundNotification: false))
+        let vm = makeViewModel(now: { clock.current }, reminder: spy)
+
+        vm.startRest(seconds: 60)
+        vm.suspendRestTicking(toBackground: true)
+        clock.advance(65)
+        vm.enterForeground()
+
+        #expect(vm.showsRestEndedAlert)
+    }
+
+    /// 進背景但休息還沒到點：回前景要繼續倒數，不能被誤判成「已經提醒過」。
+    @Test func returningFromBackgroundMidRestKeepsCountingDown() {
+        let clock = MutableClock(Date(timeIntervalSince1970: 1000))
+        let vm = makeViewModel(now: { clock.current })
+
+        vm.startRest(seconds: 60)
+        vm.suspendRestTicking(toBackground: true)
+        clock.advance(20)
+        vm.enterForeground()
+
+        #expect(vm.restRemaining == 40)
+        #expect(vm.restEnded == false)
+
+        // 回前景後才到點 → 這次是前景提醒，彈窗照舊。
+        clock.advance(45)
+        #expect(vm.refreshRest() == true)
+        #expect(vm.showsRestEndedAlert)
     }
 }
 

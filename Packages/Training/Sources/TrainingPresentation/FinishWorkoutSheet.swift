@@ -65,6 +65,7 @@ struct FinishWorkoutSheet: View {
                         }
                     } label: {
                         localText("training.finish.saveAndFinish")
+                            .accessibilityIdentifier("finishSheet.save")
                     }
                     .buttonStyle(.tlPrimary)
 
@@ -296,5 +297,6 @@ struct FinishWorkoutSheet: View {
             selectedFill: TLColor.accent, selectedText: TLColor.bg,
             onTap: { feeling = feeling == value ? nil : value }
         )
+        .accessibilityIdentifier("finishSheet.feeling.\(value)")
     }
 }

@@ -99,13 +99,24 @@ final class ProgramAssignmentModel {
     var startDate: String        // "yyyy-MM-dd"
     var modeRaw: String
     var lastReconciledDate: String?
+    /// 單日覆寫（「把明天的腿日挪到今天」）。JSON `{"yyyy-MM-dd": cycleDay}`；
+    /// optional 屬性 ⇒ 舊 store 走 SwiftData 輕量遷移，不必手寫 migration。
+    var dayOverridesJSON: String?
 
-    init(id: UUID, programId: UUID, startDate: String, modeRaw: String, lastReconciledDate: String?) {
+    init(
+        id: UUID,
+        programId: UUID,
+        startDate: String,
+        modeRaw: String,
+        lastReconciledDate: String?,
+        dayOverridesJSON: String? = nil
+    ) {
         self.id = id
         self.programId = programId
         self.startDate = startDate
         self.modeRaw = modeRaw
         self.lastReconciledDate = lastReconciledDate
+        self.dayOverridesJSON = dayOverridesJSON
     }
 }
 
@@ -200,7 +211,8 @@ extension ProgramAssignmentModel {
             programId: assignment.programId,
             startDate: assignment.startDate.isoString,
             modeRaw: assignment.mode.rawValue,
-            lastReconciledDate: assignment.lastReconciledDate?.isoString
+            lastReconciledDate: assignment.lastReconciledDate?.isoString,
+            dayOverridesJSON: Self.encode(assignment.dayOverrides)
         )
     }
 
@@ -210,7 +222,25 @@ extension ProgramAssignmentModel {
             programId: programId,
             startDate: DayDate(isoString: startDate) ?? DayDate(year: 1970, month: 1, day: 1),
             mode: ProgramRunMode(rawValue: modeRaw) ?? .once,
-            lastReconciledDate: lastReconciledDate.flatMap { DayDate(isoString: $0) }
+            lastReconciledDate: lastReconciledDate.flatMap { DayDate(isoString: $0) },
+            dayOverrides: Self.decode(dayOverridesJSON)
         )
+    }
+
+    /// 空表存 nil 而不是 `"{}"`，讓「從來沒搬過」與「搬過又清掉」在 DB 裡長得一樣。
+    private static func encode(_ overrides: [DayDate: Int]) -> String? {
+        guard !overrides.isEmpty else { return nil }
+        let keyed = Dictionary(uniqueKeysWithValues: overrides.map { ($0.key.isoString, $0.value) })
+        guard let data = try? JSONEncoder().encode(keyed) else { return nil }
+        return String(decoding: data, as: UTF8.self)
+    }
+
+    private static func decode(_ json: String?) -> [DayDate: Int] {
+        guard let json, let data = json.data(using: .utf8),
+              let keyed = try? JSONDecoder().decode([String: Int].self, from: data)
+        else { return [:] }
+        return Dictionary(uniqueKeysWithValues: keyed.compactMap { key, value in
+            DayDate(isoString: key).map { ($0, value) }
+        })
     }
 }
