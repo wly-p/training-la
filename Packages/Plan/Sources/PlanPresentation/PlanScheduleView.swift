@@ -40,7 +40,13 @@ public struct PlanScheduleView: View {
                             Button {
                                 applyingProgram = true
                             } label: {
-                                Label { localText("plan.applyProgram") } icon: { Image(systemName: "calendar.badge.clock") }
+                                Label {
+                                    // 長期課表尚未完成（見 ProgramListView.experimentalNotice），
+                                    // 入口保留但要標明，別讓人以為是完成品。
+                                    localText("plan.applyProgram")
+                                        + Text(verbatim: " ")
+                                        + localText("plan.applyProgram.experimental")
+                                } icon: { Image(systemName: "calendar.badge.clock") }
                             }
                             .accessibilityIdentifier("plan.applyProgram")
                         } label: {

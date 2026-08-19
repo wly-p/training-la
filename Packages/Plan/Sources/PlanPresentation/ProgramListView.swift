@@ -22,9 +22,38 @@ public struct ProgramListView: View {
         self.createToken = createToken
     }
 
+    /// 長期課表目前是**未完成**的功能（體檢 P0-2）：套用之後訓練分頁看不到今天的課表，
+    /// 必須每個訓練日手動回課表分頁按「加入這天」。病因是進度由日期算出來而不是由訓練算出來，
+    /// 解法已定稿但刻意暫緩（見 dev-notes/program-model-design.local.md）。
+    ///
+    /// 在重做完成前先把話講明白——留著入口讓已經建好課表的人還進得去，
+    /// 但不要讓任何人以為這是完成品。
+    private var experimentalNotice: some View {
+        HStack(alignment: .top, spacing: TLSpace.gapS) {
+            Image(systemName: "flask")
+                .font(.system(size: 13, weight: .semibold))
+                .foregroundStyle(TLColor.accent700)
+            VStack(alignment: .leading, spacing: 3) {
+                localText("program.experimental.title")
+                    .font(TLFont.zh(TLFont.rowTitle, .semibold))
+                    .foregroundStyle(TLColor.accent800)
+                localText("program.experimental.message")
+                    .font(TLFont.zh(TLFont.rowSub, .regular))
+                    .foregroundStyle(TLColor.accent700)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+        }
+        .padding(TLSpace.rowInset)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(TLColor.accent200)
+        .clipShape(RoundedRectangle(cornerRadius: TLRadius.inner, style: .continuous))
+        .accessibilityIdentifier("program.experimentalNotice")
+    }
+
     public var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: TLSpace.section) {
+                experimentalNotice
                 if viewModel.programs.isEmpty {
                     emptyState
                 }

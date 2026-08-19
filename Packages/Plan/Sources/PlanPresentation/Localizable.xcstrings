@@ -193,6 +193,23 @@
         }
       }
     },
+    "plan.applyProgram.experimental": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "(Experimental)"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "（實驗中）"
+          }
+        }
+      }
+    },
     "plan.back": {
       "localizations": {
         "en": {
@@ -1415,6 +1432,40 @@
           "stringUnit": {
             "state": "translated",
             "value": "請幫長期課表取個名稱"
+          }
+        }
+      }
+    },
+    "program.experimental.message": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Long-term programs are being rebuilt. After applying one, today's session won't appear on the Training tab automatically — come back here and tap “Add to this day.”"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "長期課表還在重做。目前套用之後，訓練分頁不會自動顯示今天的課表——要回到這個分頁按「加入這天」才會出現。"
+          }
+        }
+      }
+    },
+    "program.experimental.title": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Experimental"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "實驗中的功能"
           }
         }
       }
