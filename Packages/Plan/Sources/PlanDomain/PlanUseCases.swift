@@ -85,6 +85,10 @@ public struct UpdatePlanWorkout: Sendable {
             date: date,
             status: existing.status,
             templateId: existing.templateId,
+            // 沿用原本的來源標記，不要在編輯時被重設成 .manual。
+            // 註：`assignmentId` 與 `weightSource` 目前仍會在這裡遺失（體檢 P4-1），
+            // 那兩個跟長期課表的投影去重綁在一起，隨模型重做一起處理。
+            origin: existing.origin,
             orderIndex: existing.orderIndex,
             sets: PlanSet.make(from: drafts, makeID: makeID)
         )
@@ -221,7 +225,11 @@ public struct UpdateTemplate: Sendable {
 }
 
 /// 複製範本（14a）：深拷貝全部 sets（含逐組表達式），重新產生所有 id，
-/// 名稱加「· 副本」，接在清單末端。複製出來的是完全獨立的一份，改它不影響原本那份。
+/// 名稱接上呼叫端給的後綴，排在清單末端。複製出來的是完全獨立的一份，改它不影響原本那份。
+///
+/// 後綴由呼叫端傳入而不是寫在這裡：Domain 拿不到 locale，寫死「· 副本」的話
+/// 英文介面複製出來也會是中文（體檢 E2）。名稱會被持久化，所以要在寫入當下就解析成
+/// 使用者當時的語言，不能像 UI 文案那樣延後解析。
 public struct DuplicateTemplate: Sendable {
     private let repository: any WorkoutTemplateRepository
     private let makeID: @Sendable () -> UUID
@@ -238,7 +246,8 @@ public struct DuplicateTemplate: Sendable {
     }
 
     @discardableResult
-    public func callAsFunction(id: UUID) async throws -> WorkoutTemplate {
+    /// - Parameter nameSuffix: 接在原名後面的後綴（含分隔符），例如 `" · 副本"` / `" · Copy"`。
+    public func callAsFunction(id: UUID, nameSuffix: String) async throws -> WorkoutTemplate {
         guard let original = try await repository.get(id: id) else {
             throw WorkoutTemplateRepositoryError.notFound(id: id)
         }
@@ -246,7 +255,7 @@ public struct DuplicateTemplate: Sendable {
         let timestamp = now()
         let copy = WorkoutTemplate(
             id: makeID(),
-            name: "\(original.name) · 副本",
+            name: original.name + nameSuffix,
             source: .user,
             orderIndex: orderIndex,
             sets: original.sets.map { set in
@@ -318,6 +327,7 @@ public struct InstantiateTemplate: Sendable {
             date: date,
             status: .notStarted,
             templateId: template.id,
+            origin: .template,
             orderIndex: orderIndex,
             sets: sets
         )

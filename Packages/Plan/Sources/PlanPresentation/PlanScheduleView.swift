@@ -14,6 +14,7 @@ public struct PlanScheduleView: View {
     /// （翻到 12 月再往下一個月，年份得跳到隔年）。
     @State private var calendarAnchor: Date?
     @Environment(\.locale) private var locale
+    @Environment(\.scenePhase) private var scenePhase
 
     public init(viewModel: PlanScheduleViewModel) {
         self.viewModel = viewModel
@@ -76,6 +77,10 @@ public struct PlanScheduleView: View {
             .toolbar(.hidden, for: .navigationBar)
             #endif
             .task { await viewModel.load() }
+            // 回前景重新載入：App 擺著過午夜後「今天」已經變了，補登邊界與投影起點都要跟著重算。
+            .onChange(of: scenePhase) { _, phase in
+                if phase == .active { Task { await viewModel.load() } }
+            }
             .sheet(item: $editing) { target in
                 PlanWorkoutFormView(
                     target: target,

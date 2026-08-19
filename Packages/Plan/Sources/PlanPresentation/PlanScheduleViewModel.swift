@@ -46,9 +46,13 @@ public final class PlanScheduleViewModel {
     private let projectSchedule: ProjectSchedule
     private let materializeProjection: MaterializeProjectedWorkout
     private let exerciseCatalog: any PlanExerciseCatalog
-    /// 由外部注入（UI test 用 `--uitest-today` 釘死），月曆的「今天」短槓也吃這一個，
-    /// 不讀時鐘 —— 否則跨午夜或測試注入日期時會跟 app 其他地方對不上。
-    let today: DayDate
+    /// 由外部注入（UI test 用 `--uitest-today` 釘死），月曆的「今天」短槓也吃這一個。
+    ///
+    /// **存 closure 而不是存算好的值**：這個 view model 活整個 app 生命週期，
+    /// 存成 `let today: DayDate` 的話 app 一直開著跨過午夜，月曆的今天標記、
+    /// 補登邊界（`scanEnd = today - 1`）、投影起點會全部停在昨天，直到重啟 app。
+    private let todayProvider: @Sendable () -> DayDate
+    var today: DayDate { todayProvider() }
 
     public init(
         listPlanWorkouts: ListPlanWorkouts,
@@ -66,7 +70,7 @@ public final class PlanScheduleViewModel {
         materializeProjection: MaterializeProjectedWorkout,
         exerciseCatalog: any PlanExerciseCatalog,
         preferences: any TrainingPreferenceStoring = InMemoryTrainingPreferenceStore(),
-        today: @Sendable () -> DayDate = { DayDate(Date()) }
+        today: @escaping @Sendable () -> DayDate = { DayDate(Date()) }
     ) {
         self.listPlanWorkouts = listPlanWorkouts
         self.createPlanWorkout = createPlanWorkout
@@ -83,9 +87,9 @@ public final class PlanScheduleViewModel {
         self.materializeProjection = materializeProjection
         self.exerciseCatalog = exerciseCatalog
         self.preferences = preferences
-        let todayValue = today()
-        self.today = todayValue
-        self.selectedDate = todayValue
+        self.todayProvider = today
+        // 選取日只是初值，之後由使用者操作決定，不跟著時鐘走。
+        self.selectedDate = today()
     }
 
     /// 某天的真實排課（依 orderIndex）。
