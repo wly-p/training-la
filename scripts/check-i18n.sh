@@ -36,10 +36,12 @@ fi
 # 允許清單：非 UI 的字串（log／診斷訊息／資料值），以及 catalog 本身。
 # 有正當理由要留中文的話加進這裡，並在該行寫明原因。
 # AppLanguage.nativeName 刻意不翻譯：語言選單要用各語言的母語名，這樣不論目前介面是哪一種語言，
-# 使用者都認得自己的選項。PlanUseCases 的「· 副本」是寫進資料的名稱（資料值，非 UI 文案）。
+# 使用者都認得自己的選項。
 # OfficialExerciseCatalog 只有一句 assertionFailure 的診斷訊息；它是 domain 層的資料載入器，
 # 本來就不該有 UI 文案（內建動作的名稱全在它讀的 String Catalog 裡）。
-allow_han='Localizable\.xcstrings|FontRegistration\.swift|TrainingLaApp\.swift|PlanUseCases\.swift|AppLanguage\.swift|OfficialExerciseCatalog\.swift'
+# 2026-08：PlanUseCases 退出白名單——「· 副本」原本硬寫在 Domain（英文介面也會拿到中文），
+# 已改由呼叫端傳入本地化後的後綴（體檢 E2），這個豁免不再需要。
+allow_han='Localizable\.xcstrings|FontRegistration\.swift|TrainingLaApp\.swift|AppLanguage\.swift|OfficialExerciseCatalog\.swift'
 
 # 先砍掉行尾註解（`sed 's|//.*||'` 會連 URL 一起砍，但這裡只用來判斷有無違規，夠用），
 # 註解裡出現中文是正常的，不該當違規。

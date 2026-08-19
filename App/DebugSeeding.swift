@@ -54,7 +54,7 @@ enum DebugSeeding {
     /// 逐週遞增的重量（讓趨勢圖與 PR 偵測有東西可算）。
     static func run(spec: Spec, repository: any WorkoutRepository, today: DayDate) async {
         guard (try? await repository.finishedWorkouts())?.isEmpty == true else {
-            print("[DebugSeeding] 已有紀錄，跳過")
+            print("[DebugSeeding] store already has workouts, skipping")
             return
         }
         let catalog = OfficialExerciseCatalog.all
@@ -93,7 +93,7 @@ enum DebugSeeding {
         }
         let elapsed = Date().timeIntervalSince(started)
         print(String(
-            format: "[DebugSeeding] 產生 %d 場 / %d 組，耗時 %.1fs",
+            format: "[DebugSeeding] seeded %d workouts / %d sets in %.1fs",
             spec.workoutCount, spec.totalSets, elapsed
         ))
     }
