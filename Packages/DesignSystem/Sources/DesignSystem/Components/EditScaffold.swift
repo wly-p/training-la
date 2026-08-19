@@ -86,7 +86,7 @@ public struct EditScaffold<Content: View>: View {
 
     private var titleField: some View {
         VStack(alignment: .leading, spacing: 6) {
-            TextField("", text: $title, prompt: titlePrompt.foregroundColor(TLColor.neutral400))
+            TextField(text: $title, prompt: titlePrompt.foregroundColor(TLColor.neutral400)) { Text(verbatim: "") }
                 .font(TLFont.zh(TLFont.pageTitle, .bold))
                 .tracking(TLFont.pageTitle * -0.02)
                 .foregroundStyle(TLColor.text)

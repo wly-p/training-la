@@ -18,7 +18,7 @@ struct RotationNameFormView: View {
         NavigationStack {
             Form {
                 Section {
-                    TextField("", text: $name, prompt: localText("rotation.name.placeholder"))
+                    TextField(text: $name, prompt: localText("rotation.name.placeholder")) { Text(verbatim: "") }
                 }
             }
             .navigationTitle(localText(titleKey))

@@ -31,7 +31,7 @@ public struct TLNumberField: View {
 
     public var body: some View {
         HStack(alignment: .lastTextBaseline, spacing: 4) {
-            TextField("", text: $text)
+            TextField(text: $text) { Text(verbatim: "") }
                 .font(TLFont.display(60))
                 .foregroundStyle(TLColor.text)
                 .multilineTextAlignment(.center)

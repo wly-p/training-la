@@ -470,7 +470,7 @@ public struct TrainingHomeView: View {
                 .textCase(.uppercase)
                 .foregroundStyle(TLColor.neutral500)
             HStack(alignment: .firstTextBaseline, spacing: TLSpace.gapS) {
-                Text("\(summary.sessionCount)")
+                Text(verbatim: "\(summary.sessionCount)")
                     .font(TLFont.display(34))
                     .foregroundStyle(TLColor.text)
                 weekDurationText(summary.totalMinutes)

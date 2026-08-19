@@ -25,7 +25,7 @@ public struct TLSearchField: View {
             Image(systemName: "magnifyingglass")
                 .font(.system(size: 15, weight: .medium))
                 .foregroundStyle(TLColor.neutral500)
-            let field = TextField("", text: $text, prompt: placeholder.foregroundColor(TLColor.neutral500))
+            let field = TextField(text: $text, prompt: placeholder.foregroundColor(TLColor.neutral500)) { Text(verbatim: "") }
                 .font(TLFont.zh(TLFont.rowTitle))
                 .foregroundStyle(TLColor.text)
                 .autocorrectionDisabled()
