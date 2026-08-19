@@ -60,27 +60,47 @@ public actor SwiftDataWorkoutRepository: WorkoutRepository {
         return []
     }
 
-    public func finishedWorkouts() async throws -> [Workout] {
-        let descriptor = FetchDescriptor<WorkoutModel>(
+    public func finishedWorkouts(limit: Int?) async throws -> [Workout] {
+        var descriptor = FetchDescriptor<WorkoutModel>(
             predicate: #Predicate { $0.endedAt != nil },
             sortBy: [SortDescriptor(\.day, order: .reverse), SortDescriptor(\.startedAt, order: .reverse)]
         )
+        // 上限交給 SwiftData，不要撈回全部才在記憶體裡砍——成本在 toDomain()
+        // 把每一場的每一組都轉成 struct，那正是要避開的部分。
+        descriptor.fetchLimit = limit
         return try modelContext.fetch(descriptor).map { $0.toDomain() }
     }
 
     public func exerciseHistory(exerciseId: UUID) async throws -> [ExerciseSetRecord] {
-        let descriptor = FetchDescriptor<WorkoutModel>(
-            predicate: #Predicate { $0.endedAt != nil },
-            sortBy: [SortDescriptor(\.day, order: .reverse), SortDescriptor(\.startedAt, order: .reverse)]
+        // 直接以 exerciseId 撈組，不要先撈全部場次再過濾。
+        //
+        // 原本是「抓所有已完成場次 → 每一場都 toDomain()（含它的每一組）→ 才挑出這個動作」，
+        // 所以完全沒有這個動作的場次也被完整轉換一次。而 DetectPersonalRecords 會對
+        // 這場的每一個動作各呼叫一次——結束一場 5 個動作的訓練＝5 次全庫掃描。
+        // 200 場 × 25 組的資料量下實測單次 0.27s、五次 1.37s，全都卡在結束訓練的當下。
+        let descriptor = FetchDescriptor<WorkoutSetModel>(
+            predicate: #Predicate { $0.exerciseId == exerciseId }
         )
-        var records: [ExerciseSetRecord] = []
-        for model in try modelContext.fetch(descriptor) {
-            let workout = model.toDomain()
-            for set in workout.sets where set.exerciseId == exerciseId {
-                records.append(ExerciseSetRecord(workoutId: workout.id, day: workout.day, set: set))
+        // 已完成場次才算數（進行中的那場不該進歷史）；排序沿用「新到舊」的既有語意。
+        // 關聯的 workout 在同一個 context 裡，取用不會再打一次 DB。
+        return try modelContext.fetch(descriptor)
+            .compactMap { setModel -> (model: WorkoutModel, record: ExerciseSetRecord)? in
+                guard let workout = setModel.workout, workout.endedAt != nil else { return nil }
+                let day = DayDate(isoString: workout.day) ?? DayDate(year: 1970, month: 1, day: 1)
+                return (workout, ExerciseSetRecord(
+                    workoutId: workout.id, day: day, set: setModel.toDomain()
+                ))
             }
-        }
-        return records
+            .sorted { lhs, rhs in
+                if lhs.record.day != rhs.record.day { return lhs.record.day > rhs.record.day }
+                let l = lhs.model.startedAt ?? .distantPast
+                let r = rhs.model.startedAt ?? .distantPast
+                if l != r { return l > r }
+                // 同一場內維持 (exerciseIndex, setIndex) 的自然順序，輸出才穩定。
+                return (lhs.record.set.exerciseIndex, lhs.record.set.setIndex)
+                    < (rhs.record.set.exerciseIndex, rhs.record.set.setIndex)
+            }
+            .map(\.record)
     }
 
     public func usesExercise(_ exerciseId: UUID) async throws -> Bool {

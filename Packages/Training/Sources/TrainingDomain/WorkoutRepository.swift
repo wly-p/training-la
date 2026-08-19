@@ -12,8 +12,12 @@ public protocol WorkoutRepository: Sendable {
     /// 某動作最近一次「已完成場次」的所有組（給記錄畫面的「上次」提示）。
     /// `excludingWorkout`：排除進行中的場次自己。
     func lastPerformance(exerciseId: UUID, excludingWorkout: UUID?) async throws -> [WorkoutSet]
-    /// 全部已完成場次（day 新到舊；給歷史頁）。
-    func finishedWorkouts() async throws -> [Workout]
+    /// 已完成場次（day 新到舊）。
+    ///
+    /// - Parameter limit: 最多取幾筆；`nil`＝全部。
+    ///   歷史頁與能力值需要完整資料（「歷來推過的最大重量」少一場就會算錯），傳 nil；
+    ///   訓練首頁只要「這週 ＋ 最近幾場」，傳上限避免每次進分頁都把整個歷史 materialize 一次。
+    func finishedWorkouts(limit: Int?) async throws -> [Workout]
     /// 某動作跨所有已完成場次的每一組（新到舊；本地版的 /v1/workout-sets?exercise_id=）。
     func exerciseHistory(exerciseId: UUID) async throws -> [ExerciseSetRecord]
     /// 有沒有任何一組紀錄引用這個動作（給刪動作的 in_use 檢查）。
@@ -30,6 +34,13 @@ public struct ExerciseSetRecord: Equatable, Sendable {
         self.workoutId = workoutId
         self.day = day
         self.set = set
+    }
+}
+
+extension WorkoutRepository {
+    /// 便利多載：不指定上限＝全部。既有呼叫端不受影響。
+    public func finishedWorkouts() async throws -> [Workout] {
+        try await finishedWorkouts(limit: nil)
     }
 }
 

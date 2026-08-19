@@ -708,6 +708,23 @@
         }
       }
     },
+    "training.finish.pr.firstEver %@ %@ %lld": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "First %1$@ record: %2$@ × %3$lld"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ 第一筆紀錄：%2$@ × %3$lld 下"
+          }
+        }
+      }
+    },
     "training.finish.pr.newReps %@ %@ %lld": {
       "localizations": {
         "en": {

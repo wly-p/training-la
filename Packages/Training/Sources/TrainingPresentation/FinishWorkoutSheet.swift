@@ -212,6 +212,9 @@ struct FinishWorkoutSheet: View {
             text = String(format: localString("training.finish.pr.newReps %@ %@ %lld", locale), name, weightText, pr.reps)
         case .newWeightAtReps:
             text = String(format: localString("training.finish.pr.newWeight %@ %@ %lld", locale), name, weightText, pr.reps)
+        case .firstEver:
+            // 第一次練這個動作：說「創新高」很怪（沒有舊紀錄可破），改寫成「第一筆紀錄」。
+            text = String(format: localString("training.finish.pr.firstEver %@ %@ %lld", locale), name, weightText, pr.reps)
         }
         return Label {
             Text(verbatim: text)
