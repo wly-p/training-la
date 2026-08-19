@@ -33,5 +33,8 @@ private struct RootContainerView: View {
             onEraseAll: { resetToken = UUID() }
         )
         .id(resetToken)
+        // DEBUG 的假資料產生器（`--debug-seed=`）。沒帶參數就什麼都不做，
+        // release build 連這個 closure 都是空的。
+        .task { await dependencies.seedDebugDataIfRequested() }
     }
 }

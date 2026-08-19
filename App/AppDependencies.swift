@@ -36,6 +36,8 @@ struct AppDependencies {
     /// `onErased`：清除成功後由 App 層觸發整個畫面重建（回到全新初始狀態）。
     let makeSettingsViewModel: @MainActor (_ onErased: @escaping @MainActor () -> Void) -> SettingsViewModel
     let makeAbilityListViewModel: @MainActor () -> AbilityListViewModel
+    /// DEBUG 專用：`--debug-seed=` 帶到時產生假資料（見 `DebugSeeding`）。Release build 是 no-op。
+    var seedDebugDataIfRequested: @Sendable () async -> Void = {}
 
     /// UI 測試指定的 app 語言（`--uitest-language=en`）；沒帶或代碼不認得就回 nil。
     /// 只在 `inMemory` 模式下生效，正式啟動一律走使用者的持久化偏好。
@@ -120,7 +122,7 @@ struct AppDependencies {
             : RestEndReminder(notifications: UserNotificationRestScheduler(languageStore: languageStore),
                               sound: SystemSoundReminderPlayer(),
                               store: reminderStore)
-        return assemble(
+        var dependencies = assemble(
             exerciseRepository: SpecDataFactory.makeExerciseRepository(
                 container: container,
                 usageChecker: usageChecker,
@@ -143,6 +145,13 @@ struct AppDependencies {
             today: today,
             dataEraser: SwiftDataEraser(container: container, modelTypes: allModels)
         )
+        #if DEBUG
+        dependencies.seedDebugDataIfRequested = {
+            guard let spec = DebugSeeding.requestedSpec() else { return }
+            await DebugSeeding.run(spec: spec, repository: workoutRepository, today: today())
+        }
+        #endif
+        return dependencies
     }
 
     /// 共用組裝邏輯：給定 repositories（真實或 mock）長出整張相依圖。
