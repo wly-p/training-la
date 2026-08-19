@@ -852,7 +852,7 @@ public struct ActiveWorkoutView: View {
             }
             if exercise.doneSetCount == 0 {
                 Button(role: .destructive) {
-                    viewModel.removeFromSession(exerciseId: exercise.id)
+                    Task { await viewModel.removeFromSession(exerciseId: exercise.id) }
                 } label: {
                     localText("training.edit.removeFromSession")
                 }

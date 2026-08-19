@@ -151,19 +151,41 @@ struct ActiveWorkoutMidWorkoutEditTests {
         await vm.onAppear()
         await vm.completeCurrentSet()   // 臥推做 1 組 → 不能移除臥推
 
-        vm.removeFromSession(exerciseId: benchId)
+        await vm.removeFromSession(exerciseId: benchId)
         #expect(vm.sessionSequence.contains { $0.id == benchId })   // 移除失敗，還在清單
 
-        vm.removeFromSession(exerciseId: squatId)   // 深蹲還沒開始 → 可以移除
+        await vm.removeFromSession(exerciseId: squatId)   // 深蹲還沒開始 → 可以移除
         #expect(vm.sessionSequence.contains { $0.id == squatId } == false)
     }
 
-    @Test func removeFromSessionClearsCurrentExerciseWhenRemovingIt() async {
+    @Test func removeFromSessionClearsCurrentExerciseWhenNothingLeft() async {
         let vm = makeViewModel(benchSets: 2, squatSets: 0)
         await vm.onAppear()   // 目前在臥推，還沒記錄任何組
 
-        vm.removeFromSession(exerciseId: benchId)
+        await vm.removeFromSession(exerciseId: benchId)
 
+        // 課表裡沒有別的動作可接 → 才會落到空狀態
         #expect(vm.currentExerciseId == nil)
+    }
+
+    /// 移除當前動作後要自動接到下一個，不能把使用者丟進「挑一個動作開始」空狀態。
+    @Test func removeFromSessionAdvancesToNextPlannedExercise() async {
+        let vm = makeViewModel(benchSets: 2, squatSets: 2)
+        await vm.onAppear()   // 目前在臥推
+
+        await vm.removeFromSession(exerciseId: benchId)
+
+        #expect(vm.currentExerciseId == squatId)
+        #expect(vm.sessionSequence.contains { $0.id == benchId } == false)
+    }
+
+    /// 被移除的動作不該再被「下一個」指回去。
+    @Test func removedExerciseIsNotOfferedAsNextPlanned() async {
+        let vm = makeViewModel(benchSets: 2, squatSets: 2)
+        await vm.onAppear()
+
+        await vm.removeFromSession(exerciseId: squatId)   // 移掉非當前的那個
+
+        #expect(vm.nextPlannedExerciseId == nil)
     }
 }
