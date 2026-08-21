@@ -11,6 +11,11 @@
 # 規則 2：禁止 Sources 裡出現中文字串字面值
 #   代表這段文字根本沒進 String Catalog，切成英文一定露餡。
 #
+# 規則 6：String Catalog 裡不准有「不是文案」的 key
+#   空字串、純格式指示符（%lld）、圖表軸識別（day/weight）這類東西，是 SwiftUI 的字串
+#   自動抽取誤把非文案的字面量當成 LocalizedStringKey 收進去的。它們永遠不會被翻譯，
+#   卻會一直出現在待翻譯清單裡，久了就沒人分得清哪些是真的漏翻。
+#
 # 用法：./scripts/check-i18n.sh（或 make lint）。有違規回傳 1。
 
 set -uo pipefail
@@ -263,6 +268,54 @@ PY
 if [ -n "$uitest" ]; then
     echo "✘ UITest 還在用中文查元素——請改用 accessibilityIdentifier（見 ARCHITECTURE.md）："
     echo "$uitest" | sed 's/^/    /'
+    fail=1
+fi
+
+# --- 規則 6 ------------------------------------------------------------------
+# String Catalog 裡不准出現「不是文案」的 key。
+#
+# 為什麼要機器擋：這種 key 是 build 時自動抽取產生的，人手清掉之後**下次 build 會再長回來**，
+# 除非把來源一起修掉。2026-08 就發生過一次——清了 day/weight/%lld，但空字串 key 在
+# 下一次 build 又出現，因為真正的來源（`Text(errorMessage ?? "")`、`DatePicker("")`）沒被發現。
+# 只看檔案內容是抓不到的，得靠這條規則在每次 lint 時重新確認。
+#
+# 常見來源與正確寫法：
+#   Text(optional ?? "")            → if let x { Text(x) }
+#   TextField("", text:)            → TextField(text:) { Text(verbatim: "") }
+#   DatePicker("", selection:)      → DatePicker(selection:) { Text(verbatim: "") }
+#   Text("\(someInt)")              → Text(verbatim: "\(someInt)")
+#   Chart 的 .value("day", …)       → 傳 String 常數，選 StringProtocol 那個 overload
+
+catalog=$(python3 - <<'PY'
+import json, pathlib, re
+
+# 不是文案的 key：空字串、純格式指示符、純小寫英文識別字（圖表軸之類）。
+FORMAT_ONLY = re.compile(r'^[%@\dlld\s]*$')
+
+bad = []
+for path in sorted(pathlib.Path('.').glob('Packages/*/Sources/*/Localizable.xcstrings')):
+    data = json.loads(path.read_text(encoding='utf-8'))
+    for key, entry in data.get('strings', {}).items():
+        reason = None
+        if key.strip() == '':
+            reason = '空字串'
+        elif FORMAT_ONLY.match(key):
+            reason = '只有格式指示符'
+        else:
+            # 沒有任何翻譯、也沒有 extractionState 的純小寫英文單字＝自動抽取的識別字
+            locs = entry.get('localizations', {})
+            has_value = any(l.get('stringUnit', {}).get('value') for l in locs.values())
+            if not has_value and re.fullmatch(r'[a-z][a-zA-Z]*', key):
+                reason = '無翻譯的識別字（疑似圖表/元件標籤）'
+        if reason:
+            bad.append(f'{path}: {key!r} — {reason}')
+print('\n'.join(bad))
+PY
+)
+
+if [ -n "$catalog" ]; then
+    echo "✘ String Catalog 有非文案的 key（自動抽取產生，要修來源而不是刪 key）："
+    echo "$catalog" | sed 's/^/    /'
     fail=1
 fi
 

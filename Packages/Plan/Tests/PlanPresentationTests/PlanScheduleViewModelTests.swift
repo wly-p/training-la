@@ -6,6 +6,13 @@ import Testing
 @testable import PlanPresentation
 
 private let day1 = DayDate(year: 2026, month: 7, day: 10)
+
+/// 可推進的時鐘。`PlanScheduleViewModel` 活整個 app 生命週期，
+/// 所以「今天」必須每次重讀而不是 init 時算好——這個 box 讓測試推進時間來驗證那件事。
+private final class MutableClock: @unchecked Sendable {
+    var day: DayDate
+    init(_ day: DayDate) { self.day = day }
+}
 private let day2 = DayDate(year: 2026, month: 7, day: 11)
 
 private actor MockScheduleRepo: PlanWorkoutRepository {
@@ -75,7 +82,8 @@ private func makeViewModel(
     templateRepo: MockTemplateRepo = MockTemplateRepo(),
     programRepo: MockProgramRepo = MockProgramRepo(),
     assignmentRepo: MockAssignmentRepo = MockAssignmentRepo(),
-    catalog: [PlanCatalogExercise] = []
+    catalog: [PlanCatalogExercise] = [],
+    today: @escaping @Sendable () -> DayDate = { day1 }
 ) -> PlanScheduleViewModel {
     PlanScheduleViewModel(
         listPlanWorkouts: ListPlanWorkouts(repository: repo),
@@ -103,7 +111,7 @@ private func makeViewModel(
             abilityValueLookup: MockAbilityLookup()
         ),
         exerciseCatalog: MockCatalog(items: catalog),
-        today: { day1 }
+        today: today
     )
 }
 
@@ -252,6 +260,35 @@ struct PlanScheduleViewModelTests {
         #expect(vm.workouts(on: day1).first?.origin == .program)
         #expect(vm.projections(on: day1).isEmpty)
         #expect(vm.mark(on: day1) == .scheduled)
+    }
+
+    // MARK: - 「今天」要跟著時鐘走（體檢 E4）
+
+    /// 這個 view model 活整個 app 生命週期。原本 `today` 存的是 init 當下算好的值，
+    /// 所以 app 擺著過午夜後月曆的今天標記、補登邊界、投影起點會全部停在昨天，
+    /// 直到重啟 app 才更新。改成存 closure、每次重讀。
+    ///
+    /// 這支測試在舊實作下會失敗（`vm.today` 會固定回 day1）。
+    @Test func todayFollowsTheClockAcrossMidnight() async {
+        let clock = MutableClock(day1)
+        let vm = makeViewModel(repo: MockScheduleRepo(), today: { clock.day })
+
+        #expect(vm.today == day1)
+
+        clock.day = day2   // 跨過午夜
+
+        #expect(vm.today == day2)
+    }
+
+    /// 但**選取日**不該跟著跳——它是使用者的操作結果，只有初值取自今天。
+    @Test func selectedDateDoesNotFollowTheClock() async {
+        let clock = MutableClock(day1)
+        let vm = makeViewModel(repo: MockScheduleRepo(), today: { clock.day })
+        #expect(vm.selectedDate == day1)
+
+        clock.day = day2
+
+        #expect(vm.selectedDate == day1)
     }
 
     @Test func dismissErrorClearsErrorMessage() async {
