@@ -125,7 +125,7 @@ struct PlanWorkoutFormView: View {
                         .font(TLFont.zh(TLFont.rowTitle))
                         .foregroundStyle(TLColor.text)
                     Spacer()
-                    DatePicker("", selection: $date, displayedComponents: .date)
+                    DatePicker(selection: $date, displayedComponents: .date) { Text(verbatim: "") }
                         .labelsHidden()
                         .tint(TLColor.accent)
                 }

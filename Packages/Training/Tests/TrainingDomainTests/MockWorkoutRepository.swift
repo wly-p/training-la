@@ -41,10 +41,12 @@ actor MockWorkoutRepository: WorkoutRepository {
         stubbedLastPerformance[exerciseId] ?? []
     }
 
-    func finishedWorkouts() async throws -> [Workout] {
-        storage.values
+    func finishedWorkouts(limit: Int?) async throws -> [Workout] {
+        let all = storage.values
             .filter { $0.isFinished }
             .sorted { $0.day > $1.day }
+        // 上限也要照做，否則 mock 會把「首頁只取最近 N 場」這個行為藏起來。
+        return limit.map { Array(all.prefix($0)) } ?? all
     }
 
     func exerciseHistory(exerciseId: UUID) async throws -> [ExerciseSetRecord] {

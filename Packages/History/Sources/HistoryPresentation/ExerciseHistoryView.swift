@@ -11,6 +11,14 @@ public struct ExerciseHistoryView: View {
     let loadSessions: () async -> [HistoryExerciseSession]
 
     @State private var sessions: [HistoryExerciseSession] = []
+    /// 趨勢點只在載入後算一次。
+    ///
+    /// 原本是 computed property，而下方的場次清單在 `ForEach` 的**每一列**都呼叫
+    /// `points.first(where:)`——等於每列都重算一次整條趨勢，100 場就是 100×100 次比對，
+    /// 而且每次 body 求值都重跑。
+    @State private var points: [ExerciseTrendPoint] = []
+    /// 場次 id → 是否創新高。取代每列 O(n) 的 `points.first(where:)` 線性搜尋。
+    @State private var prSessionIds: Set<UUID> = []
     @State private var hasLoaded = false
     @Environment(\.locale) private var locale
 
@@ -18,8 +26,6 @@ public struct ExerciseHistoryView: View {
         self.option = option
         self.loadSessions = loadSessions
     }
-
-    private var points: [ExerciseTrendPoint] { HistoryFormatting.trendPoints(for: sessions) }
 
     public var body: some View {
         ScrollView {
@@ -49,7 +55,11 @@ public struct ExerciseHistoryView: View {
         }
         .background(TLColor.bg.ignoresSafeArea())
         .task {
-            sessions = await loadSessions()
+            let loaded = await loadSessions()
+            let trend = HistoryFormatting.trendPoints(for: loaded)
+            sessions = loaded
+            points = trend
+            prSessionIds = Set(trend.filter(\.isPersonalRecord).map(\.id))
             hasLoaded = true
         }
     }
@@ -107,7 +117,7 @@ public struct ExerciseHistoryView: View {
                         title: Text(HistoryFormatting.dayLabel(session.day, locale: locale)),
                         subtitle: Text(HistoryFormatting.summary(of: session.sets)),
                         leading: {
-                            if points.first(where: { $0.id == session.id })?.isPersonalRecord == true {
+                            if prSessionIds.contains(session.id) {
                                 CircleBadge(icon: "trophy.fill", fill: TLColor.sage200, tint: TLColor.sage700)
                             } else {
                                 CircleBadge(fill: TLColor.neutral200) {

@@ -15,7 +15,7 @@ private actor MockWorkoutRepo: WorkoutRepository {
     func delete(id: UUID) async throws { stored[id] = nil }
     func activeWorkout() async throws -> Workout? { nil }
     func lastPerformance(exerciseId: UUID, excludingWorkout: UUID?) async throws -> [WorkoutSet] { [] }
-    func finishedWorkouts() async throws -> [Workout] { [] }
+    func finishedWorkouts(limit: Int?) async throws -> [Workout] { [] }
     func exerciseHistory(exerciseId: UUID) async throws -> [ExerciseSetRecord] { [] }
     func usesExercise(_ exerciseId: UUID) async throws -> Bool { false }
 }

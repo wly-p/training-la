@@ -24,7 +24,10 @@ private actor MockHomeWorkoutRepo: WorkoutRepository {
         return current
     }
     func lastPerformance(exerciseId: UUID, excludingWorkout: UUID?) async throws -> [WorkoutSet] { [] }
-    func finishedWorkouts() async throws -> [Workout] { finished }
+    func finishedWorkouts(limit: Int?) async throws -> [Workout] {
+        // 上限也要照做，否則 mock 會把「首頁只取最近 N 場」這個行為藏起來。
+        limit.map { Array(finished.prefix($0)) } ?? finished
+    }
     func exerciseHistory(exerciseId: UUID) async throws -> [ExerciseSetRecord] { [] }
     func usesExercise(_ exerciseId: UUID) async throws -> Bool { false }
 }

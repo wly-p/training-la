@@ -97,7 +97,7 @@ struct ProgramApplyView: View {
                             .font(TLFont.zh(TLFont.rowTitle))
                             .foregroundStyle(TLColor.text)
                         Spacer()
-                        DatePicker("", selection: $startDate, displayedComponents: .date)
+                        DatePicker(selection: $startDate, displayedComponents: .date) { Text(verbatim: "") }
                             .labelsHidden()
                             .tint(TLColor.accent)
                     }

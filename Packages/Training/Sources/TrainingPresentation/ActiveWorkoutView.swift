@@ -155,7 +155,9 @@ public struct ActiveWorkoutView: View {
         ) {
             Button(role: .cancel) {} label: { localText("training.ok") }
         } message: {
-            Text(viewModel.errorMessage ?? "")
+            // `?? ""` 會讓那個空字串變成可翻譯字面量，被抽進 String Catalog
+            // 變成一個永遠不會被翻譯的空 key（體檢 E11）。改成條件式。
+            if let message = viewModel.errorMessage { Text(message) }
         }
     }
 
