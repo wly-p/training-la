@@ -1,8 +1,6 @@
 {
   "sourceLanguage": "zh-Hant",
   "strings": {
-    "": {},
-    "%lld": {},
     "training.active.kicker %lld": {
       "localizations": {
         "en": {

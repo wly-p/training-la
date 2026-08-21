@@ -56,20 +56,29 @@ public struct ExerciseHistoryView: View {
 
     // MARK: - 趨勢圖
 
+    /// 圖表軸的識別字串。**一定要是 String 而不是字面量**——字面量會選到
+    /// `PlottableValue.value(_ label: LocalizedStringKey, _:)` 那個 overload，
+    /// 被 SwiftUI 的字串抽取當成待翻譯字串塞進 String Catalog（體檢 E11）。
+    /// 這兩個值只是圖表內部的軸識別，不會顯示給使用者，不該進翻譯流程。
+    private enum AxisID {
+        static let day = "day"
+        static let weight = "weight"
+    }
+
     private var trendChart: some View {
         VStack(alignment: .leading, spacing: 8) {
             SectionHeader(localText("history.exerciseTrend.section"))
             Chart(points) { point in
                 LineMark(
-                    x: .value("day", point.day.chartDate),
+                    x: .value(AxisID.day, point.day.chartDate),
                     // 一律用公斤畫，否則混單位時同一張圖會出現兩種尺度。
-                    y: .value("weight", point.weight.kilograms)
+                    y: .value(AxisID.weight, point.weight.kilograms)
                 )
                 .foregroundStyle(TLColor.accent700)
                 .interpolationMethod(.monotone)
                 PointMark(
-                    x: .value("day", point.day.chartDate),
-                    y: .value("weight", point.weight.kilograms)
+                    x: .value(AxisID.day, point.day.chartDate),
+                    y: .value(AxisID.weight, point.weight.kilograms)
                 )
                 .foregroundStyle(point.isPersonalRecord ? TLColor.sage : TLColor.accent700)
                 .symbolSize(point.isPersonalRecord ? 90 : 32)

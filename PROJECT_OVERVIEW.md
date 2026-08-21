@@ -9,13 +9,16 @@
 
 ## 1. 大方向 Vision
 
-一款**本地優先（local-first）**的重量訓練 app：安排要練什麼、訓練時逐組記錄、事後回顧單一動作的進展。無帳號、無網路也能完整使用，資料存在裝置上。後端負責跨裝置同步與範本分享，是漸進加值，不是核心前提。
+一款**本地優先（local-first）**的重量訓練 app：安排要練什麼、訓練時逐組記錄、事後回顧單一動作的進展。無帳號、無網路也能完整使用，資料存在裝置上。
 
-> A local-first strength-training app. Works fully offline with no account. The backend adds cross-device sync and shareable templates as progressive enhancement.
+> A local-first strength-training app. Works fully offline with no account.
+
+**使用者資料不進後端**（2026-08 定案）——訓練紀錄、課表、能力值這些個人資料只存在裝置上，跨裝置與備份走 **iCloud**，不上傳到自家伺服器。後端在這個前提下還剩什麼角色**尚未拍板**，見 §8。
 
 **原則 Principles**
 
 - **本地優先** — 單機即為完整產品，網路只是加值
+- **個人資料留在裝置上** — 備份／跨裝置用 iCloud，不經過自家後端
 - **前後端徹底切開** — 以 OpenAPI 為契約，後端產生 Swift client 給 app 用
 - **開源** — app 為 Apache-2.0，公開於 GitHub
 
@@ -108,7 +111,10 @@ Domain 層純 Swift、無框架相依，可脫離 SwiftUI / SwiftData / 模擬�
 
 **契約軸（api）** — 0.2.0 現行（單用戶、無 auth、CRUD、範本、aggregate 寫入）→ 後續補 auth／多用戶、單一 set 端點、公開分享
 
-**平台軸** — v1 API 整合（下載範本、離線可用、聯網自動 sync）、v1 Apple Watch（排課與計劃留在手機，Watch 專注「開始訓練」的當下體驗；資料流是 Watch → 手機 → 後端，Watch 不直連後端）
+**平台軸** — v1 備份與跨裝置（檔案匯出／還原優先，CloudKit 自動同步視前置條件而定）、v1 Apple Watch（排課與計劃留在手機，Watch 專注「開始訓練」的當下體驗；資料流是 Watch → 手機，Watch 不直連後端）
+
+> ⚠️ 原本這一軸寫的是「v1 API 整合（聯網自動 sync）」。既然使用者資料不進後端，那條路已經作廢；
+> 後端相關的里程碑要等 §8 的「後端的剩餘角色」拍板後重寫。
 
 ---
 
@@ -117,8 +123,9 @@ Domain 層純 Swift、無框架相依，可脫離 SwiftUI / SwiftData / 模擬�
 - **命名三套並存** — API（`Plan` / `PlanWorkout` / `Workout`）、app 模組名、PROJECT_PLAN 的散文名（`Personal` / `TrainingRecord`）。→ 拍板以 API 為正規名，其餘逐步退役
 - **版本號分軸** — app v0→v3 與 api 0.2.0 各走各的。→ 建議另立一組貫穿三 repo 的「產品里程碑」（如 M1 = app 串上 dev API）
 - **排課週期自動推進** — app 端已有循環／長期課表，但這個概念不在 API。→ 要不要進 API？會影響是否需要新端點
-- **v1 整合範圍** — 先讀取範本？先同步 workout？離線佇列與 sync 觸發時機？
-- **Aggregate 寫入 vs 同步** — 整包覆蓋＝後寫贏，可能蓋掉他裝置的變更，衝突合併策略要及早想
+- **後端的剩餘角色** ⭐ — 使用者資料已確定不進後端。那 `training-la-api` 還留下什麼？三種可能：(a) 只供應官方／公開範本與動作庫，個人資料完全不碰；(b) 整個退場，連帶要處理 openapi 契約、`training-la-client-swift`、以及「v1 · API Integration」這個 Milestone 的去留；(c) 其他。**這題沒拍板之前，本文件所有關於後端的敘述都應視為過期。**
+- **iCloud 的形式** — 檔案匯出／還原（可攜、成本低）vs CloudKit 自動同步（零操作，但要求移除 15 處 `@Attribute(.unique)`、所有屬性補預設值，且前置是把「每記一組刪整棵重插」的寫入模式改掉）。目前傾向先做前者。
+- **Aggregate 寫入 vs 同步** — 整包覆蓋＝後寫贏。若最終走 CloudKit，衝突合併策略要及早想
 - **狀態列舉語意** — 「完成／跳過／中斷」等語意前後端需有共識
 
 ---

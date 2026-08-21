@@ -141,7 +141,8 @@ public final class ActiveWorkoutViewModel {
 
     public var durationMinutes: Int {
         guard let start = workout.startedAt else { return 0 }
-        return max(0, Int(Date().timeIntervalSince(start) / 60))
+        // 用注入的 now() 而不是 Date()：跟休息倒數同一個時間來源，測試才控得住時長。
+        return max(0, Int(now().timeIntervalSince(start) / 60))
     }
 
     public func name(for exerciseId: UUID) -> String {
@@ -254,7 +255,13 @@ public final class ActiveWorkoutViewModel {
     /// 用「做滿」而非「有紀錄」判斷——否則做一半就跳走的動作會被當成已完成，導致提早跳訓練結束。
     public var nextPlannedExerciseId: UUID? {
         guard blueprint != nil else { return nil }
-        return plannedOrderIds.first { $0 != currentExerciseId && !isPlannedExerciseFullyDone($0) }
+        // 一併排除「從這場移除」的動作——它已經不在本場清單裡（見 sessionSequence），
+        // 不排除的話「下一個」與完成區的主按鈕會指回一個使用者剛移掉的動作。
+        return plannedOrderIds.first {
+            $0 != currentExerciseId
+                && !removedExerciseIds.contains($0)
+                && !isPlannedExerciseFullyDone($0)
+        }
     }
 
     /// 下一個課表動作的名稱（給按鈕標題）。
@@ -443,11 +450,16 @@ public final class ActiveWorkoutViewModel {
     /// 「從這場移除」：只允許還沒開始（沒有任何記錄）的動作；不寫入任何 WorkoutSet——跟
     /// 「跳過」不同，跳過會留下 skipped 紀錄，移除則什麼都不留。只在本場 session 記憶體內
     /// 有效：離開又恢復這場時，這個動作會依原課表重新出現（跟 `reorderedPlan` 同一個既定取捨）。
-    public func removeFromSession(exerciseId: UUID) {
+    public func removeFromSession(exerciseId: UUID) async {
         guard (doneSetCounts[exerciseId] ?? 0) == 0 else { return }
         removedExerciseIds.insert(exerciseId)
-        if currentExerciseId == exerciseId {
-            currentExerciseId = nil
+        guard currentExerciseId == exerciseId else { return }
+        // 移掉的是當前動作 → 自動接到下一個還沒做滿的課表動作。
+        // 只把 currentExerciseId 設成 nil 的話畫面會掉進「挑一個動作開始」空狀態，
+        // 看起來像操作失敗（bug：從這場移除後畫面空掉）。
+        currentExerciseId = nil
+        if let next = nextPlannedExerciseId {
+            await select(exerciseId: next)
         }
     }
 

@@ -49,7 +49,7 @@ struct FinishWorkoutSheet: View {
                     exerciseList
                     feelingSection
                     if showsNoteField {
-                        TextField("", text: $note, prompt: localText("training.notes.placeholder"), axis: .vertical)
+                        TextField(text: $note, prompt: localText("training.notes.placeholder"), axis: .vertical) { Text(verbatim: "") }
                             .padding(TLSpace.rowInset)
                             .background(TLColor.neutral100)
                             .clipShape(RoundedRectangle(cornerRadius: TLRadius.inner, style: .continuous))

@@ -183,6 +183,7 @@ public struct StartRotation: Sendable {
             date: date,
             status: .notStarted,
             templateId: nil,
+            origin: .rotation,
             orderIndex: orderIndex,
             sets: sets
         )

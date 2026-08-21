@@ -98,7 +98,10 @@ public struct TemplateListView: View {
             actionSystemImage: "doc.on.doc",
             onAction: {
                 Task {
-                    guard let copy = await viewModel.duplicate(id: template.id) else { return }
+                    guard let copy = await viewModel.duplicate(
+                        id: template.id,
+                        nameSuffix: localString("template.copySuffix", locale)
+                    ) else { return }
                     duplicatedFromName = template.name
                     editing = .edit(copy)
                 }

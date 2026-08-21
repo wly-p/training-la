@@ -70,9 +70,11 @@ public final class TemplateListViewModel {
 
     /// 左滑「複製」（14a）：深拷貝已存進 repository，回傳新的一份給呼叫端直接開編輯頁。
     @discardableResult
-    public func duplicate(id: UUID) async -> WorkoutTemplate? {
+    /// `nameSuffix` 由 View 傳入（它才拿得到 locale）——複製出來的名稱會被存進 DB，
+    /// 必須在寫入當下解析成使用者當時的語言。
+    public func duplicate(id: UUID, nameSuffix: String) async -> WorkoutTemplate? {
         do {
-            let copy = try await duplicateTemplate(id: id)
+            let copy = try await duplicateTemplate(id: id, nameSuffix: nameSuffix)
             await load()
             return copy
         } catch {

@@ -185,7 +185,7 @@ struct DuplicateTemplateTests {
         let original = template()
         await repo.seed([original])
 
-        let copy = try await DuplicateTemplate(repository: repo)(id: original.id)
+        let copy = try await DuplicateTemplate(repository: repo)(id: original.id, nameSuffix: " · 副本")
 
         #expect(copy.id != original.id)
         #expect(copy.name == "推日 · 副本")
@@ -201,7 +201,7 @@ struct DuplicateTemplateTests {
         let repo = MockWorkoutTemplateRepository()
         let original = template()
         await repo.seed([original])
-        let copy = try await DuplicateTemplate(repository: repo)(id: original.id)
+        let copy = try await DuplicateTemplate(repository: repo)(id: original.id, nameSuffix: " · 副本")
 
         try await UpdateTemplate(repository: repo)(id: copy.id, name: "改過的副本", sets: copy.sets)
 
@@ -213,7 +213,7 @@ struct DuplicateTemplateTests {
         let repo = MockWorkoutTemplateRepository()
         let ghost = UUID()
         await #expect(throws: WorkoutTemplateRepositoryError.notFound(id: ghost)) {
-            try await DuplicateTemplate(repository: repo)(id: ghost)
+            try await DuplicateTemplate(repository: repo)(id: ghost, nameSuffix: " · 副本")
         }
     }
 }

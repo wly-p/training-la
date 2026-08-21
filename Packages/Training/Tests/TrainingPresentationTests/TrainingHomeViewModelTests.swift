@@ -498,7 +498,7 @@ struct TrainingHomeWeekSummaryTests {
             workout(day: monday.adding(days: -1), minutes: 999),   // 上週日，不算
         ]
 
-        let summary = TrainingHomeViewModel.weekSummary(from: finished, today: today)
+        let summary = TrainingHomeViewModel.weekSummary(from: finished, today: today, firstWeekday: 2)
 
         #expect(summary.sessionCount == 2)
         #expect(summary.totalMinutes == 70)
@@ -507,10 +507,26 @@ struct TrainingHomeWeekSummaryTests {
         #expect(summary.days.last?.date == today)
     }
 
+    /// 週日起算的地區（美國等）：2026/7/26 本身就是週日，這一週應該是 7/26～8/1，
+    /// 上一支測試裡「這週的週一 7/20」在這個地區反而落在上一週。
+    @Test func weekSummaryRespectsSundayFirstWeekday() {
+        let finished = [
+            workout(day: today, minutes: 40),    // 7/26 週日＝這週第一天
+            workout(day: monday, minutes: 30),   // 7/20 週一＝上一週，不算
+        ]
+
+        let summary = TrainingHomeViewModel.weekSummary(from: finished, today: today, firstWeekday: 1)
+
+        #expect(summary.sessionCount == 1)
+        #expect(summary.totalMinutes == 40)
+        #expect(summary.days.first?.date == today)
+        #expect(summary.days.last?.date == DayDate(year: 2026, month: 8, day: 1))
+    }
+
     @Test func weekSummaryMarksCompletedAndTodayCorrectly() {
         let finished = [workout(day: monday, minutes: 10)]
 
-        let summary = TrainingHomeViewModel.weekSummary(from: finished, today: today)
+        let summary = TrainingHomeViewModel.weekSummary(from: finished, today: today, firstWeekday: 2)
 
         #expect(summary.days.first { $0.date == monday }?.completed == true)
         #expect(summary.days.first { $0.date == today }?.isToday == true)
@@ -564,7 +580,7 @@ struct TrainingHomeWeekSummaryTests {
             set(Weight(value: 100, unit: .kg), reps: 10),                    // 上週，不算
         ])
 
-        let summary = TrainingHomeViewModel.weekSummary(from: [thisWeek, lastWeek], today: today)
+        let summary = TrainingHomeViewModel.weekSummary(from: [thisWeek, lastWeek], today: today, firstWeekday: 2)
 
         #expect(summary.totalVolume == 500)
     }
@@ -592,7 +608,9 @@ struct TrainingHomeWeekSummaryTests {
     }
 
     /// 自由訓練沒有名字，「最近練過」列不出東西，不該混進清單。
-    @Test func recentSessionsSkipsFreeTraining() async {
+    /// 自由訓練也要列進「最近練過」——只做自由訓練的人否則永遠看不到這個區塊，
+    /// 也就永遠拿不到「再練一次」這條最短的出路。名稱留 nil，由 View 補「自由訓練」。
+    @Test func recentSessionsIncludesFreeTraining() async {
         let repo = MockHomeWorkoutRepo()
         await repo.setFinished([Workout(id: UUID(), day: today, startedAt: Date(), endedAt: Date())])
         let vm = TrainingHomeViewModel(
@@ -604,7 +622,9 @@ struct TrainingHomeWeekSummaryTests {
 
         await vm.refresh()
 
-        #expect(vm.recentSessions.isEmpty)
+        #expect(vm.recentSessions.count == 1)
+        #expect(vm.recentSessions.first?.name == nil)
+        #expect(vm.recentSessions.first?.planWorkoutId == nil)
     }
 
     /// 挪課要真的打到 Plan 那一側，而且挪完會 refresh —— 今天不再是休息日。

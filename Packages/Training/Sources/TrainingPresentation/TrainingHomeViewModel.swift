@@ -191,13 +191,17 @@ public final class TrainingHomeViewModel {
         let finished = try await recentWorkouts?() ?? []
         recentFinished = finished
         weekSummary = Self.weekSummary(from: finished, today: today())
-        // 13f 右的「最近練過」只給兩列（設計稿如此）；自由訓練沒有名字、列不出東西，先濾掉。
+        // 13f 右的「最近練過」只給兩列（設計稿如此）。
+        // 自由訓練也要列進來——原本濾掉 planWorkoutId == nil，等於只做自由訓練的人
+        // 永遠看不到這個區塊，也就永遠拿不到「再練一次」這條最短的出路。
+        // 沒有名字的場次由 View 以本地化的「自由訓練」補上（name 為 nil）。
         var summaries: [RecentSessionSummary] = []
-        for workout in finished where workout.planWorkoutId != nil {
+        for workout in finished {
             guard summaries.count < Self.recentSessionLimit else { break }
-            guard let planWorkoutId = workout.planWorkoutId,
-                  let name = try await plannedProvider?.blueprint(planWorkoutId: planWorkoutId)?.name
-            else { continue }
+            var name: String?
+            if let planWorkoutId = workout.planWorkoutId {
+                name = try await plannedProvider?.blueprint(planWorkoutId: planWorkoutId)?.name
+            }
             summaries.append(Self.summary(for: workout, name: name))
         }
         recentSessions = summaries
@@ -225,11 +229,20 @@ public final class TrainingHomeViewModel {
         )
     }
 
-    /// 週一到週日 7 天，依 `finished`（已完成場次）標記完成日；`today` 落在哪天標 `isToday`。
-    static func weekSummary(from finished: [Workout], today: DayDate) -> WeekTrainingSummary {
-        let daysSinceMonday = (today.weekdayNumber + 5) % 7
-        let monday = today.adding(days: -daysSinceMonday)
-        let weekDates = (0..<7).map { monday.adding(days: $0) }
+    /// 一週 7 天，依 `finished`（已完成場次）標記完成日；`today` 落在哪天標 `isToday`。
+    ///
+    /// `firstWeekday` 用 `Calendar` 的慣例（1=週日…7=週六），預設跟隨裝置的**地區**設定。
+    /// 這裡刻意讀地區而不是 app 的語言設定——「一週從哪天開始」是地區慣例
+    /// （美國從週日、台灣從週一），跟介面顯示哪種語言無關。
+    /// 原本寫死 `(weekdayNumber + 5) % 7`＝永遠週一起算，對週日起算的地區會整排偏一天。
+    static func weekSummary(
+        from finished: [Workout],
+        today: DayDate,
+        firstWeekday: Int = Calendar.current.firstWeekday
+    ) -> WeekTrainingSummary {
+        let daysSinceStart = (today.weekdayNumber - firstWeekday + 7) % 7
+        let weekStart = today.adding(days: -daysSinceStart)
+        let weekDates = (0..<7).map { weekStart.adding(days: $0) }
         let doneDates = Set(finished.map(\.day)).intersection(weekDates)
         let thisWeek = finished.filter { weekDates.contains($0.day) }
         let totalMinutes = thisWeek.reduce(0) { sum, workout in

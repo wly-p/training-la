@@ -470,7 +470,7 @@ public struct TrainingHomeView: View {
                 .textCase(.uppercase)
                 .foregroundStyle(TLColor.neutral500)
             HStack(alignment: .firstTextBaseline, spacing: TLSpace.gapS) {
-                Text("\(summary.sessionCount)")
+                Text(verbatim: "\(summary.sessionCount)")
                     .font(TLFont.display(34))
                     .foregroundStyle(TLColor.text)
                 weekDurationText(summary.totalMinutes)
@@ -579,7 +579,7 @@ public struct TrainingHomeView: View {
     /// 「把明天的腿日挪到今天」；不是明天就寫出日期。沒有下一個訓練日＝nil，整列不出現。
     private func moveHereTitle(_ restDay: RestDayInfo) -> String? {
         guard let date = restDay.nextWorkoutDate, let name = restDay.nextWorkoutName else { return nil }
-        if date == DayDate(Date()).adding(days: 1) {
+        if date == viewModel.todayDate.adding(days: 1) {
             return String(format: localString("training.home.restDay.moveTomorrow %@", locale), name)
         }
         return String(
@@ -593,7 +593,7 @@ public struct TrainingHomeView: View {
         guard let date = restDay.nextWorkoutDate, let name = restDay.nextWorkoutName else {
             return localString("training.home.restDay.noMoreWorkouts", locale)
         }
-        if date == DayDate(Date()).adding(days: 1) {
+        if date == viewModel.todayDate.adding(days: 1) {
             return String(format: localString("training.home.restDay.nextWorkoutTomorrow %@", locale), name)
         }
         let dateText = "\(date.month)/\(date.day)"
@@ -699,7 +699,7 @@ public struct TrainingHomeView: View {
 
     /// `昨天 · 13 組 · 72 分`；不是昨天就寫日期，算不出時長就只到組數。
     private func recentSessionSubtitle(_ session: RecentSessionSummary) -> String {
-        let today = DayDate(Date())
+        let today = viewModel.todayDate
         let dayText = session.day == today.adding(days: -1)
             ? localString("training.home.yesterday", locale)
             : "\(session.day.month)/\(session.day.day)"

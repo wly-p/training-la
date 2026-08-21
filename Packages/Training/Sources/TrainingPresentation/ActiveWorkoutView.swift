@@ -2,6 +2,9 @@ import DesignSystem
 import SharedKernel
 import SwiftUI
 import TrainingDomain
+#if os(iOS)
+import UIKit
+#endif
 
 public struct ActiveWorkoutView: View {
     /// 目前語言：`localString` 要靠它才能查到 app 設定的語言（而非手機語系）。
@@ -80,7 +83,13 @@ public struct ActiveWorkoutView: View {
                 } else {
                     viewModel.suspendRestTicking(toBackground: phase == .background)
                 }
+                // 螢幕常亮只在前景維持：進背景要還原，否則這個旗標會洩漏到 App 之外。
+                keepScreenAwake(phase == .active)
             }
+            // 訓練中不要讓螢幕自己鎖掉：休息 90 秒、螢幕 30 秒關掉，做完一組手是濕的
+            // 還要先解鎖才能記錄。離開畫面（結束／放棄／離開三條路徑都會走到 onDisappear）還原。
+            .onAppear { keepScreenAwake(true) }
+            .onDisappear { keepScreenAwake(false) }
             .alert(localText("training.restOver"), isPresented: Binding(
                 get: { viewModel.showsRestEndedAlert },
                 set: { if !$0 { viewModel.dismissRest() } }
@@ -852,7 +861,7 @@ public struct ActiveWorkoutView: View {
             }
             if exercise.doneSetCount == 0 {
                 Button(role: .destructive) {
-                    viewModel.removeFromSession(exerciseId: exercise.id)
+                    Task { await viewModel.removeFromSession(exerciseId: exercise.id) }
                 } label: {
                     localText("training.edit.removeFromSession")
                 }
@@ -1014,6 +1023,17 @@ public struct ActiveWorkoutView: View {
     }
 
     private let restPresets = [30, 60, 90, 120, 150, 180, 240, 300]
+}
+
+/// 停用／還原螢幕自動鎖定。macOS 沒有 idle timer 這個概念，整個是 no-op。
+///
+/// 刻意做成自由函式而不是 View modifier：它動的是 App 層級的全域旗標，
+/// 不屬於任何一棵 view 樹，包成 modifier 只會讓「誰負責還原」更難看清楚。
+@MainActor
+private func keepScreenAwake(_ enabled: Bool) {
+    #if os(iOS)
+    UIApplication.shared.isIdleTimerDisabled = enabled
+    #endif
 }
 
 private extension View {

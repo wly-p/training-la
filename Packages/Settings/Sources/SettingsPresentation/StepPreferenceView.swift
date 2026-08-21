@@ -119,7 +119,7 @@ struct StepPreferenceView: View {
                         .font(TLFont.zh(TLFont.rowTitle))
                         .foregroundStyle(TLColor.text)
                     Spacer()
-                    TextField("", text: $customText)
+                    TextField(text: $customText) { Text(verbatim: "") }
                         .font(TLFont.display(17))
                         .multilineTextAlignment(.trailing)
                         .frame(width: 88)
