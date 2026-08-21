@@ -21,26 +21,29 @@ public struct ExerciseTrendPoint: Identifiable, Equatable, Sendable {
 }
 
 extension HistoryFormatting {
-    /// PR 判定（Phase 0 定案）：同一動作，某場的代表組 weight×reps 若在「該重量下的次數」
-    /// 或「該次數下的重量」任一維度創當時的新高，就算 PR。逐場依時間先後掃過一輪比較，
-    /// 「新高」只跟*之前*的場次比，不含自己。
+    /// 逐場算出趨勢點與 PR 標記。判定規則見 `SharedKernel.PersonalRecordRule`——
+    /// 原本這裡跟 Training 的 `DetectPersonalRecords` 各留一份，兩份規則悄悄長歪了
+    /// （這裡拿 0 當基準、那裡要求維度先前出現過），同一場可能在趨勢圖有獎盃、
+    /// 在完成摘要卻沒有（體檢 P4-4）。現在兩邊走同一支。
     ///
-    /// - Parameter sessions: `sessions(exerciseId:)` 回傳的順序（新到舊）；這裡會反轉成時間序處理。
+    /// - Parameter sessions: `sessions(exerciseId:)` 回傳的順序（新到舊）；這裡會反轉成時間序處理，
+    ///   因為「新高」只能跟**它之前**的場次比。
     static func trendPoints(for sessions: [HistoryExerciseSession]) -> [ExerciseTrendPoint] {
-        // 一律用 Weight 本身當 key 與比較對象，不要退回 .value —— Weight 的雜湊與比較
-        // 都已換算過單位，用 .value 會讓 100 lb 和 100 kg 變成同一格、並互相判成新高。
-        var bestRepsAtWeight: [Weight: Int] = [:]
-        var bestWeightAtReps: [Int: Weight] = [:]
+        var seen: [PersonalRecordRule.Performance] = []
         var points: [ExerciseTrendPoint] = []
         for session in sessions.reversed() {
             let doneSets = session.sets.filter { $0.status == .done }
-            guard let best = doneSets.max(by: { ($0.weight, $0.reps) < ($1.weight, $1.reps) }) else { continue }
-            let priorBestReps = bestRepsAtWeight[best.weight] ?? 0
-            let priorBestWeight = bestWeightAtReps[best.reps] ?? Weight(value: 0, unit: .kg)
-            let isPR = best.reps > priorBestReps || best.weight > priorBestWeight
-            points.append(ExerciseTrendPoint(id: session.id, day: session.day, weight: best.weight, reps: best.reps, isPersonalRecord: isPR))
-            bestRepsAtWeight[best.weight] = max(priorBestReps, best.reps)
-            bestWeightAtReps[best.reps] = max(priorBestWeight, best.weight)
+            guard let best = PersonalRecordRule.representative(
+                of: doneSets.map { .init(weight: $0.weight, reps: $0.reps) }
+            ) else { continue }
+            let isPR = PersonalRecordRule.evaluate(best, against: seen) != nil
+            points.append(ExerciseTrendPoint(
+                id: session.id, day: session.day,
+                weight: best.weight, reps: best.reps, isPersonalRecord: isPR
+            ))
+            // 只累積代表組：判定問的是「有沒有超越過往最好的表現」，
+            // 把每一組都塞進去不會改變 max，只是多花時間。
+            seen.append(best)
         }
         return points
     }

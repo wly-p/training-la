@@ -97,6 +97,116 @@ struct SwiftDataWorkoutRepositoryTests {
         #expect(try await repo.usesExercise(squat) == false)
     }
 
+    // MARK: - exerciseHistory
+    //
+    // 這支原本完全沒有測試，而它的查詢在效能修正時被整個重寫
+    // （從「撈全部場次再過濾」改成「對 WorkoutSetModel 下 exerciseId predicate」）。
+    // 以下把它的四個不變式釘住。
+
+    @Test func exerciseHistoryReturnsOnlyThatExercisesSets() async throws {
+        let repo = try makeRepository()
+        let squat = UUID(), bench = UUID()
+        var workout = Workout(id: UUID(), day: today, startedAt: Date(), endedAt: Date())
+        workout.appendSet(exerciseId: squat, weight: kg60, reps: 5)
+        workout.appendSet(exerciseId: bench, weight: kg60, reps: 8)
+        workout.appendSet(exerciseId: squat, weight: kg60, reps: 4)
+        try await repo.save(workout)
+
+        let history = try await repo.exerciseHistory(exerciseId: squat)
+
+        #expect(history.count == 2)
+        #expect(history.allSatisfy { $0.set.exerciseId == squat })
+        #expect(history.allSatisfy { $0.workoutId == workout.id })
+        #expect(history.allSatisfy { $0.day == today })
+    }
+
+    /// 進行中的那場不該進歷史——原本靠 `endedAt != nil` 的 predicate 擋，
+    /// 改寫後改成走關聯回 workout 判斷，這條要重新釘。
+    @Test func exerciseHistoryExcludesUnfinishedWorkouts() async throws {
+        let repo = try makeRepository()
+        let squat = UUID()
+        var finished = Workout(id: UUID(), day: today, startedAt: Date(), endedAt: Date())
+        finished.appendSet(exerciseId: squat, weight: kg60, reps: 5)
+        var inProgress = Workout(id: UUID(), day: today, startedAt: Date())   // endedAt = nil
+        inProgress.appendSet(exerciseId: squat, weight: kg60, reps: 99)
+        try await repo.save(finished)
+        try await repo.save(inProgress)
+
+        let history = try await repo.exerciseHistory(exerciseId: squat)
+
+        #expect(history.count == 1)
+        #expect(history.first?.set.reps == 5)
+    }
+
+    @Test func exerciseHistoryIsNewestFirst() async throws {
+        let repo = try makeRepository()
+        let squat = UUID()
+        let older = DayDate(year: 2026, month: 7, day: 1)
+        let newer = DayDate(year: 2026, month: 7, day: 20)
+        for (day, reps) in [(older, 5), (newer, 8)] {
+            var w = Workout(id: UUID(), day: day, startedAt: Date(), endedAt: Date())
+            w.appendSet(exerciseId: squat, weight: kg60, reps: reps)
+            try await repo.save(w)
+        }
+
+        let history = try await repo.exerciseHistory(exerciseId: squat)
+
+        #expect(history.map(\.day) == [newer, older])
+    }
+
+    /// 同一場之內要維持 (exerciseIndex, setIndex) 的自然順序，輸出才穩定。
+    @Test func exerciseHistoryKeepsSetOrderWithinASession() async throws {
+        let repo = try makeRepository()
+        let squat = UUID()
+        var workout = Workout(id: UUID(), day: today, startedAt: Date(), endedAt: Date())
+        for reps in [10, 8, 6] { workout.appendSet(exerciseId: squat, weight: kg60, reps: reps) }
+        try await repo.save(workout)
+
+        let history = try await repo.exerciseHistory(exerciseId: squat)
+
+        #expect(history.map(\.set.setIndex) == [0, 1, 2])
+        #expect(history.map(\.set.reps) == [10, 8, 6])
+    }
+
+    @Test func exerciseHistoryIsEmptyForUnknownExercise() async throws {
+        let repo = try makeRepository()
+        var workout = Workout(id: UUID(), day: today, startedAt: Date(), endedAt: Date())
+        workout.appendSet(exerciseId: UUID(), weight: kg60, reps: 5)
+        try await repo.save(workout)
+
+        #expect(try await repo.exerciseHistory(exerciseId: UUID()).isEmpty)
+    }
+
+    // MARK: - finishedWorkouts 的上限
+
+    @Test func finishedWorkoutsWithoutLimitReturnsAll() async throws {
+        let repo = try makeRepository()
+        for offset in 0..<5 {
+            try await repo.save(Workout(
+                id: UUID(), day: today.adding(days: -offset),
+                startedAt: Date(), endedAt: Date()
+            ))
+        }
+
+        #expect(try await repo.finishedWorkouts().count == 5)
+    }
+
+    /// 上限要取**最新**的那幾場，不是任意幾場——訓練首頁的「本週」與「最近練過」都靠這個。
+    @Test func finishedWorkoutsWithLimitTakesTheNewest() async throws {
+        let repo = try makeRepository()
+        for offset in 0..<5 {
+            try await repo.save(Workout(
+                id: UUID(), day: today.adding(days: -offset),
+                startedAt: Date(), endedAt: Date()
+            ))
+        }
+
+        let recent = try await repo.finishedWorkouts(limit: 2)
+
+        #expect(recent.count == 2)
+        #expect(recent.map(\.day) == [today, today.adding(days: -1)])
+    }
+
     @Test func deleteRemovesWorkout() async throws {
         let repo = try makeRepository()
         let workout = workoutWithSets(UUID(), reps: [8])

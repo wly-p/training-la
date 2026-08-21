@@ -58,7 +58,9 @@ public struct HistoryView: View {
             ) {
                 Button(role: .cancel) {} label: { localText("history.ok") }
             } message: {
-                Text(viewModel.errorMessage ?? "")
+                // `?? ""` 會讓那個空字串變成可翻譯字面量，被抽進 String Catalog
+                // 變成一個永遠不會被翻譯的空 key（體檢 E11）。改成條件式。
+                if let message = viewModel.errorMessage { Text(message) }
             }
         }
     }
@@ -82,7 +84,14 @@ public struct HistoryView: View {
             )
             .accessibilityIdentifier("history.empty")
         } else {
-            VStack(alignment: .leading, spacing: TLSpace.section) {
+            // 月份分組用 LazyVStack：練滿一年就有 12 個區塊、每區塊數十列，
+            // 用 VStack 的話進歷史分頁的當下要把每一列都建出來。
+            //
+            // 只有這一層 lazy 得起來——區塊內的列包在 `TLGroup` 裡，而它靠
+            // `_VariadicView` 解析全部子 View 才能在列與列之間插分隔線，
+            // 本質上就得展開。要讓列也 lazy 得先重新設計 TLGroup 的分隔線機制，
+            // 那是另一件事，不在這張票裡。
+            LazyVStack(alignment: .leading, spacing: TLSpace.section) {
                 TLSearchField(text: $viewModel.searchText,
                               placeholder: localText("history.search.placeholder"),
                               identifier: "history.search")
