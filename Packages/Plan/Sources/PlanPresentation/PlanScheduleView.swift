@@ -144,8 +144,20 @@ public struct PlanScheduleView: View {
 
     // MARK: - 月曆橋接
 
-    /// 月曆的日期運算用固定的西曆，只有「顯示字串」才吃 locale（星期縮寫、月名）。
-    private static let calendar = Calendar(identifier: .gregorian)
+    /// 月曆的**曆法**鎖死西曆（不跟隨裝置，避免佛曆／和曆把年份算成別的數字），
+    /// 但「一週從星期幾開始」要跟隨裝置的**地區**設定。
+    ///
+    /// `Calendar(identifier:)` 不帶 locale，`firstWeekday` 會固定是 1（週日）——
+    /// 那是搭便車跟著曆法一起被鎖死的，並非本意。結果是月曆永遠週日起算，
+    /// 而訓練首頁的本週進度列原本寫死週一起算，同一個 app 兩個畫面對「一週」的定義不同。
+    /// 現在兩邊都吃 `Calendar.current.firstWeekday`（台灣／美國＝週日，英國＝週一）。
+    ///
+    /// 顯示字串（星期縮寫、月名）仍在 View 那層依 app 語言處理，跟這裡無關。
+    private static let calendar: Calendar = {
+        var calendar = Calendar(identifier: .gregorian)
+        calendar.firstWeekday = Calendar.current.firstWeekday
+        return calendar
+    }()
 
     /// `MonthDateStrip` 只吃 `Date`；`PlanScheduleViewModel.selectedDate` 是 `DayDate`
     /// （見 SharedKernel：純日曆日，避免時區把日期偏移一天），這裡互轉。
