@@ -23,6 +23,9 @@ public struct PlanWorkout: Identifiable, Equatable, Sendable {
     public var origin: PlanOrigin
     /// 若來自多週長期課表投影落地，指向對應的 ProgramAssignment；用於補登去重。
     public var assignmentId: UUID?
+    /// 若由循環課表落地（`origin == .rotation`），指向那組循環。
+    /// 循環的游標要等這張排課「完成」才前進，所以完成的當下必須查得到是哪一組。
+    public var rotationId: UUID?
     /// 同一天多張排課的排序。
     public var orderIndex: Int
     /// 依 (exerciseIndex, setIndex) 排序的目標。
@@ -36,6 +39,7 @@ public struct PlanWorkout: Identifiable, Equatable, Sendable {
         templateId: UUID? = nil,
         origin: PlanOrigin = .manual,
         assignmentId: UUID? = nil,
+        rotationId: UUID? = nil,
         orderIndex: Int,
         sets: [PlanSet] = []
     ) {
@@ -46,6 +50,7 @@ public struct PlanWorkout: Identifiable, Equatable, Sendable {
         self.templateId = templateId
         self.origin = origin
         self.assignmentId = assignmentId
+        self.rotationId = rotationId
         self.orderIndex = orderIndex
         self.sets = sets
     }

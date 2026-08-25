@@ -15,6 +15,9 @@ final class PlanWorkoutModel {
     var originRaw: String = PlanOrigin.manual.rawValue
     /// 來自長期課表投影落地時，指向 ProgramAssignment；補登去重用。
     var assignmentId: UUID?
+    /// 由循環課表落地時，指向那組循環；完成這張排課才推該循環的游標。
+    /// 宣告時給預設值＝舊資料走 SwiftData 輕量遷移（同 originRaw 的作法）。
+    var rotationId: UUID?
     var orderIndex: Int
     @Relationship(deleteRule: .cascade, inverse: \PlanSetModel.planWorkout)
     var sets: [PlanSetModel]
@@ -27,6 +30,7 @@ final class PlanWorkoutModel {
         templateId: UUID?,
         originRaw: String = PlanOrigin.manual.rawValue,
         assignmentId: UUID? = nil,
+        rotationId: UUID? = nil,
         orderIndex: Int,
         sets: [PlanSetModel] = []
     ) {
@@ -37,6 +41,7 @@ final class PlanWorkoutModel {
         self.templateId = templateId
         self.originRaw = originRaw
         self.assignmentId = assignmentId
+        self.rotationId = rotationId
         self.orderIndex = orderIndex
         self.sets = sets
     }
@@ -96,6 +101,7 @@ extension PlanWorkoutModel {
             templateId: planWorkout.templateId,
             originRaw: planWorkout.origin.rawValue,
             assignmentId: planWorkout.assignmentId,
+            rotationId: planWorkout.rotationId,
             orderIndex: planWorkout.orderIndex,
             sets: planWorkout.sets.map { PlanSetModel(from: $0) }
         )
@@ -110,6 +116,7 @@ extension PlanWorkoutModel {
             templateId: templateId,
             origin: PlanOrigin(rawValue: originRaw) ?? .manual,
             assignmentId: assignmentId,
+            rotationId: rotationId,
             orderIndex: orderIndex,
             sets: sets
                 .map { $0.toDomain() }

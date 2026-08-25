@@ -231,7 +231,14 @@ struct AppDependencies {
             listExercises: ListExercises(repository: exerciseRepository),
             currentLanguage: { languageStore.load() ?? .fallback }
         )
-        let planProgress = PlanProgressAdapter(markDone: MarkPlanWorkoutDone(repository: planRepository))
+        let planProgress = PlanProgressAdapter(
+            markDone: MarkPlanWorkoutDone(
+                repository: planRepository,
+                // 循環課表的游標在排課「完成」時才推進（E1）；沒接上這條就永遠停在第一張。
+                rotationRepository: rotationRepository
+            ),
+            discardRotationPlan: DiscardRotationPlanWorkout(repository: planRepository)
+        )
 
         return AppDependencies(
             makeExerciseListViewModel: {
@@ -253,7 +260,7 @@ struct AppDependencies {
                     resumeWorkout: ResumeWorkout(repository: workoutRepository),
                     recentWorkouts: RecentWorkouts(repository: workoutRepository),
                     finishWorkout: FinishWorkout(repository: workoutRepository, planProgress: planProgress),
-                    discardWorkout: DiscardWorkout(repository: workoutRepository),
+                    discardWorkout: DiscardWorkout(repository: workoutRepository, planProgress: planProgress),
                     plannedProvider: plannedProvider,
                     today: today
                 )
@@ -263,7 +270,7 @@ struct AppDependencies {
                     workout: workout,
                     saveProgress: SaveWorkoutProgress(repository: workoutRepository),
                     finishWorkout: FinishWorkout(repository: workoutRepository, planProgress: planProgress),
-                    discardWorkout: DiscardWorkout(repository: workoutRepository),
+                    discardWorkout: DiscardWorkout(repository: workoutRepository, planProgress: planProgress),
                     lastPerformance: LastPerformance(repository: workoutRepository),
                     detectPersonalRecords: DetectPersonalRecords(repository: workoutRepository),
                     exerciseCatalog: catalog,

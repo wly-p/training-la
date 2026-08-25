@@ -118,7 +118,7 @@ struct SetRotationActiveTests {
 struct StartRotationTests {
     private let today = DayDate(year: 2026, month: 7, day: 23)
 
-    @Test func materializesCurrentAndAdvancesCursor() async throws {
+    @Test func materializesCurrentWithoutAdvancingCursor() async throws {
         let rotationRepo = MockRotationRepository()
         let planRepo = MockPlanWorkoutRepository()
         let id = UUID()
@@ -134,22 +134,30 @@ struct StartRotationTests {
         #expect(plan?.sets.count == 1)
         // 已存進 plan repository
         #expect(try await planRepo.get(id: plan!.id) != nil)
-        // 游標前進到「拉」
-        #expect(try await rotationRepo.get(id: id)?.current?.name == "拉")
+        // 排課帶著來源循環，完成時才找得回來要推哪一組游標
+        #expect(plan?.origin == .rotation)
+        #expect(plan?.rotationId == id)
+        // 游標**不動**：開始不等於做完，中途捨棄整場的話循環不該已經跳過一張。
+        #expect(try await rotationRepo.get(id: id)?.current?.name == "推")
+        #expect(try await rotationRepo.get(id: id)?.completedCount == 0)
     }
 
-    @Test func advancesOnStartNotCompletion() async throws {
+    /// 連按兩次「開始」而中間沒做完：兩張都是同一個 spec，游標原地不動。
+    /// 舊行為是開始就推游標，所以第二張會變成 B——那正是「捨棄整場會跳掉一輪」的病根。
+    @Test func startingTwiceWithoutFinishingKeepsGivingTheSameWorkout() async throws {
         let rotationRepo = MockRotationRepository()
         let planRepo = MockPlanWorkoutRepository()
         let id = UUID()
         await rotationRepo.seed(Rotation(id: id, name: "R", workouts: [spec("A"), spec("B")], cursor: 0))
         let start = StartRotation(rotationRepository: rotationRepo, planRepository: planRepo, preferences: InMemoryTrainingPreferenceStore(), lastPerformedWeightLookup: MockLastPerformedWeightLookup(), abilityValueLookup: MockAbilityValueLookup())
 
-        _ = try await start(id: id, date: today)               // 開始 A → 游標到 B
-        let second = try await start(id: id, date: today)       // 開始 B → 游標繞回 A
+        let first = try await start(id: id, date: today)
+        let second = try await start(id: id, date: today)
 
-        #expect(second?.name == "B")
+        #expect(first?.name == "A")
+        #expect(second?.name == "A")
         #expect(try await rotationRepo.get(id: id)?.current?.name == "A")
+        #expect(try await rotationRepo.get(id: id)?.completedCount == 0)
     }
 
     @Test func unknownOrEmptyRotationReturnsNil() async throws {
@@ -163,19 +171,20 @@ struct StartRotationTests {
         #expect(try await start(id: emptyId, date: today) == nil)
     }
 
-    @Test func startIncrementsCompletedCountAndRounds() async throws {
+    /// 開始不計次數：`completedCount` 與 `roundsCompleted` 是「做完幾張」，不是「按了幾次開始」。
+    @Test func startingDoesNotCountAsCompletion() async throws {
         let rotationRepo = MockRotationRepository()
         let planRepo = MockPlanWorkoutRepository()
         let id = UUID()
         await rotationRepo.seed(Rotation(id: id, name: "R", workouts: [spec("A"), spec("B"), spec("C")], cursor: 0))
         let start = StartRotation(rotationRepository: rotationRepo, planRepository: planRepo, preferences: InMemoryTrainingPreferenceStore(), lastPerformedWeightLookup: MockLastPerformedWeightLookup(), abilityValueLookup: MockAbilityValueLookup())
 
-        for _ in 0..<3 { _ = try await start(id: id, date: today) }  // 開始三次＝跑完一輪
+        for _ in 0..<3 { _ = try await start(id: id, date: today) }
 
         let r = try await rotationRepo.get(id: id)!
-        #expect(r.completedCount == 3)
-        #expect(r.roundsCompleted == 1)          // 3 次 ÷ 3 範本 = 1 輪
-        #expect(r.current?.name == "A")          // 游標繞回第一張
+        #expect(r.completedCount == 0)
+        #expect(r.roundsCompleted == 0)
+        #expect(r.current?.name == "A")
     }
 
     @Test func appliesRotationIntensityFactorWhenSlotHasNoOverride() async throws {
@@ -211,6 +220,132 @@ struct StartRotationTests {
         // 60 × 0.8 = 48，再依級距偏好（預設 2.5）向下取整 → 47.5。
         // 級距改由使用者偏好決定之後，這裡不再是器材給的值（舊版空 catalog 會 fallback 成 1）。
         #expect(plan?.sets.first?.targetWeight == .absolute(Weight(value: 47.5, unit: .kg)))
+    }
+}
+
+/// E1：循環游標的完整生命週期——開始 → 捨棄／完成／離開三條路徑。
+///
+/// 舊行為是 `StartRotation` 在建立排課的同時就推游標＋計次，所以「開始一場循環訓練然後
+/// 中途捨棄」會讓循環白跳一張，當天還留下一張沒人會做的孤兒排課。
+/// 現在推進改由 `MarkPlanWorkoutDone` 在**完成**時做，靠排課帶的 `rotationId` 找回是哪一組。
+struct RotationCursorLifecycleTests {
+    private let today = DayDate(year: 2026, month: 7, day: 23)
+
+    private func makeStart(
+        _ rotationRepo: MockRotationRepository, _ planRepo: MockPlanWorkoutRepository
+    ) -> StartRotation {
+        StartRotation(
+            rotationRepository: rotationRepo, planRepository: planRepo,
+            preferences: InMemoryTrainingPreferenceStore(),
+            lastPerformedWeightLookup: MockLastPerformedWeightLookup(),
+            abilityValueLookup: MockAbilityValueLookup()
+        )
+    }
+
+    /// 開始 → 捨棄：游標與次數都不動，孤兒排課被清掉。
+    @Test func startThenDiscardLeavesTheRotationWhereItWas() async throws {
+        let rotationRepo = MockRotationRepository()
+        let planRepo = MockPlanWorkoutRepository()
+        let id = UUID()
+        await rotationRepo.seed(Rotation(id: id, name: "R", workouts: [spec("A"), spec("B")], cursor: 0))
+
+        let plan = try await makeStart(rotationRepo, planRepo)(id: id, date: today)
+        try await DiscardRotationPlanWorkout(repository: planRepo)(id: plan!.id)
+
+        let r = try await rotationRepo.get(id: id)!
+        #expect(r.current?.name == "A")
+        #expect(r.completedCount == 0)
+        // 當天不留下孤兒排課
+        #expect(try await planRepo.onDate(today).isEmpty)
+    }
+
+    /// 開始 → 完成：游標前進一格、次數 +1。重複標記完成不會再推。
+    @Test func startThenFinishAdvancesExactlyOnce() async throws {
+        let rotationRepo = MockRotationRepository()
+        let planRepo = MockPlanWorkoutRepository()
+        let id = UUID()
+        await rotationRepo.seed(Rotation(id: id, name: "R", workouts: [spec("A"), spec("B")], cursor: 0))
+        let markDone = MarkPlanWorkoutDone(repository: planRepo, rotationRepository: rotationRepo)
+
+        let plan = try await makeStart(rotationRepo, planRepo)(id: id, date: today)
+        try await markDone(id: plan!.id)
+
+        var r = try await rotationRepo.get(id: id)!
+        #expect(r.current?.name == "B")
+        #expect(r.completedCount == 1)
+
+        // 冪等：同一張再標記一次不該連跳兩格
+        try await markDone(id: plan!.id)
+        r = try await rotationRepo.get(id: id)!
+        #expect(r.current?.name == "B")
+        #expect(r.completedCount == 1)
+    }
+
+    /// 開始 → 離開（未完成）：不推進，排課仍在，下次回來可續。
+    @Test func startThenLeaveKeepsThePlanForNextTime() async throws {
+        let rotationRepo = MockRotationRepository()
+        let planRepo = MockPlanWorkoutRepository()
+        let id = UUID()
+        await rotationRepo.seed(Rotation(id: id, name: "R", workouts: [spec("A"), spec("B")], cursor: 0))
+
+        let plan = try await makeStart(rotationRepo, planRepo)(id: id, date: today)
+        // 「離開」＝什麼都不做：沒有標記完成、也沒有捨棄。
+
+        let r = try await rotationRepo.get(id: id)!
+        #expect(r.current?.name == "A")
+        #expect(r.completedCount == 0)
+        #expect(try await planRepo.get(id: plan!.id)?.status == .notStarted)
+    }
+
+    /// 跑完整整一輪：三張都做完才算一輪，不是按了三次開始。
+    @Test func finishingEveryWorkoutCompletesARound() async throws {
+        let rotationRepo = MockRotationRepository()
+        let planRepo = MockPlanWorkoutRepository()
+        let id = UUID()
+        await rotationRepo.seed(Rotation(id: id, name: "R", workouts: [spec("A"), spec("B"), spec("C")], cursor: 0))
+        let start = makeStart(rotationRepo, planRepo)
+        let markDone = MarkPlanWorkoutDone(repository: planRepo, rotationRepository: rotationRepo)
+
+        for offset in 0..<3 {
+            let plan = try await start(id: id, date: today.adding(days: offset))
+            try await markDone(id: plan!.id)
+        }
+
+        let r = try await rotationRepo.get(id: id)!
+        #expect(r.completedCount == 3)
+        #expect(r.roundsCompleted == 1)
+        #expect(r.current?.name == "A")
+    }
+
+    /// 只刪循環派出的排課：手動／範本／長期課表排好的，捨棄訓練後要留著讓使用者重來。
+    @Test func discardingOnlyRemovesRotationOwnedPlans() async throws {
+        let planRepo = MockPlanWorkoutRepository()
+        let manual = PlanWorkout(id: UUID(), name: "自己排的", date: today, origin: .manual, orderIndex: 0)
+        let fromTemplate = PlanWorkout(id: UUID(), name: "範本來的", date: today, origin: .template, orderIndex: 1)
+        await planRepo.seed([manual, fromTemplate])
+
+        try await DiscardRotationPlanWorkout(repository: planRepo)(id: manual.id)
+        try await DiscardRotationPlanWorkout(repository: planRepo)(id: fromTemplate.id)
+
+        #expect(try await planRepo.get(id: manual.id) != nil)
+        #expect(try await planRepo.get(id: fromTemplate.id) != nil)
+    }
+
+    /// 沒有 rotationId 的排課（手動、範本、長期課表）標記完成時，不該去碰任何循環。
+    @Test func finishingANonRotationPlanTouchesNoRotation() async throws {
+        let rotationRepo = MockRotationRepository()
+        let planRepo = MockPlanWorkoutRepository()
+        let rotationId = UUID()
+        await rotationRepo.seed(Rotation(id: rotationId, name: "R", workouts: [spec("A"), spec("B")], cursor: 0))
+        let manual = PlanWorkout(id: UUID(), name: "自己排的", date: today, origin: .manual, orderIndex: 0)
+        await planRepo.seed([manual])
+
+        try await MarkPlanWorkoutDone(repository: planRepo, rotationRepository: rotationRepo)(id: manual.id)
+
+        let r = try await rotationRepo.get(id: rotationId)!
+        #expect(r.current?.name == "A")
+        #expect(r.completedCount == 0)
+        #expect(try await planRepo.get(id: manual.id)?.status == .done)
     }
 }
 

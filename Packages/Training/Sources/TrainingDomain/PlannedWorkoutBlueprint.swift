@@ -212,4 +212,7 @@ public protocol PlannedWorkoutProvider: Sendable {
 /// port：訓練結束時回報排課進度（App 接到 Plan domain 的標記完成）。
 public protocol PlanProgressRecorder: Sendable {
     func markDone(planWorkoutId: UUID) async throws
+    /// 捨棄整場時清掉循環課表落地留下的孤兒排課。
+    /// Plan 端只會刪 `origin == .rotation` 的——其餘來源的排課要留著讓使用者重來。
+    func discardOrphanPlan(planWorkoutId: UUID) async throws
 }
