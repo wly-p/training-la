@@ -217,3 +217,108 @@ struct SwiftDataWorkoutRepositoryTests {
         #expect(try await repo.get(id: workout.id) == nil)
     }
 }
+
+/// D1（`save` 改 diff 寫入）專屬。
+///
+/// 這些釘的是「就地更新」特有的失敗模式：舊的刪除重插實作在這些案例下**也會通過**，
+/// 所以以前沒有人寫。反過來說，diff 寫歪的話，上面 `saveReplacesAggregate` 那類
+/// 「整包取代」的測試不見得抓得到——會漏的是「該留的列被換掉了」「該刪的列變孤兒」。
+struct SwiftDataWorkoutDiffWriteTests {
+    /// 要驗「有沒有寫出多餘的列」就得繞過 repository 直接數 row，所以這裡把 container 也交出來。
+    private func makeRepositoryAndContainer() throws -> (any WorkoutRepository, ModelContainer) {
+        let container = try ModelContainer(
+            for: Schema(TrainingDataFactory.models),
+            configurations: ModelConfiguration(isStoredInMemoryOnly: true)
+        )
+        return (TrainingDataFactory.makeWorkoutRepository(container: container), container)
+    }
+
+    @MainActor
+    private func setRowCount(_ container: ModelContainer) throws -> Int {
+        try container.mainContext.fetch(FetchDescriptor<WorkoutSetModel>()).count
+    }
+
+    private let kg60 = Weight(value: 60, unit: .kg)
+    private let today = DayDate(year: 2026, month: 7, day: 9)
+
+    /// 最貼近真實使用的路徑：`ActiveWorkoutViewModel` 每記一組就 save 一次。
+    @Test func appendingSetsOneByOneKeepsThemAllInOrder() async throws {
+        let (repo, _) = try makeRepositoryAndContainer()
+        let exerciseId = UUID()
+        var workout = Workout(id: UUID(), day: today, startedAt: Date())
+
+        for i in 0..<30 {
+            workout.appendSet(exerciseId: exerciseId, weight: kg60, reps: 10 - (i % 5))
+            try await repo.save(workout)
+        }
+
+        let fetched = try await repo.get(id: workout.id)
+        #expect(fetched?.sets.count == 30)
+        #expect(fetched == workout)
+    }
+
+    /// 改值之後：那一組的 id 不變、值更新、其餘不受波及、沒有多長出列。
+    ///
+    /// 註：「有沒有真的就地更新」從 repository 的 API 看不出來——`id` 是 domain 給的，
+    /// 刪了重建也會帶同一個 id。這支釘的是**可觀察的契約**；真正防止 diff 寫歪的是
+    /// 上面那條 row count，以及 `removingAMiddleSetLeavesTheOthersIntact`。
+    @Test func editingASetKeepsItsIdentityAndUpdatesValues() async throws {
+        let (repo, container) = try makeRepositoryAndContainer()
+        var workout = Workout(id: UUID(), day: today, startedAt: Date())
+        let exerciseId = UUID()
+        workout.appendSet(exerciseId: exerciseId, weight: kg60, reps: 8)
+        workout.appendSet(exerciseId: exerciseId, weight: kg60, reps: 8)
+        try await repo.save(workout)
+        let originalIds = workout.sets.map(\.id)
+
+        workout.sets[0].weight = Weight(value: 65, unit: .kg)
+        workout.sets[0].reps = 5
+        try await repo.save(workout)
+
+        let fetched = try await repo.get(id: workout.id)
+        #expect(fetched?.sets.map(\.id) == originalIds)
+        #expect(fetched?.sets[0].weight == Weight(value: 65, unit: .kg))
+        #expect(fetched?.sets[0].reps == 5)
+        #expect(fetched?.sets[1].reps == 8)   // 沒被波及
+        #expect(try await setRowCount(container) == 2)
+    }
+
+    /// 三向 diff 的 delete 分支：拿掉中間那一組，前後兩組要完好。
+    @Test func removingAMiddleSetLeavesTheOthersIntact() async throws {
+        let (repo, container) = try makeRepositoryAndContainer()
+        var workout = Workout(id: UUID(), day: today, startedAt: Date())
+        let exerciseId = UUID()
+        for reps in [10, 8, 6] {
+            workout.appendSet(exerciseId: exerciseId, weight: kg60, reps: reps)
+        }
+        try await repo.save(workout)
+
+        let removed = workout.sets[1]
+        workout.removeSet(id: removed.id)
+        try await repo.save(workout)
+
+        let fetched = try await repo.get(id: workout.id)
+        #expect(fetched?.sets.map(\.reps) == [10, 6])
+        #expect(fetched?.sets.contains { $0.id == removed.id } == false)
+        // 關鍵：被拿掉的那一列是真的刪了，不是只從關聯陣列移除而留成孤兒。
+        #expect(try await setRowCount(container) == 2)
+    }
+
+    /// 存兩次一模一樣的內容，不該長出重複列或孤兒列。
+    @Test func savingUnchangedWorkoutTwiceDoesNotGrowTheStore() async throws {
+        let (repo, container) = try makeRepositoryAndContainer()
+        var workout = Workout(id: UUID(), day: today, startedAt: Date())
+        let exerciseId = UUID()
+        for reps in [10, 8, 6] {
+            workout.appendSet(exerciseId: exerciseId, weight: kg60, reps: reps)
+        }
+
+        try await repo.save(workout)
+        let afterFirst = try await setRowCount(container)
+        try await repo.save(workout)
+
+        #expect(afterFirst == 3)
+        #expect(try await setRowCount(container) == 3)
+        #expect(try await repo.get(id: workout.id) == workout)
+    }
+}
