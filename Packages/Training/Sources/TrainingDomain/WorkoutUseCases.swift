@@ -97,16 +97,30 @@ public struct FinishWorkout: Sendable {
     }
 }
 
-/// 放棄場次（沒記任何一組就退出時清掉空 workout）。
+/// 放棄場次：使用者主動捨棄整場，或沒記任何一組就退出時清掉空 workout。
+///
+/// 三條入口（`ActiveWorkoutViewModel.discardCurrentWorkout()` / `.leave()`、
+/// `TrainingHomeViewModel.discardResumable()`）都走這裡，所以孤兒排課的清理只要放這一處。
 public struct DiscardWorkout: Sendable {
     private let repository: any WorkoutRepository
+    private let planProgress: (any PlanProgressRecorder)?
 
-    public init(repository: any WorkoutRepository) {
+    public init(
+        repository: any WorkoutRepository,
+        planProgress: (any PlanProgressRecorder)? = nil
+    ) {
         self.repository = repository
+        self.planProgress = planProgress
     }
 
     public func callAsFunction(id: UUID) async throws {
+        // 先取排課關聯——workout 刪掉之後就查不到了。
+        let planWorkoutId = try await repository.get(id: id)?.planWorkoutId
         try await repository.delete(id: id)
+        if let planWorkoutId {
+            // 場次已經刪掉了；清孤兒排課失敗不該讓整個捨棄流程失敗。
+            try? await planProgress?.discardOrphanPlan(planWorkoutId: planWorkoutId)
+        }
     }
 }
 

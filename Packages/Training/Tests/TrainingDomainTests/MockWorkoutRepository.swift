@@ -67,8 +67,13 @@ actor MockWorkoutRepository: WorkoutRepository {
 
 actor SpyPlanProgress: PlanProgressRecorder {
     private(set) var markedDone: [UUID] = []
+    private(set) var discardedOrphans: [UUID] = []
 
     func markDone(planWorkoutId: UUID) async throws {
         markedDone.append(planWorkoutId)
+    }
+
+    func discardOrphanPlan(planWorkoutId: UUID) async throws {
+        discardedOrphans.append(planWorkoutId)
     }
 }

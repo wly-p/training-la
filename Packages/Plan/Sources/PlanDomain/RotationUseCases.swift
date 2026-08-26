@@ -184,14 +184,13 @@ public struct StartRotation: Sendable {
             status: .notStarted,
             templateId: nil,
             origin: .rotation,
+            rotationId: rotation.id,
             orderIndex: orderIndex,
             sets: sets
         )
         try await planRepository.save(plan)
-        // 開始一張＝次數 +1、游標往下（詳情頁「已完成 N 次訓練」「N 輪」由此累計）。
-        var next = rotation.advanced()
-        next.completedCount += 1
-        try await rotationRepository.save(next)
+        // 這裡**不動游標**。開始不等於做完——中途捨棄整場的話，循環不該已經跳過一張。
+        // 推進改由 `MarkPlanWorkoutDone` 在訓練「完成」時做，靠上面帶的 rotationId 找回是哪一組。
         return plan
     }
 }

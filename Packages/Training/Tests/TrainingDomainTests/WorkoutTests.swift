@@ -190,6 +190,36 @@ struct WorkoutUseCaseTests {
         #expect(await recorder.markedDone.isEmpty)
     }
 
+    /// E1：捨棄照課表的整場時，要通知 plan 端清孤兒排課。
+    /// Plan 端只會刪 `origin == .rotation` 的，這一側只負責把訊息送到。
+    @Test func discardPlanLinkedWorkoutAsksPlanToCleanUp() async throws {
+        let repo = MockWorkoutRepository()
+        let recorder = SpyPlanProgress()
+        let planWorkoutId = UUID()
+        var workout = Workout(id: UUID(), day: DayDate(year: 2026, month: 7, day: 9),
+                              planWorkoutId: planWorkoutId, startedAt: Date())
+        workout.appendSet(exerciseId: UUID(), weight: kg60, reps: 8)
+        await repo.seed([workout])
+        let discard = DiscardWorkout(repository: repo, planProgress: recorder)
+
+        try await discard(id: workout.id)
+
+        #expect(await recorder.discardedOrphans == [planWorkoutId])
+        #expect(try await repo.get(id: workout.id) == nil)
+    }
+
+    @Test func discardFreeWorkoutDoesNotTouchPlan() async throws {
+        let repo = MockWorkoutRepository()
+        let recorder = SpyPlanProgress()
+        let workout = Workout(id: UUID(), day: DayDate(year: 2026, month: 7, day: 9), startedAt: Date())
+        await repo.seed([workout])
+        let discard = DiscardWorkout(repository: repo, planProgress: recorder)
+
+        try await discard(id: workout.id)
+
+        #expect(await recorder.discardedOrphans.isEmpty)
+    }
+
     @Test func finishRejectsFeelingOutOfRange() async throws {
         let repo = MockWorkoutRepository()
         let workout = Workout(id: UUID(), day: DayDate(year: 2026, month: 7, day: 9))

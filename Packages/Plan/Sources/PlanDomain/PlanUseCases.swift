@@ -106,16 +106,60 @@ public struct DeletePlanWorkout: Sendable {
 /// 標記排課完成（訓練結束時由 Training 透過 port 觸發）。
 public struct MarkPlanWorkoutDone: Sendable {
     private let repository: any PlanWorkoutRepository
-    public init(repository: any PlanWorkoutRepository) { self.repository = repository }
+    private let rotationRepository: (any RotationRepository)?
+
+    /// `rotationRepository`：循環課表落地的排課完成時要推它的游標。
+    /// 傳 nil＝不處理循環（測試與不涉及循環的呼叫端）。
+    public init(
+        repository: any PlanWorkoutRepository,
+        rotationRepository: (any RotationRepository)? = nil
+    ) {
+        self.repository = repository
+        self.rotationRepository = rotationRepository
+    }
 
     public func callAsFunction(id: UUID) async throws {
         guard var planWorkout = try await repository.get(id: id) else { return }
+        // 原本就已經是 done 的話不重複推進——重複標記完成不該讓循環連跳兩張。
+        let wasAlreadyDone = planWorkout.status == .done
         planWorkout.status = .done
         try await repository.save(planWorkout)
+
+        guard !wasAlreadyDone,
+              let rotationId = planWorkout.rotationId,
+              let rotationRepository,
+              let rotation = try await rotationRepository.get(id: rotationId) else { return }
+        // 做完一張＝次數 +1、游標往下（詳情頁「已完成 N 次訓練」「N 輪」由此累計）。
+        // 推進的時機是「完成」而不是「開始」：開始就推的話，中途捨棄整場會白跳一輪。
+        var next = rotation.advanced()
+        next.completedCount += 1
+        try await rotationRepository.save(next)
+    }
+}
+
+/// 捨棄整場訓練時，清掉循環課表落地留下的孤兒排課。
+///
+/// 循環的排課是「按下開始」那一刻才由 `StartRotation` 生出來的，除了那場訓練沒有別人引用它；
+/// 訓練被捨棄之後它就是一張沒人會做的孤兒，留在當天只會擋路。
+///
+/// **只刪 `origin == .rotation`**：手動／範本／長期課表的排課是使用者（或投影）事先排好的，
+/// 捨棄訓練後要留著讓他重來，刪掉等於幫他把課表改了。
+public struct DiscardRotationPlanWorkout: Sendable {
+    private let repository: any PlanWorkoutRepository
+    public init(repository: any PlanWorkoutRepository) { self.repository = repository }
+
+    public func callAsFunction(id: UUID) async throws {
+        guard let planWorkout = try await repository.get(id: id),
+              planWorkout.origin == .rotation else { return }
+        try await repository.delete(id: id)
     }
 }
 
 /// 還原排課為未開始（刪除對應訓練場次、該排課已無完成紀錄時觸發）。
+///
+/// **刻意不回捲循環游標**：對稱地想，`MarkPlanWorkoutDone` 會推游標，這裡似乎該退一格。
+/// 但使用者從歷史刪掉的可能是三個月前的某一場，把「現在輪到哪一張」往回挪是錯的——
+/// 循環的位置反映的是接下來要練什麼，不是歷史紀錄的計數。這是決定，不是漏掉。
 public struct RevertPlanWorkoutDone: Sendable {
     private let repository: any PlanWorkoutRepository
     public init(repository: any PlanWorkoutRepository) { self.repository = repository }

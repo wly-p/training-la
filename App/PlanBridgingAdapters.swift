@@ -61,9 +61,9 @@ struct PlanProviderAdapter: PlannedWorkoutProvider {
     }
 
     func startRotation(id: UUID) async throws -> PlannedWorkoutBlueprint? {
-        // 先取定位再開始——StartRotation 會把游標往前推，定位必須反映「這一張」而非下一張。
-        let kicker = try await rotationKicker(id: id)
         guard let plan = try await startRotationUseCase(id: id, date: today()) else { return nil }
+        // 游標在「完成」時才推進（見 MarkPlanWorkoutDone），所以這裡的定位就是「這一張」。
+        let kicker = try await rotationKicker(id: id)
         return try await blueprint(from: plan, kicker: kicker)
     }
 
@@ -142,9 +142,14 @@ struct PlanProviderAdapter: PlannedWorkoutProvider {
 /// Training 的「標記排課完成」port ← Plan 的 MarkPlanWorkoutDone。
 struct PlanProgressAdapter: PlanProgressRecorder {
     let markDone: MarkPlanWorkoutDone
+    let discardRotationPlan: DiscardRotationPlanWorkout
 
     func markDone(planWorkoutId: UUID) async throws {
         try await markDone(id: planWorkoutId)
+    }
+
+    func discardOrphanPlan(planWorkoutId: UUID) async throws {
+        try await discardRotationPlan(id: planWorkoutId)
     }
 }
 
