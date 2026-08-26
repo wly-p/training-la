@@ -251,7 +251,8 @@ struct AppDependencies {
                         templateRepository: templateRepository,
                         rotationRepository: rotationRepository,
                         programRepository: programRepository
-                    )
+                    ),
+                    usageCounting: ExerciseUsageCountingAdapter(workoutRepository: workoutRepository)
                 )
             },
             makeTrainingHomeViewModel: {
