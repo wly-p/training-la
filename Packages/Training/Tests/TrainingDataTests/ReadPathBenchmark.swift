@@ -41,7 +41,7 @@ struct ReadPathBenchmark {
             for slot in 0..<5 {
                 let ex = exercises[(i * 5 + slot) % exercises.count]
                 for s in 0..<5 {
-                    w.appendSet(exerciseId: ex, weight: Weight(value: 50 + Double(s) * 2.5, unit: .kg), reps: 8)
+                    w.appendSet(exerciseId: ex, measurement: .weightReps(weight: Weight(value: 50 + Double(s) * 2.5, unit: .kg), reps: 8))
                 }
             }
             try await repo.save(w)
@@ -122,7 +122,7 @@ struct WritePathBenchmark {
         for i in 0..<setCount {
             live.appendSet(
                 exerciseId: exercises[i / 5],
-                weight: Weight(value: 60 + Double(i % 5) * 2.5, unit: .kg), reps: 5
+                measurement: .weightReps(weight: Weight(value: 60 + Double(i % 5) * 2.5, unit: .kg), reps: 5)
             )
             let saveStart = Date()
             try await repo.save(live)
@@ -148,7 +148,7 @@ struct WritePathBenchmark {
                     for slot in 0..<5 {
                         let ex = exercises[(i * 5 + slot) % exercises.count]
                         for s in 0..<5 {
-                            w.appendSet(exerciseId: ex, weight: Weight(value: 50 + Double(s) * 2.5, unit: .kg), reps: 8)
+                            w.appendSet(exerciseId: ex, measurement: .weightReps(weight: Weight(value: 50 + Double(s) * 2.5, unit: .kg), reps: 8))
                         }
                     }
                     try await repo.save(w)

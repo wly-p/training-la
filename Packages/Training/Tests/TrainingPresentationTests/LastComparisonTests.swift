@@ -21,8 +21,10 @@ struct LastComparisonTests {
                         targetWeight: Double? = nil, targetReps: Int? = nil) -> WorkoutSet {
         WorkoutSet(
             id: UUID(), exerciseId: exId, exerciseIndex: index, setIndex: setIndex,
-            weight: Weight(value: weight, unit: .kg), reps: reps, status: .done,
-            targetWeight: targetWeight.map { Weight(value: $0, unit: .kg) }, targetReps: targetReps
+            measurement: .weightReps(weight: Weight(value: weight, unit: .kg), reps: reps), status: .done,
+            targetMeasurement: targetWeight.map {
+                .weightReps(weight: Weight(value: $0, unit: .kg), reps: targetReps ?? 0)
+            }
         )
     }
 

@@ -399,7 +399,7 @@ struct TrainingHomeViewModelTests {
             id: UUID(), day: DayDate(year: 2026, month: 7, day: 27), planWorkoutId: planWorkoutId,
             startedAt: Date(),
             sets: [WorkoutSet(id: UUID(), exerciseId: exerciseId, exerciseIndex: 0, setIndex: 0,
-                              weight: Weight(value: 60, unit: .kg), reps: 8)]
+                              measurement: .weightReps(weight: Weight(value: 60, unit: .kg), reps: 8))]
         )
         await repo.setActive(active)
         let targets = (0..<3).map { i in
@@ -573,7 +573,7 @@ struct TrainingHomeWeekSummaryTests {
     @Test func weekSummarySumsVolumeInKilogramsAcrossThisWeek() {
         func set(_ weight: Weight, reps: Int, status: WorkoutSetStatus = .done) -> WorkoutSet {
             WorkoutSet(id: UUID(), exerciseId: UUID(), exerciseIndex: 0, setIndex: 0,
-                       weight: weight, reps: reps, status: status)
+                       measurement: .weightReps(weight: weight, reps: reps), status: status)
         }
         let thisWeek = Workout(id: UUID(), day: monday, sets: [
             set(Weight(value: 100, unit: .kg), reps: 5),                     // 500

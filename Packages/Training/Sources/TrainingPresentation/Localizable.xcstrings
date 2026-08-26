@@ -708,6 +708,23 @@
         }
       }
     },
+    "training.finish.otherWork %@" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Also today: %@"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "這場還做了：%@"
+          }
+        }
+      }
+    },
     "training.finish.pr.firstEver %@ %@ %lld" : {
       "extractionState" : "manual",
       "localizations" : {

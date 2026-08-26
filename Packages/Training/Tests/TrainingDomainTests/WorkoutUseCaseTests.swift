@@ -29,7 +29,7 @@ struct WorkoutProgressUseCaseTests {
     @Test func lastPerformanceDelegatesToRepository() async throws {
         let repo = MockWorkoutRepository()
         let exerciseId = UUID()
-        let sets = [WorkoutSet(id: UUID(), exerciseId: exerciseId, exerciseIndex: 0, setIndex: 0, weight: Weight(value: 60, unit: .kg), reps: 8)]
+        let sets = [WorkoutSet(id: UUID(), exerciseId: exerciseId, exerciseIndex: 0, setIndex: 0, measurement: .weightReps(weight: Weight(value: 60, unit: .kg), reps: 8))]
         await repo.stubLastPerformance(exerciseId: exerciseId, sets: sets)
         let lastPerformance = LastPerformance(repository: repo)
 

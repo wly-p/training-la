@@ -161,8 +161,15 @@ struct LastPerformedWeightLookupAdapter: LastPerformedWeightLookup {
 
     func lastPerformedWeight(exerciseId: UUID) async throws -> LastPerformedSet? {
         let sets = try await workoutRepository.lastPerformance(exerciseId: exerciseId, excludingWorkout: nil)
+        // 「相對上次」是重量表達式，只有帶重量的模式回答得了；其餘模式回 nil
+        // 讓表達式收斂時走它既有的「查不到歷史」路徑。
         // 用 Weight 比（已換算單位）；拿 .value 比在混單位時會挑錯那一組。
-        guard let best = sets.max(by: { $0.weight < $1.weight }) else { return nil }
+        let weighted = sets.compactMap { set -> (weight: Weight, reps: Int, targetReps: Int?)? in
+            guard let w = set.measurement.displayWeight, let r = set.measurement.displayReps
+            else { return nil }
+            return (w, r, set.targetMeasurement?.displayReps)
+        }
+        guard let best = weighted.max(by: { $0.weight < $1.weight }) else { return nil }
         let metTarget = best.targetReps.map { best.reps >= $0 } ?? true
         return LastPerformedSet(weight: best.weight, metTarget: metTarget)
     }

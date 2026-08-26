@@ -14,7 +14,7 @@ struct WorkoutAppendSetTests {
         var workout = makeWorkout()
         let benchPress = UUID()
 
-        workout.appendSet(exerciseId: benchPress, weight: kg60, reps: 8)
+        workout.appendSet(exerciseId: benchPress, measurement: .weightReps(weight: kg60, reps: 8))
 
         #expect(workout.sets.count == 1)
         #expect(workout.sets[0].exerciseIndex == 0)
@@ -25,8 +25,8 @@ struct WorkoutAppendSetTests {
         var workout = makeWorkout()
         let benchPress = UUID()
 
-        workout.appendSet(exerciseId: benchPress, weight: kg60, reps: 8)
-        workout.appendSet(exerciseId: benchPress, weight: kg60, reps: 6)
+        workout.appendSet(exerciseId: benchPress, measurement: .weightReps(weight: kg60, reps: 8))
+        workout.appendSet(exerciseId: benchPress, measurement: .weightReps(weight: kg60, reps: 6))
 
         #expect(workout.blocks.count == 1)
         #expect(workout.sets.map(\.setIndex) == [0, 1])
@@ -37,8 +37,8 @@ struct WorkoutAppendSetTests {
         let benchPress = UUID()
         let squat = UUID()
 
-        workout.appendSet(exerciseId: benchPress, weight: kg60, reps: 8)
-        workout.appendSet(exerciseId: squat, weight: kg60, reps: 5)
+        workout.appendSet(exerciseId: benchPress, measurement: .weightReps(weight: kg60, reps: 8))
+        workout.appendSet(exerciseId: squat, measurement: .weightReps(weight: kg60, reps: 5))
 
         #expect(workout.blocks.count == 2)
         #expect(workout.blocks[1].exerciseId == squat)
@@ -51,9 +51,9 @@ struct WorkoutAppendSetTests {
         let benchPress = UUID()
         let squat = UUID()
 
-        workout.appendSet(exerciseId: benchPress, weight: kg60, reps: 8)
-        workout.appendSet(exerciseId: squat, weight: kg60, reps: 5)
-        workout.appendSet(exerciseId: benchPress, weight: kg60, reps: 7)
+        workout.appendSet(exerciseId: benchPress, measurement: .weightReps(weight: kg60, reps: 8))
+        workout.appendSet(exerciseId: squat, measurement: .weightReps(weight: kg60, reps: 5))
+        workout.appendSet(exerciseId: benchPress, measurement: .weightReps(weight: kg60, reps: 7))
 
         // 回頭補臥推：接回原本的 block（exerciseIndex 0, setIndex 1）
         let benchBlock = workout.blocks.first { $0.exerciseId == benchPress }!
@@ -64,7 +64,7 @@ struct WorkoutAppendSetTests {
     @Test func blocksAreSortedByIndex() {
         var workout = makeWorkout()
         for _ in 0..<3 {
-            workout.appendSet(exerciseId: UUID(), weight: kg60, reps: 8)
+            workout.appendSet(exerciseId: UUID(), measurement: .weightReps(weight: kg60, reps: 8))
         }
 
         #expect(workout.blocks.map(\.exerciseIndex) == [0, 1, 2])
@@ -74,8 +74,8 @@ struct WorkoutAppendSetTests {
         var workout = makeWorkout()
         let benchPress = UUID()
         let lastId = UUID()
-        workout.appendSet(exerciseId: benchPress, weight: kg60, reps: 8)
-        workout.appendSet(id: lastId, exerciseId: benchPress, weight: kg60, reps: 6)
+        workout.appendSet(exerciseId: benchPress, measurement: .weightReps(weight: kg60, reps: 8))
+        workout.appendSet(id: lastId, exerciseId: benchPress, measurement: .weightReps(weight: kg60, reps: 6))
 
         workout.removeSet(id: lastId)
 
@@ -86,7 +86,7 @@ struct WorkoutAppendSetTests {
     @Test func removeOnlySetLeavesWorkoutEmpty() {
         var workout = makeWorkout()
         let onlyId = UUID()
-        workout.appendSet(id: onlyId, exerciseId: UUID(), weight: kg60, reps: 8)
+        workout.appendSet(id: onlyId, exerciseId: UUID(), measurement: .weightReps(weight: kg60, reps: 8))
 
         workout.removeSet(id: onlyId)
 
@@ -96,7 +96,7 @@ struct WorkoutAppendSetTests {
 
     @Test func removeSetIgnoresUnknownId() {
         var workout = makeWorkout()
-        workout.appendSet(exerciseId: UUID(), weight: kg60, reps: 8)
+        workout.appendSet(exerciseId: UUID(), measurement: .weightReps(weight: kg60, reps: 8))
 
         workout.removeSet(id: UUID()) // 不存在的 id
 
@@ -139,7 +139,7 @@ struct WorkoutUseCaseTests {
     @Test func finishSetsFieldsAndPersists() async throws {
         let repo = MockWorkoutRepository()
         var workout = Workout(id: UUID(), day: DayDate(year: 2026, month: 7, day: 9), startedAt: Date())
-        workout.appendSet(exerciseId: UUID(), weight: kg60, reps: 8)
+        workout.appendSet(exerciseId: UUID(), measurement: .weightReps(weight: kg60, reps: 8))
         await repo.seed([workout])
         let endTime = Date(timeIntervalSince1970: 9_000)
         let finish = FinishWorkout(repository: repo, now: { endTime })
@@ -169,7 +169,7 @@ struct WorkoutUseCaseTests {
         let planWorkoutId = UUID()
         var workout = Workout(id: UUID(), day: DayDate(year: 2026, month: 7, day: 9),
                               planWorkoutId: planWorkoutId, startedAt: Date())
-        workout.appendSet(exerciseId: UUID(), weight: kg60, reps: 8)
+        workout.appendSet(exerciseId: UUID(), measurement: .weightReps(weight: kg60, reps: 8))
         await repo.seed([workout])
         let finish = FinishWorkout(repository: repo, planProgress: recorder)
 
@@ -198,7 +198,7 @@ struct WorkoutUseCaseTests {
         let planWorkoutId = UUID()
         var workout = Workout(id: UUID(), day: DayDate(year: 2026, month: 7, day: 9),
                               planWorkoutId: planWorkoutId, startedAt: Date())
-        workout.appendSet(exerciseId: UUID(), weight: kg60, reps: 8)
+        workout.appendSet(exerciseId: UUID(), measurement: .weightReps(weight: kg60, reps: 8))
         await repo.seed([workout])
         let discard = DiscardWorkout(repository: repo, planProgress: recorder)
 
