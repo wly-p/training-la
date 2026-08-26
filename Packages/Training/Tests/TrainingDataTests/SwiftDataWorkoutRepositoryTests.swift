@@ -322,3 +322,66 @@ struct SwiftDataWorkoutDiffWriteTests {
         #expect(try await repo.get(id: workout.id) == workout)
     }
 }
+
+/// 「上次」預填不能拿到熱身組（B1）。
+///
+/// 過濾必須發生在 repository 找「最近一場有做這個動作的場次」那個迴圈裡，
+/// 不能交給呼叫端：某一場只有熱身組時要**繼續往前找**，回一個空陣列是錯的。
+struct LastPerformanceWarmupTests {
+    private func makeRepository() throws -> any WorkoutRepository {
+        let container = try ModelContainer(
+            for: Schema(TrainingDataFactory.models),
+            configurations: ModelConfiguration(isStoredInMemoryOnly: true)
+        )
+        return TrainingDataFactory.makeWorkoutRepository(container: container)
+    }
+
+    private let today = DayDate(year: 2026, month: 8, day: 26)
+
+    @Test func lastPerformanceSkipsWarmupSets() async throws {
+        let repo = try makeRepository()
+        let exerciseId = UUID()
+        var workout = Workout(id: UUID(), day: today, startedAt: Date(), endedAt: Date())
+        workout.appendSet(exerciseId: exerciseId, weight: Weight(value: 20, unit: .kg), reps: 15, isWarmup: true)
+        workout.appendSet(exerciseId: exerciseId, weight: Weight(value: 100, unit: .kg), reps: 5)
+        try await repo.save(workout)
+
+        let last = try await repo.lastPerformance(exerciseId: exerciseId, excludingWorkout: nil)
+
+        #expect(last.map(\.reps) == [5])
+        #expect(last.first?.weight == Weight(value: 100, unit: .kg))
+    }
+
+    /// 關鍵案例：最近一場只做了熱身就收工，要繼續往前找到真正練過的那場。
+    @Test func aSessionWithOnlyWarmupsFallsThroughToTheOneBefore() async throws {
+        let repo = try makeRepository()
+        let exerciseId = UUID()
+
+        var older = Workout(id: UUID(), day: today.adding(days: -3), startedAt: Date(), endedAt: Date())
+        older.appendSet(exerciseId: exerciseId, weight: Weight(value: 95, unit: .kg), reps: 5)
+        try await repo.save(older)
+
+        var warmupOnly = Workout(id: UUID(), day: today, startedAt: Date(), endedAt: Date())
+        warmupOnly.appendSet(exerciseId: exerciseId, weight: Weight(value: 20, unit: .kg), reps: 15, isWarmup: true)
+        try await repo.save(warmupOnly)
+
+        let last = try await repo.lastPerformance(exerciseId: exerciseId, excludingWorkout: nil)
+
+        // 拿到的是三天前那場的正式組，不是空陣列、也不是今天的熱身
+        #expect(last.first?.weight == Weight(value: 95, unit: .kg))
+    }
+
+    /// isWarmup 要能 round-trip（欄位有真的落地，不是只存在記憶體裡）。
+    @Test func isWarmupSurvivesSaveAndFetch() async throws {
+        let repo = try makeRepository()
+        let exerciseId = UUID()
+        var workout = Workout(id: UUID(), day: today, startedAt: Date())
+        workout.appendSet(exerciseId: exerciseId, weight: Weight(value: 20, unit: .kg), reps: 15, isWarmup: true)
+        workout.appendSet(exerciseId: exerciseId, weight: Weight(value: 100, unit: .kg), reps: 5)
+        try await repo.save(workout)
+
+        let fetched = try await repo.get(id: workout.id)
+
+        #expect(fetched?.sets.map(\.isWarmup) == [true, false])
+    }
+}

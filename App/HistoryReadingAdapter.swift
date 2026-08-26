@@ -140,7 +140,8 @@ struct HistoryReadingAdapter: WorkoutHistoryReading, WorkoutHistoryEditing {
             reps: set.reps,
             status: set.status,
             targetWeight: set.targetWeight,
-            targetReps: set.targetReps
+            targetReps: set.targetReps,
+            isWarmup: set.isWarmup
         )
     }
 }

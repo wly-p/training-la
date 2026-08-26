@@ -22,7 +22,8 @@ struct PracticedExerciseListerAdapter: PracticedExerciseLister {
         var maxWeights: [UUID: Weight] = [:]
         var order: [UUID] = []
         for workout in workouts {
-            for set in workout.sets where set.status == .done {
+            // 熱身組不進能力值：能力值的定義是「推過的最大」，熱身會把它往下拉。
+            for set in workout.sets where set.status == .done && !set.isWarmup {
                 if firstSeen[set.exerciseId] == nil {
                     firstSeen[set.exerciseId] = (set, workout.day)
                     order.append(set.exerciseId)

@@ -51,6 +51,8 @@ final class WorkoutSetModel {
     var targetWeightValue: Double?
     var targetWeightUnitRaw: String?
     var targetReps: Int?
+    /// 熱身組；宣告時給預設值＝舊資料走 SwiftData 輕量遷移（同 PlanWorkoutModel.originRaw 的作法）。
+    var isWarmup: Bool = false
     var workout: WorkoutModel?
 
     init(
@@ -65,7 +67,8 @@ final class WorkoutSetModel {
         fromPlanSetId: UUID?,
         targetWeightValue: Double?,
         targetWeightUnitRaw: String?,
-        targetReps: Int?
+        targetReps: Int?,
+        isWarmup: Bool = false
     ) {
         self.id = id
         self.exerciseId = exerciseId
@@ -79,6 +82,7 @@ final class WorkoutSetModel {
         self.targetWeightValue = targetWeightValue
         self.targetWeightUnitRaw = targetWeightUnitRaw
         self.targetReps = targetReps
+        self.isWarmup = isWarmup
     }
 }
 
@@ -145,6 +149,7 @@ extension WorkoutSetModel {
         let targetUnitRaw = set.targetWeight?.unit.rawValue
         if targetWeightUnitRaw != targetUnitRaw { targetWeightUnitRaw = targetUnitRaw }
         if targetReps != set.targetReps { targetReps = set.targetReps }
+        if isWarmup != set.isWarmup { isWarmup = set.isWarmup }
     }
 
     convenience init(from set: WorkoutSet) {
@@ -160,7 +165,8 @@ extension WorkoutSetModel {
             fromPlanSetId: set.fromPlanSetId,
             targetWeightValue: set.targetWeight?.value,
             targetWeightUnitRaw: set.targetWeight?.unit.rawValue,
-            targetReps: set.targetReps
+            targetReps: set.targetReps,
+            isWarmup: set.isWarmup
         )
     }
 
@@ -180,7 +186,8 @@ extension WorkoutSetModel {
             targetWeight: targetWeightValue.map {
                 Weight(value: $0, unit: WeightUnit(rawValue: targetWeightUnitRaw ?? "kg") ?? .kg)
             },
-            targetReps: targetReps
+            targetReps: targetReps,
+            isWarmup: isWarmup
         )
     }
 }

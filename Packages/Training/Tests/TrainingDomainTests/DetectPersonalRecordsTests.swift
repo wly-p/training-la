@@ -127,3 +127,48 @@ struct DetectPersonalRecordsTests {
         #expect(prs.first?.reps == 5)
     }
 }
+
+/// 熱身組不參與 PR 判定（B1）——破紀錄問的是「你真的推了什麼」。
+struct PersonalRecordWarmupTests {
+    private func warmupSet(weight: Double, reps: Int, setIndex: Int = 0) -> WorkoutSet {
+        WorkoutSet(id: UUID(), exerciseId: exerciseId, exerciseIndex: 0, setIndex: setIndex,
+                   weight: Weight(value: weight, unit: .kg), reps: reps, status: .done, isWarmup: true)
+    }
+
+    /// 代表組要從正式組裡挑：熱身做很多下不該冒充成「同重量下次數新高」。
+    @Test func warmupSetsCannotBecomeTheRepresentativeSet() async throws {
+        let repo = MockWorkoutRepository()
+        let previous = finishedWorkout(day: DayDate(year: 2026, month: 8, day: 1),
+                                       sets: [doneSet(weight: 100, reps: 5)])
+        await repo.seed([previous])
+        // 今天：熱身 100kg×20（如果被當成代表組就會誤判成 PR），正式組只有 100kg×5 平手
+        let today = finishedWorkout(day: DayDate(year: 2026, month: 8, day: 26), sets: [
+            warmupSet(weight: 100, reps: 20),
+            doneSet(weight: 100, reps: 5, setIndex: 1),
+        ])
+        await repo.seed([today])
+
+        let prs = try await DetectPersonalRecords(repository: repo)(today)
+
+        #expect(prs.isEmpty)
+    }
+
+    /// 歷史裡的熱身組也不算數：不然「上次熱身推了 120」會讓今天真的推 110 變成沒破紀錄。
+    @Test func warmupSetsInHistoryDoNotBlockAPersonalRecord() async throws {
+        let repo = MockWorkoutRepository()
+        let previous = Workout(
+            id: UUID(), day: DayDate(year: 2026, month: 8, day: 1),
+            startedAt: Date(), endedAt: Date(),
+            sets: [warmupSet(weight: 120, reps: 1), doneSet(weight: 100, reps: 5, setIndex: 1)]
+        )
+        await repo.seed([previous])
+        let today = finishedWorkout(day: DayDate(year: 2026, month: 8, day: 26),
+                                    sets: [doneSet(weight: 110, reps: 5)])
+        await repo.seed([today])
+
+        let prs = try await DetectPersonalRecords(repository: repo)(today)
+
+        #expect(prs.first?.kind == .newWeightAtReps)
+        #expect(prs.first?.weight == Weight(value: 110, unit: .kg))
+    }
+}

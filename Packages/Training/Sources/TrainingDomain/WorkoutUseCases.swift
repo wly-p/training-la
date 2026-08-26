@@ -203,12 +203,13 @@ public struct DetectPersonalRecords: Sendable {
     public func callAsFunction(_ workout: Workout) async throws -> [ExercisePRAnnouncement] {
         var result: [ExercisePRAnnouncement] = []
         for block in workout.blocks {
-            let doneSets = block.sets.filter { $0.status == .done }
+            // 熱身組不參與 PR：破紀錄問的是你真的推了什麼。
+            let doneSets = block.sets.filter { $0.status == .done && !$0.isWarmup }
             guard let best = PersonalRecordRule.representative(
                 of: doneSets.map { .init(weight: $0.weight, reps: $0.reps) }
             ) else { continue }
             let history = try await repository.exerciseHistory(exerciseId: block.exerciseId)
-                .filter { $0.workoutId != workout.id && $0.set.status == .done }
+                .filter { $0.workoutId != workout.id && $0.set.status == .done && !$0.set.isWarmup }
                 .map { PersonalRecordRule.Performance(weight: $0.set.weight, reps: $0.set.reps) }
             guard let kind = PersonalRecordRule.evaluate(best, against: history) else { continue }
             result.append(ExercisePRAnnouncement(

@@ -81,8 +81,11 @@ public actor SwiftDataWorkoutRepository: WorkoutRepository {
         )
         descriptor.fetchLimit = 50
         for model in try modelContext.fetch(descriptor) {
+            // 熱身組排除掉：「上次」是拿來預填的，上次第一組是 20kg 熱身的話
+            // 這次就會預填 20kg。過濾必須在這個迴圈裡而不是交給呼叫端——
+            // 某一場只有熱身組時要繼續往前找，回一個空陣列是錯的。
             let matched = model.sets
-                .filter { $0.exerciseId == exerciseId }
+                .filter { $0.exerciseId == exerciseId && !$0.isWarmup }
                 .map { $0.toDomain() }
                 .sorted { ($0.exerciseIndex, $0.setIndex) < ($1.exerciseIndex, $1.setIndex) }
             if !matched.isEmpty {

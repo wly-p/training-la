@@ -115,3 +115,62 @@ struct HistoryFormattingTests {
         #expect(HistoryFormatting.totalVolume(partial).target == nil)
     }
 }
+
+/// 熱身組不進 History 側的統計與趨勢圖（B1）。
+///
+/// `HistoryFormatting` 與 Training 的 `FinishSummaryFormatting` 是兩份平行實作
+/// （體檢查證過），所以同一條規則兩邊都要有測試——只改一邊的話，同一場訓練
+/// 在完成摘要與歷史頁會顯示不同的總量。
+struct HistoryWarmupExclusionTests {
+    private func line(
+        weight: Double, reps: Int, target: Double? = nil, targetReps: Int? = nil,
+        isWarmup: Bool = false, setIndex: Int = 0
+    ) -> HistorySetLine {
+        HistorySetLine(
+            id: UUID(), setIndex: setIndex,
+            weight: Weight(value: weight, unit: .kg), reps: reps, status: .done,
+            targetWeight: target.map { Weight(value: $0, unit: .kg) }, targetReps: targetReps,
+            isWarmup: isWarmup
+        )
+    }
+
+    private func block(_ sets: [HistorySetLine]) -> HistoryBlock {
+        HistoryBlock(id: 0, exerciseName: "臥推", sets: sets)
+    }
+
+    @Test func totalVolumeIgnoresWarmupSets() {
+        let blocks = [block([
+            line(weight: 20, reps: 15, isWarmup: true),
+            line(weight: 100, reps: 5, setIndex: 1),
+        ])]
+
+        #expect(HistoryFormatting.totalVolume(blocks).actual == 500)
+    }
+
+    @Test func warmupSetsAreNotJudgedForAchievement() {
+        #expect(HistoryFormatting.achieved(
+            line(weight: 20, reps: 15, target: 20, targetReps: 15, isWarmup: true)
+        ) == nil)
+    }
+
+    @Test func achievedSetCountCountsOnlyWorkingSets() {
+        let blocks = [block([
+            line(weight: 20, reps: 15, target: 20, targetReps: 15, isWarmup: true),
+            line(weight: 100, reps: 5, target: 100, targetReps: 5, setIndex: 1),
+        ])]
+
+        #expect(HistoryFormatting.achievedSetCount(blocks) == (achieved: 1, total: 1))
+    }
+
+    /// 兩份平行實作要給出同一個答案——這支釘的就是「別讓它們再長歪」。
+    @Test func historyAndTrainingAgreeOnVolume() {
+        let blocks = [block([
+            line(weight: 20, reps: 15, isWarmup: true),
+            line(weight: 100, reps: 5, setIndex: 1),
+            line(weight: 95, reps: 6, setIndex: 2),
+        ])]
+
+        // 100×5 + 95×6 = 1070；Training 側的同一組資料在 WarmupExclusionTests 驗
+        #expect(HistoryFormatting.totalVolume(blocks).actual == 1070)
+    }
+}
