@@ -96,6 +96,8 @@ struct RootView: View {
         .preferredColorScheme(settingsViewModel.theme.colorScheme)
         // 語言套在根部：注入 \.locale 讓所有 Text(key, bundle:) 依此語言查表，body 內文字即時重繪。
         .environment(\.locale, settingsViewModel.language.locale)
+        // 重量單位同理套在根部：設定一改，全 App 的重量顯示立即換算（儲存端不變，見 Weight）。
+        .environment(\.weightDisplayUnit, settingsViewModel.weightUnit)
         // navigationTitle 橋接 UIKit navigationItem、建立時解析一次就快取，不隨 \.locale 重解析；
         // 切語言時用 .id 強制整個 TabView 子樹重建，標題以新語言重產（同「刪除所有資料」的 resetToken 手法）。
         // selection 綁在外層 @State，重建後留在原分頁。

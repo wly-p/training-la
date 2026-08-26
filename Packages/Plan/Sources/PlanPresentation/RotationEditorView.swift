@@ -12,6 +12,9 @@ import UniformTypeIdentifiers
 public struct RotationEditorView: View {
     /// 目前語言：`localString` 要靠它才能查到 app 設定的語言（而非手機語系）。
     @Environment(\.locale) private var locale
+    /// 偏好的顯示單位（根部注入）。跟本檔的 `weightUnit`（這筆紀錄自己的單位，給選擇器用）
+    /// 是兩件事，刻意取不同名字避免混淆。
+    @Environment(\.weightDisplayUnit) private var displayUnit
     public enum Target {
         case create
         case edit(Rotation)
@@ -275,9 +278,9 @@ public struct RotationEditorView: View {
                 label: Text(verbatim: "\(name(firstSet.exerciseId)) ")
                     + localText("template.setNumber \(firstSet.setIndex + 1)"),
                 expression: Text(verbatim: String(
-                    format: "%@ × %.0f%%", baseWeight.displayString, draftIntensityFactor * 100
+                    format: "%@ × %.0f%%", baseWeight.displayString(in: displayUnit), draftIntensityFactor * 100
                 )),
-                result: Text(verbatim: Weight(value: result, unit: baseWeight.unit).displayString)
+                result: Text(verbatim: Weight(value: result, unit: baseWeight.unit).displayString(in: displayUnit))
             )
         ]
     }
@@ -410,6 +413,9 @@ private struct RotationWorkoutTransfer: Codable, Transferable {
 struct IntensityOverrideSheet: View {
     /// 目前語言：`localString` 要靠它才能查到 app 設定的語言（而非手機語系）。
     @Environment(\.locale) private var locale
+    /// 偏好的顯示單位（根部注入）。跟本檔的 `weightUnit`（這筆紀錄自己的單位，給選擇器用）
+    /// 是兩件事，刻意取不同名字避免混淆。
+    @Environment(\.weightDisplayUnit) private var displayUnit
     let baseline: Double
     let current: Double?
     let onCancel: () -> Void

@@ -82,7 +82,7 @@ struct FinishSummaryFormattingTests {
                       targetMeasurement: .weightReps(weight: Weight(value: 80, unit: .kg), reps: 8)),
         ]
 
-        let summaries = FinishSummaryFormatting.exerciseSummaries(blocks(sets)) { _ in "臥推" }
+        let summaries = FinishSummaryFormatting.exerciseSummaries(blocks(sets), in: .kg) { _ in "臥推" }
 
         #expect(summaries.count == 1)
         #expect(summaries[0].name == "臥推")
@@ -92,7 +92,7 @@ struct FinishSummaryFormattingTests {
     }
 
     @Test func exerciseSummaryAllAchievedIsNilWhenNothingJudged() {
-        let summaries = FinishSummaryFormatting.exerciseSummaries(blocks([set(weight: 20, reps: 8)])) { _ in "自由加練" }
+        let summaries = FinishSummaryFormatting.exerciseSummaries(blocks([set(weight: 20, reps: 8)]), in: .kg) { _ in "自由加練" }
 
         #expect(summaries[0].allAchieved == nil)
     }
@@ -103,7 +103,7 @@ struct FinishSummaryFormattingTests {
             set(weight: 60, reps: 8, targetWeight: 80, targetReps: 8, setIndex: 1),
         ]
 
-        let summaries = FinishSummaryFormatting.exerciseSummaries(blocks(sets)) { _ in "臥推" }
+        let summaries = FinishSummaryFormatting.exerciseSummaries(blocks(sets), in: .kg) { _ in "臥推" }
 
         #expect(summaries[0].allAchieved == false)
     }
@@ -161,7 +161,7 @@ struct WarmupExclusionTests {
             set(weight: 105, reps: 5, setIndex: 2),
         ]
 
-        let summary = FinishSummaryFormatting.exerciseSummaries(workout.blocks) { _ in "臥推" }[0]
+        let summary = FinishSummaryFormatting.exerciseSummaries(workout.blocks, in: .kg) { _ in "臥推" }[0]
 
         #expect(summary.setCount == 2)
         #expect(summary.weightRange == "100→105")

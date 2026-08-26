@@ -63,7 +63,11 @@ enum FinishSummaryFormatting {
         var id: UUID { exerciseId }
     }
 
-    static func exerciseSummaries(_ blocks: [ExerciseBlock], nameLookup: (UUID) -> String) -> [ExerciseSummary] {
+    /// `unit`：呼叫端傳 `@Environment(\.weightDisplayUnit)`。重量區間要換算成偏好單位，
+    /// 否則同一場裡 kg 與 lb 的組會被印成兩種尺度的「區間」。
+    static func exerciseSummaries(
+        _ blocks: [ExerciseBlock], in unit: WeightUnit, nameLookup: (UUID) -> String
+    ) -> [ExerciseSummary] {
         blocks.map { block in
             // 取 Weight 本身的 min/max（已換算單位），不要拿 .value 比 —— 混單位時
             // 用 .value 挑出來的「最輕/最重」會是錯的。
@@ -72,9 +76,10 @@ enum FinishSummaryFormatting {
             let weights = workingSets.compactMap(\.measurement.displayWeight)
             let range: String
             if let min = weights.min(), let max = weights.max() {
+                let lo = min.converted(to: unit), hi = max.converted(to: unit)
                 range = min == max
-                    ? WeightDisplay.value(min.value)
-                    : "\(WeightDisplay.value(min.value))→\(WeightDisplay.value(max.value))"
+                    ? WeightDisplay.value(lo.value)
+                    : "\(WeightDisplay.value(lo.value))→\(WeightDisplay.value(hi.value))"
             } else {
                 range = "—"
             }

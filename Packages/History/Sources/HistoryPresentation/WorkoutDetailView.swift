@@ -14,6 +14,7 @@ struct WorkoutDetailView: View {
     @State private var expandedAll = false
     @Environment(\.dismiss) private var dismiss
     @Environment(\.locale) private var locale
+    @Environment(\.weightDisplayUnit) private var weightUnit
 
     private let collapseThreshold = 5
     private let targetColWidth: CGFloat = 78
@@ -316,7 +317,7 @@ struct WorkoutDetailView: View {
                 .font(TLFont.display(13.5))
                 .foregroundStyle(TLColor.neutral500)
                 .frame(width: targetColWidth, alignment: .trailing)
-            Text(verbatim: "\(set.weight.displayString) × \(set.reps)")
+            Text(verbatim: "\(set.weight.displayString(in: weightUnit)) × \(set.reps)")
                 .font(TLFont.display(15))
                 .foregroundStyle(TLColor.text)
                 .frame(width: actualColWidth, alignment: .trailing)
@@ -329,7 +330,7 @@ struct WorkoutDetailView: View {
 
     private func targetText(_ set: HistorySetLine) -> String {
         guard let tw = set.targetWeight, let tr = set.targetReps else { return "—" }
-        return "\(tw.displayString) × \(tr)"
+        return "\(tw.displayString(in: weightUnit)) × \(tr)"
     }
 
     /// 差異用符號不用色塊：達標打勾(sage)、超出+N、未達−N(danger-700)，沒有目標＝不顯示。
@@ -363,7 +364,7 @@ struct WorkoutDetailView: View {
                 HStack(spacing: TLSpace.gapL) {
                     accentStepper(
                         label: "history.weight",
-                        value: draft.weight.displayString,
+                        value: draft.weight.displayString(in: weightUnit),
                         onMinus: { viewModel.bumpWeight(setId: set.id, -1) },
                         onPlus: { viewModel.bumpWeight(setId: set.id, 1) }
                     )

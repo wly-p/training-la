@@ -19,12 +19,12 @@ struct WeightSourceFormattingTests {
 
     @Test func absoluteWithBaselineIntensityHasNoAlgebraLine() {
         let source = TargetWeightSource(kind: .absolute, base: Weight(value: 60, unit: .kg), intensityFactor: 1.0)
-        #expect(WeightSourceFormatting.algebraText(source, locale: zhHant) == nil)
+        #expect(WeightSourceFormatting.algebraText(source, locale: zhHant, in: .kg) == nil)
     }
 
     @Test func absoluteWithIntensityShowsBaseTimesFactor() {
         let source = TargetWeightSource(kind: .absolute, base: Weight(value: 120, unit: .kg), intensityFactor: 0.75)
-        #expect(WeightSourceFormatting.algebraText(source, locale: zhHant) == "120kg × 75%")
+        #expect(WeightSourceFormatting.algebraText(source, locale: zhHant, in: .kg) == "120kg × 75%")
     }
 
     @Test func percentOf1RMResolvedShowsPercentTimesFactorAndAbility() {
@@ -32,7 +32,7 @@ struct WeightSourceFormattingTests {
             kind: .percentOfMax, percent: 80, abilityValue: Weight(value: 140, unit: .kg), intensityFactor: 0.75
         )
         #expect(
-            WeightSourceFormatting.algebraText(source, locale: zhHant)
+            WeightSourceFormatting.algebraText(source, locale: zhHant, in: .kg)
                 == "80% · × 75% · \(label("training.weightSource.maxWeightLabel")) 140kg"
         )
     }
@@ -42,14 +42,14 @@ struct WeightSourceFormattingTests {
             kind: .percentOfMax, percent: 80, abilityValue: Weight(value: 140, unit: .kg), intensityFactor: 1.0
         )
         #expect(
-            WeightSourceFormatting.algebraText(source, locale: zhHant)
+            WeightSourceFormatting.algebraText(source, locale: zhHant, in: .kg)
                 == "80% · \(label("training.weightSource.maxWeightLabel")) 140kg"
         )
     }
 
     @Test func percentOf1RMUnresolvedHasNoAlgebraButHasReason() {
         let source = TargetWeightSource(kind: .percentOfMax, percent: 80, abilityValue: nil, intensityFactor: 1.0)
-        #expect(WeightSourceFormatting.algebraText(source, locale: zhHant) == nil)
+        #expect(WeightSourceFormatting.algebraText(source, locale: zhHant, in: .kg) == nil)
         #expect(WeightSourceFormatting.unresolvedReason(source, locale: zhHant) != nil)
     }
 
@@ -59,25 +59,25 @@ struct WeightSourceFormattingTests {
             intensityFactor: 0.75
         )
         #expect(
-            WeightSourceFormatting.algebraText(source, locale: zhHant)
+            WeightSourceFormatting.algebraText(source, locale: zhHant, in: .kg)
                 == "\(label("training.weightSource.lastLabel")) 45kg +2.5kg · × 75%"
         )
     }
 
     @Test func relativeToLastUnresolvedHasNoAlgebraButHasReason() {
         let source = TargetWeightSource(kind: .relativeToLast, delta: Weight(value: 2.5, unit: .kg), lastWeight: nil, intensityFactor: 1.0)
-        #expect(WeightSourceFormatting.algebraText(source, locale: zhHant) == nil)
+        #expect(WeightSourceFormatting.algebraText(source, locale: zhHant, in: .kg) == nil)
         #expect(WeightSourceFormatting.unresolvedReason(source, locale: zhHant) != nil)
     }
 
     @Test func noExpressionHasNoAlgebraButHasReason() {
         let source = TargetWeightSource(kind: .none, intensityFactor: 1.0)
-        #expect(WeightSourceFormatting.algebraText(source, locale: zhHant) == nil)
+        #expect(WeightSourceFormatting.algebraText(source, locale: zhHant, in: .kg) == nil)
         #expect(WeightSourceFormatting.unresolvedReason(source, locale: zhHant) != nil)
     }
 
     @Test func nilSourceHasNoAlgebraAndNoReason() {
-        #expect(WeightSourceFormatting.algebraText(nil, locale: zhHant) == nil)
+        #expect(WeightSourceFormatting.algebraText(nil, locale: zhHant, in: .kg) == nil)
         #expect(WeightSourceFormatting.unresolvedReason(nil, locale: zhHant) == nil)
     }
 

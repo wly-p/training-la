@@ -5,13 +5,14 @@ import SwiftUI
 
 enum HistoryFormatting {
     /// 一場某動作的摘要："60kg × 8, 8, 6"（同重量）或逐組列出（混重量）。
-    static func summary(of sets: [HistorySetLine]) -> String {
+    /// `unit`：呼叫端傳 `@Environment(\.weightDisplayUnit)`，一律換算成偏好單位再印。
+    static func summary(of sets: [HistorySetLine], in unit: WeightUnit) -> String {
         guard let first = sets.first else { return "" }
         if sets.allSatisfy({ $0.weight == first.weight }) {
             let reps = sets.map { "\($0.reps)" }.joined(separator: ", ")
-            return "\(first.weight.displayString) × \(reps)"
+            return "\(first.weight.displayString(in: unit)) × \(reps)"
         }
-        return sets.map { "\($0.weight.displayString)×\($0.reps)" }.joined(separator: ", ")
+        return sets.map { "\($0.weight.displayString(in: unit))×\($0.reps)" }.joined(separator: ", ")
     }
 
     /// 組狀態標籤的 String Catalog key（View 用 `localText(_:)` 映射多語；繁中值見 Localizable.xcstrings）。
