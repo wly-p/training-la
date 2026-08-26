@@ -5,12 +5,44 @@ import TrainingDomain
 
 @ModelActor
 public actor SwiftDataWorkoutRepository: WorkoutRepository {
-    /// 整包 upsert：已存在就先刪整棵（cascade 帶走 sets）再重插，對齊 API 的「整包取代」語意。
+    /// 整包 upsert：對外語意仍是「整包取代」（對齊 API 的 aggregate 寫入），
+    /// 但對內是 diff——只動真的變了的列。
+    ///
+    /// 原本的做法是「已存在就先刪整棵（cascade 帶走 sets）再重插」。而 `ActiveWorkoutViewModel`
+    /// 每記一組就 `saveProgress(workout)` 一次，所以一場 30 組 ＝ 30 次「刪 N 列 ＋ 插 N+1 列」，
+    /// 總寫入量 O(n²)。落地磁碟實測：30 組 0.095s、60 組 0.340s——組數翻倍耗時變 3.6 倍，
+    /// 正是 O(n²) 的簽名。改後是 0.048s / 0.148s，單次 save 的磁碟寫入降成 O(1)
+    /// （量測與完整數字見 `WritePathBenchmark`）。
+    ///
+    /// 「對齊 API 的整包取代」是**網路層**的契約，本地 SwiftData 沒有理由跟著自殘；
+    /// 呼叫端拿到的行為完全一樣（傳入什麼就是最終狀態），protocol 簽章也沒變。
+    ///
+    /// 這同時是 CloudKit 的前置條件：刪整棵再重插到了同步層會變成「一次訓練數百次 record 異動」，
+    /// 改成 diff 之後才有得談（見 Backlog 的 CloudKit 評估票）。
     public func save(_ workout: Workout) async throws {
-        if let existing = try fetchModel(id: workout.id) {
-            modelContext.delete(existing)
+        guard let existing = try fetchModel(id: workout.id) else {
+            modelContext.insert(WorkoutModel(from: workout))
+            try modelContext.save()
+            return
         }
-        modelContext.insert(WorkoutModel(from: workout))
+        existing.applyScalars(from: workout)
+
+        // sets 依 id 三向 diff。傳入的就是最終狀態：既有但不在傳入裡的要刪掉，
+        // 這樣才維持「整包取代」的語意（`saveReplacesAggregate` 釘的就是這條）。
+        var incoming = Dictionary(workout.sets.map { ($0.id, $0) }, uniquingKeysWith: { _, last in last })
+        // 先取快照再走訪：delete 會就地改動 existing.sets，邊走邊刪會漏掉元素。
+        for setModel in Array(existing.sets) {
+            if let set = incoming.removeValue(forKey: setModel.id) {
+                setModel.apply(set)
+            } else {
+                // 明確刪掉，不只是從陣列移除——後者會留下沒有 workout 的孤兒列。
+                modelContext.delete(setModel)
+            }
+        }
+        // 剩下的是新組。依 workout.sets 的順序 append，inverse 會把 workout 指回來。
+        for set in workout.sets where incoming.removeValue(forKey: set.id) != nil {
+            existing.sets.append(WorkoutSetModel(from: set))
+        }
         try modelContext.save()
     }
 
