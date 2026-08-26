@@ -497,7 +497,8 @@ public final class ActiveWorkoutViewModel {
     /// 重量取最重的一組——逐組不同重量時，「做到多重」講的是那個上限。
     public var completedExerciseStats: (setCount: Int, heaviest: Weight?, volume: Double) {
         let done = currentBlockSets.filter { $0.status == .done }
-        return (done.count, done.map(\.weight).max(), FinishSummaryFormatting.totalVolume(done))
+        return (done.count, done.compactMap(\.measurement.displayWeight).max(),
+                FinishSummaryFormatting.totalVolume(done))
     }
 
     /// 整場的成績（16e 說明行「4 個動作 · 12 組 · 1920 kg」）。
@@ -722,8 +723,10 @@ public final class ActiveWorkoutViewModel {
 
     /// 快捷「同上組」：把草稿設回本場這個動作上一組記錄的值；沒有上一組時無效。
     public func applyLastSetValues() {
-        guard let last = currentBlockSets.last else { return }
-        apply(weight: last.weight, reps: last.reps)
+        guard let last = currentBlockSets.last,
+              let weight = last.measurement.displayWeight, let reps = last.measurement.displayReps
+        else { return }
+        apply(weight: weight, reps: reps)
     }
 
     /// 快捷「回到目標」：把草稿重設回這組的課表目標；沒有目標時無效。
@@ -750,12 +753,15 @@ public final class ActiveWorkoutViewModel {
         workout.appendSet(
             id: newSetId,
             exerciseId: exerciseId,
-            weight: Weight(value: draftWeightValue, unit: draftWeightUnit),
-            reps: draftReps,
+            // 記錄畫面目前只輸入「重量 × 次數」；其餘模式的輸入元件屬於 B2-ui 那張設計票。
+            measurement: .weightReps(
+                weight: Weight(value: draftWeightValue, unit: draftWeightUnit), reps: draftReps
+            ),
             status: status,
             fromPlanSetId: target?.id,
-            targetWeight: target?.targetWeight,
-            targetReps: target?.targetReps
+            targetMeasurement: target?.targetWeight.map {
+                .weightReps(weight: $0, reps: target?.targetReps ?? 0)
+            }
         )
         lastRecordedSetId = newSetId
         do {
@@ -772,10 +778,12 @@ public final class ActiveWorkoutViewModel {
         guard let exerciseId = currentExerciseId else { return }
         if let target = currentTarget, let weight = target.targetWeight {
             apply(weight: weight, reps: target.targetReps ?? draftReps)
-        } else if let last = currentBlockSets.last {
-            apply(weight: last.weight, reps: last.reps)
-        } else if let history = lastPerformances[exerciseId], let first = history.first {
-            apply(weight: first.weight, reps: first.reps)
+        } else if let last = currentBlockSets.last,
+                  let weight = last.measurement.displayWeight, let reps = last.measurement.displayReps {
+            apply(weight: weight, reps: reps)
+        } else if let history = lastPerformances[exerciseId], let first = history.first,
+                  let weight = first.measurement.displayWeight, let reps = first.measurement.displayReps {
+            apply(weight: weight, reps: reps)
         } else {
             apply(weight: Weight(value: 20, unit: .kg), reps: 8)
         }

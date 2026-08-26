@@ -14,8 +14,10 @@ private func set(
 ) -> WorkoutSet {
     WorkoutSet(
         id: UUID(), exerciseId: exerciseId, exerciseIndex: index, setIndex: setIndex,
-        weight: Weight(value: weight, unit: .kg), reps: reps, status: status,
-        targetWeight: targetWeight.map { Weight(value: $0, unit: .kg) }, targetReps: targetReps,
+        measurement: .weightReps(weight: Weight(value: weight, unit: .kg), reps: reps), status: status,
+        targetMeasurement: targetWeight.map {
+            .weightReps(weight: Weight(value: $0, unit: .kg), reps: targetReps ?? 0)
+        },
         isWarmup: isWarmup
     )
 }
@@ -73,11 +75,11 @@ struct FinishSummaryFormattingTests {
         let benchId = UUID()
         let sets = [
             WorkoutSet(id: UUID(), exerciseId: benchId, exerciseIndex: 0, setIndex: 0,
-                      weight: Weight(value: 60, unit: .kg), reps: 8, status: .done,
-                      targetWeight: Weight(value: 60, unit: .kg), targetReps: 8),
+                      measurement: .weightReps(weight: Weight(value: 60, unit: .kg), reps: 8), status: .done,
+                      targetMeasurement: .weightReps(weight: Weight(value: 60, unit: .kg), reps: 8)),
             WorkoutSet(id: UUID(), exerciseId: benchId, exerciseIndex: 0, setIndex: 1,
-                      weight: Weight(value: 80, unit: .kg), reps: 8, status: .done,
-                      targetWeight: Weight(value: 80, unit: .kg), targetReps: 8),
+                      measurement: .weightReps(weight: Weight(value: 80, unit: .kg), reps: 8), status: .done,
+                      targetMeasurement: .weightReps(weight: Weight(value: 80, unit: .kg), reps: 8)),
         ]
 
         let summaries = FinishSummaryFormatting.exerciseSummaries(blocks(sets)) { _ in "臥推" }
@@ -163,5 +165,64 @@ struct WarmupExclusionTests {
 
         #expect(summary.setCount == 2)
         #expect(summary.weightRange == "100→105")
+    }
+}
+
+/// 分項統計：非重量模式不被偷偷算成 0（B2-model）。
+struct SessionTotalsFormattingTests {
+    private func measured(_ m: SetMeasurement, setIndex: Int = 0) -> WorkoutSet {
+        WorkoutSet(id: UUID(), exerciseId: exerciseId, exerciseIndex: 0, setIndex: setIndex,
+                   measurement: m, status: .done)
+    }
+
+    @Test func totalsSplitsEachModeInsteadOfCollapsingToOneNumber() {
+        let sets = [
+            measured(.weightReps(weight: Weight(value: 100, unit: .kg), reps: 5)),
+            measured(.duration(seconds: 90), setIndex: 1),
+            measured(.distance(meters: 5000), setIndex: 2),
+        ]
+
+        let totals = FinishSummaryFormatting.totals(sets)
+
+        #expect(totals.volumeKilograms == 500)
+        #expect(totals.durationSeconds == 90)
+        #expect(totals.distanceMeters == 5000)
+    }
+
+    /// 舊呼叫端（只談公斤的地方）拿到的仍是重量那一項，不會被時間污染。
+    @Test func totalVolumeStillReturnsOnlyTheWeightPart() {
+        let sets = [
+            measured(.weightReps(weight: Weight(value: 100, unit: .kg), reps: 5)),
+            measured(.duration(seconds: 90), setIndex: 1),
+        ]
+
+        #expect(FinishSummaryFormatting.totalVolume(sets) == 500)
+    }
+
+    /// 模式不同的目標不判達標——那代表動作的追蹤模式在排課之後被改過。
+    @Test func achievedIsNilWhenTargetModeDiffersFromActual() {
+        let set = WorkoutSet(
+            id: UUID(), exerciseId: exerciseId, exerciseIndex: 0, setIndex: 0,
+            measurement: .duration(seconds: 90), status: .done,
+            targetMeasurement: .weightReps(weight: Weight(value: 60, unit: .kg), reps: 8)
+        )
+
+        #expect(FinishSummaryFormatting.achieved(set) == nil)
+    }
+
+    @Test func achievedWorksWithinANonWeightMode() {
+        let hit = WorkoutSet(
+            id: UUID(), exerciseId: exerciseId, exerciseIndex: 0, setIndex: 0,
+            measurement: .duration(seconds: 95), status: .done,
+            targetMeasurement: .duration(seconds: 90)
+        )
+        let miss = WorkoutSet(
+            id: UUID(), exerciseId: exerciseId, exerciseIndex: 0, setIndex: 1,
+            measurement: .duration(seconds: 80), status: .done,
+            targetMeasurement: .duration(seconds: 90)
+        )
+
+        #expect(FinishSummaryFormatting.achieved(hit) == true)
+        #expect(FinishSummaryFormatting.achieved(miss) == false)
     }
 }

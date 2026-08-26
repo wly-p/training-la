@@ -380,7 +380,8 @@ public final class TrainingHomeViewModel {
         let thisWeight = blueprint.targets.first { $0.exerciseId == mainExerciseId }?.targetWeight?.kilograms
         // 熱身組排除：拿熱身的 20kg 當「上次」會算出一個假的大幅進步。
         let lastWeight = last.blocks.first { $0.exerciseId == mainExerciseId }?
-            .sets.filter { $0.status == .done && !$0.isWarmup }.map(\.weight).max()?.kilograms
+            .sets.filter { $0.status == .done && !$0.isWarmup }
+            .compactMap(\.measurement.displayWeight).max()?.kilograms
         let delta: Double? = if let thisWeight, let lastWeight { thisWeight - lastWeight } else { nil }
         return LastWorkoutComparison(date: last.day, achievedSets: counts.achieved,
                                      totalSets: counts.total, mainLiftDeltaKg: delta)

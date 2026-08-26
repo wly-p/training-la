@@ -67,3 +67,105 @@ struct PersonalRecordRuleTests {
         #expect(PersonalRecordRule.representative(of: []) == nil)
     }
 }
+
+/// 各追蹤模式的 PR 判定（B2-model）。
+struct MeasurementPersonalRecordTests {
+    private let kg = { (v: Double) in Weight(value: v, unit: .kg) }
+
+    @Test func modesAreNeverComparedAgainstEachOther() {
+        // 歷史全是時間模式，今天是重量模式 → 這個模式的第一筆，不是「沒破紀錄」
+        let history: [SetMeasurement] = [.duration(seconds: 120), .duration(seconds: 90)]
+
+        let kind = PersonalRecordRule.evaluateMeasurement(
+            .weightReps(weight: kg(100), reps: 5), against: history
+        )
+
+        #expect(kind == .firstEver)
+    }
+
+    @Test func longerHoldIsAPersonalRecord() {
+        let history: [SetMeasurement] = [.duration(seconds: 60), .duration(seconds: 90)]
+
+        #expect(PersonalRecordRule.evaluateMeasurement(.duration(seconds: 120), against: history) == .newDuration)
+        #expect(PersonalRecordRule.evaluateMeasurement(.duration(seconds: 90), against: history) == nil)
+    }
+
+    @Test func fartherDistanceIsAPersonalRecord() {
+        let history: [SetMeasurement] = [.distance(meters: 5000)]
+
+        #expect(PersonalRecordRule.evaluateMeasurement(.distance(meters: 5001), against: history) == .newDistance)
+        #expect(PersonalRecordRule.evaluateMeasurement(.distance(meters: 4999), against: history) == nil)
+    }
+
+    @Test func moreRepsIsAPersonalRecordInRepsOnlyMode() {
+        let history: [SetMeasurement] = [.reps(12), .reps(10)]
+
+        #expect(PersonalRecordRule.evaluateMeasurement(.reps(13), against: history) == .newReps)
+        #expect(PersonalRecordRule.evaluateMeasurement(.reps(12), against: history) == nil)
+    }
+
+    /// 自體重加重沿用重量模式的規則（比的是加掛了多少）。
+    @Test func bodyweightPlusUsesTheWeightRules() {
+        let history: [SetMeasurement] = [.bodyweightPlus(added: kg(10), reps: 5)]
+
+        #expect(PersonalRecordRule.evaluateMeasurement(
+            .bodyweightPlus(added: kg(15), reps: 3), against: history) == .newWeight)
+        #expect(PersonalRecordRule.evaluateMeasurement(
+            .bodyweightPlus(added: kg(10), reps: 8), against: history) == .newRepsAtWeight)
+    }
+
+    @Test func representativePicksTheBestWithinTheMode() {
+        let sets: [SetMeasurement] = [.duration(seconds: 30), .duration(seconds: 95), .duration(seconds: 60)]
+
+        #expect(PersonalRecordRule.representativeMeasurement(of: sets) == .duration(seconds: 95))
+    }
+}
+
+/// 分項總計：各模式各自累計，不互相換算（B2-model）。
+struct SessionTotalsTests {
+    @Test func nonWeightModesAreNotSilentlyCountedAsZeroVolume() {
+        var totals = SessionTotals()
+        totals.add(.weightReps(weight: Weight(value: 100, unit: .kg), reps: 5))
+        totals.add(.duration(seconds: 90))
+        totals.add(.distance(meters: 5000))
+        totals.add(.reps(12))
+
+        #expect(totals.volumeKilograms == 500)
+        #expect(totals.durationSeconds == 90)
+        #expect(totals.distanceMeters == 5000)
+        #expect(totals.repsOnly == 12)
+        #expect(totals.hasNonWeightWork)
+    }
+
+    /// 自體重加重只算加掛的部分——全專案沒有使用者體重這個概念。
+    @Test func bodyweightPlusCountsOnlyTheAddedLoad() {
+        var totals = SessionTotals()
+        totals.add(.bodyweightPlus(added: Weight(value: 20, unit: .kg), reps: 5))
+
+        #expect(totals.volumeKilograms == 100)
+    }
+
+    @Test func aPureWeightSessionHasNothingElseToReport() {
+        var totals = SessionTotals()
+        totals.add(.weightReps(weight: Weight(value: 60, unit: .kg), reps: 10))
+
+        #expect(totals.hasNonWeightWork == false)
+    }
+
+    @Test func meetsTargetIsNilAcrossDifferentModes() {
+        #expect(SetMeasurementComparison.meetsTarget(
+            .duration(seconds: 90), target: .weightReps(weight: Weight(value: 60, unit: .kg), reps: 8)
+        ) == nil)
+    }
+
+    @Test func meetsTargetComparesEachDimension() {
+        let target = SetMeasurement.weightReps(weight: Weight(value: 100, unit: .kg), reps: 5)
+
+        #expect(SetMeasurementComparison.meetsTarget(
+            .weightReps(weight: Weight(value: 100, unit: .kg), reps: 5), target: target) == true)
+        #expect(SetMeasurementComparison.meetsTarget(
+            .weightReps(weight: Weight(value: 100, unit: .kg), reps: 4), target: target) == false)
+        #expect(SetMeasurementComparison.meetsTarget(
+            .duration(seconds: 100), target: .duration(seconds: 90)) == true)
+    }
+}

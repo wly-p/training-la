@@ -18,25 +18,29 @@ struct PracticedExerciseListerAdapter: PracticedExerciseLister {
         // 最近一次：finishedWorkouts() 已是新到舊，每個動作第一次出現的就是。
         // 最大重量：要掃完整個歷史，不能只看最近一次 —— 能力值的定義是「推過的最大」，
         // 上一次是輕重量恢復日的話，拿它當建議會把使用者的能力值往下拉。
-        var firstSeen: [UUID: (set: WorkoutSet, day: DayDate)] = [:]
+        // 能力值談的是「推過多重」，所以只看帶重量的模式——時間／距離／純次數的動作
+        // 沒有 1RM 這個概念，混進來只會讓能力值頁出現一堆 0 kg 的列。
+        var firstSeen: [UUID: (weight: Weight, reps: Int, day: DayDate)] = [:]
         var maxWeights: [UUID: Weight] = [:]
         var order: [UUID] = []
         for workout in workouts {
             // 熱身組不進能力值：能力值的定義是「推過的最大」，熱身會把它往下拉。
             for set in workout.sets where set.status == .done && !set.isWarmup {
+                guard let weight = set.measurement.displayWeight,
+                      let reps = set.measurement.displayReps else { continue }
                 if firstSeen[set.exerciseId] == nil {
-                    firstSeen[set.exerciseId] = (set, workout.day)
+                    firstSeen[set.exerciseId] = (weight, reps, workout.day)
                     order.append(set.exerciseId)
                 }
                 if let current = maxWeights[set.exerciseId] {
-                    maxWeights[set.exerciseId] = Swift.max(current, set.weight)
+                    maxWeights[set.exerciseId] = Swift.max(current, weight)
                 } else {
-                    maxWeights[set.exerciseId] = set.weight
+                    maxWeights[set.exerciseId] = weight
                 }
             }
         }
 
-        return order.compactMap { exerciseId in
+        return order.compactMap { exerciseId -> PracticedExercise? in
             guard let exercise = catalog[exerciseId],
                   let last = firstSeen[exerciseId],
                   let maxWeight = maxWeights[exerciseId]
@@ -46,8 +50,8 @@ struct PracticedExerciseListerAdapter: PracticedExerciseLister {
                 exerciseName: exercise.name,
                 equipment: exercise.equipment,
                 maxWeight: maxWeight,
-                lastWeight: last.set.weight,
-                lastReps: last.set.reps,
+                lastWeight: last.weight,
+                lastReps: last.reps,
                 lastPerformedOn: last.day
             )
         }

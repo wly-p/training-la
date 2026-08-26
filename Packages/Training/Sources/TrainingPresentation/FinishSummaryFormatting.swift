@@ -1,4 +1,5 @@
 import Foundation
+import SharedKernel
 import TrainingDomain
 
 /// 完成摘要（13a）的純函式邏輯：達標判定／總量／目標總量。跟 History（Phase 4）對
@@ -8,11 +9,12 @@ enum FinishSummaryFormatting {
     /// 這組有沒有達標；只有「已完成且有目標快照」的組才有定義——沒有目標快照（自由加練）
     /// 或 `.skipped` 都不列入判定，回 nil（呼叫端用 `compactMap` 自然排除，不用特別過濾）。
     /// 熱身組回 nil：它沒有「達標」的概念，混進分母會出現「達標 3/6 組」這種假訊號。
+    /// 目標與實際的模式不同時也回 nil——那代表動作的追蹤模式在排課之後被改過，
+    /// 拿秒數去比公斤沒有意義。
     static func achieved(_ set: WorkoutSet) -> Bool? {
-        guard set.status == .done, !set.isWarmup,
-              let targetWeight = set.targetWeight, let targetReps = set.targetReps
+        guard set.status == .done, !set.isWarmup, let target = set.targetMeasurement
         else { return nil }
-        return set.weight >= targetWeight && set.reps >= targetReps
+        return SetMeasurementComparison.meetsTarget(set.measurement, target: target)
     }
 
     /// 「達標 X/Y 組」：分母只算「真的被判定過」的組數，free 加練/跳過都不計入。
@@ -23,18 +25,29 @@ enum FinishSummaryFormatting {
 
     /// 實際總量（公斤；只算 `.done` 的組，跳過的組沒有真的舉起來不算）。
     /// 加總前一律換算成公斤——這種聚合 `Comparable` 幫不上，混單位相加的數字沒有意義。
-    /// 熱身組不計入：熱身的 20kg × 15 下混進去會讓進步曲線失真。
+    /// 實際的分項總計（`.done` 且非熱身組）。
+    ///
+    /// **各模式各自累計，不互相換算**：「撐 90 秒」跟「推 100 公斤」之間沒有大小關係，
+    /// 硬要湊成一個數字只會得到假的總量。非重量模式也不會被偷偷算成 0——那正是
+    /// 這張票要避免的（見 SessionTotals）。
+    static func totals(_ sets: [WorkoutSet]) -> SessionTotals {
+        var totals = SessionTotals()
+        for set in sets where set.status == .done && !set.isWarmup {
+            totals.add(set.measurement)
+        }
+        return totals
+    }
+
+    /// 只要重量那一項；沿用舊呼叫端（「本週總量」等只談公斤的地方）。
     static func totalVolume(_ sets: [WorkoutSet]) -> Double {
-        sets.filter { $0.status == .done && !$0.isWarmup }
-            .reduce(0) { $0 + $1.weight.kilograms * Double($1.reps) }
+        totals(sets).volumeKilograms
     }
 
     /// 目標總量（公斤）：只加總「有目標快照」的組（照課表的部分），自由加練沒有目標、不計入。
     static func targetVolume(_ sets: [WorkoutSet]) -> Double {
         sets.compactMap { set -> Double? in
-            guard !set.isWarmup,
-                  let targetWeight = set.targetWeight, let targetReps = set.targetReps else { return nil }
-            return targetWeight.kilograms * Double(targetReps)
+            guard !set.isWarmup, let target = set.targetMeasurement else { return nil }
+            return target.volumeKilograms
         }
         .reduce(0, +)
     }
@@ -56,7 +69,7 @@ enum FinishSummaryFormatting {
             // 用 .value 挑出來的「最輕/最重」會是錯的。
             // 重量區間也不算熱身組：顯示「20→100 kg」會讓人以為那天做了很寬的遞增。
             let workingSets = block.sets.filter { !$0.isWarmup }
-            let weights = workingSets.map(\.weight)
+            let weights = workingSets.compactMap(\.measurement.displayWeight)
             let range: String
             if let min = weights.min(), let max = weights.max() {
                 range = min == max

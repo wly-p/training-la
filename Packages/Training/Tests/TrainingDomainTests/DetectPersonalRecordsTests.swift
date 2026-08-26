@@ -7,7 +7,7 @@ private let exerciseId = UUID()
 
 private func doneSet(_ id: UUID = UUID(), weight: Double, reps: Int, index: Int = 0, setIndex: Int = 0) -> WorkoutSet {
     WorkoutSet(id: id, exerciseId: exerciseId, exerciseIndex: index, setIndex: setIndex,
-              weight: Weight(value: weight, unit: .kg), reps: reps, status: .done)
+              measurement: .weightReps(weight: Weight(value: weight, unit: .kg), reps: reps), status: .done)
 }
 
 private func finishedWorkout(day: DayDate, sets: [WorkoutSet]) -> Workout {
@@ -26,7 +26,7 @@ struct DetectPersonalRecordsTests {
 
         #expect(prs.count == 1)
         #expect(prs.first?.kind == .newRepsAtWeight)
-        #expect(prs.first?.reps == 8)
+        #expect(prs.first?.measurement.displayReps == 8)
     }
 
     @Test func detectsNewWeightAtSameRepsAsPR() async throws {
@@ -40,7 +40,7 @@ struct DetectPersonalRecordsTests {
 
         #expect(prs.count == 1)
         #expect(prs.first?.kind == .newWeightAtReps)
-        #expect(prs.first?.weight == Weight(value: 80, unit: .kg))
+        #expect(prs.first?.measurement.displayWeight == Weight(value: 80, unit: .kg))
     }
 
     /// 規則統一後的行為改變（體檢 P4-4）：歷史有 90kg × 8、這次做 100kg × 5。
@@ -60,7 +60,7 @@ struct DetectPersonalRecordsTests {
 
         #expect(prs.count == 1)
         #expect(prs.first?.kind == .newWeightAtReps)
-        #expect(prs.first?.weight == Weight(value: 100, unit: .kg))
+        #expect(prs.first?.measurement.displayWeight == Weight(value: 100, unit: .kg))
     }
 
     /// 反向：比歷來最重的輕，即使次數多很多也不算 PR（不然減重高次數會天天報喜）。
@@ -123,8 +123,8 @@ struct DetectPersonalRecordsTests {
 
         let prs = try await detect(today)
 
-        #expect(prs.first?.weight == Weight(value: 80, unit: .kg))
-        #expect(prs.first?.reps == 5)
+        #expect(prs.first?.measurement.displayWeight == Weight(value: 80, unit: .kg))
+        #expect(prs.first?.measurement.displayReps == 5)
     }
 }
 
@@ -132,7 +132,7 @@ struct DetectPersonalRecordsTests {
 struct PersonalRecordWarmupTests {
     private func warmupSet(weight: Double, reps: Int, setIndex: Int = 0) -> WorkoutSet {
         WorkoutSet(id: UUID(), exerciseId: exerciseId, exerciseIndex: 0, setIndex: setIndex,
-                   weight: Weight(value: weight, unit: .kg), reps: reps, status: .done, isWarmup: true)
+                   measurement: .weightReps(weight: Weight(value: weight, unit: .kg), reps: reps), status: .done, isWarmup: true)
     }
 
     /// 代表組要從正式組裡挑：熱身做很多下不該冒充成「同重量下次數新高」。
@@ -169,6 +169,6 @@ struct PersonalRecordWarmupTests {
         let prs = try await DetectPersonalRecords(repository: repo)(today)
 
         #expect(prs.first?.kind == .newWeightAtReps)
-        #expect(prs.first?.weight == Weight(value: 110, unit: .kg))
+        #expect(prs.first?.measurement.displayWeight == Weight(value: 110, unit: .kg))
     }
 }

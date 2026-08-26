@@ -29,7 +29,22 @@ struct FinishWorkoutSheet: View {
         FinishSummaryFormatting.achievedSetCount(workout.sets)
     }
 
-    private var totalVolume: Double { FinishSummaryFormatting.totalVolume(workout.sets) }
+    private var totals: SessionTotals { FinishSummaryFormatting.totals(workout.sets) }
+    private var totalVolume: Double { totals.volumeKilograms }
+
+    /// 非重量模式的分項（時間／距離／純次數）。各模式各自累計、不互相換算——
+    /// 「撐 90 秒」跟「推 100 公斤」之間沒有大小關係，湊成一個數字只會是假的總量。
+    ///
+    /// **排版與樣式屬於 B2-ui 那張設計票**，這裡只是最小呈現，讓數字不至於算完就沒人看得到。
+    /// 現階段沒有 B2-ui 就建立不了非重量模式的動作，所以這一行實際上不會出現。
+    private var otherWorkText: String? {
+        guard totals.hasNonWeightWork else { return nil }
+        var parts: [String] = []
+        if totals.durationSeconds > 0 { parts.append("\(totals.durationSeconds / 60) min") }
+        if totals.distanceMeters > 0 { parts.append("\(WeightDisplay.value(totals.distanceMeters / 1000)) km") }
+        if totals.repsOnly > 0 { parts.append("\(totals.repsOnly) reps") }
+        return parts.joined(separator: " · ")
+    }
     private var targetVolume: Double { FinishSummaryFormatting.targetVolume(workout.sets) }
 
     private var durationMinutes: Int {
@@ -147,6 +162,11 @@ struct FinishWorkoutSheet: View {
                 Spacer()
                 achievedStat
             }
+            if let otherWorkText {
+                Text(verbatim: String(format: localString("training.finish.otherWork %@", locale), otherWorkText))
+                    .font(TLFont.zh(12.5, .regular))
+                    .foregroundStyle(TLColor.neutral600)
+            }
             if targetVolume > 0 {
                 // 6pt 圓角進度條（neutral-200 軌 ＋ 赭紅填），取代偏細的原生 ProgressView。
                 GeometryReader { geo in
@@ -205,16 +225,19 @@ struct FinishWorkoutSheet: View {
 
     private func prBanner(_ pr: ExercisePRAnnouncement) -> some View {
         let name = exerciseName(pr.exerciseId)
-        let weightText = WeightDisplay.weight(pr.weight)
+        // 重量模式的三種文案沿用既有 key；時間／距離／純次數的文案排版屬於 B2-ui 那張設計票，
+        // 現階段建立不了那種動作所以走不到，先用同一組 key 的最小填法，別讓它變成死路。
+        let weightText = pr.measurement.displayWeight.map(WeightDisplay.weight) ?? ""
+        let reps = pr.measurement.displayReps ?? 0
         let text: String
         switch pr.kind {
         case .newRepsAtWeight:
-            text = String(format: localString("training.finish.pr.newReps %@ %@ %lld", locale), name, weightText, pr.reps)
-        case .newWeightAtReps:
-            text = String(format: localString("training.finish.pr.newWeight %@ %@ %lld", locale), name, weightText, pr.reps)
+            text = String(format: localString("training.finish.pr.newReps %@ %@ %lld", locale), name, weightText, reps)
+        case .newWeightAtReps, .newDuration, .newDistance, .newReps:
+            text = String(format: localString("training.finish.pr.newWeight %@ %@ %lld", locale), name, weightText, reps)
         case .firstEver:
             // 第一次練這個動作：說「創新高」很怪（沒有舊紀錄可破），改寫成「第一筆紀錄」。
-            text = String(format: localString("training.finish.pr.firstEver %@ %@ %lld", locale), name, weightText, pr.reps)
+            text = String(format: localString("training.finish.pr.firstEver %@ %@ %lld", locale), name, weightText, reps)
         }
         return Label {
             Text(verbatim: text)
