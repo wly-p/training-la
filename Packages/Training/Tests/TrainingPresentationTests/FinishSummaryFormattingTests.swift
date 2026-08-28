@@ -9,12 +9,16 @@ private let exerciseId = UUID()
 
 private func set(
     weight: Double, reps: Int, status: WorkoutSetStatus = .done,
-    targetWeight: Double? = nil, targetReps: Int? = nil, index: Int = 0, setIndex: Int = 0
+    targetWeight: Double? = nil, targetReps: Int? = nil, index: Int = 0, setIndex: Int = 0,
+    isWarmup: Bool = false
 ) -> WorkoutSet {
     WorkoutSet(
         id: UUID(), exerciseId: exerciseId, exerciseIndex: index, setIndex: setIndex,
-        weight: Weight(value: weight, unit: .kg), reps: reps, status: status,
-        targetWeight: targetWeight.map { Weight(value: $0, unit: .kg) }, targetReps: targetReps
+        measurement: .weightReps(weight: Weight(value: weight, unit: .kg), reps: reps), status: status,
+        targetMeasurement: targetWeight.map {
+            .weightReps(weight: Weight(value: $0, unit: .kg), reps: targetReps ?? 0)
+        },
+        isWarmup: isWarmup
     )
 }
 
@@ -71,11 +75,11 @@ struct FinishSummaryFormattingTests {
         let benchId = UUID()
         let sets = [
             WorkoutSet(id: UUID(), exerciseId: benchId, exerciseIndex: 0, setIndex: 0,
-                      weight: Weight(value: 60, unit: .kg), reps: 8, status: .done,
-                      targetWeight: Weight(value: 60, unit: .kg), targetReps: 8),
+                      measurement: .weightReps(weight: Weight(value: 60, unit: .kg), reps: 8), status: .done,
+                      targetMeasurement: .weightReps(weight: Weight(value: 60, unit: .kg), reps: 8)),
             WorkoutSet(id: UUID(), exerciseId: benchId, exerciseIndex: 0, setIndex: 1,
-                      weight: Weight(value: 80, unit: .kg), reps: 8, status: .done,
-                      targetWeight: Weight(value: 80, unit: .kg), targetReps: 8),
+                      measurement: .weightReps(weight: Weight(value: 80, unit: .kg), reps: 8), status: .done,
+                      targetMeasurement: .weightReps(weight: Weight(value: 80, unit: .kg), reps: 8)),
         ]
 
         let summaries = FinishSummaryFormatting.exerciseSummaries(blocks(sets)) { _ in "臥推" }
@@ -102,5 +106,123 @@ struct FinishSummaryFormattingTests {
         let summaries = FinishSummaryFormatting.exerciseSummaries(blocks(sets)) { _ in "臥推" }
 
         #expect(summaries[0].allAchieved == false)
+    }
+}
+
+/// 熱身組不進統計（B1）。
+///
+/// 熱身的 20kg × 15 下如果混進總量，進步曲線會被拉平；混進達標分母會出現
+/// 「達標 3/6 組」這種假訊號——熱身組根本沒有「達標」的概念。
+struct WarmupExclusionTests {
+    @Test func totalVolumeIgnoresWarmupSets() {
+        let sets = [
+            set(weight: 20, reps: 15, isWarmup: true),   // 300，不該進來
+            set(weight: 100, reps: 5),                   // 500
+        ]
+
+        #expect(FinishSummaryFormatting.totalVolume(sets) == 500)
+    }
+
+    @Test func warmupSetsAreNotJudgedForAchievement() {
+        // 熱身組即使有目標快照也不該被判定
+        #expect(FinishSummaryFormatting.achieved(
+            set(weight: 20, reps: 15, targetWeight: 20, targetReps: 15, isWarmup: true)
+        ) == nil)
+    }
+
+    @Test func achievedSetCountCountsOnlyWorkingSets() {
+        let sets = [
+            set(weight: 20, reps: 15, targetWeight: 20, targetReps: 15, isWarmup: true),
+            set(weight: 100, reps: 5, targetWeight: 100, targetReps: 5),
+            set(weight: 100, reps: 3, targetWeight: 100, targetReps: 5, setIndex: 1),
+        ]
+
+        let counts = FinishSummaryFormatting.achievedSetCount(sets)
+
+        #expect(counts == (achieved: 1, total: 2))
+    }
+
+    @Test func targetVolumeIgnoresWarmupSets() {
+        let sets = [
+            set(weight: 20, reps: 15, targetWeight: 20, targetReps: 15, isWarmup: true),
+            set(weight: 100, reps: 5, targetWeight: 100, targetReps: 5),
+        ]
+
+        #expect(FinishSummaryFormatting.targetVolume(sets) == 500)
+    }
+
+    /// 重量區間也不算熱身組：顯示「20→100 kg」會讓人以為那天做了很寬的遞增。
+    @Test func exerciseSummaryRangeAndCountSkipWarmups() {
+        // ExerciseBlock 沒有 public init，經由 Workout.blocks 取得（也順便驗到分組本身）。
+        var workout = Workout(id: UUID(), day: DayDate(year: 2026, month: 8, day: 26))
+        workout.sets = [
+            set(weight: 20, reps: 15, isWarmup: true),
+            set(weight: 100, reps: 5, setIndex: 1),
+            set(weight: 105, reps: 5, setIndex: 2),
+        ]
+
+        let summary = FinishSummaryFormatting.exerciseSummaries(workout.blocks) { _ in "臥推" }[0]
+
+        #expect(summary.setCount == 2)
+        #expect(summary.weightRange == "100→105")
+    }
+}
+
+/// 分項統計：非重量模式不被偷偷算成 0（B2-model）。
+struct SessionTotalsFormattingTests {
+    private func measured(_ m: SetMeasurement, setIndex: Int = 0) -> WorkoutSet {
+        WorkoutSet(id: UUID(), exerciseId: exerciseId, exerciseIndex: 0, setIndex: setIndex,
+                   measurement: m, status: .done)
+    }
+
+    @Test func totalsSplitsEachModeInsteadOfCollapsingToOneNumber() {
+        let sets = [
+            measured(.weightReps(weight: Weight(value: 100, unit: .kg), reps: 5)),
+            measured(.duration(seconds: 90), setIndex: 1),
+            measured(.distance(meters: 5000), setIndex: 2),
+        ]
+
+        let totals = FinishSummaryFormatting.totals(sets)
+
+        #expect(totals.volumeKilograms == 500)
+        #expect(totals.durationSeconds == 90)
+        #expect(totals.distanceMeters == 5000)
+    }
+
+    /// 舊呼叫端（只談公斤的地方）拿到的仍是重量那一項，不會被時間污染。
+    @Test func totalVolumeStillReturnsOnlyTheWeightPart() {
+        let sets = [
+            measured(.weightReps(weight: Weight(value: 100, unit: .kg), reps: 5)),
+            measured(.duration(seconds: 90), setIndex: 1),
+        ]
+
+        #expect(FinishSummaryFormatting.totalVolume(sets) == 500)
+    }
+
+    /// 模式不同的目標不判達標——那代表動作的追蹤模式在排課之後被改過。
+    @Test func achievedIsNilWhenTargetModeDiffersFromActual() {
+        let set = WorkoutSet(
+            id: UUID(), exerciseId: exerciseId, exerciseIndex: 0, setIndex: 0,
+            measurement: .duration(seconds: 90), status: .done,
+            targetMeasurement: .weightReps(weight: Weight(value: 60, unit: .kg), reps: 8)
+        )
+
+        #expect(FinishSummaryFormatting.achieved(set) == nil)
+    }
+
+    @Test func achievedWorksWithinANonWeightMode() {
+        let hit = WorkoutSet(
+            id: UUID(), exerciseId: exerciseId, exerciseIndex: 0, setIndex: 0,
+            measurement: .duration(seconds: 95), status: .done,
+            targetMeasurement: .duration(seconds: 90)
+        )
+        let miss = WorkoutSet(
+            id: UUID(), exerciseId: exerciseId, exerciseIndex: 0, setIndex: 1,
+            measurement: .duration(seconds: 80), status: .done,
+            targetMeasurement: .duration(seconds: 90)
+        )
+
+        #expect(FinishSummaryFormatting.achieved(hit) == true)
+        #expect(FinishSummaryFormatting.achieved(miss) == false)
     }
 }

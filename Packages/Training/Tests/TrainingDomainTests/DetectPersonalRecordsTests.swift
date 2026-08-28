@@ -7,7 +7,7 @@ private let exerciseId = UUID()
 
 private func doneSet(_ id: UUID = UUID(), weight: Double, reps: Int, index: Int = 0, setIndex: Int = 0) -> WorkoutSet {
     WorkoutSet(id: id, exerciseId: exerciseId, exerciseIndex: index, setIndex: setIndex,
-              weight: Weight(value: weight, unit: .kg), reps: reps, status: .done)
+              measurement: .weightReps(weight: Weight(value: weight, unit: .kg), reps: reps), status: .done)
 }
 
 private func finishedWorkout(day: DayDate, sets: [WorkoutSet]) -> Workout {
@@ -26,7 +26,7 @@ struct DetectPersonalRecordsTests {
 
         #expect(prs.count == 1)
         #expect(prs.first?.kind == .newRepsAtWeight)
-        #expect(prs.first?.reps == 8)
+        #expect(prs.first?.measurement.displayReps == 8)
     }
 
     @Test func detectsNewWeightAtSameRepsAsPR() async throws {
@@ -40,7 +40,7 @@ struct DetectPersonalRecordsTests {
 
         #expect(prs.count == 1)
         #expect(prs.first?.kind == .newWeightAtReps)
-        #expect(prs.first?.weight == Weight(value: 80, unit: .kg))
+        #expect(prs.first?.measurement.displayWeight == Weight(value: 80, unit: .kg))
     }
 
     /// 規則統一後的行為改變（體檢 P4-4）：歷史有 90kg × 8、這次做 100kg × 5。
@@ -60,7 +60,7 @@ struct DetectPersonalRecordsTests {
 
         #expect(prs.count == 1)
         #expect(prs.first?.kind == .newWeightAtReps)
-        #expect(prs.first?.weight == Weight(value: 100, unit: .kg))
+        #expect(prs.first?.measurement.displayWeight == Weight(value: 100, unit: .kg))
     }
 
     /// 反向：比歷來最重的輕，即使次數多很多也不算 PR（不然減重高次數會天天報喜）。
@@ -123,7 +123,52 @@ struct DetectPersonalRecordsTests {
 
         let prs = try await detect(today)
 
-        #expect(prs.first?.weight == Weight(value: 80, unit: .kg))
-        #expect(prs.first?.reps == 5)
+        #expect(prs.first?.measurement.displayWeight == Weight(value: 80, unit: .kg))
+        #expect(prs.first?.measurement.displayReps == 5)
+    }
+}
+
+/// 熱身組不參與 PR 判定（B1）——破紀錄問的是「你真的推了什麼」。
+struct PersonalRecordWarmupTests {
+    private func warmupSet(weight: Double, reps: Int, setIndex: Int = 0) -> WorkoutSet {
+        WorkoutSet(id: UUID(), exerciseId: exerciseId, exerciseIndex: 0, setIndex: setIndex,
+                   measurement: .weightReps(weight: Weight(value: weight, unit: .kg), reps: reps), status: .done, isWarmup: true)
+    }
+
+    /// 代表組要從正式組裡挑：熱身做很多下不該冒充成「同重量下次數新高」。
+    @Test func warmupSetsCannotBecomeTheRepresentativeSet() async throws {
+        let repo = MockWorkoutRepository()
+        let previous = finishedWorkout(day: DayDate(year: 2026, month: 8, day: 1),
+                                       sets: [doneSet(weight: 100, reps: 5)])
+        await repo.seed([previous])
+        // 今天：熱身 100kg×20（如果被當成代表組就會誤判成 PR），正式組只有 100kg×5 平手
+        let today = finishedWorkout(day: DayDate(year: 2026, month: 8, day: 26), sets: [
+            warmupSet(weight: 100, reps: 20),
+            doneSet(weight: 100, reps: 5, setIndex: 1),
+        ])
+        await repo.seed([today])
+
+        let prs = try await DetectPersonalRecords(repository: repo)(today)
+
+        #expect(prs.isEmpty)
+    }
+
+    /// 歷史裡的熱身組也不算數：不然「上次熱身推了 120」會讓今天真的推 110 變成沒破紀錄。
+    @Test func warmupSetsInHistoryDoNotBlockAPersonalRecord() async throws {
+        let repo = MockWorkoutRepository()
+        let previous = Workout(
+            id: UUID(), day: DayDate(year: 2026, month: 8, day: 1),
+            startedAt: Date(), endedAt: Date(),
+            sets: [warmupSet(weight: 120, reps: 1), doneSet(weight: 100, reps: 5, setIndex: 1)]
+        )
+        await repo.seed([previous])
+        let today = finishedWorkout(day: DayDate(year: 2026, month: 8, day: 26),
+                                    sets: [doneSet(weight: 110, reps: 5)])
+        await repo.seed([today])
+
+        let prs = try await DetectPersonalRecords(repository: repo)(today)
+
+        #expect(prs.first?.kind == .newWeightAtReps)
+        #expect(prs.first?.measurement.displayWeight == Weight(value: 110, unit: .kg))
     }
 }

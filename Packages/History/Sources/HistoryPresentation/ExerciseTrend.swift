@@ -32,7 +32,8 @@ extension HistoryFormatting {
         var seen: [PersonalRecordRule.Performance] = []
         var points: [ExerciseTrendPoint] = []
         for session in sessions.reversed() {
-            let doneSets = session.sets.filter { $0.status == .done }
+            // 熱身組不進趨勢圖也不進 PR 判定：代表組要代表的是真的推了什麼。
+            let doneSets = session.sets.filter { $0.status == .done && !$0.isWarmup }
             guard let best = PersonalRecordRule.representative(
                 of: doneSets.map { .init(weight: $0.weight, reps: $0.reps) }
             ) else { continue }

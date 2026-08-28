@@ -426,7 +426,7 @@ public struct ActiveWorkoutView: View {
                         if let targetReps = viewModel.currentTarget?.targetReps {
                             Text(verbatim: String(format: localString("training.rest.targetReps %lld", locale), targetReps))
                         }
-                        if let lastReps = viewModel.currentBlockSets.last?.reps {
+                        if let lastReps = viewModel.currentBlockSets.last?.measurement.displayReps {
                             Text(verbatim: String(format: localString("training.rest.lastReps %lld", locale), lastReps))
                         }
                     }
@@ -786,7 +786,10 @@ public struct ActiveWorkoutView: View {
                 if let actual = row.actual {
                     // 重量／次數是數值資料（verbatim）；「×」不用翻譯，寫死字面量會被 SwiftUI 當
                     // LocalizedStringKey 隱式抽進 String Catalog，故明確 verbatim（見 History 同類註解）。
-                    Text(verbatim: "\(WeightDisplay.weight(actual.weight)) × \(actual.reps)")
+                    // 非重量模式的呈現屬於 B2-ui 那張設計票；現階段建立不了那種動作，走不到 nil 分支。
+                    Text(verbatim: actual.measurement.displayWeight.map { w in
+                        "\(WeightDisplay.weight(w)) × \(actual.measurement.displayReps ?? 0)"
+                    } ?? "—")
                         .monospacedDigit()
                         .fontWeight(.bold)
                         .foregroundStyle(actual.status == .skipped ? .secondary : .primary)

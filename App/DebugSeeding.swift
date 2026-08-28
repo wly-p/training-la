@@ -82,8 +82,9 @@ enum DebugSeeding {
                     let value = unit == .lb ? (base * 2.20462262185).rounded() : base
                     workout.appendSet(
                         exerciseId: exercise.id,
-                        weight: Weight(value: value, unit: unit),
-                        reps: 8 - (setIndex % 3),
+                        measurement: .weightReps(
+                            weight: Weight(value: value, unit: unit), reps: 8 - (setIndex % 3)
+                        ),
                         // 每 11 組跳過一組，讓「達標率」與熱身/跳過的過濾有東西可測。
                         status: (slot + setIndex) % 11 == 0 ? .skipped : .done
                     )

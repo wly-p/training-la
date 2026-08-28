@@ -100,8 +100,8 @@ struct HistoryReadingAdapter: WorkoutHistoryReading, WorkoutHistoryEditing {
         workout.sets = workout.sets.map { set in
             guard let edit = editById[set.id] else { return set }
             var updated = set
-            updated.weight = edit.weight
-            updated.reps = edit.reps
+            // 歷史編輯目前只改重量與次數（編輯 UI 就長那樣）；非重量模式的編輯屬於 B2-ui。
+            updated.measurement = .weightReps(weight: edit.weight, reps: edit.reps)
             updated.status = edit.status
             return updated
         }
@@ -136,11 +136,13 @@ struct HistoryReadingAdapter: WorkoutHistoryReading, WorkoutHistoryEditing {
         HistorySetLine(
             id: set.id,
             setIndex: set.setIndex,
-            weight: set.weight,
-            reps: set.reps,
+            // HistorySetLine 目前是重量次數的形狀；時間／距離的呈現屬於 B2-ui 那張設計票。
+            weight: set.measurement.displayWeight ?? Weight(value: 0, unit: .kg),
+            reps: set.measurement.displayReps ?? 0,
             status: set.status,
-            targetWeight: set.targetWeight,
-            targetReps: set.targetReps
+            targetWeight: set.targetMeasurement?.displayWeight,
+            targetReps: set.targetMeasurement?.displayReps,
+            isWarmup: set.isWarmup
         )
     }
 }

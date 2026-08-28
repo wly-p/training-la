@@ -169,25 +169,31 @@ public struct ExercisePRAnnouncement: Identifiable, Equatable, Sendable {
         case newRepsAtWeight
         case newWeightAtReps
         case firstEver
+        /// 純次數模式做更多、時間模式撐更久、距離模式跑更遠。
+        case newReps
+        case newDuration
+        case newDistance
 
         init(_ kind: PersonalRecordRule.Kind) {
             switch kind {
             case .newRepsAtWeight: self = .newRepsAtWeight
             case .newWeight: self = .newWeightAtReps
             case .firstEver: self = .firstEver
+            case .newReps: self = .newReps
+            case .newDuration: self = .newDuration
+            case .newDistance: self = .newDistance
             }
         }
     }
     public let exerciseId: UUID
-    public let weight: Weight
-    public let reps: Int
+    /// 破紀錄的那一組做了什麼（各模式的數字都在這裡，呼叫端 switch 取用）。
+    public let measurement: SetMeasurement
     public let kind: Kind
     public var id: UUID { exerciseId }
 
-    public init(exerciseId: UUID, weight: Weight, reps: Int, kind: Kind) {
+    public init(exerciseId: UUID, measurement: SetMeasurement, kind: Kind) {
         self.exerciseId = exerciseId
-        self.weight = weight
-        self.reps = reps
+        self.measurement = measurement
         self.kind = kind
     }
 }
@@ -203,17 +209,16 @@ public struct DetectPersonalRecords: Sendable {
     public func callAsFunction(_ workout: Workout) async throws -> [ExercisePRAnnouncement] {
         var result: [ExercisePRAnnouncement] = []
         for block in workout.blocks {
-            let doneSets = block.sets.filter { $0.status == .done }
-            guard let best = PersonalRecordRule.representative(
-                of: doneSets.map { .init(weight: $0.weight, reps: $0.reps) }
-            ) else { continue }
+            // 熱身組不參與 PR：破紀錄問的是你真的推了什麼。
+            let doneSets = block.sets.filter { $0.status == .done && !$0.isWarmup }
+            guard let best = PersonalRecordRule.representativeMeasurement(of: doneSets.map(\.measurement))
+            else { continue }
             let history = try await repository.exerciseHistory(exerciseId: block.exerciseId)
-                .filter { $0.workoutId != workout.id && $0.set.status == .done }
-                .map { PersonalRecordRule.Performance(weight: $0.set.weight, reps: $0.set.reps) }
-            guard let kind = PersonalRecordRule.evaluate(best, against: history) else { continue }
+                .filter { $0.workoutId != workout.id && $0.set.status == .done && !$0.set.isWarmup }
+                .map(\.set.measurement)
+            guard let kind = PersonalRecordRule.evaluateMeasurement(best, against: history) else { continue }
             result.append(ExercisePRAnnouncement(
-                exerciseId: block.exerciseId, weight: best.weight, reps: best.reps,
-                kind: .init(kind)
+                exerciseId: block.exerciseId, measurement: best, kind: .init(kind)
             ))
         }
         return result

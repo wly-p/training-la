@@ -32,6 +32,12 @@ public enum PersonalRecordRule {
         case newRepsAtWeight
         /// 這個動作的第一筆紀錄。
         case firstEver
+        /// 純次數模式：做得比以前多。
+        case newReps
+        /// 時間模式：撐得比以前久。
+        case newDuration
+        /// 距離模式：跑得比以前遠。
+        case newDistance
     }
 
     /// 一組的成績（判定只需要這兩個值）。
@@ -69,5 +75,84 @@ public enum PersonalRecordRule {
     /// 兩個呼叫端原本各寫一次同樣的 `max(by:)`，一併收進來。
     public static func representative(of performances: [Performance]) -> Performance? {
         performances.max { ($0.weight, $0.reps) < ($1.weight, $1.reps) }
+    }
+}
+
+// MARK: - 各追蹤模式
+
+extension PersonalRecordRule {
+    /// 各模式各自比，**跨模式永遠不比較**。
+    ///
+    /// 刻意**不跟 `Performance` 版多載同名**：同名多載要靠型別推論決定挑哪一支，
+    /// 而這支檔案存在的理由就是「判定規則只能有一份、不能悄悄長歪」。
+    /// 名字不同，呼叫端讀起來就知道自己在用哪一套。
+    ///
+    /// 「撐 90 秒」跟「推 100 公斤」之間沒有大小關係，硬要換算只會得到假的紀錄。
+    /// 所以判定前先把歷史濾成跟候選同一個模式；那個模式沒有歷史＝這是第一筆。
+    ///
+    /// 一個動作的模式是固定的（`Exercise.trackingMode`），所以實務上歷史本來就同模式；
+    /// 濾這一道是為了使用者中途改了動作的模式時不會拿舊資料亂比。
+    public static func evaluateMeasurement(
+        _ candidate: SetMeasurement,
+        against history: [SetMeasurement]
+    ) -> Kind? {
+        let sameMode = history.filter { $0.mode == candidate.mode }
+        guard !sameMode.isEmpty else { return .firstEver }
+
+        switch candidate {
+        case .weightReps(let weight, let reps):
+            return evaluate(
+                Performance(weight: weight, reps: reps),
+                against: sameMode.compactMap(Performance.init(measurement:))
+            )
+        case .bodyweightPlus(let added, let reps):
+            return evaluate(
+                Performance(weight: added, reps: reps),
+                against: sameMode.compactMap(Performance.init(measurement:))
+            )
+        case .reps(let count):
+            let best = sameMode.compactMap { if case .reps(let r) = $0 { r } else { nil } }.max()
+            return best.map { count > $0 ? .newReps : nil } ?? .firstEver
+        case .duration(let seconds):
+            let best = sameMode.compactMap { if case .duration(let s) = $0 { s } else { nil } }.max()
+            return best.map { seconds > $0 ? .newDuration : nil } ?? .firstEver
+        case .distance(let meters):
+            let best = sameMode.compactMap { if case .distance(let m) = $0 { m } else { nil } }.max()
+            return best.map { meters > $0 ? .newDistance : nil } ?? .firstEver
+        }
+    }
+
+    /// 一場之中代表這個動作的那一組。各模式的「最好」定義不同：
+    /// 帶重量的比 (重量, 次數)、純次數比次數、時間比秒數、距離比公尺。
+    ///
+    /// 混模式時只在**第一組的模式**裡挑——一個動作的模式是固定的，
+    /// 真的混到了代表這場資料有問題，挑跨模式的「最大值」只會讓錯誤更難看出來。
+    public static func representativeMeasurement(of measurements: [SetMeasurement]) -> SetMeasurement? {
+        guard let mode = measurements.first?.mode else { return nil }
+        let sameMode = measurements.filter { $0.mode == mode }
+        return sameMode.max { lhs, rhs in
+            switch (lhs, rhs) {
+            case (.weightReps(let lw, let lr), .weightReps(let rw, let rr)):
+                (lw, lr) < (rw, rr)
+            case (.bodyweightPlus(let lw, let lr), .bodyweightPlus(let rw, let rr)):
+                (lw, lr) < (rw, rr)
+            case (.reps(let l), .reps(let r)): l < r
+            case (.duration(let l), .duration(let r)): l < r
+            case (.distance(let l), .distance(let r)): l < r
+            default: false   // 已經濾成同模式，走不到
+            }
+        }
+    }
+}
+
+extension PersonalRecordRule.Performance {
+    /// 帶重量的模式才轉得出 `Performance`；其餘回 nil。
+    init?(measurement: SetMeasurement) {
+        switch measurement {
+        case .weightReps(let weight, let reps), .bodyweightPlus(let weight, let reps):
+            self.init(weight: weight, reps: reps)
+        case .reps, .duration, .distance:
+            return nil
+        }
     }
 }

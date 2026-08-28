@@ -22,7 +22,7 @@ struct SwiftDataWorkoutRepositoryTests {
     private func workoutWithSets(_ exerciseId: UUID, reps: [Int], day: DayDate? = nil) -> Workout {
         var workout = Workout(id: UUID(), day: day ?? today, startedAt: Date())
         for count in reps {
-            workout.appendSet(exerciseId: exerciseId, weight: kg60, reps: count)
+            workout.appendSet(exerciseId: exerciseId, measurement: .weightReps(weight: kg60, reps: count))
         }
         return workout
     }
@@ -78,7 +78,7 @@ struct SwiftDataWorkoutRepositoryTests {
 
         let sets = try await repo.lastPerformance(exerciseId: benchPress, excludingWorkout: inProgress.id)
 
-        #expect(sets.map(\.reps) == [8, 8, 6])
+        #expect(sets.map(\.measurement.displayReps) == [8, 8, 6])
     }
 
     @Test func lastPerformanceEmptyWhenNoHistory() async throws {
@@ -107,9 +107,9 @@ struct SwiftDataWorkoutRepositoryTests {
         let repo = try makeRepository()
         let squat = UUID(), bench = UUID()
         var workout = Workout(id: UUID(), day: today, startedAt: Date(), endedAt: Date())
-        workout.appendSet(exerciseId: squat, weight: kg60, reps: 5)
-        workout.appendSet(exerciseId: bench, weight: kg60, reps: 8)
-        workout.appendSet(exerciseId: squat, weight: kg60, reps: 4)
+        workout.appendSet(exerciseId: squat, measurement: .weightReps(weight: kg60, reps: 5))
+        workout.appendSet(exerciseId: bench, measurement: .weightReps(weight: kg60, reps: 8))
+        workout.appendSet(exerciseId: squat, measurement: .weightReps(weight: kg60, reps: 4))
         try await repo.save(workout)
 
         let history = try await repo.exerciseHistory(exerciseId: squat)
@@ -126,16 +126,16 @@ struct SwiftDataWorkoutRepositoryTests {
         let repo = try makeRepository()
         let squat = UUID()
         var finished = Workout(id: UUID(), day: today, startedAt: Date(), endedAt: Date())
-        finished.appendSet(exerciseId: squat, weight: kg60, reps: 5)
+        finished.appendSet(exerciseId: squat, measurement: .weightReps(weight: kg60, reps: 5))
         var inProgress = Workout(id: UUID(), day: today, startedAt: Date())   // endedAt = nil
-        inProgress.appendSet(exerciseId: squat, weight: kg60, reps: 99)
+        inProgress.appendSet(exerciseId: squat, measurement: .weightReps(weight: kg60, reps: 99))
         try await repo.save(finished)
         try await repo.save(inProgress)
 
         let history = try await repo.exerciseHistory(exerciseId: squat)
 
         #expect(history.count == 1)
-        #expect(history.first?.set.reps == 5)
+        #expect(history.first?.set.measurement.displayReps == 5)
     }
 
     @Test func exerciseHistoryIsNewestFirst() async throws {
@@ -145,7 +145,7 @@ struct SwiftDataWorkoutRepositoryTests {
         let newer = DayDate(year: 2026, month: 7, day: 20)
         for (day, reps) in [(older, 5), (newer, 8)] {
             var w = Workout(id: UUID(), day: day, startedAt: Date(), endedAt: Date())
-            w.appendSet(exerciseId: squat, weight: kg60, reps: reps)
+            w.appendSet(exerciseId: squat, measurement: .weightReps(weight: kg60, reps: reps))
             try await repo.save(w)
         }
 
@@ -159,19 +159,19 @@ struct SwiftDataWorkoutRepositoryTests {
         let repo = try makeRepository()
         let squat = UUID()
         var workout = Workout(id: UUID(), day: today, startedAt: Date(), endedAt: Date())
-        for reps in [10, 8, 6] { workout.appendSet(exerciseId: squat, weight: kg60, reps: reps) }
+        for reps in [10, 8, 6] { workout.appendSet(exerciseId: squat, measurement: .weightReps(weight: kg60, reps: reps)) }
         try await repo.save(workout)
 
         let history = try await repo.exerciseHistory(exerciseId: squat)
 
         #expect(history.map(\.set.setIndex) == [0, 1, 2])
-        #expect(history.map(\.set.reps) == [10, 8, 6])
+        #expect(history.map(\.set.measurement.displayReps) == [10, 8, 6])
     }
 
     @Test func exerciseHistoryIsEmptyForUnknownExercise() async throws {
         let repo = try makeRepository()
         var workout = Workout(id: UUID(), day: today, startedAt: Date(), endedAt: Date())
-        workout.appendSet(exerciseId: UUID(), weight: kg60, reps: 5)
+        workout.appendSet(exerciseId: UUID(), measurement: .weightReps(weight: kg60, reps: 5))
         try await repo.save(workout)
 
         #expect(try await repo.exerciseHistory(exerciseId: UUID()).isEmpty)
@@ -248,7 +248,7 @@ struct SwiftDataWorkoutDiffWriteTests {
         var workout = Workout(id: UUID(), day: today, startedAt: Date())
 
         for i in 0..<30 {
-            workout.appendSet(exerciseId: exerciseId, weight: kg60, reps: 10 - (i % 5))
+            workout.appendSet(exerciseId: exerciseId, measurement: .weightReps(weight: kg60, reps: 10 - (i % 5)))
             try await repo.save(workout)
         }
 
@@ -266,20 +266,19 @@ struct SwiftDataWorkoutDiffWriteTests {
         let (repo, container) = try makeRepositoryAndContainer()
         var workout = Workout(id: UUID(), day: today, startedAt: Date())
         let exerciseId = UUID()
-        workout.appendSet(exerciseId: exerciseId, weight: kg60, reps: 8)
-        workout.appendSet(exerciseId: exerciseId, weight: kg60, reps: 8)
+        workout.appendSet(exerciseId: exerciseId, measurement: .weightReps(weight: kg60, reps: 8))
+        workout.appendSet(exerciseId: exerciseId, measurement: .weightReps(weight: kg60, reps: 8))
         try await repo.save(workout)
         let originalIds = workout.sets.map(\.id)
 
-        workout.sets[0].weight = Weight(value: 65, unit: .kg)
-        workout.sets[0].reps = 5
+        workout.sets[0].measurement = .weightReps(weight: Weight(value: 65, unit: .kg), reps: 5)
         try await repo.save(workout)
 
         let fetched = try await repo.get(id: workout.id)
         #expect(fetched?.sets.map(\.id) == originalIds)
-        #expect(fetched?.sets[0].weight == Weight(value: 65, unit: .kg))
-        #expect(fetched?.sets[0].reps == 5)
-        #expect(fetched?.sets[1].reps == 8)   // 沒被波及
+        #expect(fetched?.sets[0].measurement.displayWeight == Weight(value: 65, unit: .kg))
+        #expect(fetched?.sets[0].measurement.displayReps == 5)
+        #expect(fetched?.sets[1].measurement.displayReps == 8)   // 沒被波及
         #expect(try await setRowCount(container) == 2)
     }
 
@@ -289,7 +288,7 @@ struct SwiftDataWorkoutDiffWriteTests {
         var workout = Workout(id: UUID(), day: today, startedAt: Date())
         let exerciseId = UUID()
         for reps in [10, 8, 6] {
-            workout.appendSet(exerciseId: exerciseId, weight: kg60, reps: reps)
+            workout.appendSet(exerciseId: exerciseId, measurement: .weightReps(weight: kg60, reps: reps))
         }
         try await repo.save(workout)
 
@@ -298,7 +297,7 @@ struct SwiftDataWorkoutDiffWriteTests {
         try await repo.save(workout)
 
         let fetched = try await repo.get(id: workout.id)
-        #expect(fetched?.sets.map(\.reps) == [10, 6])
+        #expect(fetched?.sets.map(\.measurement.displayReps) == [10, 6])
         #expect(fetched?.sets.contains { $0.id == removed.id } == false)
         // 關鍵：被拿掉的那一列是真的刪了，不是只從關聯陣列移除而留成孤兒。
         #expect(try await setRowCount(container) == 2)
@@ -310,7 +309,7 @@ struct SwiftDataWorkoutDiffWriteTests {
         var workout = Workout(id: UUID(), day: today, startedAt: Date())
         let exerciseId = UUID()
         for reps in [10, 8, 6] {
-            workout.appendSet(exerciseId: exerciseId, weight: kg60, reps: reps)
+            workout.appendSet(exerciseId: exerciseId, measurement: .weightReps(weight: kg60, reps: reps))
         }
 
         try await repo.save(workout)
@@ -320,5 +319,161 @@ struct SwiftDataWorkoutDiffWriteTests {
         #expect(afterFirst == 3)
         #expect(try await setRowCount(container) == 3)
         #expect(try await repo.get(id: workout.id) == workout)
+    }
+}
+
+/// 「上次」預填不能拿到熱身組（B1）。
+///
+/// 過濾必須發生在 repository 找「最近一場有做這個動作的場次」那個迴圈裡，
+/// 不能交給呼叫端：某一場只有熱身組時要**繼續往前找**，回一個空陣列是錯的。
+struct LastPerformanceWarmupTests {
+    private func makeRepository() throws -> any WorkoutRepository {
+        let container = try ModelContainer(
+            for: Schema(TrainingDataFactory.models),
+            configurations: ModelConfiguration(isStoredInMemoryOnly: true)
+        )
+        return TrainingDataFactory.makeWorkoutRepository(container: container)
+    }
+
+    private let today = DayDate(year: 2026, month: 8, day: 26)
+
+    @Test func lastPerformanceSkipsWarmupSets() async throws {
+        let repo = try makeRepository()
+        let exerciseId = UUID()
+        var workout = Workout(id: UUID(), day: today, startedAt: Date(), endedAt: Date())
+        workout.appendSet(exerciseId: exerciseId, measurement: .weightReps(weight: Weight(value: 20, unit: .kg), reps: 15), isWarmup: true)
+        workout.appendSet(exerciseId: exerciseId, measurement: .weightReps(weight: Weight(value: 100, unit: .kg), reps: 5))
+        try await repo.save(workout)
+
+        let last = try await repo.lastPerformance(exerciseId: exerciseId, excludingWorkout: nil)
+
+        #expect(last.map(\.measurement.displayReps) == [5])
+        #expect(last.first?.measurement.displayWeight == Weight(value: 100, unit: .kg))
+    }
+
+    /// 關鍵案例：最近一場只做了熱身就收工，要繼續往前找到真正練過的那場。
+    @Test func aSessionWithOnlyWarmupsFallsThroughToTheOneBefore() async throws {
+        let repo = try makeRepository()
+        let exerciseId = UUID()
+
+        var older = Workout(id: UUID(), day: today.adding(days: -3), startedAt: Date(), endedAt: Date())
+        older.appendSet(exerciseId: exerciseId, measurement: .weightReps(weight: Weight(value: 95, unit: .kg), reps: 5))
+        try await repo.save(older)
+
+        var warmupOnly = Workout(id: UUID(), day: today, startedAt: Date(), endedAt: Date())
+        warmupOnly.appendSet(exerciseId: exerciseId, measurement: .weightReps(weight: Weight(value: 20, unit: .kg), reps: 15), isWarmup: true)
+        try await repo.save(warmupOnly)
+
+        let last = try await repo.lastPerformance(exerciseId: exerciseId, excludingWorkout: nil)
+
+        // 拿到的是三天前那場的正式組，不是空陣列、也不是今天的熱身
+        #expect(last.first?.measurement.displayWeight == Weight(value: 95, unit: .kg))
+    }
+
+    /// isWarmup 要能 round-trip（欄位有真的落地，不是只存在記憶體裡）。
+    @Test func isWarmupSurvivesSaveAndFetch() async throws {
+        let repo = try makeRepository()
+        let exerciseId = UUID()
+        var workout = Workout(id: UUID(), day: today, startedAt: Date())
+        workout.appendSet(exerciseId: exerciseId, measurement: .weightReps(weight: Weight(value: 20, unit: .kg), reps: 15), isWarmup: true)
+        workout.appendSet(exerciseId: exerciseId, measurement: .weightReps(weight: Weight(value: 100, unit: .kg), reps: 5))
+        try await repo.save(workout)
+
+        let fetched = try await repo.get(id: workout.id)
+
+        #expect(fetched?.sets.map(\.isWarmup) == [true, false])
+    }
+}
+
+/// 追蹤模式的持久化與遷移（B2-model）。
+///
+/// **最要緊的是第一支**：既有使用者的每一筆紀錄都沒有 `modeRaw` 這個欄位，
+/// 遷移後必須原封不動地讀回「重量 × 次數」。這條錯了就是全部歷史一起變形。
+struct SetMeasurementPersistenceTests {
+    private func makeRepository() throws -> (any WorkoutRepository, ModelContainer) {
+        let container = try ModelContainer(
+            for: Schema(TrainingDataFactory.models),
+            configurations: ModelConfiguration(isStoredInMemoryOnly: true)
+        )
+        return (TrainingDataFactory.makeWorkoutRepository(container: container), container)
+    }
+
+    /// 舊資料沒有 modeRaw／durationSec／distanceM，只有 weightValue ＋ reps。
+    /// 直接建一個「沒設過 modeRaw」的列，模擬輕量遷移後的狀態。
+    @MainActor
+    @Test func rowsWithoutAModeDecodeAsWeightReps() throws {
+        let container = try ModelContainer(
+            for: Schema(TrainingDataFactory.models),
+            configurations: ModelConfiguration(isStoredInMemoryOnly: true)
+        )
+        let context = container.mainContext
+        let workout = WorkoutModel(
+            id: UUID(), day: "2026-08-26", planWorkoutId: nil,
+            startedAt: Date(), endedAt: Date(), overallFeeling: nil, note: nil
+        )
+        // 走 @Model 的預設值路徑：modeRaw 不指定，等同遷移後的舊列。
+        let legacy = WorkoutSetModel(
+            id: UUID(), exerciseId: UUID(), exerciseIndex: 0, setIndex: 0,
+            modeRaw: TrackingMode.weightReps.rawValue,
+            weightValue: 100, weightUnitRaw: "kg", reps: 5,
+            durationSec: nil, distanceM: nil,
+            statusRaw: "done", fromPlanSetId: nil,
+            targetModeRaw: TrackingMode.weightReps.rawValue,
+            targetWeightValue: nil, targetWeightUnitRaw: nil, targetReps: nil,
+            targetDurationSec: nil, targetDistanceM: nil
+        )
+        workout.sets = [legacy]
+        context.insert(workout)
+        try context.save()
+
+        #expect(legacy.toDomain().measurement == .weightReps(weight: Weight(value: 100, unit: .kg), reps: 5))
+        // 沒有目標快照的舊列（臨時加練）不該憑空長出一個 0kg×0 的目標
+        #expect(legacy.toDomain().targetMeasurement == nil)
+    }
+
+    /// 認不得的模式字串（未來版本寫回來的）退回 weightReps，不憑空生數字。
+    @Test func unknownModeFallsBackToWeightReps() {
+        let decoded = SetMeasurementCoding.decode(
+            modeRaw: "somethingFromTheFuture", weightValue: 80, weightUnitRaw: "kg",
+            reps: 6, durationSec: nil, distanceM: nil
+        )
+
+        #expect(decoded == .weightReps(weight: Weight(value: 80, unit: .kg), reps: 6))
+    }
+
+    @Test func everyModeRoundTripsThroughTheStore() async throws {
+        let (repo, _) = try makeRepository()
+        let exerciseId = UUID()
+        var workout = Workout(id: UUID(), day: DayDate(year: 2026, month: 8, day: 26), startedAt: Date())
+        let measurements: [SetMeasurement] = [
+            .weightReps(weight: Weight(value: 100, unit: .kg), reps: 5),
+            .reps(12),
+            .duration(seconds: 90),
+            .distance(meters: 5000),
+            .bodyweightPlus(added: Weight(value: 20, unit: .lb), reps: 8),
+        ]
+        for m in measurements {
+            workout.appendSet(exerciseId: exerciseId, measurement: m)
+        }
+        try await repo.save(workout)
+
+        let fetched = try await repo.get(id: workout.id)
+
+        #expect(fetched?.sets.map(\.measurement) == measurements)
+    }
+
+    @Test func targetSnapshotRoundTripsPerMode() async throws {
+        let (repo, _) = try makeRepository()
+        var workout = Workout(id: UUID(), day: DayDate(year: 2026, month: 8, day: 26), startedAt: Date())
+        workout.appendSet(
+            exerciseId: UUID(),
+            measurement: .duration(seconds: 95),
+            targetMeasurement: .duration(seconds: 90)
+        )
+        try await repo.save(workout)
+
+        let fetched = try await repo.get(id: workout.id)
+
+        #expect(fetched?.sets.first?.targetMeasurement == .duration(seconds: 90))
     }
 }

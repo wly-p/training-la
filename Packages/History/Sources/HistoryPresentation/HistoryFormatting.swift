@@ -32,8 +32,10 @@ enum HistoryFormatting {
 
     /// 逐組對照的達標判定（91-weight-model.md §6）：實際 >= 目標重量 && 實際 >= 目標次數。
     /// 沒有目標快照（臨時加練，或跳過沒做）＝nil，不顯示任何符號——那是資訊不是錯誤。
+    /// 熱身組回 nil（同 Training 側的 `FinishSummaryFormatting.achieved`）：沒有達標的概念。
     static func achieved(_ set: HistorySetLine) -> Bool? {
-        guard set.status == .done, let targetWeight = set.targetWeight, let targetReps = set.targetReps else {
+        guard set.status == .done, !set.isWarmup,
+              let targetWeight = set.targetWeight, let targetReps = set.targetReps else {
             return nil
         }
         return set.weight >= targetWeight && set.reps >= targetReps
@@ -58,7 +60,8 @@ enum HistoryFormatting {
     /// （只要有一組是 `relativeToLast` 查不到歷史或臨時加練，總量在投影/紀錄當下就不完整算不出來）。
     static func totalVolume(_ blocks: [HistoryBlock]) -> (actual: Double, target: Double?) {
         // 一律換算成公斤再加總——這種聚合 Comparable 幫不上，混單位相加的數字沒有意義。
-        let doneSets = blocks.flatMap(\.sets).filter { $0.status == .done }
+        // 熱身組不計入（同 Training 側）。
+        let doneSets = blocks.flatMap(\.sets).filter { $0.status == .done && !$0.isWarmup }
         let actual = doneSets.reduce(0.0) { $0 + $1.weight.kilograms * Double($1.reps) }
         let targets = doneSets.compactMap { set -> Double? in
             guard let tw = set.targetWeight, let tr = set.targetReps else { return nil }
