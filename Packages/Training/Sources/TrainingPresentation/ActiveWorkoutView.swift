@@ -9,6 +9,8 @@ import UIKit
 public struct ActiveWorkoutView: View {
     /// 目前語言：`localString` 要靠它才能查到 app 設定的語言（而非手機語系）。
     @Environment(\.locale) private var locale
+    /// 重量顯示單位（根部注入，見 SharedKernel/WeightDisplayUnit）。
+    @Environment(\.weightDisplayUnit) private var weightUnit
     @Bindable private var viewModel: ActiveWorkoutViewModel
     @Environment(\.dismiss) private var dismiss
     @Environment(\.scenePhase) private var scenePhase
@@ -206,7 +208,7 @@ public struct ActiveWorkoutView: View {
         let stats = viewModel.sessionStats
         return String(
             format: localString("training.done.plan.message %lld %lld %@", locale),
-            stats.exerciseCount, stats.setCount, WeightDisplay.value(stats.volume)
+            stats.exerciseCount, stats.setCount, WeightDisplay.volume(stats.volume, in: weightUnit)
         )
     }
 
@@ -507,7 +509,7 @@ public struct ActiveWorkoutView: View {
                         .font(TLFont.zh(TLFont.rowSub, .regular))
                         .foregroundStyle(TLColor.neutral600)
                 }
-                if let last = viewModel.lastSummary(for: exerciseId) {
+                if let last = viewModel.lastSummary(for: exerciseId, in: weightUnit) {
                     localText("training.lastTime \(last)")
                         .font(TLFont.zh(TLFont.rowSub, .regular))
                         .foregroundStyle(TLColor.neutral500)
@@ -678,7 +680,7 @@ public struct ActiveWorkoutView: View {
         else { return nil }
         var text = "\(exercise.plannedSetCount)"
         if let reps = rep.targetReps { text += " × \(reps)" }
-        if let weight = rep.targetWeight { text += " · \(weight.displayString)" }
+        if let weight = rep.targetWeight { text += " · \(weight.displayString(in: weightUnit))" }
         return text
     }
 
@@ -701,12 +703,12 @@ public struct ActiveWorkoutView: View {
         let stats = viewModel.completedExerciseStats
         var parts = [String(format: localString("training.table.setCount %lld", locale), stats.setCount)]
         if let heaviest = stats.heaviest {
-            parts.append(WeightDisplay.weight(heaviest))
+            parts.append(WeightDisplay.weight(heaviest, in: weightUnit))
         }
         parts.append(viewModel.isPlanFullyDone
             ? localString("training.done.lastExercise", locale)
             : String(format: localString("training.done.volume %@", locale),
-                     WeightDisplay.value(stats.volume)))
+                     WeightDisplay.volume(stats.volume, in: weightUnit)))
         return parts.joined(separator: " · ")
     }
 
@@ -754,7 +756,7 @@ public struct ActiveWorkoutView: View {
         let text: String
         if let weight = row.target?.targetWeight {
             let reps = row.target?.targetReps.map { " × \($0)" } ?? ""
-            text = "\(WeightDisplay.weight(weight))\(reps)"
+            text = "\(WeightDisplay.weight(weight, in: weightUnit))\(reps)"
         } else if let reps = row.target?.targetReps {
             text = "× \(reps)"
         } else {
@@ -788,7 +790,7 @@ public struct ActiveWorkoutView: View {
                     // LocalizedStringKey 隱式抽進 String Catalog，故明確 verbatim（見 History 同類註解）。
                     // 非重量模式的呈現屬於 B2-ui 那張設計票；現階段建立不了那種動作，走不到 nil 分支。
                     Text(verbatim: actual.measurement.displayWeight.map { w in
-                        "\(WeightDisplay.weight(w)) × \(actual.measurement.displayReps ?? 0)"
+                        "\(WeightDisplay.weight(w, in: weightUnit)) × \(actual.measurement.displayReps ?? 0)"
                     } ?? "—")
                         .monospacedDigit()
                         .fontWeight(.bold)
@@ -904,7 +906,7 @@ public struct ActiveWorkoutView: View {
         if includeName { parts.append(name) }
         if let weight = target?.targetWeight {
             let reps = target?.targetReps.map { " × \($0)" } ?? ""
-            parts.append("\(WeightDisplay.weight(weight))\(reps)")
+            parts.append("\(WeightDisplay.weight(weight, in: weightUnit))\(reps)")
         } else if let reps = target?.targetReps {
             parts.append("× \(reps)")
         }
@@ -992,7 +994,7 @@ public struct ActiveWorkoutView: View {
     private var targetAnnotationText: String? {
         guard let target = viewModel.currentTarget, target.targetWeight != nil,
               !viewModel.isDraftModifiedFromTarget,
-              let algebra = WeightSourceFormatting.algebraText(target.weightSource, locale: locale)
+              let algebra = WeightSourceFormatting.algebraText(target.weightSource, locale: locale, in: weightUnit)
         else { return nil }
         return String(format: localString("training.table.prefilledFromTarget %@", locale), algebra)
     }

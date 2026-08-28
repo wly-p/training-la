@@ -9,6 +9,7 @@ import TrainingDomain
 struct TrainingPreviewSheet: View {
     /// 目前語言：`localString` 要靠它才能查到 app 設定的語言（而非手機語系）。
     @Environment(\.locale) private var locale
+    @Environment(\.weightDisplayUnit) private var weightUnit
     let blueprint: PlannedWorkoutBlueprint
     /// 「和上次比」灰卡資料（14c）；nil＝查不到上一場，卡片不出現。
     var comparison: LastWorkoutComparison? = nil
@@ -111,7 +112,7 @@ struct TrainingPreviewSheet: View {
         HStack(alignment: .center, spacing: TLSpace.gapM) {
             VStack(alignment: .leading, spacing: 3) {
                 ExerciseNameWithEquipment(name: row.name, equipment: row.equipment.displayName(locale))
-                if let algebra = WeightSourceFormatting.algebraText(row.representative?.weightSource, locale: locale) {
+                if let algebra = WeightSourceFormatting.algebraText(row.representative?.weightSource, locale: locale, in: weightUnit) {
                     Text(verbatim: algebra)
                         .font(TLFont.zh(11, .regular))
                         .foregroundStyle(TLColor.accent700)
@@ -134,7 +135,7 @@ struct TrainingPreviewSheet: View {
             // 統一成「20kg × 8」（displayString 帶單位，不能寫死 kg —— 使用者可能用 lb）。
             // 組數放在前面的「N 組」，這裡不重複。
             HStack(spacing: 4) {
-                Text(verbatim: weight.displayString)
+                Text(verbatim: weight.displayString(in: weightUnit))
                     .font(TLFont.display(15))
                 if let reps = row.representative?.targetReps {
                     Text(verbatim: "× \(reps)")

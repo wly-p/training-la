@@ -8,6 +8,7 @@ import TrainingDomain
 public struct TrainingHomeView: View {
     @Bindable private var viewModel: TrainingHomeViewModel
     @Environment(\.locale) private var locale
+    @Environment(\.weightDisplayUnit) private var weightUnit
     private let makeActiveWorkoutViewModel: @MainActor (Workout) -> ActiveWorkoutViewModel
     /// 「啟用一個循環或長期計畫」／13d「只調這一次」→ 切到課表分頁；nil＝不顯示這條路。
     private let openSchedule: (() -> Void)?
@@ -572,7 +573,7 @@ public struct TrainingHomeView: View {
         if let week = viewModel.weekSummary, week.sessionCount > 0 {
             parts.append(String(
                 format: localString("training.home.restDay.weekRecap %lld %@", locale),
-                week.sessionCount, WeightDisplay.value(week.totalVolume)
+                week.sessionCount, WeightDisplay.volume(week.totalVolume, in: weightUnit)
             ))
         }
         return parts.joined(separator: " ")

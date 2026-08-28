@@ -10,6 +10,9 @@ import UniformTypeIdentifiers
 struct TemplateFormView: View {
     /// 目前語言：`localString` 要靠它才能查到 app 設定的語言（而非手機語系）。
     @Environment(\.locale) private var locale
+    /// 偏好的顯示單位（根部注入）。跟本檔的 `weightUnit`（這筆紀錄自己的單位，給選擇器用）
+    /// 是兩件事，刻意取不同名字避免混淆。
+    @Environment(\.weightDisplayUnit) private var displayUnit
     enum Target {
         case create
         case edit(WorkoutTemplate)
@@ -232,7 +235,7 @@ struct TemplateFormView: View {
     private func detailLine(for block: PlanBlock) -> some View {
         HStack(spacing: 6) {
             EquipmentTag(equipmentName(for: block.exerciseId))
-            if let weight = PlanFormatting.blockWeight(sets: block.sets, language: AppLanguage(locale: locale)) {
+            if let weight = PlanFormatting.blockWeight(sets: block.sets, language: AppLanguage(locale: locale), in: displayUnit) {
                 Text(verbatim: "· \(weight)")
                     .font(TLFont.zh(TLFont.rowSub, .regular))
                     .foregroundStyle(TLColor.neutral600)
@@ -484,9 +487,9 @@ struct TemplateFormView: View {
     private func weightLabel(for expression: WeightExpression?) -> String {
         switch expression {
         case nil: "—"
-        case .absolute(let w): w.displayString
+        case .absolute(let w): w.displayString(in: displayUnit)
         case .relativeToLast(let delta):
-            String(format: localString("plan.weight.relativeToLast %@", locale), signedDelta(delta))
+            String(format: localString("plan.weight.relativeToLast %@", locale), signedDelta(delta, in: displayUnit))
         case .percentOfMax(let percent):
             String(format: localString("plan.weight.percentOfMax %@", locale), "\(formatNumber(percent))%")
         }
@@ -499,8 +502,8 @@ struct TemplateFormView: View {
 }
 
 /// 增減量帶正負號（「+2.5kg」／「-2.5kg」），給「上次%@」這類 format 當參數。
-private func signedDelta(_ delta: Weight) -> String {
-    (delta.value >= 0 ? "+" : "") + delta.displayString
+private func signedDelta(_ delta: Weight, in unit: WeightUnit) -> String {
+    (delta.value >= 0 ? "+" : "") + delta.displayString(in: unit)
 }
 
 private func formatNumber(_ v: Double) -> String {
@@ -528,6 +531,9 @@ private struct TemplateBlockTransfer: Codable, Transferable {
 private struct SetEditSheet: View {
     /// 目前語言：`localString` 要靠它才能查到 app 設定的語言（而非手機語系）。
     @Environment(\.locale) private var locale
+    /// 偏好的顯示單位（根部注入）。跟本檔的 `weightUnit`（這筆紀錄自己的單位，給選擇器用）
+    /// 是兩件事，刻意取不同名字避免混淆。
+    @Environment(\.weightDisplayUnit) private var displayUnit
     let exerciseName: String
     let setNumber: Int
     let weightStep: Double

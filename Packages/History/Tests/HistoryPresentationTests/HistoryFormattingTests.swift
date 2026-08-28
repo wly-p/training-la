@@ -11,14 +11,14 @@ struct HistoryFormattingTests {
     }
 
     @Test func summaryReturnsEmptyStringForNoSets() {
-        #expect(HistoryFormatting.summary(of: []) == "")
+        #expect(HistoryFormatting.summary(of: [], in: .kg) == "")
     }
 
     @Test func summaryCollapsesRepsWhenWeightIsSame() {
         let kg60 = Weight(value: 60, unit: .kg)
         let sets = [8, 8, 6].map { line(weight: kg60, reps: $0) }
 
-        #expect(HistoryFormatting.summary(of: sets) == "60kg × 8, 8, 6")
+        #expect(HistoryFormatting.summary(of: sets, in: .kg) == "60kg × 8, 8, 6")
     }
 
     @Test func summaryListsEachSetWhenWeightsDiffer() {
@@ -27,7 +27,7 @@ struct HistoryFormattingTests {
             line(weight: Weight(value: 65, unit: .kg), reps: 6),
         ]
 
-        #expect(HistoryFormatting.summary(of: sets) == "60kg×8, 65kg×6")
+        #expect(HistoryFormatting.summary(of: sets, in: .kg) == "60kg×8, 65kg×6")
     }
 
     @Test func feelingMapsValueToEmoji() {

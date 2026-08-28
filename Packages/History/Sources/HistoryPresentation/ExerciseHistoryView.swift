@@ -21,6 +21,7 @@ public struct ExerciseHistoryView: View {
     @State private var prSessionIds: Set<UUID> = []
     @State private var hasLoaded = false
     @Environment(\.locale) private var locale
+    @Environment(\.weightDisplayUnit) private var weightUnit
 
     public init(option: HistoryExerciseOption, loadSessions: @escaping () async -> [HistoryExerciseSession]) {
         self.option = option
@@ -81,14 +82,14 @@ public struct ExerciseHistoryView: View {
             Chart(points) { point in
                 LineMark(
                     x: .value(AxisID.day, point.day.chartDate),
-                    // 一律用公斤畫，否則混單位時同一張圖會出現兩種尺度。
-                    y: .value(AxisID.weight, point.weight.kilograms)
+                    // 換算成偏好單位再畫，否則混單位時同一張圖會出現兩種尺度。
+                    y: .value(AxisID.weight, point.weight.converted(to: weightUnit).value)
                 )
                 .foregroundStyle(TLColor.accent700)
                 .interpolationMethod(.monotone)
                 PointMark(
                     x: .value(AxisID.day, point.day.chartDate),
-                    y: .value(AxisID.weight, point.weight.kilograms)
+                    y: .value(AxisID.weight, point.weight.converted(to: weightUnit).value)
                 )
                 .foregroundStyle(point.isPersonalRecord ? TLColor.sage : TLColor.accent700)
                 .symbolSize(point.isPersonalRecord ? 90 : 32)
@@ -115,7 +116,7 @@ public struct ExerciseHistoryView: View {
                 ForEach(sessions) { session in
                     ListRow(
                         title: Text(HistoryFormatting.dayLabel(session.day, locale: locale)),
-                        subtitle: Text(HistoryFormatting.summary(of: session.sets)),
+                        subtitle: Text(HistoryFormatting.summary(of: session.sets, in: weightUnit)),
                         leading: {
                             if prSessionIds.contains(session.id) {
                                 CircleBadge(icon: "trophy.fill", fill: TLColor.sage200, tint: TLColor.sage700)

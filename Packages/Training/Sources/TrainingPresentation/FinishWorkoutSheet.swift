@@ -7,6 +7,7 @@ import TrainingDomain
 struct FinishWorkoutSheet: View {
     /// 目前語言：`localString` 要靠它才能查到 app 設定的語言（而非手機語系）。
     @Environment(\.locale) private var locale
+    @Environment(\.weightDisplayUnit) private var weightUnit
     let workout: Workout
     let workoutName: String?
     let exerciseName: (UUID) -> String
@@ -22,7 +23,7 @@ struct FinishWorkoutSheet: View {
     @State private var showsDiscardConfirm = false
 
     private var exerciseSummaries: [FinishSummaryFormatting.ExerciseSummary] {
-        FinishSummaryFormatting.exerciseSummaries(workout.blocks, nameLookup: exerciseName)
+        FinishSummaryFormatting.exerciseSummaries(workout.blocks, in: weightUnit, nameLookup: exerciseName)
     }
 
     private var achievedCount: (achieved: Int, total: Int) {
@@ -158,7 +159,7 @@ struct FinishWorkoutSheet: View {
             HStack(alignment: .firstTextBaseline) {
                 statNumber(String(durationMinutes), label: "training.finish.minutes", alignment: .leading)
                 Spacer()
-                statNumber(WeightDisplay.value(totalVolume), label: "training.finish.totalVolume", alignment: .center)
+                statNumber(WeightDisplay.volume(totalVolume, in: weightUnit), label: "training.finish.totalVolume", alignment: .center)
                 Spacer()
                 achievedStat
             }
@@ -179,7 +180,7 @@ struct FinishWorkoutSheet: View {
                 .frame(height: 6)
                 Text(verbatim: String(
                     format: localString("training.finish.volumeGoal %@ %@", locale),
-                    WeightDisplay.value(targetVolume), String(format: "%.0f%%", totalVolume / targetVolume * 100)
+                    WeightDisplay.volume(targetVolume, in: weightUnit), String(format: "%.0f%%", totalVolume / targetVolume * 100)
                 ))
                 .font(.footnote)
                 .foregroundStyle(TLColor.neutral600)
@@ -227,7 +228,7 @@ struct FinishWorkoutSheet: View {
         let name = exerciseName(pr.exerciseId)
         // 重量模式的三種文案沿用既有 key；時間／距離／純次數的文案排版屬於 B2-ui 那張設計票，
         // 現階段建立不了那種動作所以走不到，先用同一組 key 的最小填法，別讓它變成死路。
-        let weightText = pr.measurement.displayWeight.map(WeightDisplay.weight) ?? ""
+        let weightText = pr.measurement.displayWeight.map { WeightDisplay.weight($0, in: weightUnit) } ?? ""
         let reps = pr.measurement.displayReps ?? 0
         let text: String
         switch pr.kind {

@@ -102,32 +102,34 @@ enum PlanFormatting {
     ///
     /// 各組相同就直接印那一個（`60kg` / `80% 最大重量` / `上次+2.5kg`）；
     /// 各組不同用箭頭表示首→末（`60 → 70kg`），這是 19a 自己舉的例子。
-    static func blockWeight(sets: [PlanSet], language: AppLanguage) -> String? {
+    static func blockWeight(sets: [PlanSet], language: AppLanguage, in unit: WeightUnit) -> String? {
         let expressions = sets.map(\.targetWeight)
         let present = expressions.compactMap { $0 }
         guard let firstExpression = present.first, let lastExpression = present.last else { return nil }
 
         if present.count == expressions.count, expressions.allSatisfy({ $0 == firstExpression }) {
-            return weightLabel(firstExpression, language: language)
+            return weightLabel(firstExpression, language: language, in: unit)
         }
         // 同單位的絕對重量才壓成「60 → 70kg」（單位只印一次）；其他組合各印各的完整標籤，
         // 混用百分比與公斤時才不會變成看不懂的「70 → 85kg」。
         if case .absolute(let from) = firstExpression, case .absolute(let to) = lastExpression,
            from.unit == to.unit, from != to {
-            return "\(Weight.formatted(from.value)) → \(to.displayString)"
+            // 兩端都換算成偏好單位再壓；換算後單位必然相同，所以起點只印數字。
+            return "\(Weight.formatted(from.converted(to: unit).value)) → \(to.displayString(in: unit))"
         }
-        guard firstExpression != lastExpression else { return weightLabel(firstExpression, language: language) }
-        return "\(weightLabel(firstExpression, language: language)) → \(weightLabel(lastExpression, language: language))"
+        guard firstExpression != lastExpression else { return weightLabel(firstExpression, language: language, in: unit) }
+        return "\(weightLabel(firstExpression, language: language, in: unit)) → \(weightLabel(lastExpression, language: language, in: unit))"
     }
 
-    /// 重量一律帶單位（`Weight.displayString`＝「20kg」）：kg 與 lb 的 20 差很多。百分比不是重量，沒有單位。
-    static func weightLabel(_ expression: WeightExpression, language: AppLanguage) -> String {
+    /// 重量一律帶單位（「20kg」）：kg 與 lb 的 20 差很多。百分比不是重量，沒有單位。
+    /// `unit`：呼叫端傳 `@Environment(\.weightDisplayUnit)`，換算成偏好單位再印。
+    static func weightLabel(_ expression: WeightExpression, language: AppLanguage, in unit: WeightUnit) -> String {
         switch expression {
         case .absolute(let weight):
-            weight.displayString
+            weight.displayString(in: unit)
         case .relativeToLast(let delta):
             String(format: language.localizedString("plan.weight.relativeToLast %@", bundle: .module),
-                   (delta.value >= 0 ? "+" : "") + delta.displayString)
+                   (delta.value >= 0 ? "+" : "") + delta.displayString(in: unit))
         case .percentOfMax(let percent):
             String(format: language.localizedString("plan.weight.percentOfMax %@", bundle: .module),
                    "\(Weight.formatted(percent))%")

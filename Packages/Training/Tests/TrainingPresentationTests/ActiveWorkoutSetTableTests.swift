@@ -151,3 +151,63 @@ struct ActiveWorkoutSetTableTests {
         #expect(vm.isDraftModifiedFromTarget == false)
     }
 }
+
+/// 記錄畫面的預填要跟著偏好單位走。
+///
+/// 這是「切成 lb 幾乎是無效操作」的一半病因：`apply(weight:reps:)` 原本直接把來源的單位
+/// 抄進草稿（`draftWeightUnit = weight.unit`），所以不管使用者選什麼，預填都跳出
+/// 課表／上次紀錄當初的單位；而完全沒有線索時的退路更是寫死 `Weight(value: 20, unit: .kg)`。
+@MainActor
+struct PrefillFollowsPreferredUnitTests {
+    private let exerciseId = UUID()
+
+    private func makeViewModel(unit: WeightUnit, seeded: [WorkoutSet] = []) -> ActiveWorkoutViewModel {
+        let repo = MockWorkoutRepo()
+        let workout = Workout(id: UUID(), day: DayDate(year: 2026, month: 8, day: 27),
+                              startedAt: Date(), sets: seeded)
+        return ActiveWorkoutViewModel(
+            workout: workout,
+            saveProgress: SaveWorkoutProgress(repository: repo),
+            finishWorkout: FinishWorkout(repository: repo),
+            discardWorkout: DiscardWorkout(repository: repo),
+            lastPerformance: LastPerformance(repository: repo),
+            exerciseCatalog: MockCatalog(items: [
+                CatalogExercise(id: exerciseId, name: "臥推", muscleGroup: .chest, equipment: .barbell)
+            ]),
+            weightUnitStore: InMemoryWeightUnitStore(initial: unit)
+        )
+    }
+
+    /// 沒有任何線索時的退路：lb 使用者不該在空白紀錄上看到 20 kg。
+    @Test func fallbackUsesThePreferredUnitInsteadOfHardcodedKilograms() async {
+        let vm = makeViewModel(unit: .lb)
+        await vm.onAppear()
+        await vm.select(exerciseId: exerciseId)
+
+        #expect(vm.draftWeightUnit == .lb)
+    }
+
+    @Test func fallbackStillGivesKilogramsWhenThatIsThePreference() async {
+        let vm = makeViewModel(unit: .kg)
+        await vm.onAppear()
+        await vm.select(exerciseId: exerciseId)
+
+        #expect(vm.draftWeightUnit == .kg)
+        #expect(vm.draftWeightValue == 20)
+    }
+
+    /// 沿用本場上一組時也要換算：上一組存的是 kg，偏好是 lb，草稿要變成 lb 的等值。
+    @Test func reusingAPreviousSetConvertsIntoThePreferredUnit() async {
+        let previous = WorkoutSet(
+            id: UUID(), exerciseId: exerciseId, exerciseIndex: 0, setIndex: 0,
+            measurement: .weightReps(weight: Weight(value: 100, unit: .kg), reps: 5)
+        )
+        let vm = makeViewModel(unit: .lb, seeded: [previous])
+        await vm.onAppear()
+        await vm.select(exerciseId: exerciseId)
+
+        #expect(vm.draftWeightUnit == .lb)
+        // 100 kg ≈ 220.46 lb——重點是換算過了，不是照抄 100
+        #expect(vm.draftWeightValue > 200)
+    }
+}
