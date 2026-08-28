@@ -290,6 +290,40 @@
         }
       }
     },
+    "spec.frequent.empty" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No frequently used exercises yet"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "還沒有常用動作"
+          }
+        }
+      }
+    },
+    "spec.frequent.empty.hint" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Exercises you record in a workout will show up here, most used first"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "訓練時記錄過的動作會出現在這裡，練得越多排越前面"
+          }
+        }
+      }
+    },
     "spec.group.frequent" : {
       "localizations" : {
         "en" : {

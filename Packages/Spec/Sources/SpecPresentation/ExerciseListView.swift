@@ -39,7 +39,9 @@ public struct ExerciseListView: View {
             .padding(.bottom, TLSpace.gapM)
 
             ScrollView {
-                if viewModel.visibleExercises.isEmpty {
+                // 用 sections 而不是 visibleExercises 判斷：「常用」可能是空的
+                // （一場都沒練過）而動作庫本身有 80 筆內建動作，那時不該只留一片空白。
+                if sections.isEmpty {
                     emptyState
                         .padding(.horizontal, TLSpace.page)
                         .padding(.top, TLSpace.gapL)
@@ -149,14 +151,25 @@ public struct ExerciseListView: View {
         })
     }
 
-    /// 內建動作清單常駐之後，動作庫幾乎不可能真的空——唯一會空的是搜尋沒中，
-    /// 那時候「還沒有動作」是錯的文案，所以分成兩種。
+    /// 內建動作清單常駐之後，動作庫幾乎不可能真的空——會空的是另外兩種情況，
+    /// 而「還沒有動作」對它們都是錯的文案，所以分成三種：
+    /// 搜尋沒中 → 「找不到符合的動作」；「常用」還沒有資料 → 「還沒有常用動作」。
+    private var emptyStateKey: (title: LocalizedStringKey, hint: LocalizedStringKey) {
+        if !viewModel.searchText.isEmpty {
+            return ("spec.search.empty", "spec.search.empty.hint")
+        }
+        if grouping == .frequent {
+            return ("spec.frequent.empty", "spec.frequent.empty.hint")
+        }
+        return ("spec.empty", "spec.empty.hint")
+    }
+
     private var emptyState: some View {
         VStack(spacing: 8) {
-            localText(viewModel.searchText.isEmpty ? "spec.empty" : "spec.search.empty")
+            localText(emptyStateKey.title)
                 .font(TLFont.zh(16, .bold))
                 .foregroundStyle(TLColor.text)
-            localText(viewModel.searchText.isEmpty ? "spec.empty.hint" : "spec.search.empty.hint")
+            localText(emptyStateKey.hint)
                 .font(TLFont.zh(12.5, .regular))
                 .foregroundStyle(TLColor.neutral600)
                 .multilineTextAlignment(.center)
@@ -199,9 +212,10 @@ public struct ExerciseListView: View {
                 )
             }
         case .frequent:
-            // TODO 假資料：目前無「使用頻率」資料（Domain/Data 未實作），暫取清單前段當「常用」。
-            // 接上使用頻率統計後改成真正依次數排序。
-            let frequent = Array(items.prefix(8))
+            // 依實際練過的場次數排序，沒練過的不列入（見 ExerciseListViewModel.frequentExercises）。
+            // 一場都沒練過時這裡會是空的，交給 emptyState 呈現。
+            let frequent = viewModel.frequentExercises
+            guard !frequent.isEmpty else { return [] }
             return [Section(id: "frequent", header: nil, exercises: frequent)]
         case .all:
             return [Section(id: "all", header: nil, exercises: items)]
