@@ -130,6 +130,36 @@ Training 的休息倒數不認識任何提醒手段，只呼叫 `RestEndRemindin
 1. **View 裡不要用 `@Query`**：它把 SwiftUI 直接綁死 SwiftData，破壞分層。改走 View→ViewModel→UseCase→Repo；要反應式就讓 Repo 對外吐 `AsyncStream`。
 2. **`@Model` 不准漏出 Data 層**：邊界一律轉成 Domain struct。
 
+## Schema 版本與遷移
+
+App 是 local-first，資料只存在裝置上。**任何一次模型變更都可能讓使用者的資料讀不出來，
+或讓 app 直接開不起來**——而且沒有第二份可以還原。
+
+版本基線與遷移計畫在 `App/AppSchema.swift`（Composition Root，容器本來就建在那裡）：
+
+- `AppModels.all`：全 App 的 model 清單，**唯一的一份**。Schema 與「清除所有資料」
+  （`SwiftDataEraser`）都吃它。兩邊分開寫的話，新增 model 只補其中一邊的症狀是
+  「清資料清不乾淨」或「存進去讀不出來」，而且都不會在 build 時報錯。
+- `AppSchemaV1`：目前的版本基線。
+- `AppMigrationPlan`：遷移計畫，目前沒有 stage。
+
+### 改模型的流程（每次都要走完）
+
+1. 開一個新的 `AppSchemaVn`，放改動後的 model 清單
+2. `AppMigrationPlan.schemas` 加上它，`stages` 加一個 `MigrationStage`
+   - 純加欄位，且是 optional 或有預設值 → `.lightweight`
+   - 要搬資料、改型別、拆合欄位 → `.custom`
+3. 補一支測試：舊版寫入的資料，用新版讀回來仍然完整
+
+**不要跳過第 2 步直接改既有的 `AppSchemaV1`。** 那等於謊報版本——裝了舊版的使用者
+升級時，會拿著 V1 的資料撞上同樣宣告成 V1 的新 schema，SwiftData 不會察覺有變。
+
+### 加欄位時的既有寫法
+
+宣告時給預設值（`var originRaw: String = PlanOrigin.manual.rawValue`）或用 optional，
+SwiftData 就能做輕量遷移。專案裡 `PlanWorkoutModel.originRaw`、`WorkoutSetModel.modeRaw`、
+`ExerciseModel.trackingModeRaw` 都是這個寫法，照抄即可。
+
 ---
 
 # 測試

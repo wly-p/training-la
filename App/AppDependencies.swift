@@ -65,11 +65,10 @@ struct AppDependencies {
     /// 正式組裝：SwiftData 落地儲存，各 domain 的 models 併進同一個 Schema。
     /// `inMemory`：UI 測試用，換成不落地的 store（每次啟動都是乾淨狀態）。
     static func live(inMemory: Bool = false) throws -> AppDependencies {
-        let allModels = SpecDataFactory.models + TrainingDataFactory.models + PlanDataFactory.models
-            + AbilityDataFactory.models
-        let schema = Schema(allModels)
+        let allModels = AppModels.all
         let container = try ModelContainer(
-            for: schema,
+            for: Schema(versionedSchema: AppSchemaV1.self),
+            migrationPlan: AppMigrationPlan.self,
             configurations: ModelConfiguration(isStoredInMemoryOnly: inMemory)
         )
         let workoutRepository = TrainingDataFactory.makeWorkoutRepository(container: container)
