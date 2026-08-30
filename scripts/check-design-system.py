@@ -322,8 +322,13 @@ if CPCSS.exists():
     for dup in sorted(dupes):
         err(16, f"components.preview.css：`{dup}` 有多個段落，一個元件只該有一段")
 
-    # preview 用到 .tl-x 卻沒有定義
+    # preview 用到 .tl-x 卻沒有定義。
+    # 控制項（DesignControls）的 CSS 在 _controls/ 底下，不進交付包——
+    # example 引用得到它們（畫面裡本來就會放控制項），但它們不算元件庫的一部分。
     defined_classes = set(re.findall(r"\.(tl-[a-z0-9_-]+)", css_body))
+    ctrl_css = DS / "_controls/controls.preview.css"
+    control_classes = (set(re.findall(r"\.(tl-[a-z0-9_-]+)", ctrl_css.read_text()))
+                       if ctrl_css.exists() else set())
     for layer in ("atoms", "molecules", "organisms", "examples"):
         d = DS / layer
         if not d.is_dir():
@@ -333,8 +338,15 @@ if CPCSS.exists():
             local = set(re.findall(r"\.(tl-[a-z0-9_-]+)", body))  # 本地 <style> 也算
             for cls in sorted(set(re.findall(r"class=\"([^\"]*)\"", body))):
                 for one in cls.split():
-                    if one.startswith("tl-") and one not in defined_classes and one not in local:
-                        err(16, f"{f.relative_to(DS)}：用了 `.{one}` 但 components.preview.css 沒有定義")
+                    if not one.startswith("tl-") or one in defined_classes or one in local:
+                        continue
+                    if one in control_classes:
+                        # 元件 preview 不該用到控制項——那代表分層錯了
+                        if layer != "examples":
+                            err(16, f"{f.relative_to(DS)}：元件 preview 用了控制項的 `.{one}`。"
+                                    f"控制項有狀態與計算，不該出現在元件的 preview 裡")
+                        continue
+                    err(16, f"{f.relative_to(DS)}：用了 `.{one}` 但 components.preview.css 沒有定義")
 
 # ── 12：文件提到的 token 名都要真的存在 ───────────────────────────
 # 抓「token 被刪／改名，但正典或規格還在講它」——README 是正典，

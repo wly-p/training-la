@@ -1,3 +1,4 @@
+import DesignControls
 import PlanDomain
 import SharedKernel
 

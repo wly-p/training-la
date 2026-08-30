@@ -1,7 +1,7 @@
 import CoreGraphics
 import Testing
 
-@testable import DesignSystem
+@testable import DesignControls
 
 /// 滾輪的幾何運算。座標約定見 `WheelGeometry`：offset 往下為正，
 /// 所以「往上滑（看更大的值）」＝ 負的 offset。

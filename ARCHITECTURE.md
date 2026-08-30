@@ -87,7 +87,10 @@ Packages/
     Sources/
       RemindersDomain/    ← 純邏輯：偏好、channel ports、dispatcher（可被任何 domain import）
       RemindersKit/       ← 平台實作：UN 本地通知、系統音、UserDefaults（只有 App 接線時 import）
-  DesignSystem/           ← 元件庫：Atoms/ Molecules/ ＋ 由 token 來源生成的 DesignTokens.swift
+  DesignSystem/           ← 元件庫（**純呈現**）：Atoms/ Molecules/ ＋ 由 token 來源生成的
+                          DesignTokens.swift。給 props 就畫，無 @State、無計算
+  DesignControls/         ← 互動控制項：有內部狀態、手勢、或排版計算的元件
+                          （滾輪、月曆條、數字輸入、可滑動列…）。相依 DesignSystem，反向不行
                           （無 domain 邏輯；Tests/ 只放純函式。規格與 preview 在 design-system/）
 ```
 

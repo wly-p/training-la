@@ -1,3 +1,4 @@
+import DesignSystem
 import SwiftUI
 
 /// 強度基準群組（14b，設計稿 03-schedule.md B 節）：循環／長期編輯頁共用的「這幾週輕一點」表達方式。

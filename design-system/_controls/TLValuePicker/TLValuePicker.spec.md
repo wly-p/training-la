@@ -1,15 +1,21 @@
 # TLValuePicker
 
+> ⚠ **這不是元件庫的一部分。** 它有內部狀態與排版計算（滾輪幾何），
+> 所以住 `DesignControls` 而不是 `DesignSystem`，也**不進交付包** ——
+> 對設計端來說控制項是「放進去就好」的黑盒，它的內部狀態不是設計要決定的。
+>
+> 規格留在這裡是為了記錄它的視覺規則，不受元件庫的機器檢查管。
+
 ## 1 身分
 
 | | |
 |---|---|
-| 層級 | L2 分子 |
+| 層級 | **控制項**（`DesignControls`，不是元件庫的一部分） |
 | 職責 | 從一組常用數值裡選一個（滾輪） |
 | 原型 id | `13a` `14c`；級距設定子頁 |
 | 獨立使用 | 是 |
 | 容器責任 | 自己負責滾輪與快捷列的內部排版；外部間距由畫面給 |
-| 實作 | `Packages/DesignSystem/Sources/DesignSystem/Molecules/TLValuePicker.swift` |
+| 實作 | `Packages/DesignControls/Sources/DesignControls/TLValuePicker.swift` |
 | Preview | `design-system/molecules/TLValuePicker/TLValuePicker.preview.html` |
 | Preview CSS | `components.preview.css` §TLValuePicker |
 

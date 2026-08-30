@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-08-30",
+  "generatedAt": "2026-08-31",
   "tokensVersion": 1,
   "components": [
     {
@@ -1132,89 +1132,6 @@
         "spec": "molecules/TLSettingsToggleRow/TLSettingsToggleRow.spec.md",
         "preview": "molecules/TLSettingsToggleRow/TLSettingsToggleRow.preview.html",
         "impl": "Packages/DesignSystem/Sources/DesignSystem/Molecules/TLSettingsToggleRow.swift"
-      }
-    },
-    {
-      "name": "TLValuePicker",
-      "level": "L2",
-      "layer": "molecules",
-      "responsibility": "從一組常用數值裡選一個（滾輪）",
-      "prototypeIds": [
-        "14c"
-      ],
-      "prototypeNote": "13a",
-      "standalone": true,
-      "requiresContainer": null,
-      "containerOwns": "自己負責滾輪與快捷列的內部排版；外部間距由畫面給",
-      "props": [
-        {
-          "name": "value",
-          "type": "`Binding<Double>`",
-          "kind": null,
-          "values": null,
-          "required": "是",
-          "default": "—",
-          "description": "目前的值"
-        },
-        {
-          "name": "values",
-          "type": "`[Double]`",
-          "kind": null,
-          "values": null,
-          "required": "是",
-          "default": "—",
-          "description": "可選的常用值。**滾輪只放常用值**，其餘靠呼叫端另外提供輸入"
-        },
-        {
-          "name": "kicker",
-          "type": "`String?`",
-          "kind": null,
-          "values": null,
-          "required": "否",
-          "default": "`nil`",
-          "description": "滾輪上方的小標，通常放單位"
-        },
-        {
-          "name": "format",
-          "type": "`(Double) -> String`",
-          "kind": null,
-          "values": null,
-          "required": "否",
-          "default": "預設格式化",
-          "description": "怎麼把數字變成顯示字串"
-        },
-        {
-          "name": "quickActions",
-          "type": "`[QuickAction]`",
-          "kind": null,
-          "values": null,
-          "required": "否",
-          "default": "`[]`",
-          "description": "滾輪下方的快捷按鈕"
-        }
-      ],
-      "slots": [],
-      "events": [
-        "value",
-        "QuickAction",
-        "action"
-      ],
-      "variants": [],
-      "states": [
-        "idle",
-        "dragging"
-      ],
-      "themes": [
-        "light",
-        "dark"
-      ],
-      "confusableWith": [],
-      "dontUseFor": [],
-      "composedOf": null,
-      "paths": {
-        "spec": "molecules/TLValuePicker/TLValuePicker.spec.md",
-        "preview": "molecules/TLValuePicker/TLValuePicker.preview.html",
-        "impl": "Packages/DesignSystem/Sources/DesignSystem/Molecules/TLValuePicker.swift"
       }
     }
   ]

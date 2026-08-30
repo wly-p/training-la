@@ -3,7 +3,9 @@
 # 9 個 SPM local package，各自跑 `swift test`（純邏輯 / in-memory SwiftData，秒級、免模擬器）。
 # DesignSystem 只測純函式（滾輪幾何 WheelGeometry、月曆格線 CalendarStripGeometry），
 # 元件本身是 View 測不動。
-PACKAGES := SharedKernel Spec Training Plan History Settings Reminders Ability DesignSystem
+# DesignSystem 不在清單裡：它是純呈現，沒有測得動的東西（View 測不動）。
+# 排版數學隨控制項一起搬到 DesignControls，測試也跟著過去了。
+PACKAGES := SharedKernel Spec Training Plan History Settings Reminders Ability DesignControls
 
 SCHEME := TrainingLa-Dev
 
@@ -151,7 +153,7 @@ baseline:
 # 這包要能直接餵進 Claude Design 組出新畫面——那是元件庫「拆得夠乾淨」的驗收。
 design-zip: lint
 	@rm -f design-system.zip
-	@cd design-system && zip -qr ../design-system.zip . -x '.presentation-baseline.json' 'tokens/_legacy-aliases.json'
+	@cd design-system && zip -qr ../design-system.zip . -x '.presentation-baseline.json' 'tokens/_legacy-aliases.json' '_controls/*'
 	@du -h design-system.zip | awk '{print "✔ design-system.zip " $$1}'
 
 # 解析 test-reports/ 的產物並上傳 Notion。由 test-unit / test-uitest 在 REPORT=true 時呼叫，

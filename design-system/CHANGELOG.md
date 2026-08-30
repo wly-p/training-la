@@ -52,6 +52,95 @@
 
 ---
 
+## 2026-08-30 · 元件庫只留純呈現，控制項分出 DesignControls
+
+### 起因：範圍檢討
+
+問到「是否有過度考量的地方」，量了一下比例：
+
+```
+元件本體      981 行
+周邊         5,879 行   ≈ 6 倍（規格 2073 · scripts 1248 · preview 1281 · 文件 967 · css 310）
+進度         5 個階段做完 1 個
+```
+
+同時確認了兩件之前沒對齊的事：
+
+1. **這個專案不做無障礙**（`ARCHITECTURE.md:221` 白紙黑字），但我在 19 份規格裡
+   寫了 §9、把 VoiceOver 當要求、還排了「無障礙缺口」的優先度 —— 那整條線是我加的範圍
+2. **元件庫不該包含邏輯**，純粹元件
+
+### 判準
+
+> **元件不得持有或改變自己的狀態**（`@State` / `@FocusState`），
+> **不得計算**（格式化、日期、幾何）。
+> `@Binding` 與 closure prop 是**資料通道**，可以留。
+
+量出來的分佈很乾淨：19 個已抽的元件裡只有 3 個有真邏輯，其餘已經是純的。
+
+### 分家
+
+新增 **`DesignControls`** package，相依 `DesignControls → DesignSystem`（單向）。
+
+| 留在 `DesignSystem`（純呈現） | 移到 `DesignControls`（有狀態或計算） |
+|---|---|
+| Atoms 9 · Molecules 9 · Components 7 · Support 2 | 12 個檔 |
+
+移出的與原因：
+
+| 元件 | 為什麼 |
+|---|---|
+| `TLWheelColumn` | 2 state · 4 gesture · **8 計算**（滾輪幾何） |
+| `TLMonthDateStrip` | 3 gesture · **7 計算**（日期 ＋ 格線） |
+| `TLNumberField` | state ＋ focus ＋ 字串↔數字轉換 |
+| `TLValuePicker` `TLDualValuePicker` `TLRulerSlider` `TLIntensityFactorGroup` | 由滾輪組成，或自帶 state |
+| `TLPickerSheet` | 2 state（搜尋、篩選） |
+| `TLSwipeToRevealRow` `TLCompactSheet` `TLEditScaffold` | state ／ focus ／ gesture |
+| `CalendarStripGeometry` | 純計算檔 |
+
+**相依圖是封閉的** —— 這 12 個彼此互相引用，但沒有一個被留下的元件用到，所以能整批搬。
+搬完 `DesignSystem` 與 `DesignControls` 都一次編過。
+
+`WheelGeometry`（在 `TLWheelColumn` 檔內）與兩支幾何測試跟著搬。
+
+**這是刻意選了嚴格版本。** 討論時提過兩條路：把「元件自己的排版數學」算成元件的一部分
+（滾輪與月曆留下），或元件庫零計算（它們整批移出）。選後者 ——
+代價是元件庫少掉幾個最常用的東西，好處是「元件庫裡沒有邏輯」變成一句沒有例外的話。
+
+### 一個共用 helper 的處置
+
+`OptionalIdentifier`（有值才套 `accessibilityIdentifier` 的 modifier）原本是
+`TLConfirmationDialog.swift` 裡的 internal 型別，但搬走的 `TLPickerSheet` 也用它。
+抽成 `Support/OptionalIdentifier.swift` 並開放。
+
+它留在 `DesignSystem` 而不是刪掉，因為 **`accessibilityIdentifier` 是測試定位不是無障礙**。
+
+### 無障礙移除
+
+程式碼 23 處（`accessibilityLabel` 10、`accessibilityValue` 10、
+`addTraits`／`Hidden`／`Element` 3）。**`accessibilityIdentifier` 22 處全部保留。**
+
+兩個 prop 也拿掉：`TLBackBar.accessibilityLabel`（拿掉後它變成零 prop 的元件）、
+`TLSettingsRow.accessibilityValue`（5 個呼叫端跟著改）。
+
+先查證過 UITest 全部靠 identifier 定位，沒有一處靠 label。
+`TLSettingsToggleRow` 那句「UITest 用 `switches["聲音"]` 查得到」的註解已經過時 ——
+`check-i18n` 的規則 5 本來就擋中文字面值查找。
+
+### 規格十二節 → 八節
+
+砍 §9 無障礙；§7 文字行為與 §8 動態併進 §5（改名「度量與行為」）；
+§11 組成併進 §1（那是「這個元件是什麼」的一部分）。
+
+樣板加兩句判準：
+- 「這個專案不做無障礙」寫在開頭
+- §2 加「**元件不得有邏輯**」—— 看到 `format: (Double) -> String` 這種先問它為什麼在這裡
+
+規格 2073 → 1890 行。**這次省得不多**（§7/§8 是合併不是刪除），
+真正的省在後面 33 個元件，每個少寫四節。
+
+---
+
 ## 2026-08-30 · icon 尺度收斂（設計端拍板）
 
 ### 一個真的錯誤：`--icon-m` 的矛盾

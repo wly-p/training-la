@@ -1,7 +1,7 @@
 import Foundation
 import Testing
 
-@testable import DesignSystem
+@testable import DesignControls
 
 /// 月曆條的日期數學。日期一律用固定的 2026 年份寫死，不讀時鐘。
 struct CalendarStripGeometryTests {

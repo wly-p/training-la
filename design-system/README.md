@@ -53,6 +53,7 @@ design ◄─────────────────► 元件庫(code)
 | **L1 原子** | 不可再分。只收 `String`/`Int`/`Bool`/closure | `DesignSystem/Atoms/` | **不行** | `TL` 前綴 |
 | **L2 分子** | 由原子組成，仍與 domain 無關 | `DesignSystem/Molecules/` | **不行** | `TL` 前綴 |
 | **L3 有機體** | 綁自己 package 的 model，出現在多個畫面 | 各 package `Presentation/Components/` | 可以 | **無**前綴 |
+| **控制項** | 有內部狀態、手勢、或排版計算 | `DesignControls` package | 不行 | `TL` 前綴 |
 | **L4 畫面** | 一整頁或一整張 sheet | 各 package `Presentation/Screens/` | 可以 | 無前綴 |
 
 **唯一的判斷法**：這個元件需要 `import` 某個 package 的 model 嗎？
@@ -106,6 +107,17 @@ L4 畫面檔裡不得出現任何樣式定義：沒有 hex、沒有字級數字�
 
 「狀態」是設計稿最常漏的一層，也是「設計稿沒有、實作到一半才發現」的最大來源。
 窮舉的價值不在文件完整，在於**設計端能一眼看到這個元件有什麼可用**，不必猜、不必問。
+
+### 規則二之二 · 元件不得有邏輯
+
+**元件不得持有或改變自己的狀態**（`@State` / `@FocusState`），**不得計算**
+（格式化、日期運算、幾何）。`@Binding` 與 closure prop 是**資料通道**，可以留。
+
+有狀態或計算的東西不是「元件」而是「控制項」，住 `DesignControls`
+（相依 `DesignControls → DesignSystem`，反向不行）。
+
+判準的用處在寫規格第 2 節時：看到 `format: (Double) -> String` 這種 prop，
+先問它為什麼在這裡 —— 「幾位小數」是領域知識，元件不知道自己在顯示重量還是秒數。
 
 ### 規則三 · L1/L2 不得認識 domain
 

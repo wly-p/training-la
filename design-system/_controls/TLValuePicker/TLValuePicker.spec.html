@@ -26,6 +26,12 @@
 </style>
 <a class="back" href="../../index.html">← 元件庫索引</a>
 <h1>TLValuePicker</h1>
+<blockquote>
+<p>⚠ <strong>這不是元件庫的一部分。</strong> 它有內部狀態與排版計算（滾輪幾何），
+所以住 <code>DesignControls</code> 而不是 <code>DesignSystem</code>，也<strong>不進交付包</strong> ——
+對設計端來說控制項是「放進去就好」的黑盒，它的內部狀態不是設計要決定的。</p>
+<p>規格留在這裡是為了記錄它的視覺規則，不受元件庫的機器檢查管。</p>
+</blockquote>
 <h2>1 身分</h2>
 <table>
 <thead>
@@ -37,7 +43,7 @@
 <tbody>
 <tr>
 <td>層級</td>
-<td>L2 分子</td>
+<td><strong>控制項</strong>（<code>DesignControls</code>，不是元件庫的一部分）</td>
 </tr>
 <tr>
 <td>職責</td>
@@ -57,7 +63,7 @@
 </tr>
 <tr>
 <td>實作</td>
-<td><code>Packages/DesignSystem/Sources/DesignSystem/Molecules/TLValuePicker.swift</code></td>
+<td><code>Packages/DesignControls/Sources/DesignControls/TLValuePicker.swift</code></td>
 </tr>
 <tr>
 <td>Preview</td>

@@ -78,6 +78,109 @@
 <li><strong>12</strong> 文件裡提到的 token 名都要真的存在。抓「token 被刪／改名，文件還在講它」。</li>
 </ul>
 <hr />
+<h2>2026-08-30 · 元件庫只留純呈現，控制項分出 DesignControls</h2>
+<h3>起因：範圍檢討</h3>
+<p>問到「是否有過度考量的地方」，量了一下比例：</p>
+<pre><code>元件本體      981 行
+周邊         5,879 行   ≈ 6 倍（規格 2073 · scripts 1248 · preview 1281 · 文件 967 · css 310）
+進度         5 個階段做完 1 個
+</code></pre>
+<p>同時確認了兩件之前沒對齊的事：</p>
+<ol>
+<li><strong>這個專案不做無障礙</strong>（<code>ARCHITECTURE.md:221</code> 白紙黑字），但我在 19 份規格裡
+   寫了 §9、把 VoiceOver 當要求、還排了「無障礙缺口」的優先度 —— 那整條線是我加的範圍</li>
+<li><strong>元件庫不該包含邏輯</strong>，純粹元件</li>
+</ol>
+<h3>判準</h3>
+<blockquote>
+<p><strong>元件不得持有或改變自己的狀態</strong>（<code>@State</code> / <code>@FocusState</code>），
+<strong>不得計算</strong>（格式化、日期、幾何）。
+<code>@Binding</code> 與 closure prop 是<strong>資料通道</strong>，可以留。</p>
+</blockquote>
+<p>量出來的分佈很乾淨：19 個已抽的元件裡只有 3 個有真邏輯，其餘已經是純的。</p>
+<h3>分家</h3>
+<p>新增 <strong><code>DesignControls</code></strong> package，相依 <code>DesignControls → DesignSystem</code>（單向）。</p>
+<table>
+<thead>
+<tr>
+<th>留在 <code>DesignSystem</code>（純呈現）</th>
+<th>移到 <code>DesignControls</code>（有狀態或計算）</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Atoms 9 · Molecules 9 · Components 7 · Support 2</td>
+<td>12 個檔</td>
+</tr>
+</tbody>
+</table>
+<p>移出的與原因：</p>
+<table>
+<thead>
+<tr>
+<th>元件</th>
+<th>為什麼</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>TLWheelColumn</code></td>
+<td>2 state · 4 gesture · <strong>8 計算</strong>（滾輪幾何）</td>
+</tr>
+<tr>
+<td><code>TLMonthDateStrip</code></td>
+<td>3 gesture · <strong>7 計算</strong>（日期 ＋ 格線）</td>
+</tr>
+<tr>
+<td><code>TLNumberField</code></td>
+<td>state ＋ focus ＋ 字串↔數字轉換</td>
+</tr>
+<tr>
+<td><code>TLValuePicker</code> <code>TLDualValuePicker</code> <code>TLRulerSlider</code> <code>TLIntensityFactorGroup</code></td>
+<td>由滾輪組成，或自帶 state</td>
+</tr>
+<tr>
+<td><code>TLPickerSheet</code></td>
+<td>2 state（搜尋、篩選）</td>
+</tr>
+<tr>
+<td><code>TLSwipeToRevealRow</code> <code>TLCompactSheet</code> <code>TLEditScaffold</code></td>
+<td>state ／ focus ／ gesture</td>
+</tr>
+<tr>
+<td><code>CalendarStripGeometry</code></td>
+<td>純計算檔</td>
+</tr>
+</tbody>
+</table>
+<p><strong>相依圖是封閉的</strong> —— 這 12 個彼此互相引用，但沒有一個被留下的元件用到，所以能整批搬。
+搬完 <code>DesignSystem</code> 與 <code>DesignControls</code> 都一次編過。</p>
+<p><code>WheelGeometry</code>（在 <code>TLWheelColumn</code> 檔內）與兩支幾何測試跟著搬。</p>
+<p><strong>這是刻意選了嚴格版本。</strong> 討論時提過兩條路：把「元件自己的排版數學」算成元件的一部分
+（滾輪與月曆留下），或元件庫零計算（它們整批移出）。選後者 ——
+代價是元件庫少掉幾個最常用的東西，好處是「元件庫裡沒有邏輯」變成一句沒有例外的話。</p>
+<h3>一個共用 helper 的處置</h3>
+<p><code>OptionalIdentifier</code>（有值才套 <code>accessibilityIdentifier</code> 的 modifier）原本是
+<code>TLConfirmationDialog.swift</code> 裡的 internal 型別，但搬走的 <code>TLPickerSheet</code> 也用它。
+抽成 <code>Support/OptionalIdentifier.swift</code> 並開放。</p>
+<p>它留在 <code>DesignSystem</code> 而不是刪掉，因為 <strong><code>accessibilityIdentifier</code> 是測試定位不是無障礙</strong>。</p>
+<h3>無障礙移除</h3>
+<p>程式碼 23 處（<code>accessibilityLabel</code> 10、<code>accessibilityValue</code> 10、
+<code>addTraits</code>／<code>Hidden</code>／<code>Element</code> 3）。<strong><code>accessibilityIdentifier</code> 22 處全部保留。</strong></p>
+<p>兩個 prop 也拿掉：<code>TLBackBar.accessibilityLabel</code>（拿掉後它變成零 prop 的元件）、
+<code>TLSettingsRow.accessibilityValue</code>（5 個呼叫端跟著改）。</p>
+<p>先查證過 UITest 全部靠 identifier 定位，沒有一處靠 label。
+<code>TLSettingsToggleRow</code> 那句「UITest 用 <code>switches["聲音"]</code> 查得到」的註解已經過時 ——
+<code>check-i18n</code> 的規則 5 本來就擋中文字面值查找。</p>
+<h3>規格十二節 → 八節</h3>
+<p>砍 §9 無障礙；§7 文字行為與 §8 動態併進 §5（改名「度量與行為」）；
+§11 組成併進 §1（那是「這個元件是什麼」的一部分）。</p>
+<p>樣板加兩句判準：
+- 「這個專案不做無障礙」寫在開頭
+- §2 加「<strong>元件不得有邏輯</strong>」—— 看到 <code>format: (Double) -&gt; String</code> 這種先問它為什麼在這裡</p>
+<p>規格 2073 → 1890 行。<strong>這次省得不多</strong>（§7/§8 是合併不是刪除），
+真正的省在後面 33 個元件，每個少寫四節。</p>
+<hr />
 <h2>2026-08-30 · icon 尺度收斂（設計端拍板）</h2>
 <h3>一個真的錯誤：<code>--icon-m</code> 的矛盾</h3>
 <p>審閱交叉比對 <code>components.preview.css</code> 與使用清單，抓到一個<strong>我的 CSS 鏡像畫錯了</strong>：</p>

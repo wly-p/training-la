@@ -121,6 +121,13 @@ design ◄─────────────────► 元件庫(code)
 <td><strong>無</strong>前綴</td>
 </tr>
 <tr>
+<td><strong>控制項</strong></td>
+<td>有內部狀態、手勢、或排版計算</td>
+<td><code>DesignControls</code> package</td>
+<td>不行</td>
+<td><code>TL</code> 前綴</td>
+</tr>
+<tr>
 <td><strong>L4 畫面</strong></td>
 <td>一整頁或一整張 sheet</td>
 <td>各 package <code>Presentation/Screens/</code></td>
@@ -190,6 +197,13 @@ design ◄─────────────────► 元件庫(code)
 </table>
 <p>「狀態」是設計稿最常漏的一層，也是「設計稿沒有、實作到一半才發現」的最大來源。
 窮舉的價值不在文件完整，在於<strong>設計端能一眼看到這個元件有什麼可用</strong>，不必猜、不必問。</p>
+<h3>規則二之二 · 元件不得有邏輯</h3>
+<p><strong>元件不得持有或改變自己的狀態</strong>（<code>@State</code> / <code>@FocusState</code>），<strong>不得計算</strong>
+（格式化、日期運算、幾何）。<code>@Binding</code> 與 closure prop 是<strong>資料通道</strong>，可以留。</p>
+<p>有狀態或計算的東西不是「元件」而是「控制項」，住 <code>DesignControls</code>
+（相依 <code>DesignControls → DesignSystem</code>，反向不行）。</p>
+<p>判準的用處在寫規格第 2 節時：看到 <code>format: (Double) -&gt; String</code> 這種 prop，
+先問它為什麼在這裡 —— 「幾位小數」是領域知識，元件不知道自己在顯示重量還是秒數。</p>
 <h3>規則三 · L1/L2 不得認識 domain</h3>
 <p>元件庫裡不存在 <code>Exercise</code>、<code>Workout</code>、<code>Template</code> 這些型別，元件只收 <code>String</code>／<code>Int</code>／<code>Bool</code>／closure。
 這是它能被五個 package 共用的唯一前提，也是「改 A 頁不會弄壞 B 頁」的保證。

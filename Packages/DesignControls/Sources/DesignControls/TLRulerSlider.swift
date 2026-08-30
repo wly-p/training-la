@@ -1,3 +1,4 @@
+import DesignSystem
 import SwiftUI
 
 /// 水平刻度尺（handoff-15 G 節）：取代垂直滾輪做微調，高度只要一半。

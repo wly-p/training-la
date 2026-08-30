@@ -5,6 +5,7 @@
 <link rel="stylesheet" href="../tokens/tokens.css">
 <link rel="stylesheet" href="../preview.css">
 <link rel="stylesheet" href="../components.preview.css">
+<link rel="stylesheet" href="../_controls/controls.preview.css">
 <style>
 /* 滾輪是這一頁特有的呈現，不是共用外殼 */
   .field { display: flex; flex-direction: column; gap: var(--space-label-gap); }
@@ -17,8 +18,10 @@
 <p class="note">
   重量級距與休息級距共用同一個畫面。<b>這一頁沒有自己的設計稿，也不需要</b> ——
   它 100% 由元件組成，所以這份 example 就是它的規格。<br>
-  組成：<code>TLBackBar</code> ＋ <code>TLPageHeader</code> ＋ <code>TLValuePicker</code>
-  ＋ <code>TLGroup</code>（自訂輸入列）。
+  組成：<code>TLBackBar</code> ＋ <code>TLPageHeader</code> ＋ <code>TLGroup</code>（自訂輸入列），
+  中間放一個<b>控制項</b> <code>TLValuePicker</code>。<br>
+  <b>滾輪不是元件庫的一部分</b> —— 它有內部狀態與排版計算，住 <code>DesignControls</code>。
+  對組畫面的人來說它是「放進去就好」的黑盒，所以這裡只畫出它佔多大位置。
 </p>
 
 <div class="kicker">重量級距</div>
