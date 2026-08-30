@@ -1,0 +1,74 @@
+<!-- @dsCard group="Molecules" name="TLSettingsToggleRow" subtitle="設定頁的開關列" -->
+<!doctype html>
+<meta charset="utf-8">
+<title>TLSettingsToggleRow</title>
+<link rel="stylesheet" href="../../tokens/tokens.css">
+<link rel="stylesheet" href="../../preview.css">
+<style>
+  .hint { font-size: var(--font-row-sub); color: var(--text-tertiary); }
+  .sub { font-size: var(--font-row-sub); color: var(--text-tertiary); }
+  .row.tall { height: var(--size-row-with-sub); }
+  .sw { width: var(--size-switch-w); height: var(--size-switch-h); flex: none;
+        border-radius: var(--radius-pill); background: var(--surface-input);
+        position: relative; }
+  .sw.on { background: var(--action-primary); }
+  .sw::after { content: ""; position: absolute; top: var(--size-hairline-thick);
+               left: var(--size-hairline-thick);
+               width: calc(var(--size-switch-h) - var(--size-hairline-thick) * 2);
+               height: calc(var(--size-switch-h) - var(--size-hairline-thick) * 2);
+               border-radius: var(--radius-pill); background: var(--surface-base); }
+  .sw.on::after { left: auto; right: var(--size-hairline-thick); }
+</style>
+<h1>TLSettingsToggleRow</h1>
+<p class="note">
+  L2 分子。設定頁裡的開關列。<br>
+  <b>底層是 Toggle</b>，所以保留 switch 的無障礙語意 ——
+  這是它跟「一般列 ＋ 自製開關」的關鍵差異。
+</p>
+
+<div class="kicker">狀態</div>
+<div class="group">
+  <div class="row" data-state="on"><span class="label">彈窗</span><span class="sw on"></span></div>
+  <div class="row" data-state="off"><span class="label">背景通知</span><span class="sw"></span></div>
+  <div class="row" data-state="withHint">
+    <span class="label">聲音 <span class="hint">含震動</span></span><span class="sw on"></span></div>
+  <div class="row tall" data-state="withSubtitle">
+    <span class="label">背景通知<br><span class="sub">App 不在前景時以系統通知提醒</span></span>
+    <span class="sw on"></span></div>
+</div>
+<p class="note">
+  說明文字兩種放法<b>擇一</b>：<code>hint</code> 短詞同一行、<code>subtitle</code> 整句第二行。
+  兩者都<b>不計入無障礙標籤</b> —— 標籤只用標題。
+</p>
+
+<div class="kicker">主題</div>
+<div class="themes">
+  <div class="pane" data-theme="light">
+    <div class="kicker">light</div>
+    <div class="group">
+      <div class="row"><span class="label">彈窗</span><span class="sw on"></span></div>
+      <div class="row"><span class="label">聲音</span><span class="sw"></span></div>
+    </div>
+  </div>
+  <div class="pane" data-theme="dark">
+    <div class="kicker">dark（目前是 light 的複製）</div>
+    <div class="group">
+      <div class="row"><span class="label">彈窗</span><span class="sw on"></span></div>
+      <div class="row"><span class="label">聲音</span><span class="sw"></span></div>
+    </div>
+  </div>
+</div>
+
+<div class="kicker">已知缺口：沒有 disabled</div>
+<p class="note">
+  通知授權被拒之後，設定裡的開關<b>仍然顯示開著</b> —— 一個會說謊的設定。
+  要修那個，這個元件需要 disabled 態（或一個「被系統擋住」的表達）。
+  已有 UI 設計票在排。
+</p>
+
+<div class="kicker">不適用的狀態</div>
+<p class="note">
+  indeterminate —— 開／關就是它的兩個狀態。<br>
+  focused —— 沒有鍵盤導航情境。<br>
+  empty／loading／error —— 沒有資料輸入。
+</p>

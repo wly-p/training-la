@@ -218,7 +218,12 @@ def render(comps):
             if len(c["states"]) > 1:
                 bits.append(f'{len(c["states"])} 狀態')
             # 不能單獨用的元件要一眼看得出來——40 個元件時記不住哪些需要容器
-            need = ("　⚑ 需容器 " + "／".join(c["requiresContainer"])) if not c["standalone"] else ""
+            # standalone=False 但沒指名容器是合法的（例：TLToggle 是 ToggleStyle，
+            # 套在 SwiftUI 的 Toggle 上而不是某個 TL* 容器裡）
+            need = ""
+            if not c["standalone"]:
+                need = ("　⚑ 需容器 " + "／".join(c["requiresContainer"])
+                        if c["requiresContainer"] else "　⚑ 不可單獨用")
             spec_html = c["paths"]["spec"].replace(".md", ".html")
             L.append(f'  <div class="row"><span class="label">'
                      f'<a href="{c["paths"]["preview"]}">{c["name"]}</a> '

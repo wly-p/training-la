@@ -107,16 +107,53 @@ for layer, cdir in components():
             if len(pub) != 1:
                 err(2, f"{m.group(1)}：一個檔應該只有一個 public 元件，找到 {len(pub)} 個 {pub}")
             # §2 props ↔ init 參數
+            #
+            # @ViewBuilder 參數是 **Slot 不是 prop**，規格裡也是寫在「Slots」那一行、
+            # 不在 props 表格裡。兩者要分開比對，否則每個有 slot 的元件都會誤報。
             props = section(spec, "2 介面") or ""
             declared = [x for x in re.findall(r"^\|\s*`?(\w+)`?\s*\|", props, re.M)
                         if x not in ("名稱",)]
-            init = re.search(r"public init\(([^)]*)\)", src)
-            actual = re.findall(r"(\w+)\s*:", init.group(1)) if init else []
+            # Slots 的宣告可以跨行（三個 slot 各佔一行是常見的），所以讀到下一個 ** 標記為止
+            slot_line = re.search(r"\*\*Slots\*\*.*?(?=\n\*\*|\n##|\Z)", props, re.S)
+            declared_slots = re.findall(r"`(\w+)`", slot_line.group(0)) if slot_line else []
+
+            # 掃**所有**頂層 init：多個 init 是常見的（便利建構子、有無操作的兩種列…），
+            # 只看第一個會讓後面那些 init 才有的 prop 全部誤報。
+            #
+            # 兩個必須注意的地方（都是被真元件抓出來的）：
+            #   1. 參數本身可能含括號（`format: @escaping (Double) -> String`），
+            #      所以要**配對括號**而不是抓到第一個 `)` 為止
+            #   2. 巢狀型別（`QuickAction`、`Option`）自己的 init 縮排更深，不算這個元件的 prop
+            def top_level_inits(text):
+                for m in re.finditer(r"^ {4}(?:public )?init\(", text, re.M):
+                    i, depth = m.end() - 1, 0
+                    for j in range(i, len(text)):
+                        if text[j] == "(":
+                            depth += 1
+                        elif text[j] == ")":
+                            depth -= 1
+                            if depth == 0:
+                                yield text[i + 1:j]
+                                break
+            raw = " , ".join(top_level_inits(src))
+            all_params = re.findall(r"(?:^|,)\s*(?:@\w+\s+)?(?:\w+\s+)?(\w+)\s*:", raw)
+            slots = re.findall(r"@ViewBuilder\s+(?:\w+\s+)?(\w+)\s*:", raw)
+            actual = [x for x in all_params if x not in slots]
+
             if not declared and actual:
-                err(3, f"{name}：規格說無 props，但 init 有參數 {actual}")
+                err(3, f"{name}：規格說無 props，但 init 有非 slot 參數 {actual}")
             for d in declared:
                 if d not in actual:
                     err(3, f"{name}：規格宣告的 prop `{d}` 不在 init 參數裡 {actual}")
+            for sl in slots:
+                if sl not in declared_slots:
+                    err(3, f"{name}：init 有 slot `{sl}`，但規格第 2 節的 Slots 沒宣告它")
+            # 反向：init 有但規格沒寫的 prop。**這個方向才是設計端會被騙的方向**——
+            # 沒寫在規格裡的 prop 等於不存在，組畫面的人不知道可以傳它，只好繞路硬編。
+            for a in dict.fromkeys(actual):
+                if a not in declared:
+                    err(3, f"{name}：init 有 prop `{a}`，但規格第 2 節沒宣告它"
+                           f"——沒寫在規格裡的 prop 等於不存在")
 
     # §4 states ↔ preview 的 data-state；themes ↔ data-theme
     ms = re.search(r"<!--\s*states:\s*([^>]+?)\s*-->", spec)

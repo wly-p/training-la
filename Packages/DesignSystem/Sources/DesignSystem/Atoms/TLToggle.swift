@@ -16,7 +16,7 @@ public struct TLSwitchToggleStyle: ToggleStyle {
             Spacer(minLength: 0)
             knob(isOn: configuration.isOn)
                 .onTapGesture {
-                    withAnimation(.easeOut(duration: 0.18)) { configuration.isOn.toggle() }
+                    withAnimation(TLMotion.standard) { configuration.isOn.toggle() }
                 }
         }
         .contentShape(Rectangle())
@@ -24,12 +24,12 @@ public struct TLSwitchToggleStyle: ToggleStyle {
 
     private func knob(isOn: Bool) -> some View {
         Capsule()
-            .fill(isOn ? TLColor.accent : TLColor.neutral300)
+            .fill(isOn ? TLColor.actionPrimary : TLColor.surfaceInput)
             .frame(width: TLSize.switchW, height: TLSize.switchH)
             .overlay(alignment: isOn ? .trailing : .leading) {
                 Circle()
-                    .fill(isOn ? TLColor.bg : TLColor.neutral100)
-                    .padding(3)
+                    .fill(isOn ? TLColor.surfaceBase : TLColor.surfaceRaised)
+                    .padding(TLSpace.switchKnobInset)
             }
     }
 }

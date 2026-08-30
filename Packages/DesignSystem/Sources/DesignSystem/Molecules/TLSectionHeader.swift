@@ -36,6 +36,6 @@ public struct TLSectionHeader: View {
                     .buttonStyle(.tlText)
             }
         }
-        .padding(.bottom, 10)
+        .padding(.bottom, TLSpace.sectionHeaderGap)
     }
 }

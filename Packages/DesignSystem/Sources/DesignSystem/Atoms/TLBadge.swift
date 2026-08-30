@@ -46,7 +46,7 @@ public extension TLBadge where Content == AnyView {
         self.init(fill: fill) {
             AnyView(
                 Image(systemName: systemName)
-                    .font(.system(size: 15, weight: .semibold))
+                    .font(.system(size: TLFont.rowTitle, weight: .semibold))
                     .foregroundStyle(tint)
             )
         }

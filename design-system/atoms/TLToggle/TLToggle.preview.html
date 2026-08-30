@@ -1,0 +1,69 @@
+<!-- @dsCard group="Atoms" name="TLToggle" subtitle="開關（ToggleStyle）" -->
+<!doctype html>
+<meta charset="utf-8">
+<title>TLToggle</title>
+<link rel="stylesheet" href="../../tokens/tokens.css">
+<link rel="stylesheet" href="../../preview.css">
+<style>
+  .sw { width: var(--size-switch-w); height: var(--size-switch-h); flex: none;
+        border-radius: var(--radius-pill); background: var(--surface-input);
+        position: relative; transition: background var(--motion-base) var(--motion-curve); }
+  .sw.on { background: var(--action-primary); }
+  .sw::after { content: ""; position: absolute; top: var(--space-switch-knob-inset);
+               left: var(--space-switch-knob-inset);
+               width: calc(var(--size-switch-h) - var(--space-switch-knob-inset) * 2);
+               height: calc(var(--size-switch-h) - var(--space-switch-knob-inset) * 2);
+               border-radius: var(--radius-pill); background: var(--surface-raised); }
+  .sw.on::after { left: auto; right: var(--space-switch-knob-inset);
+                  background: var(--surface-base); }
+</style>
+
+<h1>TLToggle</h1>
+<p class="note">
+  L1 原子。實作形式是 <code>ToggleStyle</code> 而不是 View ——
+  <b>底層仍是 SwiftUI 的 Toggle，只換外觀不換語意</b>。<br>
+  那是它唯一的設計目的：VoiceOver 念「開關，已開啟」而不是「按鈕」，
+  XCUITest 認得 <code>.switches</code>。
+</p>
+
+<div class="kicker">狀態</div>
+<div class="group">
+  <div class="row" data-state="on"><span class="label">on</span><span class="sw on"></span></div>
+  <div class="row" data-state="off"><span class="label">off</span><span class="sw"></span></div>
+</div>
+<p class="note">
+  沒有獨立的 pressed —— 點下去就切換，旋鈕滑過去（<code>motion.base</code>）即是回饋。
+</p>
+
+<div class="kicker">配色</div>
+<p class="note">
+  <b>不可以用系統 Toggle 的預設綠</b> —— 那會讓整頁瞬間變回原生。
+  這是設計原則裡明列的禁令之一。
+</p>
+
+<div class="kicker">主題</div>
+<div class="themes">
+  <div class="pane" data-theme="light">
+    <div class="kicker">light</div>
+    <div class="group">
+      <div class="row"><span class="label">開</span><span class="sw on"></span></div>
+      <div class="row"><span class="label">關</span><span class="sw"></span></div>
+    </div>
+  </div>
+  <div class="pane" data-theme="dark">
+    <div class="kicker">dark（目前是 light 的複製）</div>
+    <div class="group">
+      <div class="row"><span class="label">開</span><span class="sw on"></span></div>
+      <div class="row"><span class="label">關</span><span class="sw"></span></div>
+    </div>
+  </div>
+</div>
+
+<div class="kicker">不適用的狀態</div>
+<p class="note">
+  <b>disabled</b> —— ⚠ 實際的缺口。通知授權被拒後開關仍顯示開著，是會說謊的設定。
+  已有 UI 設計票在排。<br>
+  indeterminate —— SwiftUI 的 Toggle 也不支援。<br>
+  focused —— 沒有鍵盤導航情境。<br>
+  內容極值、語言 —— 固定尺寸、無文字。
+</p>

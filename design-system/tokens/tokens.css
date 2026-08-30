@@ -86,6 +86,19 @@
   --space-card-gap: 12px;  /* 同一個群組標題底下、兩張卡之間 */
   --space-label-gap: 6px;  /* 元件與它下方的說明文字之間 */
   --space-value-unit-gap: 4px;  /* 數字與它的單位之間 */
+  --space-header-top: 22px;  /* 頁面主標上方 */
+  --space-kicker-gap: 8px;  /* kicker 與它下方主標之間 */
+  --space-section-header-gap: 10px;  /* 區塊標題與它下方群組之間 */
+  --space-title-sub-gap: 2px;  /* 列的主標與副標之間 */
+  --space-title-hint-gap: 6px;  /* 標題與同一行的補充小字之間 */
+  --space-picker-gap: 16px;  /* 滾輪與它的 kicker 之間 */
+  --space-chip-pad-v: 12px;  /* 快捷 chip 的上下內距 */
+  --space-seg-track-pad: 4px;  /* 分段控制軌道的內距 */
+  --space-seg-track-pad-compact: 2px;  /* 同上，設定列裡的緊湊版（handoff-20 §B：4→2，讓它不撐高 56pt 的列） */
+  --space-seg-item-pad-v: 10px;  /* 分段控制每一段的上下內距 */
+  --space-seg-item-pad-v-compact: 5px;  /* 同上，緊湊版 */
+  --space-seg-item-pad-h: 13px;  /* 緊湊版每一段的左右內距（regular 是平分寬度，不用這個） */
+  --space-switch-knob-inset: 3px;  /* 開關旋鈕與軌道邊緣的距離 */
   --radius-container: 28px;  /* 卡片／群組容器 */
   --radius-inner: 20px;  /* 容器內的小方塊 */
   --radius-pill: 999px;  /* 按鈕、輸入、標籤（實作用 .capsule） */
@@ -105,14 +118,17 @@
   --size-icon-thumb: 28px;  /* App 圖示縮圖，兩處統一 */
   --size-check-circle: 22px;  /* 可勾選列的圓形勾 */
   --size-hairline-thick: 1.5px;  /* 空心圓／外框的線寬。比 hairline 粗，1px 在圓弧上會斷斷續續 */
+  --size-quick-action-row: 44px;  /* 滾輪下方快捷列的高度（＝最小觸控） */
 
   /* ── 字級（中文值；英文 × 1.08）── */
   --font-page-title: 34px;
   --font-card-title: 21px;
   --font-row-title: 15px;
   --font-row-value: 14px;
+  --font-row-icon: 17px;
   --font-row-number: 16px;
   --font-badge-text: 12px;
+  --font-seg-compact: 12px;
   --font-row-sub: 11.5px;
   --font-kicker: 10.5px;
   --font-big-number: 66px;
@@ -126,8 +142,10 @@
   --font-card-title-family: var(--font-zh);
   --font-row-title-family: var(--font-zh);
   --font-row-value-family: var(--font-zh);
+  --font-row-icon-family: var(--font-zh);
   --font-row-number-family: var(--font-display);
   --font-badge-text-family: var(--font-zh);
+  --font-seg-compact-family: var(--font-zh);
   --font-row-sub-family: var(--font-zh);
   --font-kicker-family: var(--font-zh);
   --font-big-number-family: var(--font-display);

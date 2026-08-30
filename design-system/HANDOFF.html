@@ -1,6 +1,6 @@
 <!doctype html>
 <meta charset="utf-8">
-<title>交付說明 · 第三輪（已回覆）</title>
+<title>交付說明 · 第四輪（階段 1 · 設定頁榨取）</title>
 <link rel="stylesheet" href="tokens/tokens.css">
 <link rel="stylesheet" href="preview.css">
 <style>
@@ -25,115 +25,84 @@
   .back { font-size: var(--font-row-sub); margin-bottom: var(--space-gap-l); display: block; }
 </style>
 <a class="back" href="index.html">← 元件庫索引</a>
-<h1>交付說明 · 第三輪（已回覆）</h1>
+<h1>交付說明 · 第四輪（階段 1 · 設定頁榨取）</h1>
 <blockquote>
-<p>給設計端。每輪交付時重寫，只講「這輪跟上輪的差別」與「這輪想請你看什麼」。
+<p>給設計端。每輪重寫，只講「這輪跟上輪的差別」與「這輪想請你看什麼」。
 規則書是 <code>README.md</code>（正典），這份不是規則。
 日期：2026-08-30</p>
 </blockquote>
 <hr />
-<h2>這輪處理了什麼</h2>
-<p>第二輪的 10 項全部處理。細節見 <code>CHANGELOG.md</code>，這裡只挑三件比較重要的：</p>
-<p><strong>樣板同步了。</strong> 上一輪的 states／themes 拆分我只修在唯一的既有元件上，
-沒修在 <code>_template.spec.md</code> 裡。你指出「樣板是接下來 40 個元件的模子」是對的 ——
-不修模子的話，下一個元件會把 light／dark 寫回 states，問題以 40 倍的量回來。</p>
-<p><strong><code>components.json</code> 補齊了。</strong> 加上 <code>slots</code> / <code>events</code> / <code>variants</code> / <code>dontUseFor</code> / <code>generatedAt</code>，
-<code>prototypeIds</code> 從 markdown 字串拆成陣列 ＋ <code>prototypeNote</code>。
-<code>dontUseFor</code> 特別值得看，它把規格第 10 節那幾句「不要用它來…」變成機器讀的：</p>
-<pre><code class="language-json">&quot;dontUseFor&quot;: [
-  &quot;表達展開／收合 —— 那要的是會旋轉的記號，不是這個&quot;,
-  &quot;當作裝飾放在不可進入的列上 —— 那會騙使用者&quot;,
-  &quot;自己加 padding 到元件裡 —— 間距是列的責任&quot;
-]
-</code></pre>
-<p><strong>新增 <code>CHANGELOG.md</code>。</strong> 你提 <code>surfaceSunken</code> 被刪掉時的核心批評是對的 ——
-<strong>刪一個 token 是設計決策，不是清理</strong>，而當時沒有任何地方記錄它發生過。
-元件自身的改動有規格第 12 節，但 token 與契約層級的改動之前無處可記。
-現在刪除必須寫明是哪一種情況：角色不需要了／只是改名／被別的 token 吸收。</p>
+<h2>你要的那個答案</h2>
+<p>你在第三輪說：如果「設定頁完全由 L2 組成」不成立，你想看到的不是修好之後的結果，
+而是<strong>不成立的那個點</strong>。</p>
+<p><strong>答案：分層假設成立，但當時的元件庫不夠用。</strong></p>
+<p>分層那半是對的 —— 設定頁的三個畫面<strong>完全不需要任何 L3</strong>。
+但「由 L2 組成」在當時只是一個描述、不是事實：那些 L2 有一半不在元件庫裡
+（兩個內聯在畫面裡、五個埋在大檔裡沒有地址、三個放錯層、分層目錄根本不存在）。</p>
+<p><strong>撞到的兩個邊界都是「介面不夠」而不是「分層錯」</strong>，完整記錄在 <code>CHANGELOG.md</code>：</p>
+<ol>
+<li><strong><code>TLListRow</code> 不知道自己被選中</strong> —— 選取靠 <code>leading</code> 裡放什麼決定，
+   所以無障礙的 selected trait 要呼叫端補，而呼叫端會忘。
+   考慮過三種做法，<strong>選了「維持現狀但記錄」</strong>，因為加 prop 會動所有呼叫端、
+   加新元件會多一個九成像的東西 —— 兩者都該在有更多樣本時決定。
+   階段 2 有四個選取清單，那時才看得出哪個對。</li>
+<li><strong><code>TLSettingsToggleRow</code> 沒有 disabled</strong> —— 通知授權被拒後開關仍顯示開著。
+   這不是榨取能解決的，已有 UI 設計票在排。</li>
+</ol>
+<p>對架構來說這是好消息：分子層的<strong>邊界</strong>畫對了，只是有些分子的<strong>介面</strong>還沒長全。</p>
 <hr />
-<h2>一個要更正的誤讀，以及它暴露的真問題</h2>
-<p>你提到「舊名 alias <code>surface</code> 的目標不存在了」—— 這一項當時已經一併移除了。
-你看不到，是因為 <code>_legacy-aliases.json</code> <strong>被刻意排除出交付包</strong>（上一輪你自己建議的 D2）。</p>
-<p>同樣的情況還有兩次：你建議新增的 themes 檢查與字型缺字檢查，上一輪就實作了。
-看起來沒做，是因為 <strong><code>scripts/</code> 不在包裡，<code>README.md</code> §8 是你唯一看得到「實際擋了什麼」的地方，
-而那張表是手寫的、已經過期</strong>（列 9 條，實際 22 處）。</p>
-<p>所以這輪做了一個結構性修正：<strong>§8 的檢查表改成從檢查腳本自動生成，並加檢查擋手改。</strong>
-手寫的清單一定會過期，然後審閱會針對一份虛構的東西提意見 —— 這輪就發生了三次。</p>
-<p>如果之後還有「包裡看不到、但你需要知道」的東西，直接說，我把它變成生成的。</p>
-<hr />
-<h2>刻意留到下一階段的，請不要當成缺漏</h2>
-<p><strong><code>props</code> 的形狀還沒被真的考驗過。</strong> 包裡只有 <code>TLChevron</code> 一個元件，而它沒有 props。</p>
-<p>我試過為了驗證 schema 而多抽一個有 props 的元件，結論是<strong>做不到「順手抽一個」</strong>：
-現有程式碼是在 token 之前寫的，任何元件抽出來都會開出 token 缺口
-（<code>TLCheckCircle</code> 會開三個、<code>TLRowValue</code> 會開兩個），而補那些缺口是設計決策，
-在沒有畫面脈絡的情況下決定，比晚一點決定更糟。</p>
-<p>所以 <code>props</code> 的第一次真實考驗放在<strong>階段 1（設定頁）</strong>——那一階段的目的本來就是
-「驗證分子層夠不夠用」。設定頁在設計文件裡自述「無 L3、完全由 L2 組成」，
-所以做完會一次給你一整組 L2 分子，那時 schema、props、組成關係才第一次有真東西可看。</p>
-<p>同理，這幾項現在都還是空的，是預期的：<code>molecules/</code>、<code>organisms/</code>、
-<code>composedOf</code>、<code>variants</code>、多狀態的元件。</p>
-<p><strong>已知的 token 缺口</strong>也不用再提，都記在 <code>CHANGELOG.md</code> 的「已知缺口」表裡了：</p>
+<h2>這輪交付什麼</h2>
+<p><strong>19 個元件</strong>（上一輪 1 個）＋ <strong>2 份 example</strong>。</p>
 <table>
 <thead>
 <tr>
-<th>缺口</th>
-<th>規模</th>
+<th></th>
+<th></th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td><code>neutral700</code> 被用 16 處，但沒有語意角色（<code>textSecondary</code> 是 neutral600、比它淺）</td>
-<td>跨三個 package</td>
+<td>Atoms 9</td>
+<td>TLBadge · TLCheckCircle · TLChevron · TLCircleIconButton · TLDivider · TLIconThumbnail · TLRowValue · TLSettingsValue · TLToggle</td>
 </tr>
 <tr>
-<td><code>TLFont.display(N)</code> 用了 16 種字面字級，只有 2 處走 token —— 數字的字級尺度整個不存在</td>
-<td>全 app</td>
-</tr>
-<tr>
-<td>Presentation 層 181 處字面樣式</td>
-<td>見 ratchet 基線</td>
+<td>Molecules 10</td>
+<td>TLBackBar · TLDividedVStack · TLGroup · TLListRow · TLPageHeader · TLSectionHeader · TLSegmentedControl · TLSettingsRow · TLSettingsToggleRow · TLValuePicker</td>
 </tr>
 </tbody>
 </table>
-<p>第二項是這輪挖到最大的一個，建議在做訓練頁之前一次收斂，那邊數字最多。</p>
+<p><strong>設定頁的三個畫面現在是純組合</strong> —— Presentation 的字面樣式從 13 降到 <strong>0</strong>。</p>
+<p><strong>你的三個拍板都套用了</strong>（<code>28×28/r7</code>、返回列 <code>gapS</code>、能力值另開票），
+兩組變體因此都不用做 —— 少一份要維護的差異。</p>
+<p><strong>兩個 example</strong> 是你提的：<code>settings-selection</code> 目前是<strong>零本地樣式</strong>的純組合。</p>
+<hr />
+<h2>寫規格逼出來的東西</h2>
+<p>規格第 5 節要求「全部寫 token 名，不寫數字」，於是<strong>元件內部自己的字面值</strong>全部現形。
+新增 25 個 token，其中三個值得你看：</p>
+<ul>
+<li><strong><code>type.rowValue</code> 14</strong> —— 字級尺度原本缺這一階（<code>rowSub</code> 11.5 與 <code>rowTitle</code> 15 之間空著）</li>
+<li><strong><code>textBody</code>（→ neutral.700）</strong> —— 這個色被用 16 處卻沒有語意角色。
+  ⚠ <strong>它與 <code>textSecondary</code>(neutral600) 的分界不清楚，需要你釐清</strong> ——
+  尤其考慮到 <code>textSecondary</code> 對容器底只有 3.9:1，<code>textBody</code> 反而更讀得到</li>
+<li><strong><code>motion</code> 的落單值收斂了</strong> —— 全專案唯一的 <code>0.18</code>（開關動畫）併進 <code>base</code>(0.2)</li>
+</ul>
+<p><strong><code>icon</code> 仍然不是一個尺度</strong>：<code>s13 / sm14 / m16 / button18 / l20</code> 五個值都是從既有程式碼
+撈出來的特設值，彼此沒有比例關係。這個要收斂需要你決定，記在已知缺口。</p>
 <hr />
 <h2>這輪想請你看的</h2>
-<p>按對你的價值排序。前三項現在改最便宜，過了就要改 40 份。</p>
-<p><strong>1 · <code>_template.spec.md</code> 的十二節，有沒有你會需要、但現在沒有的欄位？</strong>
-這是模子。你組畫面時如果曾經想問「這個元件的 ⋯⋯ 是什麼？」而規格沒有那一格，
-現在講出來最便宜。</p>
-<p><strong>2 · <code>components.json</code> 的欄位夠不夠你直接組畫面？</strong>
-特別是 <code>dontUseFor</code> 的粒度 —— 太細會變雜訊，太粗就防不了用錯。
-以及：你會不會希望它包含<strong>每個 prop 的可接受值</strong>（例如 enum 的所有 case），
-而不只是型別名？</p>
-<p><strong>3 · 契約 §7.3 的「展示骨架豁免」會不會被濫用？</strong>
-現在寫的是「不代表任何元件的展示骨架可以用字面值，但字面色值永遠不豁免」。
-界線是我訂的，如果你覺得模糊，這是唯一一條機器擋不住、只能靠寫清楚的規則。</p>
-<p><strong>4 · <code>tokens/tokens.preview.html</code> 挑不挑得動色？</strong>
-半透明的 token（<code>borderSubtle</code> 是 8%）這輪改成分層合成在 <code>neutral-400</code> 上，
-才看得出實際濃度。其餘色票、字級、間距、圓角、陰影、圖示、動效都在同一頁。</p>
-<p><strong>5 · <code>index.html</code> 當入口夠不夠？</strong>
-現在只有一個元件，看不太出來 40 個時會不會難用。有想法就說。</p>
+<p><strong>1 · 19 份規格的第 4 節（狀態），有沒有你需要但我漏掉的狀態？</strong>
+這是規格裡最容易漏的一節。我對每個元件都逐項回答了不適用的理由，
+但「不適用」有時候是「我沒想到」的偽裝。</p>
+<p><strong>2 · 第 10 節的「易混淆」對照，有沒有配錯或漏配？</strong>
+目前配了六組：<code>TLSettingsValue</code>↔<code>TLRowValue</code>、<code>TLChevron</code>↔<code>TLCheckCircle</code>、
+<code>TLBadge</code>↔<code>TLIconThumbnail</code>、<code>TLSettingsRow</code>↔<code>TLListRow</code>、
+<code>TLPageHeader</code>↔<code>TLBackBar</code>／<code>TLSectionHeader</code>、<code>TLValuePicker</code>↔<code>TLNumberField</code>。</p>
+<p><strong>3 · <code>textBody</code> vs <code>textSecondary</code> 的分界</strong>（見上）。</p>
+<p><strong>4 · 三個記在規格裡的無障礙缺口，優先度怎麼排？</strong>
+<code>TLValuePicker</code> 的滾輪沒有 <code>adjustable</code> trait（最嚴重，VoiceOver 使用者無法調整）、
+<code>TLListRow</code> 的 selected trait、<code>TLSettingsToggleRow</code> 的 disabled。</p>
 <hr />
-<h2>第三輪的回覆已收到，全部處理完（見 <code>CHANGELOG.md</code>）</h2>
-<p>五個提問的回答都採納了：樣板補了「獨立使用／容器責任」「最小寬度／壓縮行為」「易混淆」三格；
-<code>components.json</code> 的 <code>props</code> 帶值域、<code>variants</code> 改物件、加了 <code>standalone</code>／<code>requiresContainer</code>；
-展示骨架豁免改成路徑白名單；tokens 參考頁的文字類 token 改成壓在底上呈現並標對比度；
-<code>index.html</code> 加了「按畫面找」分組與「需容器」標記。</p>
-<p>第二輪那項判為「可接受」而沒做的 D2 也補了：<strong>每份 markdown 現在都有同名的 <code>.html</code></strong>，
-從 <code>index.html</code> 點過去不會再變成純文字或觸發下載。</p>
-<p>新發現的四項也修了：§8 編號依 id 排序並寫明是永久 id、補上檢查 13（domain 詞彙）與
-檢查 14（元件 preview 零字面尺寸）、確認檢查 3 兩個方向都擋（只是描述變短了，已補回）、
-三份層級 README 改成生成。</p>
-<p><strong>「標對比度」那個建議順帶抓到兩個真問題</strong>：<code>textSecondary</code> 對 <code>surfaceRaised</code> 只有 <strong>3.9:1</strong>、
-<code>textTertiary</code> 只有 <strong>2.6:1</strong>（WCAG 正文要 4.5、大字與圖示要 3）。
-<code>textTertiary</code> 是 chevron 與三級文字的顏色，<strong>連圖示門檻都不到</strong>。
-改色值是設計決策，已記進 <code>CHANGELOG.md</code> 的已知缺口，建議併進深色色階那一輪一起處理。</p>
-<hr />
-<h2>接下來：階段 1 · 設定頁榨取</h2>
-<p>會交付：一整組 L2 分子（每個都有 spec ＋ preview）、第一個真的有 props 的元件、
-以及「設定頁完全由 L2 組成」這個假設成不成立的答案。</p>
-<p><strong>你要求的那件事我記下了</strong> —— 如果假設不成立，交付的不會只是修好之後的結果，
-而是<strong>不成立的那個點</strong>：哪一個東西是 L2 表達不了的、當時考慮過哪些做法、為什麼選了現在這個。
-理由跟把設定頁排第一個一樣：邊界只有在被撞到的時候才看得清楚，
-修好之後的規格只會顯示「後來的答案」，不會顯示邊界。會寫在 <code>CHANGELOG.md</code>。</p>
+<h2>接下來：階段 2 · 動作庫</h2>
+<p>那是<strong>整個架構的賭注</strong> —— 7 個 L3 有機體全是列型，如果它們都能純由 L2 組成，
+架構成立；有一個不行就代表分子層設計錯了，要在那裡修正而不是拖到訓練頁。</p>
+<p>階段 1 已經先告訴我們一件事：分子層的<strong>邊界</strong>是對的。階段 2 要驗的是<strong>介面夠不夠</strong>。</p>

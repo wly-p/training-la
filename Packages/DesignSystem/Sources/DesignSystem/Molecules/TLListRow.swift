@@ -57,7 +57,7 @@ public struct TLListRow<Leading: View, Detail: View, Trailing: View>: View {
     private var content: some View {
         HStack(spacing: TLSpace.gapM) {
             leading
-            VStack(alignment: .leading, spacing: 2) {
+            VStack(alignment: .leading, spacing: TLSpace.titleSubGap) {
                 let styledTitle = title
                     .font(TLFont.zh(TLFont.rowTitle))          // 15pt weight 500
                     .foregroundColor(TLColor.text)

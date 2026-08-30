@@ -57,16 +57,16 @@ public struct TLSettingsRow<Trailing: View>: View {
         HStack(spacing: 0) {
             if role == .destructive {
                 Image(systemName: systemImage ?? "trash")
-                    .font(.system(size: 17, weight: .semibold))
+                    .font(.system(size: TLFont.rowIcon, weight: .semibold))
                     .foregroundStyle(TLColor.danger700)
-                    .padding(.trailing, 10)
+                    .padding(.trailing, TLSpace.sectionHeaderGap)
             } else if let systemImage {
                 Image(systemName: systemImage)
-                    .font(.system(size: 15, weight: .medium))
+                    .font(.system(size: TLFont.rowTitle, weight: .medium))
                     .foregroundStyle(TLColor.neutral600)
                     .padding(.trailing, TLSpace.gapM)
             }
-            HStack(alignment: .firstTextBaseline, spacing: 6) {
+            HStack(alignment: .firstTextBaseline, spacing: TLSpace.titleHintGap) {
                 title
                     .font(TLFont.zh(TLFont.rowTitle, role == .destructive ? .semibold : .medium))
                     .foregroundStyle(titleColor)

@@ -24,6 +24,7 @@
 | `iconSize` | `CGFloat` | 只吃 `icon.*` token | 否 | `icon.button` | 圖示字級 |
 | `iconWeight` | `Font.Weight` | | 否 | `semibold` | 圖示字重 |
 | `action` | `() -> Void` | | 是 | — | 點擊 |
+| `filled` | `Bool` | | — | — | ⚠ **舊 API**。`true`／`false` ＝ `style: .accent`／`.outline`。新程式碼用 `style:`，見第 12 節 |
 
 **Slots** — N/A（內容固定是一個 SF Symbol）
 **事件** — `action`（見上）

@@ -1,0 +1,199 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>TLDividedVStack</title>
+<link rel="stylesheet" href="../../tokens/tokens.css">
+<link rel="stylesheet" href="../../preview.css">
+<style>
+  body { max-width: 62rem; line-height: 1.7; }
+  h1, h2, h3 { font-family: var(--font-page-title-family); line-height: 1.35; }
+  h1 { font-size: var(--font-page-title); margin: 0 0 var(--space-gap-l); }
+  h2 { font-size: var(--font-card-title); margin: var(--space-section) 0 var(--space-gap-m);
+       padding-top: var(--space-gap-m); border-top: 1px solid var(--border-subtle); }
+  h3 { font-size: var(--font-row-title); margin: var(--space-gap-l) 0 var(--space-gap-s); }
+  a { color: var(--accent-on-surface); }
+  table { border-collapse: collapse; width: 100%; margin: var(--space-gap-m) 0;
+          display: block; overflow-x: auto; }
+  th, td { text-align: left; padding: var(--space-gap-s) var(--space-gap-m);
+           border-bottom: 1px solid var(--border-subtle); vertical-align: top; }
+  th { font-size: var(--font-kicker); letter-spacing: var(--font-kicker-tracking);
+       text-transform: uppercase; color: var(--text-tertiary); }
+  pre { background: var(--surface-raised); border-radius: var(--radius-inner);
+        padding: var(--space-gap-m); overflow-x: auto; }
+  pre code { background: none; padding: 0; }
+  blockquote { margin: var(--space-gap-m) 0; padding-left: var(--space-gap-m);
+               border-left: 3px solid var(--border-subtle); color: var(--text-secondary); }
+  .back { font-size: var(--font-row-sub); margin-bottom: var(--space-gap-l); display: block; }
+</style>
+<a class="back" href="../../index.html">← 元件庫索引</a>
+<h1>TLDividedVStack</h1>
+<h2>1 身分</h2>
+<table>
+<thead>
+<tr>
+<th></th>
+<th></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>層級</td>
+<td>L2 分子</td>
+</tr>
+<tr>
+<td>職責</td>
+<td>垂直堆疊子項，並在<strong>相鄰兩項之間</strong>插入分隔線</td>
+</tr>
+<tr>
+<td>原型 id</td>
+<td>所有群組的內部結構</td>
+</tr>
+<tr>
+<td>獨立使用</td>
+<td>是，但多數情況應該用包了它的 <code>TLGroup</code></td>
+</tr>
+<tr>
+<td>容器責任</td>
+<td>只管分隔線與堆疊；圓角與底色是 <code>TLGroup</code> 的事</td>
+</tr>
+<tr>
+<td>實作</td>
+<td><code>Packages/DesignSystem/Sources/DesignSystem/Molecules/TLDividedVStack.swift</code></td>
+</tr>
+<tr>
+<td>Preview</td>
+<td><code>design-system/molecules/TLDividedVStack/TLDividedVStack.preview.html</code></td>
+</tr>
+</tbody>
+</table>
+<h2>2 介面 ★</h2>
+<p><strong>Props</strong> — 無。</p>
+<table>
+<thead>
+<tr>
+<th>名稱</th>
+<th>型別</th>
+<th>值域</th>
+<th>必填</th>
+<th>預設</th>
+<th>說明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>（無）</td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Slots</strong> — <code>content</code>：要堆疊的子項。
+<strong>事件</strong> — N/A</p>
+<h2>3 變體 variants</h2>
+<p>無。</p>
+<h2>4 狀態 states ★</h2>
+<!-- states: default -->
+<!-- themes: light, dark -->
+
+<table>
+<thead>
+<tr>
+<th>類別</th>
+<th>狀態</th>
+<th>這個元件</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>互動</td>
+<td>default / pressed / disabled / focused</td>
+<td><strong>只有 default。</strong> 不可互動</td>
+</tr>
+<tr>
+<td>選取</td>
+<td>selected / unselected / indeterminate</td>
+<td>N/A</td>
+</tr>
+<tr>
+<td>資料</td>
+<td>empty / loading / error</td>
+<td>empty 時渲染成高度 0，不畫任何線</td>
+</tr>
+<tr>
+<td>內容極值</td>
+<td>0 / 1 / 多項</td>
+<td>0 與 1 項都不畫線；n 項畫 n−1 條</td>
+</tr>
+<tr>
+<td>主題</td>
+<td>light / dark</td>
+<td>兩者都有（線色來自 <code>TLDivider</code>）</td>
+</tr>
+<tr>
+<td>語言</td>
+<td>中文 / 英文</td>
+<td>由各子項自己處理</td>
+</tr>
+</tbody>
+</table>
+<h2>5 度量</h2>
+<table>
+<thead>
+<tr>
+<th></th>
+<th></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>子項間距</td>
+<td>0 —— 子項自己有高度，分隔線佔 <code>size.hairline</code></td>
+</tr>
+<tr>
+<td>分隔線</td>
+<td>由 <code>TLDivider</code> 決定</td>
+</tr>
+</tbody>
+</table>
+<h2>6 配色 ★</h2>
+<p>自己沒有顏色。</p>
+<h2>7 文字行為</h2>
+<p>自己無文字。</p>
+<h2>8 動態</h2>
+<p>無轉場。<strong>已知限制</strong>：子項動態增減時分隔線沒有動畫，會直接跳。</p>
+<h2>9 無障礙</h2>
+<ul>
+<li>不是 accessibility element，VoiceOver 逐子項走過。</li>
+<li>分隔線不會被念到（<code>TLDivider</code> 沒有語意）。</li>
+</ul>
+<h2>10 用法與禁用法</h2>
+<p><strong>用它</strong>：需要「頭尾不畫線」的堆疊，但<strong>不需要</strong>卡片的圓角與底色時。</p>
+<p><strong>易混淆</strong>：<code>TLGroup</code>（群組容器）—— 那個是這個 ＋ 圓角 ＋ 底色。
+<strong>多數情況要的是 <code>TLGroup</code></strong>；直接用這個是少數情形（例如已經有自己的容器）。</p>
+<p><strong>不要用它</strong>：
+- 當一般的 <code>VStack</code> 用 —— 它會硬加分隔線
+- 期待它有間距 —— 子項間距是 0，靠分隔線區隔</p>
+<h2>11 組成 ★</h2>
+<p>由 <code>TLDivider</code>（L1）組成。</p>
+<h2>12 變更紀錄</h2>
+<table>
+<thead>
+<tr>
+<th>日期</th>
+<th>改動</th>
+<th>原因</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>2026-08-30</td>
+<td>從 <code>Support/TLDividedVStack.swift</code> 拆出，移進 <code>Molecules/</code></td>
+<td>一個檔兩個 public 元件；而且分隔線是原子、堆疊器是分子</td>
+</tr>
+</tbody>
+</table>
+<p><strong>實作備註</strong>：用 <code>_VariadicView</code> 解析子 View，才能對「一組異質靜態列」（如設定頁）
+自動加分隔線，不必逼呼叫端改成 data-driven 的 <code>ForEach</code>。那是私有 API，
+若未來失效，替代方案是要求呼叫端傳陣列 —— 代價是所有呼叫端都要改。</p>

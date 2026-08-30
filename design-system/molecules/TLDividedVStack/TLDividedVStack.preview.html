@@ -1,0 +1,48 @@
+<!-- @dsCard group="Molecules" name="TLDividedVStack" subtitle="堆疊子項並自動插入分隔線" -->
+<!doctype html>
+<meta charset="utf-8">
+<title>TLDividedVStack</title>
+<link rel="stylesheet" href="../../tokens/tokens.css">
+<link rel="stylesheet" href="../../preview.css">
+<h1>TLDividedVStack</h1>
+<p class="note">
+  L2 分子。垂直堆疊子項，相鄰兩項之間插入分隔線，<b>頭尾不畫</b>。<br>
+  多數情況你要的是 <code>TLGroup</code>（這個 ＋ 圓角 ＋ 底色）。
+</p>
+
+<div class="kicker">狀態</div>
+<div class="group" data-state="default">
+  <div class="row"><span class="label">n 項畫 n−1 條線</span></div>
+  <div class="row"><span class="label">第二項</span></div>
+  <div class="row"><span class="label">第三項</span></div>
+</div>
+
+<div class="kicker">內容極值</div>
+<div class="group">
+  <div class="row"><span class="label">只有一項 —— 不畫線</span></div>
+</div>
+<p class="note">0 項時渲染成高度 0，也不畫線。</p>
+
+<div class="kicker">主題</div>
+<div class="themes">
+  <div class="pane" data-theme="light">
+    <div class="kicker">light</div>
+    <div class="group">
+      <div class="row"><span class="label">上</span></div>
+      <div class="row"><span class="label">下</span></div>
+    </div>
+  </div>
+  <div class="pane" data-theme="dark">
+    <div class="kicker">dark（目前是 light 的複製）</div>
+    <div class="group">
+      <div class="row"><span class="label">上</span></div>
+      <div class="row"><span class="label">下</span></div>
+    </div>
+  </div>
+</div>
+
+<div class="kicker">不適用的狀態</div>
+<p class="note">
+  pressed／disabled／focused —— 不可互動。<br>
+  selected、loading／error —— 它只負責排版。
+</p>

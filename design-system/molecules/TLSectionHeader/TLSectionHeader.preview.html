@@ -1,0 +1,65 @@
+<!-- @dsCard group="Molecules" name="TLSectionHeader" subtitle="區塊標題" -->
+<!doctype html>
+<meta charset="utf-8">
+<title>TLSectionHeader</title>
+<link rel="stylesheet" href="../../tokens/tokens.css">
+<link rel="stylesheet" href="../../preview.css">
+<style>
+  .sh { display: flex; align-items: baseline;
+        margin-bottom: var(--space-section-header-gap); }
+  .sh-title { flex: 1; font-size: var(--font-kicker);
+              letter-spacing: var(--font-kicker-tracking);
+              text-transform: uppercase; color: var(--text-tertiary); font-weight: 600; }
+  .sh-title.tinted { color: var(--action-pressed); }
+  .sh-action { font-size: var(--font-row-sub); color: var(--accent-on-surface); }
+</style>
+<h1>TLSectionHeader</h1>
+<p class="note">
+  L2 分子。區塊標題，說明它下方那張卡是什麼。<br>
+  大寫是<b>元件做的</b>，呼叫端傳原文即可 —— 傳已大寫的字串會讓 VoiceOver 逐字母念。
+</p>
+
+<div class="kicker">狀態</div>
+<div data-state="default">
+  <div class="sh"><span class="sh-title">外觀</span></div>
+  <div class="group">
+    <div class="row"><span class="label">主題</span></div>
+    <div class="row"><span class="label">語言</span></div>
+  </div>
+</div>
+
+<div class="kicker">變體</div>
+<div class="sh"><span class="sh-title">訓練偏好</span></div>
+<div class="group"><div class="row"><span class="label">純標題</span></div></div>
+<div class="sh" style="margin-top: var(--space-group-gap)">
+  <span class="sh-title">最近練過</span><span class="sh-action">看全部</span>
+</div>
+<div class="group"><div class="row"><span class="label">標題 ＋ 文字操作</span></div></div>
+
+<div class="kicker">著色</div>
+<div class="sh"><span class="sh-title">預設（三級文字）</span></div>
+<div class="sh"><span class="sh-title tinted">進行中（accent）</span></div>
+<p class="note">
+  ⚠ 預設色對容器底只有 <b>2.6:1</b>，低於 WCAG 對大字的 3:1 門檻。
+  這是全 app 的 <code>text-tertiary</code> 問題，見 CHANGELOG 已知缺口。
+</p>
+
+<div class="kicker">主題</div>
+<div class="themes">
+  <div class="pane" data-theme="light">
+    <div class="kicker">light</div>
+    <div class="sh"><span class="sh-title">外觀</span></div>
+    <div class="group"><div class="row"><span class="label">主題</span></div></div>
+  </div>
+  <div class="pane" data-theme="dark">
+    <div class="kicker">dark（目前是 light 的複製）</div>
+    <div class="sh"><span class="sh-title">外觀</span></div>
+    <div class="group"><div class="row"><span class="label">主題</span></div></div>
+  </div>
+</div>
+
+<div class="kicker">不適用的狀態</div>
+<p class="note">
+  pressed／disabled／focused —— 標題不可互動；文字操作的按下態由按鈕樣式處理。<br>
+  selected、empty／loading／error —— 標題是必填。
+</p>

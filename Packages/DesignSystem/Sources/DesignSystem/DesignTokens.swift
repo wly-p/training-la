@@ -107,17 +107,30 @@ public enum TLColor {
 // MARK: - Spacing / Radius / Size
 
 public enum TLSpace {
-    public static let page:         CGFloat = 26  // 頁面左右邊距
-    public static let section:      CGFloat = 26  // 區塊之間
-    public static let rowInset:     CGFloat = 18  // 列內左右 padding、分隔線左內縮
-    public static let gapS:         CGFloat = 8
-    public static let gapM:         CGFloat = 13
-    public static let gapL:         CGFloat = 20
-    public static let pageBottom:   CGFloat = 40  // 捲動內容的頁尾留白
-    public static let groupGap:     CGFloat = 22  // 設定頁的群組之間。比 section(26) 緊——這一頁群組多，26 會把最後幾張卡推出畫面
-    public static let cardGap:      CGFloat = 12  // 同一個群組標題底下、兩張卡之間
-    public static let labelGap:     CGFloat = 6   // 元件與它下方的說明文字之間
-    public static let valueUnitGap: CGFloat = 4   // 數字與它的單位之間
+    public static let page:               CGFloat = 26  // 頁面左右邊距
+    public static let section:            CGFloat = 26  // 區塊之間
+    public static let rowInset:           CGFloat = 18  // 列內左右 padding、分隔線左內縮
+    public static let gapS:               CGFloat = 8
+    public static let gapM:               CGFloat = 13
+    public static let gapL:               CGFloat = 20
+    public static let pageBottom:         CGFloat = 40  // 捲動內容的頁尾留白
+    public static let groupGap:           CGFloat = 22  // 設定頁的群組之間。比 section(26) 緊——這一頁群組多，26 會把最後幾張卡推出畫面
+    public static let cardGap:            CGFloat = 12  // 同一個群組標題底下、兩張卡之間
+    public static let labelGap:           CGFloat = 6   // 元件與它下方的說明文字之間
+    public static let valueUnitGap:       CGFloat = 4   // 數字與它的單位之間
+    public static let headerTop:          CGFloat = 22  // 頁面主標上方
+    public static let kickerGap:          CGFloat = 8   // kicker 與它下方主標之間
+    public static let sectionHeaderGap:   CGFloat = 10  // 區塊標題與它下方群組之間
+    public static let titleSubGap:        CGFloat = 2   // 列的主標與副標之間
+    public static let titleHintGap:       CGFloat = 6   // 標題與同一行的補充小字之間
+    public static let pickerGap:          CGFloat = 16  // 滾輪與它的 kicker 之間
+    public static let chipPadV:           CGFloat = 12  // 快捷 chip 的上下內距
+    public static let segTrackPad:        CGFloat = 4   // 分段控制軌道的內距
+    public static let segTrackPadCompact: CGFloat = 2   // 同上，設定列裡的緊湊版（handoff-20 §B：4→2，讓它不撐高 56pt 的列）
+    public static let segItemPadV:        CGFloat = 10  // 分段控制每一段的上下內距
+    public static let segItemPadVCompact: CGFloat = 5   // 同上，緊湊版
+    public static let segItemPadH:        CGFloat = 13  // 緊湊版每一段的左右內距（regular 是平分寬度，不用這個）
+    public static let switchKnobInset:    CGFloat = 3   // 開關旋鈕與軌道邊緣的距離
 }
 
 public enum TLRadius {
@@ -143,6 +156,7 @@ public enum TLSize {
     public static let iconThumb:       CGFloat = 28  // App 圖示縮圖，兩處統一
     public static let checkCircle:     CGFloat = 22  // 可勾選列的圓形勾
     public static let hairlineThick:   CGFloat = 1.5 // 空心圓／外框的線寬。比 hairline 粗，1px 在圓弧上會斷斷續續
+    public static let quickActionRow:  CGFloat = 44  // 滾輪下方快捷列的高度（＝最小觸控）
 }
 
 public enum TLIcon {
@@ -157,7 +171,7 @@ public enum TLIcon {
 }
 
 public enum TLMotion {
-    // 來自程式碼現況：easeOut 0.2（4 處）、0.18（1 處）、0.15（1 處）。0.18 是落單值，之後應收斂到 fast 或 base，收斂前不要新增第四個值。
+    // 來自程式碼現況：easeOut 0.2（多數）與 0.15。原本還有一個落單的 0.18（開關動畫），2026-08-30 收斂到 base——0.02 秒的差異不可感知，而多一個值就是多一份要維護的分歧。
     public static let fast: Double = 0.15
     public static let base: Double = 0.2
     public static var quick: Animation { .easeOut(duration: fast) }
@@ -195,15 +209,17 @@ public enum TLFont {
     }
 
     // 角色字級（中文值；英文乘 1.08）
-    public static let pageTitle: CGFloat = 34   // zh 家族；頁面主標，允許兩行
-    public static let cardTitle: CGFloat = 21   // zh 家族
-    public static let rowTitle:  CGFloat = 15   // zh 家族
-    public static let rowValue:  CGFloat = 14   // zh 家族；設定列右側的值。比標題小一號、比三級文字深一階——值是列的答案
-    public static let rowNumber: CGFloat = 16   // display 家族；列裡的數字（圓章數字、右側數值）。⚠ display 家族目前有 16 種字面字級、只有這一個有角色名，尺度收斂見 CHANGELOG 已知缺口
-    public static let badgeText: CGFloat = 12   // zh 家族；圓章裡的文字（肌群縮寫）
-    public static let rowSub:    CGFloat = 11.5 // zh 家族
-    public static let kicker:    CGFloat = 10.5 // zh 家族；大寫
-    public static let bigNumber: CGFloat = 66   // display 家族；訓練頁重量／次數
+    public static let pageTitle:  CGFloat = 34   // zh 家族；頁面主標，允許兩行
+    public static let cardTitle:  CGFloat = 21   // zh 家族
+    public static let rowTitle:   CGFloat = 15   // zh 家族
+    public static let rowValue:   CGFloat = 14   // zh 家族；設定列右側的值。比標題小一號、比三級文字深一階——值是列的答案
+    public static let rowIcon:    CGFloat = 17   // zh 家族；設定列左側的 SF Symbol
+    public static let rowNumber:  CGFloat = 16   // display 家族；列裡的數字（圓章數字、右側數值）。⚠ display 家族目前有 16 種字面字級、只有這一個有角色名，尺度收斂見 CHANGELOG 已知缺口
+    public static let badgeText:  CGFloat = 12   // zh 家族；圓章裡的文字（肌群縮寫）
+    public static let segCompact: CGFloat = 12   // zh 家族；分段控制緊湊版的段落文字（handoff-20 §B：12.5→12）
+    public static let rowSub:     CGFloat = 11.5 // zh 家族
+    public static let kicker:     CGFloat = 10.5 // zh 家族；大寫
+    public static let bigNumber:  CGFloat = 66   // display 家族；訓練頁重量／次數
 
     /// kicker 的字距（em → pt）。SwiftUI 的 tracking 吃點數，不是 em。
     public static let kickerTracking: CGFloat = 10.5 * 0.16

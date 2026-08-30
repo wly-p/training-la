@@ -26,7 +26,7 @@ public struct TLPageHeader<Accessory: View>: View {
     }
 
     public var body: some View {
-        VStack(alignment: .leading, spacing: 8) {
+        VStack(alignment: .leading, spacing: TLSpace.kickerGap) {
             if let kicker {
                 kicker
                     .font(TLFont.zh(TLFont.kicker, .semibold))
@@ -47,6 +47,6 @@ public struct TLPageHeader<Accessory: View>: View {
             }
         }
         .padding(.horizontal, TLSpace.page)
-        .padding(.top, 22)
+        .padding(.top, TLSpace.headerTop)
     }
 }

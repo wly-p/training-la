@@ -1,0 +1,240 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>TLToggle</title>
+<link rel="stylesheet" href="../../tokens/tokens.css">
+<link rel="stylesheet" href="../../preview.css">
+<style>
+  body { max-width: 62rem; line-height: 1.7; }
+  h1, h2, h3 { font-family: var(--font-page-title-family); line-height: 1.35; }
+  h1 { font-size: var(--font-page-title); margin: 0 0 var(--space-gap-l); }
+  h2 { font-size: var(--font-card-title); margin: var(--space-section) 0 var(--space-gap-m);
+       padding-top: var(--space-gap-m); border-top: 1px solid var(--border-subtle); }
+  h3 { font-size: var(--font-row-title); margin: var(--space-gap-l) 0 var(--space-gap-s); }
+  a { color: var(--accent-on-surface); }
+  table { border-collapse: collapse; width: 100%; margin: var(--space-gap-m) 0;
+          display: block; overflow-x: auto; }
+  th, td { text-align: left; padding: var(--space-gap-s) var(--space-gap-m);
+           border-bottom: 1px solid var(--border-subtle); vertical-align: top; }
+  th { font-size: var(--font-kicker); letter-spacing: var(--font-kicker-tracking);
+       text-transform: uppercase; color: var(--text-tertiary); }
+  pre { background: var(--surface-raised); border-radius: var(--radius-inner);
+        padding: var(--space-gap-m); overflow-x: auto; }
+  pre code { background: none; padding: 0; }
+  blockquote { margin: var(--space-gap-m) 0; padding-left: var(--space-gap-m);
+               border-left: 3px solid var(--border-subtle); color: var(--text-secondary); }
+  .back { font-size: var(--font-row-sub); margin-bottom: var(--space-gap-l); display: block; }
+</style>
+<a class="back" href="../../index.html">← 元件庫索引</a>
+<h1>TLToggle</h1>
+<h2>1 身分</h2>
+<table>
+<thead>
+<tr>
+<th></th>
+<th></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>層級</td>
+<td>L1 原子</td>
+</tr>
+<tr>
+<td>職責</td>
+<td>開關（switch）</td>
+</tr>
+<tr>
+<td>原型 id</td>
+<td><code>4b</code> <code>12a</code></td>
+</tr>
+<tr>
+<td>獨立使用</td>
+<td><strong>否 —— 它是 <code>ToggleStyle</code>，套在 SwiftUI 的 <code>Toggle</code> 上</strong></td>
+</tr>
+<tr>
+<td>容器責任</td>
+<td>位置與間距由列負責</td>
+</tr>
+<tr>
+<td>實作</td>
+<td><code>Packages/DesignSystem/Sources/DesignSystem/Atoms/TLToggle.swift</code></td>
+</tr>
+<tr>
+<td>Preview</td>
+<td><code>design-system/atoms/TLToggle/TLToggle.preview.html</code></td>
+</tr>
+</tbody>
+</table>
+<p><strong>實作形式與其他原子不同</strong>：它是 <code>ToggleStyle</code> 而不是 <code>View</code>，用法是
+<code>Toggle(...).toggleStyle(.tlSwitch)</code>。這是刻意的 —— 見第 9 節。</p>
+<h2>2 介面 ★</h2>
+<p><strong>Props</strong> — 無。</p>
+<table>
+<thead>
+<tr>
+<th>名稱</th>
+<th>型別</th>
+<th>值域</th>
+<th>必填</th>
+<th>預設</th>
+<th>說明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>（無）</td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<p>開／關狀態由 <code>Toggle</code> 的 binding 提供，不是這個樣式的 prop。</p>
+<p><strong>Slots</strong> — N/A（<code>configuration.label</code> 由 <code>Toggle</code> 給）
+<strong>事件</strong> — N/A（<code>Toggle</code> 的 binding 負責）</p>
+<h2>3 變體 variants</h2>
+<p>無。</p>
+<h2>4 狀態 states ★</h2>
+<!-- states: on, off -->
+<!-- themes: light, dark -->
+
+<table>
+<thead>
+<tr>
+<th>類別</th>
+<th>狀態</th>
+<th>這個元件</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>互動</td>
+<td>default / pressed / disabled / focused</td>
+<td><strong>on 與 off。</strong> 沒有獨立的 pressed —— 點下去就切換，旋鈕滑過去即是回饋。<strong>沒有 disabled</strong>：⚠ 這是實際的缺口，見 <code>TLSettingsToggleRow</code> 第 12 節</td>
+</tr>
+<tr>
+<td>選取</td>
+<td>selected / unselected / indeterminate</td>
+<td>開／關就是它的意義；沒有 indeterminate（SwiftUI 的 <code>Toggle</code> 也不支援）</td>
+</tr>
+<tr>
+<td>資料</td>
+<td>empty / loading / error</td>
+<td>N/A</td>
+</tr>
+<tr>
+<td>內容極值</td>
+<td>最短 / 最長 / 溢出</td>
+<td>N/A —— 固定尺寸</td>
+</tr>
+<tr>
+<td>主題</td>
+<td>light / dark</td>
+<td>兩者都有</td>
+</tr>
+<tr>
+<td>語言</td>
+<td>中文 / 英文</td>
+<td>N/A —— 無文字（label 由 <code>Toggle</code> 給，屬於列）</td>
+</tr>
+</tbody>
+</table>
+<h2>5 度量</h2>
+<table>
+<thead>
+<tr>
+<th></th>
+<th></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>軌道</td>
+<td><code>size.switchW</code> × <code>size.switchH</code></td>
+</tr>
+<tr>
+<td>圓角</td>
+<td><code>radius.pill</code></td>
+</tr>
+<tr>
+<td>旋鈕內距</td>
+<td><code>space.switchKnobInset</code>（旋鈕直徑 ＝ 軌道高 − 2×內距）</td>
+</tr>
+</tbody>
+</table>
+<h2>6 配色 ★</h2>
+<table>
+<thead>
+<tr>
+<th>狀態</th>
+<th>軌道</th>
+<th>旋鈕</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>on</td>
+<td><code>actionPrimary</code></td>
+<td><code>surfaceBase</code></td>
+</tr>
+<tr>
+<td>off</td>
+<td><code>surfaceInput</code></td>
+<td><code>surfaceRaised</code></td>
+</tr>
+</tbody>
+</table>
+<p><strong>不可以用系統 <code>Toggle</code> 的預設綠</strong> —— 那會讓整頁瞬間變回原生。
+這是設計原則裡明列的禁令之一。</p>
+<h2>7 文字行為</h2>
+<p>無文字。<strong>Dynamic Type</strong>：不跟隨。它是固定的控制項，跟著字級長大會把列撐爛。</p>
+<h2>8 動態</h2>
+<p>切換時旋鈕滑到另一端，<code>motion.base</code> ＋ <code>motion.curve</code>。軌道底色同時轉換。</p>
+<h2>9 無障礙</h2>
+<p><strong>做成 <code>ToggleStyle</code> 而不是自繪 Button，整個原因就在這裡</strong>：</p>
+<ul>
+<li>底層仍是 <code>Toggle</code>，所以 VoiceOver 會念「開關，已開啟／已關閉」而不是「按鈕」</li>
+<li>XCUITest 認得 <code>.switches</code>，而且 value 是 <code>"1"</code>／<code>"0"</code> —— 自繪的話這些全部要自己補，
+  而且很容易補不完整</li>
+</ul>
+<p><strong>只換外觀、不換語意</strong>，是這個元件唯一的設計目的。</p>
+<h2>10 用法與禁用法</h2>
+<p><strong>用它</strong>：<code>Toggle(...).toggleStyle(.tlSwitch)</code>。設定頁請直接用 <code>TLSettingsToggleRow</code>，
+它已經包好了。</p>
+<p><strong>易混淆</strong>：<code>TLCheckCircle</code>（清單裡的選取記號）—— 開關表達「這個功能開著嗎」，
+勾號表達「這一項被選了嗎」。前者是設定，後者是選擇。</p>
+<p><strong>不要用它</strong>：
+- 自繪一個看起來一樣的按鈕 —— 會失去 switch 的無障礙語意與測試可定位性
+- 用系統預設樣式 —— 見第 6 節
+- 拿它表達「選中」—— 那是 <code>TLCheckCircle</code></p>
+<h2>11 組成 ★</h2>
+<p>N/A（L1 原子）。</p>
+<h2>12 變更紀錄</h2>
+<table>
+<thead>
+<tr>
+<th>日期</th>
+<th>改動</th>
+<th>原因</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>2026-08-30</td>
+<td>從 <code>Components/</code> 移到 <code>Atoms/</code></td>
+<td>分層落地。設計文件本來就把它列為 L1（<code>TLSwitch</code>）</td>
+</tr>
+<tr>
+<td>2026-08-30</td>
+<td>顏色改用語意 token（<code>actionPrimary</code>／<code>surfaceInput</code>／<code>surfaceBase</code>／<code>surfaceRaised</code>）</td>
+<td>才有深色的位置</td>
+</tr>
+<tr>
+<td>2026-08-30</td>
+<td><strong>動畫 <code>0.18</code> 收斂到 <code>motion.base</code>(0.2)</strong></td>
+<td>那是全專案唯一的落單動畫值，第一輪就記進 token 的 <code>_note</code> 說「收斂前不要新增第四個值」。0.02 秒的差異不可感知，而多一個值就是多一份要維護的分歧</td>
+</tr>
+</tbody>
+</table>

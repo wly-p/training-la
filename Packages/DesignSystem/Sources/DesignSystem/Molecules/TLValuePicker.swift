@@ -52,7 +52,7 @@ public struct TLValuePicker: View {
     }
 
     public var body: some View {
-        VStack(spacing: 16) {
+        VStack(spacing: TLSpace.pickerGap) {
             if let kicker {
                 Text(kicker)
                     .font(TLFont.zh(TLFont.kicker, .semibold))
@@ -94,15 +94,15 @@ public struct TLValuePicker: View {
                             .font(TLFont.zh(TLFont.rowTitle, .semibold))
                             .foregroundStyle(TLColor.accent700)
                             .frame(width: max(available * action.flex / totalFlex, 0))
-                            .padding(.vertical, 12)
+                            .padding(.vertical, TLSpace.chipPadV)
                             .background(Capsule().fill(TLColor.neutral100))
-                            .overlay(Capsule().strokeBorder(TLColor.text.opacity(0.10), lineWidth: 1))
+                            .overlay(Capsule().strokeBorder(TLColor.text.opacity(0.10), lineWidth: TLSize.hairline))
                             .contentShape(Capsule())
                     }
                     .buttonStyle(.plain)
                 }
             }
         }
-        .frame(height: 44)
+        .frame(height: TLSize.quickActionRow)
     }
 }

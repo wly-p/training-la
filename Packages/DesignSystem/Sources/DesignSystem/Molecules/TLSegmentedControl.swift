@@ -7,25 +7,25 @@ import SwiftUI
 ///
 /// `compact`＝設定列右側（重量單位）：它只是「一個欄位的值」，跟同組其他列的值文字同級。
 /// 拿掉 shadow、縮 padding，整顆高 26pt 才不會把 56pt 的列撐高、也不會變成全頁最亮的元素。
-public enum TLSegmentedControlSize: Sendable {
-    case regular, compact
-
-    var trackPadding: CGFloat { self == .regular ? 4 : 2 }
-    var itemPaddingV: CGFloat { self == .regular ? 10 : 5 }
-    /// `nil`＝每項平分寬度（全寬用）；有值＝依內容寬 ＋ 這個左右 padding。
-    var itemPaddingH: CGFloat? { self == .regular ? nil : 13 }
-    var fontSize: CGFloat { self == .regular ? TLFont.rowTitle : 12 }
-    var selectedShadow: TLShadow.Style? { self == .regular ? TLShadow.sm : nil }
-}
-
 /// 模板 5：分段控制。
 /// 軌道：capsule、`neutral-200`、padding 4。
 /// 選中項：`bg` 白底 capsule ＋ shadow-sm、weight 700。
 /// 未選：weight 500、`neutral-600`。每項垂直 padding 10。
 /// 切換時選中膠囊滑動過去（0.2s ease-out）。
 ///
-/// 設定列裡請用 `size: .compact`（見 `TLSegmentedControlSize`）。
+/// 設定列裡請用 `size: .compact`（見 `Size`）。
 public struct TLSegmentedControl<Value: Hashable>: View {
+    public enum Size: Sendable {
+        case regular, compact
+
+        var trackPadding: CGFloat { self == .regular ? TLSpace.segTrackPad : TLSpace.segTrackPadCompact }
+        var itemPaddingV: CGFloat { self == .regular ? TLSpace.segItemPadV : TLSpace.segItemPadVCompact }
+        /// `nil`＝每項平分寬度（全寬用）；有值＝依內容寬 ＋ 這個左右 padding。
+        var itemPaddingH: CGFloat? { self == .regular ? nil : TLSpace.segItemPadH }
+        var fontSize: CGFloat { self == .regular ? TLFont.rowTitle : TLFont.segCompact }
+        var selectedShadow: TLShadow.Style? { self == .regular ? TLShadow.sm : nil }
+    }
+
     public struct Option: Identifiable {
         public let value: Value
         public let label: Text
@@ -48,14 +48,14 @@ public struct TLSegmentedControl<Value: Hashable>: View {
     /// （例：`history.segment.byExercise`）。段落文字會跟著語言換，UI test 要靠 id 定位。
     /// 呼叫端決定前綴——同一個元件在多個畫面用，寫死在元件裡就撞名了。
     private let identifierPrefix: String?
-    private let size: TLSegmentedControlSize
+    private let size: Size
     @Namespace private var pill
 
     public init(
         selection: Binding<Value>,
         options: [Option],
         identifierPrefix: String? = nil,
-        size: TLSegmentedControlSize = .regular
+        size: Size = .regular
     ) {
         self._selection = selection
         self.options = options

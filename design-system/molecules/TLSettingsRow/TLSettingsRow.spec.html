@@ -1,0 +1,337 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>TLSettingsRow</title>
+<link rel="stylesheet" href="../../tokens/tokens.css">
+<link rel="stylesheet" href="../../preview.css">
+<style>
+  body { max-width: 62rem; line-height: 1.7; }
+  h1, h2, h3 { font-family: var(--font-page-title-family); line-height: 1.35; }
+  h1 { font-size: var(--font-page-title); margin: 0 0 var(--space-gap-l); }
+  h2 { font-size: var(--font-card-title); margin: var(--space-section) 0 var(--space-gap-m);
+       padding-top: var(--space-gap-m); border-top: 1px solid var(--border-subtle); }
+  h3 { font-size: var(--font-row-title); margin: var(--space-gap-l) 0 var(--space-gap-s); }
+  a { color: var(--accent-on-surface); }
+  table { border-collapse: collapse; width: 100%; margin: var(--space-gap-m) 0;
+          display: block; overflow-x: auto; }
+  th, td { text-align: left; padding: var(--space-gap-s) var(--space-gap-m);
+           border-bottom: 1px solid var(--border-subtle); vertical-align: top; }
+  th { font-size: var(--font-kicker); letter-spacing: var(--font-kicker-tracking);
+       text-transform: uppercase; color: var(--text-tertiary); }
+  pre { background: var(--surface-raised); border-radius: var(--radius-inner);
+        padding: var(--space-gap-m); overflow-x: auto; }
+  pre code { background: none; padding: 0; }
+  blockquote { margin: var(--space-gap-m) 0; padding-left: var(--space-gap-m);
+               border-left: 3px solid var(--border-subtle); color: var(--text-secondary); }
+  .back { font-size: var(--font-row-sub); margin-bottom: var(--space-gap-l); display: block; }
+</style>
+<a class="back" href="../../index.html">← 元件庫索引</a>
+<h1>TLSettingsRow</h1>
+<h2>1 身分</h2>
+<table>
+<thead>
+<tr>
+<th></th>
+<th></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>層級</td>
+<td>L2 分子</td>
+</tr>
+<tr>
+<td>職責</td>
+<td>設定頁的一列：一個名稱、一個目前的值、可能通往下一層</td>
+</tr>
+<tr>
+<td>原型 id</td>
+<td><code>4b</code></td>
+</tr>
+<tr>
+<td>獨立使用</td>
+<td><strong>否 —— 必須置於 <code>TLGroup</code> 之內</strong></td>
+</tr>
+<tr>
+<td>容器責任</td>
+<td>圓角、底色、與相鄰列的分隔線由 <code>TLGroup</code> 負責</td>
+</tr>
+<tr>
+<td>實作</td>
+<td><code>Packages/DesignSystem/Sources/DesignSystem/Molecules/TLSettingsRow.swift</code></td>
+</tr>
+<tr>
+<td>Preview</td>
+<td><code>design-system/molecules/TLSettingsRow/TLSettingsRow.preview.html</code></td>
+</tr>
+</tbody>
+</table>
+<h2>2 介面 ★</h2>
+<p><strong>Props</strong></p>
+<table>
+<thead>
+<tr>
+<th>名稱</th>
+<th>型別</th>
+<th>值域</th>
+<th>必填</th>
+<th>預設</th>
+<th>說明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>title</code></td>
+<td><code>Text</code></td>
+<td></td>
+<td>是</td>
+<td>—</td>
+<td>列名</td>
+</tr>
+<tr>
+<td><code>hint</code></td>
+<td><code>Text?</code></td>
+<td></td>
+<td>否</td>
+<td><code>nil</code></td>
+<td>標題後方同一行的小灰字（短詞，如「含震動」）</td>
+</tr>
+<tr>
+<td><code>systemImage</code></td>
+<td><code>String?</code></td>
+<td></td>
+<td>否</td>
+<td><code>nil</code></td>
+<td>左側 SF Symbol。破壞性列用它放垃圾桶</td>
+</tr>
+<tr>
+<td><code>role</code></td>
+<td><code>Role</code></td>
+<td><code>normal</code> / <code>destructive</code></td>
+<td>否</td>
+<td><code>normal</code></td>
+<td>見第 3 節</td>
+</tr>
+<tr>
+<td><code>showChevron</code></td>
+<td><code>Bool</code></td>
+<td></td>
+<td>否</td>
+<td><code>false</code></td>
+<td>是否通往下一層</td>
+</tr>
+<tr>
+<td><code>accessibilityValue</code></td>
+<td><code>Text?</code></td>
+<td></td>
+<td>否</td>
+<td><code>nil</code></td>
+<td>給 VoiceOver 的「目前值」。drill-in 列<strong>應該傳</strong></td>
+</tr>
+<tr>
+<td><code>trailingGap</code></td>
+<td><code>CGFloat</code></td>
+<td>只吃 <code>space.*</code> token</td>
+<td>否</td>
+<td><code>space.gapS</code></td>
+<td>trailing 與 chevron 的間距</td>
+</tr>
+<tr>
+<td><code>onTap</code></td>
+<td><code>(() -&gt; Void)?</code></td>
+<td></td>
+<td>否</td>
+<td><code>nil</code></td>
+<td>點整列。<code>nil</code> ＝ 不可點</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Slots</strong> — <code>trailing</code>：右側內容。放 <code>TLSettingsValue</code>（文字值）或 <code>TLSegmentedControl</code>（就地切換）。
+<strong>事件</strong> — <code>onTap</code></p>
+<h2>3 變體 variants</h2>
+<table>
+<thead>
+<tr>
+<th>變體</th>
+<th>說明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>normal</code></td>
+<td>一般列</td>
+</tr>
+<tr>
+<td><code>destructive</code></td>
+<td>破壞性操作。標題轉 <code>dangerOnSurface</code>、字重加粗、通常配左側垃圾桶圖示。<strong>沒有 chevron</strong> —— 它就地執行，不通往任何地方</td>
+</tr>
+</tbody>
+</table>
+<h2>4 狀態 states ★</h2>
+<!-- states: default, pressed, tappable, static -->
+<!-- themes: light, dark -->
+
+<table>
+<thead>
+<tr>
+<th>類別</th>
+<th>狀態</th>
+<th>這個元件</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>互動</td>
+<td>default / pressed / disabled / focused</td>
+<td><strong>default 與 pressed。</strong> <code>onTap</code> 為 <code>nil</code> 時整列不可點（<code>static</code>）。<strong>沒有 disabled</strong> —— 目前設定頁沒有「暫時不能改」的列；真要做要先補設計（灰掉的列跟不可點的列看起來會一樣，那是問題）</td>
+</tr>
+<tr>
+<td>選取</td>
+<td>selected / unselected / indeterminate</td>
+<td>N/A —— 選取是 <code>TLListRow</code> ＋ <code>TLCheckCircle</code> 的事</td>
+</tr>
+<tr>
+<td>資料</td>
+<td>empty / loading / error</td>
+<td>N/A</td>
+</tr>
+<tr>
+<td>內容極值</td>
+<td>最短 / 最長 / 溢出</td>
+<td>標題與 trailing 競爭同一行。<strong>標題先讓</strong></td>
+</tr>
+<tr>
+<td>主題</td>
+<td>light / dark</td>
+<td>兩者都有</td>
+</tr>
+<tr>
+<td>語言</td>
+<td>中文 / 英文</td>
+<td>英文標題與值都較長，同時變長時最容易擠</td>
+</tr>
+</tbody>
+</table>
+<h2>5 度量</h2>
+<table>
+<thead>
+<tr>
+<th></th>
+<th></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>列高</td>
+<td><code>size.row</code>（最小值，內容可撐高）</td>
+</tr>
+<tr>
+<td>左右內距</td>
+<td><code>space.rowInset</code></td>
+</tr>
+<tr>
+<td>標題字級</td>
+<td><code>type.rowTitle</code></td>
+</tr>
+<tr>
+<td>左側圖示</td>
+<td><code>type.rowIcon</code> ＋ <code>semibold</code>，右側留 <code>space.sectionHeaderGap</code></td>
+</tr>
+<tr>
+<td>標題與 hint 之間</td>
+<td><code>space.titleHintGap</code></td>
+</tr>
+<tr>
+<td>trailing 與 chevron 之間</td>
+<td><code>trailingGap</code>（預設 <code>space.gapS</code>）</td>
+</tr>
+<tr>
+<td>最小寬度</td>
+<td>標題可壓到換行；trailing 不縮</td>
+</tr>
+<tr>
+<td>壓縮行為</td>
+<td><strong>標題先讓</strong> —— 值是這一列的答案</td>
+</tr>
+</tbody>
+</table>
+<p><strong>列高是 <code>minHeight</code> 不是固定值</strong>：<code>TLSegmentedControl</code> 之類的 trailing 比文字高，
+列會跟著長。<code>handoff-20</code> §B 把分段控制改矮就是為了讓它<strong>不要</strong>撐高這一列。</p>
+<h2>6 配色 ★</h2>
+<table>
+<thead>
+<tr>
+<th>用途</th>
+<th>token</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>標題（normal）</td>
+<td><code>textPrimary</code></td>
+</tr>
+<tr>
+<td>標題（destructive）</td>
+<td><code>dangerOnSurface</code></td>
+</tr>
+<tr>
+<td>hint</td>
+<td><code>textTertiary</code></td>
+</tr>
+<tr>
+<td>按下態底色</td>
+<td><code>textPrimary</code> @ 6%</td>
+</tr>
+</tbody>
+</table>
+<h2>7 文字行為</h2>
+<p><strong>溢出</strong>：標題可換行，不主動截斷。</p>
+<p><strong>多語系寬度</strong>：這是設定頁最容易出問題的地方 —— 英文的標題與值同時變長。
+排版要用「最長英文標題 ＋ 最長英文值」檢查。</p>
+<p><strong>Dynamic Type</strong>：應跟隨。列高是 <code>minHeight</code> 所以放大不會裁切，但左右方向會更擠。</p>
+<h2>8 動態</h2>
+<p>按下時底色淡入，<code>motion.fast</code>。<strong>沒有縮放</strong> —— 列是大面積元素，縮放會很晃。</p>
+<h2>9 無障礙</h2>
+<ul>
+<li><strong>drill-in 列一定要傳 <code>accessibilityValue</code></strong>，讓 VoiceOver 念出「標籤＋目前值」
+  （例：「主題，深色」）。少傳的話使用者要進到下一頁才知道現在選什麼。</li>
+<li><code>onTap</code> 不為 <code>nil</code> 時列有 button trait；為 <code>nil</code> 時是純靜態文字。</li>
+<li><code>hint</code> 不計入無障礙標籤 —— 它是視覺補充，念出來會太囉唆。</li>
+<li><code>accessibilityIdentifier</code> 由呼叫端加（例：<code>settings.row.theme</code>）。</li>
+</ul>
+<h2>10 用法與禁用法</h2>
+<p><strong>用它</strong>：設定頁的列。</p>
+<p><strong>易混淆</strong>：<code>TLListRow</code>（列表列）—— 那個有圓章、副標、可選取，用在<strong>資料清單</strong>；
+這個沒有圓章、右側是「目前的值」，用在<strong>設定</strong>。看到圓章就是 <code>TLListRow</code>。</p>
+<p><strong>不要用它</strong>：
+- 開關列 —— 用 <code>TLSettingsToggleRow</code>，它底層是 <code>Toggle</code>，保留 switch 的無障礙語意
+- destructive ＋ chevron 並存 —— 破壞性操作就地執行，不通往任何地方
+- 放在 <code>TLGroup</code> 外面 —— 會失去圓角、底色與分隔線</p>
+<h2>11 組成 ★</h2>
+<p>由 <code>TLChevron</code>（L1）組成；trailing 通常放 <code>TLSettingsValue</code>（L1）或 <code>TLSegmentedControl</code>（L2）。</p>
+<h2>12 變更紀錄</h2>
+<table>
+<thead>
+<tr>
+<th>日期</th>
+<th>改動</th>
+<th>原因</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>2026-08-30</td>
+<td>從三合一的 <code>TLSettingsRow.swift</code> 拆出</td>
+<td>那個檔有 3 個 public 元件</td>
+</tr>
+<tr>
+<td>2026-08-30</td>
+<td>內部字面值 <code>17</code>／<code>15</code>／<code>10</code>／<code>6</code> 改成 token</td>
+<td>元件內部的字面值也是字面值</td>
+</tr>
+<tr>
+<td>2026-08-30</td>
+<td><strong><code>handoff-20</code> §B 要求的「我的能力值右側狀態值」尚未實作</strong></td>
+<td>那一列右側目前是空的。設計端確認<strong>另開票</strong>處理 —— 它是功能改動不是榨取，混進來會讓「視覺零變化」失去驗證能力</td>
+</tr>
+</tbody>
+</table>

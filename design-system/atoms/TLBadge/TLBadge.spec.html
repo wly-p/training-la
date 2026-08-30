@@ -1,0 +1,292 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>TLBadge</title>
+<link rel="stylesheet" href="../../tokens/tokens.css">
+<link rel="stylesheet" href="../../preview.css">
+<style>
+  body { max-width: 62rem; line-height: 1.7; }
+  h1, h2, h3 { font-family: var(--font-page-title-family); line-height: 1.35; }
+  h1 { font-size: var(--font-page-title); margin: 0 0 var(--space-gap-l); }
+  h2 { font-size: var(--font-card-title); margin: var(--space-section) 0 var(--space-gap-m);
+       padding-top: var(--space-gap-m); border-top: 1px solid var(--border-subtle); }
+  h3 { font-size: var(--font-row-title); margin: var(--space-gap-l) 0 var(--space-gap-s); }
+  a { color: var(--accent-on-surface); }
+  table { border-collapse: collapse; width: 100%; margin: var(--space-gap-m) 0;
+          display: block; overflow-x: auto; }
+  th, td { text-align: left; padding: var(--space-gap-s) var(--space-gap-m);
+           border-bottom: 1px solid var(--border-subtle); vertical-align: top; }
+  th { font-size: var(--font-kicker); letter-spacing: var(--font-kicker-tracking);
+       text-transform: uppercase; color: var(--text-tertiary); }
+  pre { background: var(--surface-raised); border-radius: var(--radius-inner);
+        padding: var(--space-gap-m); overflow-x: auto; }
+  pre code { background: none; padding: 0; }
+  blockquote { margin: var(--space-gap-m) 0; padding-left: var(--space-gap-m);
+               border-left: 3px solid var(--border-subtle); color: var(--text-secondary); }
+  .back { font-size: var(--font-row-sub); margin-bottom: var(--space-gap-l); display: block; }
+</style>
+<a class="back" href="../../index.html">← 元件庫索引</a>
+<h1>TLBadge</h1>
+<h2>1 身分</h2>
+<table>
+<thead>
+<tr>
+<th></th>
+<th></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>層級</td>
+<td>L1 原子</td>
+</tr>
+<tr>
+<td>職責</td>
+<td>列左側的圓章 —— 用一個字或數字代表這一項</td>
+</tr>
+<tr>
+<td>原型 id</td>
+<td><code>4c</code> <code>5b</code> <code>9c</code></td>
+</tr>
+<tr>
+<td>獨立使用</td>
+<td><strong>否 —— 必須置於 <code>TLListRow</code> 的 leading</strong></td>
+</tr>
+<tr>
+<td>容器責任</td>
+<td>位置與間距由列負責</td>
+</tr>
+<tr>
+<td>實作</td>
+<td><code>Packages/DesignSystem/Sources/DesignSystem/Atoms/TLBadge.swift</code></td>
+</tr>
+<tr>
+<td>Preview</td>
+<td><code>design-system/atoms/TLBadge/TLBadge.preview.html</code></td>
+</tr>
+</tbody>
+</table>
+<h2>2 介面 ★</h2>
+<p><strong>Props</strong></p>
+<table>
+<thead>
+<tr>
+<th>名稱</th>
+<th>型別</th>
+<th>值域</th>
+<th>必填</th>
+<th>預設</th>
+<th>說明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>fill</code></td>
+<td><code>Color</code></td>
+<td>只吃語意 token</td>
+<td>否</td>
+<td><code>categoryTag</code> 的淺階</td>
+<td>圓章底色</td>
+</tr>
+<tr>
+<td><code>size</code></td>
+<td><code>CGFloat</code></td>
+<td>只吃 <code>size.*</code> token</td>
+<td>否</td>
+<td><code>size.badge</code></td>
+<td>直徑</td>
+</tr>
+<tr>
+<td><code>muscle</code></td>
+<td><code>String</code></td>
+<td></td>
+<td>—</td>
+<td>—</td>
+<td>便利建構子：填一個分類字</td>
+</tr>
+<tr>
+<td><code>count</code></td>
+<td><code>Int</code></td>
+<td></td>
+<td>—</td>
+<td>—</td>
+<td>便利建構子：填一個數字</td>
+</tr>
+<tr>
+<td><code>systemName</code></td>
+<td><code>String</code></td>
+<td></td>
+<td>—</td>
+<td>—</td>
+<td>便利建構子：填一個 SF Symbol</td>
+</tr>
+<tr>
+<td><code>tint</code></td>
+<td><code>Color</code></td>
+<td>只吃語意 token</td>
+<td>否</td>
+<td>分類色的深階</td>
+<td>圖示建構子的前景色</td>
+</tr>
+</tbody>
+</table>
+<p>前四個是<strong>互斥的便利建構子</strong>，各自對應第 3 節的一種填法。<code>fill</code>／<code>size</code>／<code>tint</code> 是共用的調整項。</p>
+<p><strong>Slots</strong> — <code>content</code>：圓章裡的內容。三種便利建構子分別填字、數字、圖示。
+<strong>事件</strong> — N/A（點擊由整列承接）</p>
+<h2>3 變體 variants</h2>
+<p>三個便利建構子，不是變體 —— 它們填的是同一個 slot：</p>
+<table>
+<thead>
+<tr>
+<th>建構子</th>
+<th>內容</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>init(muscle:)</code></td>
+<td>一個分類字（<code>type.badgeText</code>）</td>
+</tr>
+<tr>
+<td><code>init(count:)</code></td>
+<td>一個數字（<code>type.rowNumber</code>，display 家族）</td>
+</tr>
+<tr>
+<td><code>init(fill:content:)</code></td>
+<td>任意內容（圖示）</td>
+</tr>
+</tbody>
+</table>
+<h2>4 狀態 states ★</h2>
+<!-- states: default -->
+<!-- themes: light, dark -->
+
+<table>
+<thead>
+<tr>
+<th>類別</th>
+<th>狀態</th>
+<th>這個元件</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>互動</td>
+<td>default / pressed / disabled / focused</td>
+<td><strong>只有 default。</strong> 按下態由整列表現</td>
+</tr>
+<tr>
+<td>選取</td>
+<td>selected / unselected / indeterminate</td>
+<td>N/A —— 選取用 <code>TLCheckCircle</code>，兩者不會同時出現在 leading</td>
+</tr>
+<tr>
+<td>資料</td>
+<td>empty / loading / error</td>
+<td>N/A —— 沒有內容就不要放這個元件</td>
+</tr>
+<tr>
+<td>內容極值</td>
+<td>1 字 / 2 字 / 數字位數</td>
+<td><strong>1–2 個字</strong>。3 字以上會溢出圓形，那時該重新想這個分類的縮寫</td>
+</tr>
+<tr>
+<td>主題</td>
+<td>light / dark</td>
+<td>兩者都有</td>
+</tr>
+<tr>
+<td>語言</td>
+<td>中文 / 英文</td>
+<td>中文一字即可；英文縮寫通常 2–3 字母，<strong>這是最容易溢出的組合</strong></td>
+</tr>
+</tbody>
+</table>
+<h2>5 度量</h2>
+<table>
+<thead>
+<tr>
+<th></th>
+<th></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>直徑</td>
+<td><code>size.badge</code></td>
+</tr>
+<tr>
+<td>圓角</td>
+<td><code>radius.pill</code>（正圓）</td>
+</tr>
+<tr>
+<td>文字字級</td>
+<td><code>type.badgeText</code>（分類字）／ <code>type.rowNumber</code>（數字）</td>
+</tr>
+</tbody>
+</table>
+<h2>6 配色 ★</h2>
+<table>
+<thead>
+<tr>
+<th>用途</th>
+<th>token</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>底（預設）</td>
+<td><code>categoryTag</code> 的淺階</td>
+</tr>
+<tr>
+<td>文字</td>
+<td><code>categoryTag</code> 的深階</td>
+</tr>
+</tbody>
+</table>
+<p><strong>分類色是鼠尾草綠不是赭紅</strong> —— 赭紅保留給「可操作的東西」。
+圓章是標示不是動作，所以用分類色。</p>
+<h2>7 文字行為</h2>
+<p><strong>溢出</strong>：不截斷，會撐出圓形。這是設計上的訊號 ——
+如果縮寫塞不下，該改的是縮寫不是元件。</p>
+<p><strong>多語系寬度</strong>：英文縮寫比中文長。設計分類縮寫時要同時想中英兩版。</p>
+<p><strong>Dynamic Type</strong>：不跟隨。圓章是固定尺寸的視覺標記，跟著字級長大會讓列高失控。</p>
+<h2>8 動態</h2>
+<p>無轉場。</p>
+<h2>9 無障礙</h2>
+<ul>
+<li><strong>自己不掛 label</strong>。圓章的內容通常是縮寫（「胸」「3」），單獨念出來沒有意義；
+  完整資訊在列的標題與副標裡。</li>
+<li>應該對 VoiceOver 隱藏，或由列統一組成一句話。</li>
+</ul>
+<h2>10 用法與禁用法</h2>
+<p><strong>用它</strong>：清單列需要一個視覺錨點來快速分辨類別或數量時。</p>
+<p><strong>易混淆</strong>：<code>TLIconThumbnail</code>（列裡的方形圖片）—— 圓章是<strong>字或數字</strong>（抽象標示），
+縮圖是<strong>圖片</strong>（具體預覽）。形狀也不同：圓 vs 方。</p>
+<p><strong>不要用它</strong>：
+- 放 3 個字以上 —— 會撐出圓形
+- 當可點的按鈕 —— 它是標示，點擊屬於整列
+- 用赭紅底 —— 那個顏色保留給可操作的東西</p>
+<h2>11 組成 ★</h2>
+<p>N/A（L1 原子）。</p>
+<h2>12 變更紀錄</h2>
+<table>
+<thead>
+<tr>
+<th>日期</th>
+<th>改動</th>
+<th>原因</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>2026-08-30</td>
+<td>從四合一的 <code>TLListRow.swift</code> 拆成獨立檔</td>
+<td>那個檔有 4 個 public 元件</td>
+</tr>
+<tr>
+<td>2026-08-30</td>
+<td>內部字級 <code>12</code>／<code>16</code>／<code>15</code> 改成 <code>type.badgeText</code>／<code>type.rowNumber</code>／<code>type.rowTitle</code></td>
+<td>元件內部的字面值也是字面值</td>
+</tr>
+</tbody>
+</table>

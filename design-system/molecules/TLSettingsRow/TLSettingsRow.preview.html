@@ -1,0 +1,76 @@
+<!-- @dsCard group="Molecules" name="TLSettingsRow" subtitle="設定頁的一列" -->
+<!doctype html>
+<meta charset="utf-8">
+<title>TLSettingsRow</title>
+<link rel="stylesheet" href="../../tokens/tokens.css">
+<link rel="stylesheet" href="../../preview.css">
+<style>
+  .val { font-size: var(--font-row-value); color: var(--text-secondary); }
+  .hint { font-size: var(--font-row-sub); color: var(--text-tertiary); }
+  .chev { color: var(--text-tertiary); width: var(--icon-s); height: var(--icon-s);
+          stroke-width: var(--icon-stroke); }
+  .row.pressed { background: var(--border-subtle); }
+  .label.danger { color: var(--danger-on-surface); font-weight: 600; }
+  .ico { margin-right: var(--space-section-header-gap); }
+  .seg { display: inline-flex; background: var(--surface-track);
+         border-radius: var(--radius-pill); padding: var(--space-hairline, 2px); }
+  .seg span { padding: var(--space-gap-s) var(--space-gap-m); border-radius: var(--radius-pill);
+              font-size: var(--font-row-sub); color: var(--text-secondary); }
+  .seg .on { background: var(--surface-base); color: var(--text-primary); font-weight: 700; }
+</style>
+<h1>TLSettingsRow</h1>
+<p class="note">
+  L2 分子。設定頁的一列：名稱、目前的值、可能通往下一層。<br>
+  列高是 <b>minHeight 不是固定值</b> —— 分段控制之類的 trailing 比文字高時列會跟著長。
+</p>
+
+<div class="kicker">狀態</div>
+<div class="group">
+  <div class="row" data-state="default"><span class="label">主題</span>
+    <span class="val">深色</span><svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg></div>
+  <div class="row pressed" data-state="pressed"><span class="label">按下 —— 底色淡入，不縮放</span>
+    <span class="val">深色</span><svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg></div>
+  <div class="row" data-state="tappable"><span class="label">可點（有 chevron）</span>
+    <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg></div>
+  <div class="row" data-state="static"><span class="label">不可點（就地切換）</span>
+    <span class="seg"><span class="on">kg</span><span>lb</span></span></div>
+</div>
+
+<div class="kicker">變體</div>
+<div class="group">
+  <div class="row"><span class="label">normal</span><span class="val">值</span></div>
+  <div class="row"><span class="label danger"><span class="ico">🗑</span>刪除所有資料</span></div>
+</div>
+<p class="note">
+  destructive <b>沒有 chevron</b> —— 它就地執行，不通往任何地方。
+</p>
+
+<div class="kicker">hint（標題後方的小字）</div>
+<div class="group">
+  <div class="row"><span class="label">聲音 <span class="hint">含震動</span></span>
+    <span class="val">開</span></div>
+</div>
+
+<div class="kicker">主題</div>
+<div class="themes">
+  <div class="pane" data-theme="light">
+    <div class="kicker">light</div>
+    <div class="group"><div class="row"><span class="label">主題</span><span class="val">深色</span></div></div>
+  </div>
+  <div class="pane" data-theme="dark">
+    <div class="kicker">dark（目前是 light 的複製）</div>
+    <div class="group"><div class="row"><span class="label">主題</span><span class="val">深色</span></div></div>
+  </div>
+</div>
+
+<div class="kicker">不適用的狀態</div>
+<p class="note">
+  <b>disabled</b> —— 目前設定頁沒有「暫時不能改」的列。真要做要先補設計：
+  灰掉的列跟不可點的列看起來會一樣，那是問題。<br>
+  focused —— 沒有鍵盤導航情境。<br>
+  selected —— 選取是 <code>TLListRow</code> ＋ <code>TLCheckCircle</code> 的事。<br>
+  empty／loading／error —— 沒有資料輸入。
+</p>

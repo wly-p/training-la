@@ -22,8 +22,8 @@ public struct TLSettingsToggleRow: View {
 
     public var body: some View {
         Toggle(isOn: $isOn) {
-            VStack(alignment: .leading, spacing: 3) {
-                HStack(alignment: .firstTextBaseline, spacing: 6) {
+            VStack(alignment: .leading, spacing: TLSpace.titleSubGap) {
+                HStack(alignment: .firstTextBaseline, spacing: TLSpace.titleHintGap) {
                     title
                         .font(TLFont.zh(TLFont.rowTitle))
                         .foregroundStyle(TLColor.text)

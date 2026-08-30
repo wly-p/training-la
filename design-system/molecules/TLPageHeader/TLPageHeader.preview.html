@@ -1,0 +1,72 @@
+<!-- @dsCard group="Molecules" name="TLPageHeader" subtitle="頁面主標" -->
+<!doctype html>
+<meta charset="utf-8">
+<title>TLPageHeader</title>
+<link rel="stylesheet" href="../../tokens/tokens.css">
+<link rel="stylesheet" href="../../preview.css">
+<style>
+  .screen { padding-bottom: var(--space-gap-l); }
+  .ph-row { display: flex; align-items: baseline; gap: var(--space-gap-m);
+            padding: 0 var(--space-page); }
+  .ph-row .pagehead { flex: 1; padding: 0; }
+  .ph-kicker { font-size: var(--font-kicker); letter-spacing: var(--font-kicker-tracking);
+               text-transform: uppercase; color: var(--action-pressed);
+               padding: 0 var(--space-page); margin-bottom: var(--space-kicker-gap); }
+  .btn-accent { width: var(--size-icon-button); height: var(--size-icon-button);
+                border-radius: var(--radius-pill); background: var(--action-primary);
+                color: var(--surface-base); flex: none;
+                display: flex; align-items: center; justify-content: center; }
+</style>
+<h1>TLPageHeader</h1>
+<p class="note">
+  L2 分子。頁面主標，回答「這是哪裡」。<br>
+  三種填法共用同一個 API：純標題、標題＋右側圓鈕、標題＋上方 kicker。
+</p>
+
+<div class="kicker">狀態</div>
+<div class="screen" data-state="default">
+  <div class="pagehead">今天練什麼</div>
+</div>
+
+<div class="kicker">三種填法</div>
+<div class="screen">
+  <div class="pagehead">設定</div>
+</div>
+<div class="screen" style="margin-top: var(--space-gap-m)">
+  <div class="ph-row">
+    <span class="pagehead">動作庫</span>
+    <span class="btn-accent">＋</span>
+  </div>
+</div>
+<div class="screen" style="margin-top: var(--space-gap-m)">
+  <div class="ph-kicker">本週</div>
+  <div class="pagehead">歷史</div>
+</div>
+<p class="note">
+  kicker 用 accent 而不是灰 —— 它是「這一頁屬於哪個脈絡」，是資訊不是裝飾。
+  這也是它跟 <code>TLSectionHeader</code> 的差異（那個預設是灰的）。
+</p>
+
+<div class="kicker">內容極值</div>
+<div class="screen">
+  <div class="pagehead">主標允許兩行，超過就截斷</div>
+</div>
+<p class="note">英文主標普遍較長，兩行的情況比中文常見。有 accessory 時可用空間更少。</p>
+
+<div class="kicker">主題</div>
+<div class="themes">
+  <div class="pane" data-theme="light">
+    <div class="kicker">light</div>
+    <div class="screen"><div class="ph-kicker">本週</div><div class="pagehead">歷史</div></div>
+  </div>
+  <div class="pane" data-theme="dark">
+    <div class="kicker">dark（目前是 light 的複製）</div>
+    <div class="screen"><div class="ph-kicker">本週</div><div class="pagehead">歷史</div></div>
+  </div>
+</div>
+
+<div class="kicker">不適用的狀態</div>
+<p class="note">
+  pressed／disabled／focused —— 標題不可互動；accessory 的按下態由它自己處理。<br>
+  selected、empty／loading／error —— 標題是必填，沒有空狀態。
+</p>
