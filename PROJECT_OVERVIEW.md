@@ -68,8 +68,10 @@ training-la-web ────────────────(只透過網址
 
 ```
 Spec（動作庫）  Plan（課表）  Training（訓練）  History  Ability  Reminders  Settings
-                    ＋ SharedKernel（共用型別）  DesignSystem（元件與 token）
+                    ＋ SharedKernel（共用型別）  DesignSystem（元件庫）
 ```
+
+**元件庫是設計與 app 之間的樞紐**：UI 的定義權集中在 `DesignSystem`，各 package 的 Presentation 只引入、排列、堆疊，不自行定義元件或樣式；設計端與元件庫雙向同步，app 端單向消費。規則見 [`design-system/README.md`](design-system/README.md)。
 
 Domain 層純 Swift、無框架相依，可脫離 SwiftUI / SwiftData / 模擬器單測。**v0 依設計為純本地、刻意不串後端**，串接排在 v1。
 
@@ -134,4 +136,4 @@ Domain 層純 Swift、無框架相依，可脫離 SwiftUI / SwiftData / 模擬�
 
 - 後端為 private repo，資料表結構與部署細節未併入；本文件的後端資訊來自 client 契約與初始描述
 - 欄位級模型不複製進來（避免與生成碼漂移），以 `training-la-client-swift/docs/` 為準
-- UI/UX 設計方向未納入
+- UI/UX 的元件層規範已獨立成 [`design-system/README.md`](design-system/README.md)（正典）；本文件只保留架構層的摘要

@@ -45,7 +45,7 @@
 ## 分層與依賴規則（依賴只准往內指）
 
 ```
-Presentation (SwiftUI View + ViewModel)
+Presentation (SwiftUI View + ViewModel)   ← 只組合元件庫，不自行定義樣式
         │  依賴
         ▼
 Domain  (純 Swift：Entity struct + UseCase + Repository「protocol」)  ← 不 import 任何框架
@@ -87,7 +87,8 @@ Packages/
     Sources/
       RemindersDomain/    ← 純邏輯：偏好、channel ports、dispatcher（可被任何 domain import）
       RemindersKit/       ← 平台實作：UN 本地通知、系統音、UserDefaults（只有 App 接線時 import）
-  DesignSystem/           ← 共用 UI 元件與 design token（無 domain 邏輯；Tests/ 只放純函式）
+  DesignSystem/           ← 元件庫：Atoms/ Molecules/ ＋ 由 token 來源生成的 DesignTokens.swift
+                          （無 domain 邏輯；Tests/ 只放純函式。規格與 preview 在 design-system/）
 ```
 
 相依方向：`SpecData → SpecDomain`、`SpecPresentation → SpecDomain`、`SpecDomain → SharedKernel`。
@@ -96,6 +97,34 @@ Packages/
 例外是 `RemindersDomain`：它跟 SharedKernel 一樣是跨 domain 共用層（Training／Settings 都直接 import），
 但只含純 port 與偏好值型別；有副作用的實作全在 `RemindersKit`，僅 App 組裝時使用。
 未來要加新通知類型或 Apple Watch，是「換/加一組 channel 實作」，不動各 domain。
+
+## Presentation 層與元件庫
+
+UI 的定義權集中在元件庫，Presentation 只消費。完整定義見 **[`design-system/README.md`](design-system/README.md)**（正典）。
+
+```
+design ◄──sync & generate──► 元件庫(code) ──單向──► Presentation
+                                 ▲                      │
+                       唯一擁有定義權的樞紐      只能引入、排列、堆疊
+```
+
+三條不可違反的規則：
+
+1. **應用層不得定義新元件。** 畫面檔裡不得出現 hex、字級數字、硬編 padding／圓角／frame，
+   讀起來應該像一份組裝清單。真的需要新東西時走正典 §4 的出口判斷（能否由既有元件組成 →
+   需不需要 import domain model → 決定進元件庫還是該 package 的 `Presentation/Components/`），
+   **任何情況下都不准直接寫在畫面檔裡**。
+2. **元件必須窮舉狀態。** 規格要列完所有可能的樣子（互動／選取／資料／內容極值／主題／語言），
+   preview 要全部畫出來，不適用的**明確標記 N/A** 而不是省略——省略正是狀態遺失的方式。
+3. **L1／L2 不得認識 domain。** 元件庫裡沒有 `Exercise`／`Workout`／`Template`，元件只收
+   `String`／`Int`／`Bool`／closure。`DesignSystem` 不准 import 任何功能 package、不准 import SwiftData。
+   這是它能被五個 package 共用的前提，也是「改 A 頁不會弄壞 B 頁」的保證。
+
+分層與命名：L1 原子／L2 分子住 `DesignSystem`，一律 `TL` 前綴；L3 有機體綁自己 package 的 model，
+住各 package 的 `Presentation/Components/`，無前綴。**看名字就知道有沒有 domain 相依。**
+
+token 是生成物：唯一來源是 `design-system/tokens/tokens.json`，產出 `DesignTokens.swift` 與
+`tokens.css` 兩份，都不可手改。改一個顏色只改 json。
 
 ## 跨 domain 解耦（ports & adapters）
 
@@ -196,6 +225,8 @@ UI test 原本一律靠中文標籤查元素（`app.buttons["儲存"]`）。那�
   `exerciseForm.save`、`activeWorkout.completeSet`、`tabBar.item.training`、`picker.confirm`。
   早期有一派 camelCase 寫法（`libraryAddButton`、`eraseConfirmButton`），逐步收斂掉，不要再新增。
 - **只給測試真的要定位的元件加**，不是全畫面掛滿。
+- **identifier 屬於元件規格的第 9 節，跟著元件走**（見 `design-system/README.md` §6）。
+  同一個元件在哪個畫面用，`element` 那半就固定是同一個，不在畫面層各自發明。
 - **測試自己輸入的資料照舊用文字定位**（動作名、課表名）——那是測試自己打進去的字串，
   本來就與介面語言無關。
 - **斷言動態內容時只驗「帶這個 id 的元件存在」**，內容正確性歸 unit test。
