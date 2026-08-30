@@ -1,0 +1,258 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>TLProgressBar</title>
+<link rel="stylesheet" href="../../tokens/tokens.css">
+<link rel="stylesheet" href="../../preview.css">
+<style>
+  body { max-width: 62rem; line-height: 1.7; }
+  h1, h2, h3 { font-family: var(--font-page-title-family); line-height: 1.35; }
+  h1 { font-size: var(--font-page-title); margin: 0 0 var(--space-gap-l); }
+  h2 { font-size: var(--font-card-title); margin: var(--space-section) 0 var(--space-gap-m);
+       padding-top: var(--space-gap-m); border-top: 1px solid var(--border-subtle); }
+  h3 { font-size: var(--font-row-title); margin: var(--space-gap-l) 0 var(--space-gap-s); }
+  a { color: var(--accent-on-surface); }
+  table { border-collapse: collapse; width: 100%; margin: var(--space-gap-m) 0;
+          display: block; overflow-x: auto; }
+  th, td { text-align: left; padding: var(--space-gap-s) var(--space-gap-m);
+           border-bottom: 1px solid var(--border-subtle); vertical-align: top; }
+  th { font-size: var(--font-kicker); letter-spacing: var(--font-kicker-tracking);
+       text-transform: uppercase; color: var(--text-tertiary); }
+  pre { background: var(--surface-raised); border-radius: var(--radius-inner);
+        padding: var(--space-gap-m); overflow-x: auto; }
+  pre code { background: none; padding: 0; }
+  blockquote { margin: var(--space-gap-m) 0; padding-left: var(--space-gap-m);
+               border-left: 3px solid var(--border-subtle); color: var(--text-secondary); }
+  .back { font-size: var(--font-row-sub); margin-bottom: var(--space-gap-l); display: block; }
+</style>
+<a class="back" href="../../index.html">← 元件庫索引</a>
+<h1>TLProgressBar</h1>
+<h2>1 身分</h2>
+<table>
+<thead>
+<tr>
+<th></th>
+<th></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>層級</td>
+<td>L1 原子</td>
+</tr>
+<tr>
+<td>職責</td>
+<td>水平進度條</td>
+</tr>
+<tr>
+<td>原型 id</td>
+<td><code>13a</code> <code>13c</code> <code>5d</code></td>
+</tr>
+<tr>
+<td>獨立使用</td>
+<td>是</td>
+</tr>
+<tr>
+<td>容器責任</td>
+<td>寬度由容器決定（它撐滿）；上下間距由容器給</td>
+</tr>
+<tr>
+<td>實作</td>
+<td><code>Packages/DesignSystem/Sources/DesignSystem/Atoms/TLProgressBar.swift</code></td>
+</tr>
+<tr>
+<td>Preview</td>
+<td><code>design-system/atoms/TLProgressBar/TLProgressBar.preview.html</code></td>
+</tr>
+<tr>
+<td>Preview CSS</td>
+<td><code>components.preview.css</code> §TLProgressBar</td>
+</tr>
+</tbody>
+</table>
+<p><strong>組成</strong>：N/A（L1 原子）</p>
+<h2>2 介面 ★</h2>
+<p><strong>Props</strong></p>
+<table>
+<thead>
+<tr>
+<th>名稱</th>
+<th>型別</th>
+<th>值域</th>
+<th>必填</th>
+<th>預設</th>
+<th>說明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>ratio</code></td>
+<td><code>Double</code></td>
+<td><code>0</code>–<code>1</code>（元件內部夾住）</td>
+<td>是</td>
+<td>—</td>
+<td>進度。超出範圍會被夾到邊界，不會畫爆</td>
+</tr>
+<tr>
+<td><code>track</code></td>
+<td><code>Color</code></td>
+<td>只吃語意 token</td>
+<td>否</td>
+<td><code>surfaceTrack</code></td>
+<td>軌道色。見第 3 節</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Slots</strong> — N/A
+<strong>事件</strong> — N/A（唯讀）</p>
+<h2>3 變體 variants</h2>
+<p>無變體，但<strong>軌道色是 prop</strong>：</p>
+<table>
+<thead>
+<tr>
+<th>放在哪</th>
+<th>軌道</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>群組容器（<code>surfaceRaised</code> 底）</td>
+<td><code>surfaceTrack</code>（預設）</td>
+</tr>
+<tr>
+<td>卡片（更淺的底）</td>
+<td>呼叫端傳更淺的一階</td>
+</tr>
+</tbody>
+</table>
+<p><strong>為什麼軌道色要開成 prop</strong>：它會疊在不同底色上，軌道要比所在的底稍深才看得出來。
+寫死的話在其中一種底上會消失。</p>
+<h2>4 狀態 states ★</h2>
+<!-- states: empty, partial, full -->
+<!-- themes: light, dark -->
+
+<table>
+<thead>
+<tr>
+<th>類別</th>
+<th>狀態</th>
+<th>這個元件</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>互動</td>
+<td>default / pressed / disabled / focused</td>
+<td><strong>不可互動</strong>，唯讀顯示</td>
+</tr>
+<tr>
+<td>選取</td>
+<td>selected / unselected / indeterminate</td>
+<td>N/A</td>
+</tr>
+<tr>
+<td>資料</td>
+<td>empty / loading / error</td>
+<td><code>ratio</code> 0 是合法的（空進度）。沒有 loading／error —— 那要由呼叫端決定要不要顯示這個元件</td>
+</tr>
+<tr>
+<td>內容極值</td>
+<td>0 / 中間 / 1 / 超界</td>
+<td>超出 0–1 會被夾住，這是刻意的：進度算錯時寧可畫滿也不要畫出容器</td>
+</tr>
+<tr>
+<td>主題</td>
+<td>light / dark</td>
+<td>兩者都有</td>
+</tr>
+<tr>
+<td>語言</td>
+<td>中文 / 英文</td>
+<td>N/A —— 無文字</td>
+</tr>
+</tbody>
+</table>
+<h2>5 度量與行為</h2>
+<table>
+<thead>
+<tr>
+<th></th>
+<th></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>高度</td>
+<td><code>size.progressBar</code></td>
+</tr>
+<tr>
+<td>圓角</td>
+<td>capsule（兩端全圓）</td>
+</tr>
+<tr>
+<td>寬度</td>
+<td>撐滿容器</td>
+</tr>
+<tr>
+<td>最小寬度</td>
+<td>無下限 —— 極窄時仍是一條線</td>
+</tr>
+<tr>
+<td>壓縮行為</td>
+<td>隨容器縮，不影響其他元素</td>
+</tr>
+</tbody>
+</table>
+<h3>文字與溢出</h3>
+<p>無文字。</p>
+<h3>動態</h3>
+<p>目前無轉場 —— 進度變動時直接跳。<strong>已知缺口</strong>：這個 app 的進度來自「完成了幾天」，
+變動是離散且低頻的，所以先不做；真要做用 <code>motion.base</code>。</p>
+<h2>6 配色 ★</h2>
+<table>
+<thead>
+<tr>
+<th>用途</th>
+<th>token</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>已完成</td>
+<td><code>actionPrimary</code></td>
+</tr>
+<tr>
+<td>軌道</td>
+<td>見第 3 節（prop）</td>
+</tr>
+</tbody>
+</table>
+<h2>7 用法與禁用法</h2>
+<p><strong>用它</strong>：表達「N 之於總數」的完成度。</p>
+<p><strong>易混淆</strong>：<code>TLSegmentedControl</code>（切換檢視）—— 那個可互動、表達選擇；
+這個唯讀、表達比例。</p>
+<p><strong>不要用它</strong>：
+- 表達不確定的等待 —— 它是決定性的比例，不是 spinner
+- 當分隔線 —— 那是 <code>TLDivider</code>
+- 自己算比例然後傳 0 或 1 —— 直接傳算式，夾住是元件的責任</p>
+<h2>8 變更紀錄</h2>
+<table>
+<thead>
+<tr>
+<th>日期</th>
+<th>改動</th>
+<th>原因</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>2026-08-31</td>
+<td>從 <code>ProgramListView</code> 與 <code>ProgramDetailView</code> 抽出</td>
+<td>兩處各手工重建一份（<code>GeometryReader</code> ＋ 兩個 <code>Capsule</code>），只差軌道色。<strong>設計文件的 L1 清單本來就有 <code>TLProgressBar</code>，只是實作沒有</strong></td>
+</tr>
+<tr>
+<td>2026-08-31</td>
+<td>高度 <code>6</code> 改成 <code>size.progressBar</code></td>
+<td>元件內部的字面值也是字面值</td>
+</tr>
+</tbody>
+</table>

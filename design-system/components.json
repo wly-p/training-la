@@ -397,6 +397,63 @@
       }
     },
     {
+      "name": "TLProgressBar",
+      "level": "L1",
+      "layer": "atoms",
+      "responsibility": "水平進度條",
+      "prototypeIds": [
+        "13c"
+      ],
+      "prototypeNote": "13a",
+      "standalone": true,
+      "requiresContainer": null,
+      "containerOwns": "寬度由容器決定（它撐滿）；上下間距由容器給",
+      "props": [
+        {
+          "name": "ratio",
+          "type": "`Double`",
+          "kind": null,
+          "values": [
+            "0`–`1`（元件內部夾住）"
+          ],
+          "required": "是",
+          "default": "—",
+          "description": "進度。超出範圍會被夾到邊界，不會畫爆"
+        },
+        {
+          "name": "track",
+          "type": "`Color`",
+          "kind": null,
+          "values": [
+            "只吃語意 token"
+          ],
+          "required": "否",
+          "default": "`surfaceTrack`",
+          "description": "軌道色。見第 3 節"
+        }
+      ],
+      "slots": [],
+      "events": [],
+      "variants": [],
+      "states": [
+        "empty",
+        "partial",
+        "full"
+      ],
+      "themes": [
+        "light",
+        "dark"
+      ],
+      "confusableWith": [],
+      "dontUseFor": [],
+      "composedOf": null,
+      "paths": {
+        "spec": "atoms/TLProgressBar/TLProgressBar.spec.md",
+        "preview": "atoms/TLProgressBar/TLProgressBar.preview.html",
+        "impl": "Packages/DesignSystem/Sources/DesignSystem/Atoms/TLProgressBar.swift"
+      }
+    },
+    {
       "name": "TLRowValue",
       "level": "L1",
       "layer": "atoms",
@@ -629,6 +686,60 @@
         "spec": "molecules/TLGroup/TLGroup.spec.md",
         "preview": "molecules/TLGroup/TLGroup.preview.html",
         "impl": "Packages/DesignSystem/Sources/DesignSystem/Molecules/TLGroup.swift"
+      }
+    },
+    {
+      "name": "TLInlineEmptyState",
+      "level": "L2",
+      "layer": "molecules",
+      "responsibility": "清單裡的空狀態：一句主文 ＋ 一句說明",
+      "prototypeIds": [
+        "5b",
+        "5c",
+        "5d"
+      ],
+      "prototypeNote": "4c",
+      "standalone": true,
+      "requiresContainer": null,
+      "containerOwns": "自己撐滿寬度與上下留白；左右邊距由畫面給",
+      "props": [
+        {
+          "name": "title",
+          "type": "`Text`",
+          "kind": null,
+          "values": null,
+          "required": "是",
+          "default": "—",
+          "description": "主句。呼叫端用 `localText` 建好再傳"
+        },
+        {
+          "name": "hint",
+          "type": "`Text?`",
+          "kind": null,
+          "values": null,
+          "required": "否",
+          "default": "`nil`",
+          "description": "說明句。`nil` ＝ 只有主句"
+        }
+      ],
+      "slots": [],
+      "events": [],
+      "variants": [],
+      "states": [
+        "default",
+        "titleOnly"
+      ],
+      "themes": [
+        "light",
+        "dark"
+      ],
+      "confusableWith": [],
+      "dontUseFor": [],
+      "composedOf": null,
+      "paths": {
+        "spec": "molecules/TLInlineEmptyState/TLInlineEmptyState.spec.md",
+        "preview": "molecules/TLInlineEmptyState/TLInlineEmptyState.preview.html",
+        "impl": "Packages/DesignSystem/Sources/DesignSystem/Molecules/TLInlineEmptyState.swift"
       }
     },
     {

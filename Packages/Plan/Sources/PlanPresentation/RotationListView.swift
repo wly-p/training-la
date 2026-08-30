@@ -252,16 +252,9 @@ public struct RotationListView: View {
     }
 
     private var emptyState: some View {
-        VStack(spacing: 8) {
-            localText("rotation.empty")
-                .font(TLFont.zh(16, .bold))
-                .foregroundStyle(TLColor.text)
-            localText("rotation.empty.hint")
-                .font(TLFont.zh(12.5, .regular))
-                .foregroundStyle(TLColor.neutral600)
-                .multilineTextAlignment(.center)
-        }
-        .frame(maxWidth: .infinity)
-        .padding(.vertical, 40)
+        TLInlineEmptyState(
+            title: localText("rotation.empty"),
+            hint: localText("rotation.empty.hint")
+        )
     }
 }

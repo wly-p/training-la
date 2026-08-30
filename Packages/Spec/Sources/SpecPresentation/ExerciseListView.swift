@@ -165,17 +165,10 @@ public struct ExerciseListView: View {
     }
 
     private var emptyState: some View {
-        VStack(spacing: 8) {
-            localText(emptyStateKey.title)
-                .font(TLFont.zh(16, .bold))
-                .foregroundStyle(TLColor.text)
-            localText(emptyStateKey.hint)
-                .font(TLFont.zh(12.5, .regular))
-                .foregroundStyle(TLColor.neutral600)
-                .multilineTextAlignment(.center)
-        }
-        .frame(maxWidth: .infinity)
-        .padding(.vertical, 40)
+        TLInlineEmptyState(
+            title: localText(emptyStateKey.title),
+            hint: localText(emptyStateKey.hint)
+        )
         // 兩種文案共用一個 id：測試要驗的是「空狀態出現了」，文案本身歸 unit test。
         .accessibilityIdentifier("exerciseList.empty")
     }

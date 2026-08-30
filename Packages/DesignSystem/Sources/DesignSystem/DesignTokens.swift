@@ -130,6 +130,8 @@ public enum TLSpace {
     public static let segItemPadVCompact: CGFloat = 5   // 同上，緊湊版
     public static let segItemPadH:        CGFloat = 13  // 緊湊版每一段的左右內距（regular 是平分寬度，不用這個）
     public static let switchKnobInset:    CGFloat = 3   // 開關旋鈕與軌道邊緣的距離
+    public static let emptyStateGap:      CGFloat = 8   // 空狀態主句與說明之間
+    public static let emptyStatePadV:     CGFloat = 40  // 空狀態的上下留白
 }
 
 public enum TLRadius {
@@ -156,6 +158,7 @@ public enum TLSize {
     public static let checkCircle:     CGFloat = 22  // 可勾選列的圓形勾
     public static let hairlineThick:   CGFloat = 1.5 // 空心圓／外框的線寬。比 hairline 粗，1px 在圓弧上會斷斷續續
     public static let quickActionRow:  CGFloat = 44  // 滾輪下方快捷列的高度（＝最小觸控）
+    public static let progressBar:     CGFloat = 6   // 進度條高度
 }
 
 public enum TLIcon {
@@ -218,6 +221,8 @@ public enum TLFont {
     public static let rowValue:   CGFloat = 14   // zh 家族；設定列右側的值。比標題小一號、比三級文字深一階——值是列的答案
     public static let rowIcon:    CGFloat = 17   // zh 家族；設定列左側的 SF Symbol
     public static let rowNumber:  CGFloat = 16   // display 家族；列裡的數字（圓章數字、右側數值）。⚠ display 家族目前有 16 種字面字級、只有這一個有角色名，尺度收斂見 CHANGELOG 已知缺口
+    public static let emptyTitle: CGFloat = 16   // zh 家族；空狀態的主句
+    public static let emptyHint:  CGFloat = 12.5 // zh 家族；空狀態的說明句
     public static let badgeText:  CGFloat = 12   // zh 家族；圓章裡的文字（肌群縮寫）
     public static let segCompact: CGFloat = 12   // zh 家族；分段控制緊湊版的段落文字（handoff-20 §B：12.5→12）
     public static let rowSub:     CGFloat = 11.5 // zh 家族

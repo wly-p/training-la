@@ -74,6 +74,19 @@
   background: linear-gradient(135deg, var(--accent-300), var(--accent-600));
 }
 
+/* TLProgressBar */
+.tl-progress-bar {
+  display: block; height: var(--size-progress-bar);
+  border-radius: var(--radius-pill); background: var(--surface-track);
+  overflow: hidden;
+}
+.tl-progress-bar i {
+  display: block; height: 100%;
+  border-radius: var(--radius-pill); background: var(--action-primary);
+}
+/* 卡片底比群組容器淺，軌道要跟著換一階才看得出來 */
+.tl-progress-bar--on-card { background: var(--surface-raised); }
+
 /* TLRowValue */
 .tl-row-value { display: flex; align-items: baseline; gap: var(--space-value-unit-gap); }
 .tl-row-value__number {
@@ -165,6 +178,17 @@
 /* TLSettingsToggleRow */
 .tl-settings-toggle-row__sub { font-size: var(--font-row-sub); color: var(--text-tertiary); }
 .tl-settings-toggle-row--tall { height: var(--size-row-with-sub); }
+
+/* TLInlineEmptyState */
+.tl-inline-empty-state {
+  display: flex; flex-direction: column; align-items: center;
+  gap: var(--space-empty-state-gap);
+  padding: var(--space-empty-state-pad-v) 0;
+  text-align: center;
+}
+.tl-inline-empty-state__title { font-size: var(--font-empty-title); font-weight: 700;
+                                color: var(--text-primary); }
+.tl-inline-empty-state__hint { font-size: var(--font-empty-hint); color: var(--text-secondary); }
 
 /* TLListRow */
 .tl-list-row__sub { font-size: var(--font-row-sub); color: var(--text-secondary); }

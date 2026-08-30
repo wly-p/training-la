@@ -143,21 +143,12 @@ public struct ProgramListView: View {
         return VStack(spacing: TLSpace.gapM) {
             // 上半：點進詳情頁（8a）
             NavigationLink(value: program.id) {
-                HStack(spacing: TLSpace.gapM) {
-                    TLBadge(icon: "chart.bar", fill: TLColor.accent, tint: TLColor.bg)
-                    VStack(alignment: .leading, spacing: 2) {
-                        Text(verbatim: program.name)
-                            .font(TLFont.zh(TLFont.rowTitle))
-                            .foregroundStyle(TLColor.text)
-                            .lineLimit(1)
-                        Text(PlanFormatting.programLibrarySummary(program, language: AppLanguage(locale: locale)))
-                            .font(TLFont.zh(TLFont.rowSub, .regular))
-                            .foregroundStyle(TLColor.neutral500)
-                            .lineLimit(1)
-                    }
-                    Spacer(minLength: TLSpace.gapS)
-                    TLChevron()
-                }
+                TLRowContent(
+                    title: Text(verbatim: program.name),
+                    subtitle: Text(PlanFormatting.programLibrarySummary(program, language: AppLanguage(locale: locale))),
+                    showChevron: true,
+                    leading: { TLBadge(icon: "chart.bar", fill: TLColor.accent, tint: TLColor.bg) }
+                )
                 .contentShape(Rectangle())
             }
             .buttonStyle(.plain)
@@ -178,7 +169,8 @@ public struct ProgramListView: View {
                         .font(TLFont.zh(TLFont.rowSub, .semibold))
                         .foregroundStyle(TLColor.neutral700)
                 }
-                progressBar(Double(progress.day) / Double(max(1, progress.totalDays)))
+                TLProgressBar(ratio: Double(progress.day) / Double(max(1, progress.totalDays)),
+                              track: TLColor.neutral200)
             }
         }
         .padding(TLSpace.rowInset)
@@ -190,37 +182,17 @@ public struct ProgramListView: View {
         }
     }
 
-    private func progressBar(_ ratio: Double) -> some View {
-        GeometryReader { geo in
-            ZStack(alignment: .leading) {
-                Capsule().fill(TLColor.neutral200)
-                Capsule().fill(TLColor.accent)
-                    .frame(width: geo.size.width * min(1, max(0, ratio)))
-            }
-        }
-        .frame(height: 6)
-    }
-
     // MARK: - 未啟用列
 
     private func inactiveRow(_ program: Program) -> some View {
         // 左側可點進詳情頁（8a，可再進編輯）、右側 inline「啟用」——兩個獨立點擊區。
         HStack(spacing: TLSpace.gapM) {
             NavigationLink(value: program.id) {
-                HStack(spacing: TLSpace.gapM) {
-                    TLBadge(icon: "chart.bar", fill: TLColor.neutral300, tint: TLColor.neutral600)
-                    VStack(alignment: .leading, spacing: 2) {
-                        Text(verbatim: program.name)
-                            .font(TLFont.zh(TLFont.rowTitle))
-                            .foregroundStyle(TLColor.text)
-                            .lineLimit(1)
-                        Text(PlanFormatting.programLibrarySummary(program, language: AppLanguage(locale: locale)))
-                            .font(TLFont.zh(TLFont.rowSub, .regular))
-                            .foregroundStyle(TLColor.neutral500)
-                            .lineLimit(1)
-                    }
-                    Spacer(minLength: TLSpace.gapS)
-                }
+                TLRowContent(
+                    title: Text(verbatim: program.name),
+                    subtitle: Text(PlanFormatting.programLibrarySummary(program, language: AppLanguage(locale: locale))),
+                    leading: { TLBadge(icon: "chart.bar", fill: TLColor.neutral300, tint: TLColor.neutral600) }
+                )
                 .contentShape(Rectangle())
             }
             .buttonStyle(.plain)
@@ -256,16 +228,9 @@ public struct ProgramListView: View {
     }
 
     private var emptyState: some View {
-        VStack(spacing: 8) {
-            localText("program.empty")
-                .font(TLFont.zh(16, .bold))
-                .foregroundStyle(TLColor.text)
-            localText("program.empty.hint")
-                .font(TLFont.zh(12.5, .regular))
-                .foregroundStyle(TLColor.neutral600)
-                .multilineTextAlignment(.center)
-        }
-        .frame(maxWidth: .infinity)
-        .padding(.vertical, 40)
+        TLInlineEmptyState(
+            title: localText("program.empty"),
+            hint: localText("program.empty.hint")
+        )
     }
 }

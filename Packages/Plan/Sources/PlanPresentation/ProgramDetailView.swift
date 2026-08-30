@@ -108,22 +108,12 @@ public struct ProgramDetailView: View {
                     .font(TLFont.zh(TLFont.rowSub, .semibold))
                     .foregroundStyle(TLColor.neutral700)
             }
-            progressBar(Double(progress.day) / Double(max(1, progress.totalDays)))
+            TLProgressBar(ratio: Double(progress.day) / Double(max(1, progress.totalDays)),
+                          track: TLColor.neutral100)
         }
         .padding(TLSpace.rowInset)
         .background(TLColor.neutral300)
         .clipShape(RoundedRectangle(cornerRadius: TLRadius.container, style: .continuous))
-    }
-
-    private func progressBar(_ ratio: Double) -> some View {
-        GeometryReader { geo in
-            ZStack(alignment: .leading) {
-                Capsule().fill(TLColor.neutral100)
-                Capsule().fill(TLColor.accent)
-                    .frame(width: geo.size.width * min(1, max(0, ratio)))
-            }
-        }
-        .frame(height: 6)
     }
 
     private func schedule(_ program: Program) -> some View {

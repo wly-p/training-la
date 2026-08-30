@@ -138,17 +138,10 @@ public struct TemplateListView: View {
     }
 
     private var emptyState: some View {
-        VStack(spacing: 8) {
-            localText("template.empty")
-                .font(TLFont.zh(16, .bold))
-                .foregroundStyle(TLColor.text)
-            localText("template.empty.hint")
-                .font(TLFont.zh(12.5, .regular))
-                .foregroundStyle(TLColor.neutral600)
-                .multilineTextAlignment(.center)
-        }
-        .frame(maxWidth: .infinity)
-        .padding(.vertical, 40)
+        TLInlineEmptyState(
+            title: localText("template.empty"),
+            hint: localText("template.empty.hint")
+        )
     }
 
     private func explainerCard(_ text: Text) -> some View {

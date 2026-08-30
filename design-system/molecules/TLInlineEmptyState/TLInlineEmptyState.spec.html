@@ -1,0 +1,239 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>TLInlineEmptyState</title>
+<link rel="stylesheet" href="../../tokens/tokens.css">
+<link rel="stylesheet" href="../../preview.css">
+<style>
+  body { max-width: 62rem; line-height: 1.7; }
+  h1, h2, h3 { font-family: var(--font-page-title-family); line-height: 1.35; }
+  h1 { font-size: var(--font-page-title); margin: 0 0 var(--space-gap-l); }
+  h2 { font-size: var(--font-card-title); margin: var(--space-section) 0 var(--space-gap-m);
+       padding-top: var(--space-gap-m); border-top: 1px solid var(--border-subtle); }
+  h3 { font-size: var(--font-row-title); margin: var(--space-gap-l) 0 var(--space-gap-s); }
+  a { color: var(--accent-on-surface); }
+  table { border-collapse: collapse; width: 100%; margin: var(--space-gap-m) 0;
+          display: block; overflow-x: auto; }
+  th, td { text-align: left; padding: var(--space-gap-s) var(--space-gap-m);
+           border-bottom: 1px solid var(--border-subtle); vertical-align: top; }
+  th { font-size: var(--font-kicker); letter-spacing: var(--font-kicker-tracking);
+       text-transform: uppercase; color: var(--text-tertiary); }
+  pre { background: var(--surface-raised); border-radius: var(--radius-inner);
+        padding: var(--space-gap-m); overflow-x: auto; }
+  pre code { background: none; padding: 0; }
+  blockquote { margin: var(--space-gap-m) 0; padding-left: var(--space-gap-m);
+               border-left: 3px solid var(--border-subtle); color: var(--text-secondary); }
+  .back { font-size: var(--font-row-sub); margin-bottom: var(--space-gap-l); display: block; }
+</style>
+<a class="back" href="../../index.html">← 元件庫索引</a>
+<h1>TLInlineEmptyState</h1>
+<h2>1 身分</h2>
+<table>
+<thead>
+<tr>
+<th></th>
+<th></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>層級</td>
+<td>L2 分子</td>
+</tr>
+<tr>
+<td>職責</td>
+<td>清單裡的空狀態：一句主文 ＋ 一句說明</td>
+</tr>
+<tr>
+<td>原型 id</td>
+<td><code>4c</code> <code>5b</code> <code>5c</code> <code>5d</code> 的空清單</td>
+</tr>
+<tr>
+<td>獨立使用</td>
+<td>是 —— 直接放在清單原本的位置</td>
+</tr>
+<tr>
+<td>容器責任</td>
+<td>自己撐滿寬度與上下留白；左右邊距由畫面給</td>
+</tr>
+<tr>
+<td>實作</td>
+<td><code>Packages/DesignSystem/Sources/DesignSystem/Molecules/TLInlineEmptyState.swift</code></td>
+</tr>
+<tr>
+<td>Preview</td>
+<td><code>design-system/molecules/TLInlineEmptyState/TLInlineEmptyState.preview.html</code></td>
+</tr>
+<tr>
+<td>Preview CSS</td>
+<td><code>components.preview.css</code> §TLInlineEmptyState</td>
+</tr>
+</tbody>
+</table>
+<p><strong>組成</strong>：不由其他 <code>TL*</code> 元件組成（純文字排版）</p>
+<h2>2 介面 ★</h2>
+<p><strong>Props</strong></p>
+<table>
+<thead>
+<tr>
+<th>名稱</th>
+<th>型別</th>
+<th>值域</th>
+<th>必填</th>
+<th>預設</th>
+<th>說明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>title</code></td>
+<td><code>Text</code></td>
+<td></td>
+<td>是</td>
+<td>—</td>
+<td>主句。呼叫端用 <code>localText</code> 建好再傳</td>
+</tr>
+<tr>
+<td><code>hint</code></td>
+<td><code>Text?</code></td>
+<td></td>
+<td>否</td>
+<td><code>nil</code></td>
+<td>說明句。<code>nil</code> ＝ 只有主句</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Slots</strong> — N/A
+<strong>事件</strong> — N/A（沒有行動鈕 —— 那是 <code>TLEmptyState</code> 的事）</p>
+<h2>3 變體 variants</h2>
+<p>無。有沒有 <code>hint</code> 是有沒有傳 prop，不是變體。</p>
+<h2>4 狀態 states ★</h2>
+<!-- states: default, titleOnly -->
+<!-- themes: light, dark -->
+
+<table>
+<thead>
+<tr>
+<th>類別</th>
+<th>狀態</th>
+<th>這個元件</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>互動</td>
+<td>default / pressed / disabled / focused</td>
+<td><strong>不可互動</strong></td>
+</tr>
+<tr>
+<td>選取</td>
+<td>selected / unselected / indeterminate</td>
+<td>N/A</td>
+</tr>
+<tr>
+<td>資料</td>
+<td>empty / loading / error</td>
+<td><strong>它本身就是空狀態的呈現。</strong> 不同的「為什麼空」由呼叫端換文案表達</td>
+</tr>
+<tr>
+<td>內容極值</td>
+<td>最短 / 最長 / 溢出</td>
+<td>說明句會換行、置中；沒有行數上限</td>
+</tr>
+<tr>
+<td>主題</td>
+<td>light / dark</td>
+<td>兩者都有</td>
+</tr>
+<tr>
+<td>語言</td>
+<td>中文 / 英文</td>
+<td>英文說明句明顯較長，兩行是常態</td>
+</tr>
+</tbody>
+</table>
+<h2>5 度量與行為</h2>
+<table>
+<thead>
+<tr>
+<th></th>
+<th></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>主句字級</td>
+<td><code>type.emptyTitle</code> ＋ <code>bold</code></td>
+</tr>
+<tr>
+<td>說明字級</td>
+<td><code>type.emptyHint</code> ＋ <code>regular</code></td>
+</tr>
+<tr>
+<td>兩者間距</td>
+<td><code>space.emptyStateGap</code></td>
+</tr>
+<tr>
+<td>上下留白</td>
+<td><code>space.emptyStatePadV</code></td>
+</tr>
+<tr>
+<td>寬度</td>
+<td>撐滿，內容置中</td>
+</tr>
+</tbody>
+</table>
+<h3>文字與溢出</h3>
+<p>說明句 <code>multilineTextAlignment(.center)</code>，不截斷。主句預期是一行。</p>
+<h3>動態</h3>
+<p>無轉場。</p>
+<h2>6 配色 ★</h2>
+<table>
+<thead>
+<tr>
+<th>用途</th>
+<th>token</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>主句</td>
+<td><code>textPrimary</code></td>
+</tr>
+<tr>
+<td>說明</td>
+<td><code>textSecondary</code></td>
+</tr>
+</tbody>
+</table>
+<h2>7 用法與禁用法</h2>
+<p><strong>用它</strong>：清單空了，但頁面其他部分（標題、搜尋、分段控制）還在時。</p>
+<p><strong>易混淆</strong>：<code>TLEmptyState</code> —— 差別是<strong>有沒有自己的容器</strong>。
+那個是一張卡（圓角容器 ＋ 圖示圓 ＋ 可選按鈕），用在<strong>整頁皆空</strong>；
+這個是內嵌的，直接放在清單原本的位置。
+判準：<strong>畫面上還有別的東西嗎？</strong> 有 → 用這個；沒有 → 用 <code>TLEmptyState</code>。</p>
+<p><strong>不要用它</strong>：
+- 需要行動鈕時 —— 用 <code>TLEmptyState</code>
+- 放在卡片裡 —— 它自己有上下留白，會跟卡片的 padding 疊起來
+- 用同一份文案應付所有空的原因 —— 「搜尋無結果」與「還沒建立任何項目」是不同的事</p>
+<h2>8 變更紀錄</h2>
+<table>
+<thead>
+<tr>
+<th>日期</th>
+<th>改動</th>
+<th>原因</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>2026-08-31</td>
+<td>從四個清單頁抽出</td>
+<td><code>ExerciseListView</code>／<code>TemplateListView</code>／<code>RotationListView</code>／<code>ProgramListView</code> 各有一份<strong>一字不差</strong>的實作，只有文案不同</td>
+</tr>
+<tr>
+<td>2026-08-31</td>
+<td>字級 <code>16</code>／<code>12.5</code> 與間距 <code>8</code>／<code>40</code> 改成 token</td>
+<td>元件內部的字面值也是字面值。⚠ <code>TLEmptyState</code> 也用同樣的 16／12.5 字面值，那個檔還沒榨取到</td>
+</tr>
+</tbody>
+</table>

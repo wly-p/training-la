@@ -48,43 +48,20 @@ public struct TLListRow<Leading: View, Detail: View, Trailing: View>: View {
         self.trailing = trailing()
     }
 
+    private var content: some View {
+        TLRowContent(
+            title: title, subtitle: subtitle, equipment: equipment, showChevron: showChevron,
+            leading: { leading }, detail: { detail }, trailing: { trailing }
+        )
+        .padding(.horizontal, TLSpace.rowInset)
+        .frame(minHeight: minHeight)
+        .contentShape(Rectangle())
+    }
+
     /// 有細節行 68 > 有副標 62 > 單行 56。細節行放的是 pill，比一行文字高。
     private var minHeight: CGFloat {
         if Detail.self != EmptyView.self { return TLSize.rowWithDetail }
         return subtitle == nil ? TLSize.row : TLSize.rowWithSub
-    }
-
-    private var content: some View {
-        HStack(spacing: TLSpace.gapM) {
-            leading
-            VStack(alignment: .leading, spacing: TLSpace.titleSubGap) {
-                let styledTitle = title
-                    .font(TLFont.zh(TLFont.rowTitle))          // 15pt weight 500
-                    .foregroundColor(TLColor.text)
-                if let equipment {
-                    TLExerciseNameWithEquipment(title: styledTitle, equipment: equipment)
-                } else {
-                    styledTitle
-                        .lineLimit(1)
-                        .truncationMode(.tail)                  // 列表列一行截斷加 …
-                }
-                if let subtitle {
-                    subtitle
-                        .font(TLFont.zh(TLFont.rowSub, .regular))
-                        .foregroundStyle(TLColor.neutral500)
-                        .lineLimit(1)
-                        .truncationMode(.tail)
-                }
-                // 細節行與標題共用同一條左緣——器材不再需要自己的欄，對齊問題自然消失（19a）。
-                detail
-            }
-            Spacer(minLength: TLSpace.gapS)
-            trailing
-            if showChevron { TLChevron() }
-        }
-        .padding(.horizontal, TLSpace.rowInset)
-        .frame(minHeight: minHeight)
-        .contentShape(Rectangle())
     }
 
     public var body: some View {
