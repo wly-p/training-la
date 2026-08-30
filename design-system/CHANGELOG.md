@@ -52,6 +52,75 @@
 
 ---
 
+## 2026-08-30 · 階段 1（設定頁榨取）· 進行中
+
+### 設計端拍板的三題
+
+抽取時撞到兩個「同一個東西在兩個地方長得不一樣」，查證後發現根因是**那兩個 drill-in 子頁
+從來沒有設計稿**（程式碼註解自己記著「設計稿未畫這層 → 用 DesignSystem 風格自建」）。
+送問題給設計端，全部拍板：
+
+- **App 圖示縮圖統一成 `28×28 / r7`，不做變體。** 2px 的差異在螢幕上看不出來，
+  所以它不是變體、是雜訊。日後真要讓圖示當主角，正確做法是跳一個看得出來的級距
+  （44×44 ＋ 加高列），不是把 28 調成 30。
+- **圓角 9 → 7，主畫面跟著改。** 這是對設計值的更正：iOS App 圖示圓角約邊長 22.4%，
+  28/r9 是 32%，已經接近「圓角方塊」而不是「圖示」。當初從 30 縮到 28 時只改尺寸沒回頭
+  看圓角，比例就跑掉了。**`handoff-20` §B 應更正為「28×28 圓角 7 預覽方塊」。**
+- **返回列上邊距統一成 `space.gapS`，不做變體。** 12 沒有任何文件來源、8 剛好是 `gapS`，
+  所以這題其實是「要不要為了 12 新增一個 token」，答案是不要。
+
+### ⚠ 三處刻意的視覺改變
+
+「抽取時視覺不變」這一輪**有三個經設計端拍板的例外**，記在這裡以便對照 `20a`／`20b` 時
+知道哪些差異是預期的：
+
+| 畫面 | 改變 |
+|---|---|
+| 設定頁主畫面 | 圖示縮圖圓角 `9 → 7` |
+| 圖示選擇頁 | 圖示縮圖 `30/r7 → 28/r7` |
+| 主題／語言／圖示選擇頁 | 返回列上邊距 `12 → 8` |
+
+除這三處之外，視覺應與榨取前完全相同。
+
+### 新增 `examples/`（設計端提議）
+
+元件規格教的是零件，但「這個畫面長什麼樣」整包裡從沒講過。
+兩個沒有設計稿的子頁進 `examples/`，用元件庫組出來、零字面值 ——
+**那兩份 example 就是那兩頁的規格**，而不是再畫一張圖產生第三份真相。
+機器檢查第 15 條管它們（同元件 preview 的約束）。
+
+`settings-selection.example.html` 目前是**零本地樣式**的純組合，可以當後續 example 的樣板。
+
+### 新增／抽出的元件
+
+| 元件 | 來源 |
+|---|---|
+| `TLIconThumbnail`（L1） | 內聯在兩個畫面裡各寫一份，尺寸還不一樣 |
+| `TLBackBar`（L2） | 同上。**加了 `trailing` slot** —— 抽的時候查到 `RotationDetailView`／`ProgramDetailView` 有同樣的返回列但右側多一個「編輯」，不先留位置的話階段 4 會回頭改它 |
+| `TLCircleIconButton`（L1） | 從 `Support/ButtonStyles.swift` 抽出。它是 View 卻和 8 個 `ButtonStyle` 住同一個檔，第一輪就記進已知缺口了 |
+
+### 機器檢查的兩個修正
+
+- **檢查 7 的正則量錯了東西。** 原本只看 `.font(.system` 這種 API 形狀，所以
+  `.font(.system(size: TLIcon.sm))`（已經吃 token）也被算成違規。改成每一條都要求後面接數字
+  —— **ratchet 量的是字面值，不是 API 用法**。
+- **檢查 7 漏了 `spacing:`。** 那明確是樣式，全專案 Presentation 有 110 處沒被計數。
+  補上（`spacing: 0` 除外 —— 那是「不要間距、讓子項自己決定」的結構選擇，不是設計值）。
+
+兩者合計讓基線重算：`Ability 12 / History 27 / Plan 70 / Spec 5 / Training 66`。
+**這是量測方式改變，不是程式碼退步** —— Settings 已從 13 歸零，不在基線裡。
+
+### 新增 token
+
+`space.pageBottom` / `space.groupGap` / `space.cardGap` / `space.labelGap` /
+`size.iconThumb` / `size.stepField` / `size.hairline` / `radius.iconThumb` /
+`icon.sm` / `icon.button`
+
+順帶把生成器裡寫死的**註解搬進 `tokens.json` 的 `_notes`** —— 原本加一個新 token 會讓
+生成器 `KeyError`，那是「資料放在生成器裡」的同一類問題（跟 `--icon-stroke` 那次一樣）。
+
+---
+
 ## 2026-08-30 · 第三輪設計端審閱後
 
 審閱結論是可以往下走階段 1。這輪主要是回答五個提問，順帶修四個新發現。
@@ -119,4 +188,7 @@
 | Presentation 層 **181 處**字面樣式 | 見 `.presentation-baseline.json` | 每階段往下推，階段 5 結束歸零 |
 | **`textSecondary` 對 `surfaceRaised` 只有 3.9:1、`textTertiary` 只有 2.6:1**（WCAG 正文要 4.5、大字與圖示要 3）。`textTertiary` 是 chevron 與三級文字的顏色，連圖示門檻都不到 | 全 app | 這是實作第三輪審閱的「標對比度」建議才浮出來的。改色值是設計決策，建議併進 C6a 深色色階一起處理 |
 | `TLExerciseNameWithEquipment` 名字帶 domain 詞彙（實際不 import domain，層級沒錯，只是命名有味道） | 1 處 | 階段 2 |
-| `TLCircleIconButton` 是 View 卻住在 `Support/ButtonStyles.swift` | 1 處 | 任一階段順手 |
+| ~~`TLCircleIconButton` 是 View 卻住在 `Support/ButtonStyles.swift`~~ | — | ✅ 階段 1 已抽出 |
+| `icon` 已經不是一個尺度：`s13 / sm14 / m16 / button18 / l20` 五個值都是從既有程式碼撈出來的特設值，彼此沒有比例關係 | 全 app | 等更多圖示 token 化之後一次收斂 |
+| `RotationDetailView` / `ProgramDetailView` 仍各自寫返回列（字面 `12`）。改用 `TLBackBar` 之後會變成 `8` | 2 處 | 階段 4（那是 Plan 的視覺改變，不屬於這一輪） |
+| `TLCircleIconButton.init(systemImage:filled:)` 是標了「舊呼叫端相容」的 shim | 3 處呼叫端 | 各階段順手換成 `style:` |

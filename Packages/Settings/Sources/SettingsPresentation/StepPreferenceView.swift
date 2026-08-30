@@ -76,7 +76,7 @@ struct StepPreferenceView: View {
                     .padding(.horizontal, TLSpace.page)
                     .padding(.top, TLSpace.section)
                 }
-                .padding(.bottom, 40)
+                .padding(.bottom, TLSpace.pageBottom)
             }
             // 輸入框在頁面底部，鍵盤升起會蓋住它；聚焦時主動捲進可視範圍。
             .onChange(of: isCustomFocused) { _, focused in
@@ -101,18 +101,12 @@ struct StepPreferenceView: View {
     private static let customFieldID = "customStepField"
 
     private var backBar: some View {
-        HStack {
-            TLCircleIconButton(systemImage: "chevron.left", filled: false) { onBack() }
-                .accessibilityLabel(localText("settings.back"))
-            Spacer()
-        }
-        .padding(.horizontal, TLSpace.page)
-        .padding(.top, 8)
+        TLBackBar(accessibilityLabel: localText("settings.back"), onBack: onBack)
     }
 
     /// 滾輪清單以外的值（例：一個卡扣 0.17kg）。
     private var customField: some View {
-        VStack(alignment: .leading, spacing: 6) {
+        VStack(alignment: .leading, spacing: TLSpace.labelGap) {
             TLGroup {
                 HStack {
                     localText("settings.step.custom")
@@ -122,7 +116,7 @@ struct StepPreferenceView: View {
                     TextField(text: $customText) { Text(verbatim: "") }
                         .font(TLFont.display(17))
                         .multilineTextAlignment(.trailing)
-                        .frame(width: 88)
+                        .frame(width: TLSize.stepField)
                         #if os(iOS)
                         .keyboardType(allowsDecimal ? .decimalPad : .numberPad)
                         #endif

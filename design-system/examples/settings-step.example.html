@@ -1,0 +1,59 @@
+<!-- @dsCard group="Examples" name="級距設定頁" subtitle="重量級距／休息級距共用的 drill-in 子頁" -->
+<!doctype html>
+<meta charset="utf-8">
+<title>級距設定頁</title>
+<link rel="stylesheet" href="../tokens/tokens.css">
+<link rel="stylesheet" href="../preview.css">
+<style>
+  /* 滾輪是這一頁特有的呈現，不是共用外殼 */
+  .wheel { text-align: center; }
+  .wheel .val { font-family: var(--font-display); padding: var(--space-gap-s) 0; }
+  .wheel .val.far  { font-size: var(--font-row-title); color: var(--text-tertiary); opacity: .5; }
+  .wheel .val.near { font-size: var(--font-card-title); color: var(--text-secondary); }
+  .wheel .val.sel  { font-size: var(--font-page-title); color: var(--text-numeric); }
+  .field { display: flex; flex-direction: column; gap: var(--space-label-gap); }
+  .field .input { font-family: var(--font-display); font-size: var(--font-row-title);
+                  width: var(--size-step-field); text-align: right; color: var(--text-primary); }
+  .body { display: flex; flex-direction: column; gap: var(--space-gap-l); }
+</style>
+
+<h1>級距設定頁</h1>
+<p class="note">
+  重量級距與休息級距共用同一個畫面。<b>這一頁沒有自己的設計稿，也不需要</b> ——
+  它 100% 由元件組成，所以這份 example 就是它的規格。<br>
+  組成：<code>TLBackBar</code> ＋ <code>TLPageHeader</code> ＋ <code>TLValuePicker</code>
+  ＋ <code>TLGroup</code>（自訂輸入列）。
+</p>
+
+<div class="kicker">重量級距</div>
+<div class="screen">
+  <div class="backbar">
+    <span class="btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg></span>
+  </div>
+  <div class="pagehead">重量調整級距</div>
+  <div class="body">
+    <div>
+      <div class="kicker">kg</div>
+      <div class="wheel">
+        <div class="val far">1</div>
+        <div class="val near">1.25</div>
+        <div class="val sel">2.5</div>
+        <div class="val near">5</div>
+        <div class="val far">10</div>
+      </div>
+    </div>
+    <div class="field">
+      <div class="group">
+        <div class="row"><span class="label">自訂</span><span class="input">2.5</span></div>
+      </div>
+      <p class="note">滾輪清單以外的值（例：一個卡扣 0.17 kg）。</p>
+    </div>
+  </div>
+</div>
+
+<div class="kicker">為什麼有「自訂」這一列</div>
+<p class="note">
+  滾輪只放常用值，但實際器材的級距不一定落在常用值上。<br>
+  兩者是同一個值的兩個入口 —— 動滾輪會更新輸入框，反之亦然。
+</p>

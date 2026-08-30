@@ -41,9 +41,7 @@ public struct SettingsView: View {
                     TLPageHeader(localText("settings.title"))
                         .accessibilityIdentifier("settings.title")
 
-                    // 群組間距 22（handoff-20 A 節）：比全域的 TLSpace.section(26) 緊一點，
-                    // 這一頁的群組多，26 會把「資料」那兩張卡推到看不見的地方。
-                    VStack(alignment: .leading, spacing: 22) {
+                    VStack(alignment: .leading, spacing: TLSpace.groupGap) {
                         appearanceSection
                         trainingPreferenceSection
                         restReminderSection
@@ -53,7 +51,7 @@ public struct SettingsView: View {
                     .padding(.horizontal, TLSpace.page)
                     .padding(.top, TLSpace.section)
                 }
-                .padding(.bottom, 40)
+                .padding(.bottom, TLSpace.pageBottom)
             }
             .background(TLColor.bg.ignoresSafeArea())
             #if os(iOS)
@@ -120,10 +118,7 @@ public struct SettingsView: View {
                     trailingGap: 10,   // 預覽方塊比一行值文字重，離 chevron 遠一點
                     onTap: { route = .icon }
                 ) {
-                    Image(viewModel.icon.previewImageName)
-                        .resizable()
-                        .frame(width: 28, height: 28)
-                        .clipShape(RoundedRectangle(cornerRadius: 9, style: .continuous))
+                    TLIconThumbnail(imageName: viewModel.icon.previewImageName)
                 }
                 .accessibilityIdentifier("settings.row.appIcon")
             }
@@ -218,7 +213,7 @@ public struct SettingsView: View {
     /// 刪除獨立成第二張卡：同卡內的分隔線代表「同一類」，
     /// 破壞性操作不屬於「匯出／隱私」那一類。兩張卡共用「資料」這個群組標題。
     private var dataSection: some View {
-        VStack(alignment: .leading, spacing: 12) {
+        VStack(alignment: .leading, spacing: TLSpace.cardGap) {
             VStack(alignment: .leading, spacing: 0) {
                 TLSectionHeader(localText("settings.data.header"))
                 TLGroup {

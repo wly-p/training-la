@@ -78,6 +78,93 @@
 <li><strong>12</strong> 文件裡提到的 token 名都要真的存在。抓「token 被刪／改名，文件還在講它」。</li>
 </ul>
 <hr />
+<h2>2026-08-30 · 階段 1（設定頁榨取）· 進行中</h2>
+<h3>設計端拍板的三題</h3>
+<p>抽取時撞到兩個「同一個東西在兩個地方長得不一樣」，查證後發現根因是<strong>那兩個 drill-in 子頁
+從來沒有設計稿</strong>（程式碼註解自己記著「設計稿未畫這層 → 用 DesignSystem 風格自建」）。
+送問題給設計端，全部拍板：</p>
+<ul>
+<li><strong>App 圖示縮圖統一成 <code>28×28 / r7</code>，不做變體。</strong> 2px 的差異在螢幕上看不出來，
+  所以它不是變體、是雜訊。日後真要讓圖示當主角，正確做法是跳一個看得出來的級距
+  （44×44 ＋ 加高列），不是把 28 調成 30。</li>
+<li><strong>圓角 9 → 7，主畫面跟著改。</strong> 這是對設計值的更正：iOS App 圖示圓角約邊長 22.4%，
+  28/r9 是 32%，已經接近「圓角方塊」而不是「圖示」。當初從 30 縮到 28 時只改尺寸沒回頭
+  看圓角，比例就跑掉了。<strong><code>handoff-20</code> §B 應更正為「28×28 圓角 7 預覽方塊」。</strong></li>
+<li><strong>返回列上邊距統一成 <code>space.gapS</code>，不做變體。</strong> 12 沒有任何文件來源、8 剛好是 <code>gapS</code>，
+  所以這題其實是「要不要為了 12 新增一個 token」，答案是不要。</li>
+</ul>
+<h3>⚠ 三處刻意的視覺改變</h3>
+<p>「抽取時視覺不變」這一輪<strong>有三個經設計端拍板的例外</strong>，記在這裡以便對照 <code>20a</code>／<code>20b</code> 時
+知道哪些差異是預期的：</p>
+<table>
+<thead>
+<tr>
+<th>畫面</th>
+<th>改變</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>設定頁主畫面</td>
+<td>圖示縮圖圓角 <code>9 → 7</code></td>
+</tr>
+<tr>
+<td>圖示選擇頁</td>
+<td>圖示縮圖 <code>30/r7 → 28/r7</code></td>
+</tr>
+<tr>
+<td>主題／語言／圖示選擇頁</td>
+<td>返回列上邊距 <code>12 → 8</code></td>
+</tr>
+</tbody>
+</table>
+<p>除這三處之外，視覺應與榨取前完全相同。</p>
+<h3>新增 <code>examples/</code>（設計端提議）</h3>
+<p>元件規格教的是零件，但「這個畫面長什麼樣」整包裡從沒講過。
+兩個沒有設計稿的子頁進 <code>examples/</code>，用元件庫組出來、零字面值 ——
+<strong>那兩份 example 就是那兩頁的規格</strong>，而不是再畫一張圖產生第三份真相。
+機器檢查第 15 條管它們（同元件 preview 的約束）。</p>
+<p><code>settings-selection.example.html</code> 目前是<strong>零本地樣式</strong>的純組合，可以當後續 example 的樣板。</p>
+<h3>新增／抽出的元件</h3>
+<table>
+<thead>
+<tr>
+<th>元件</th>
+<th>來源</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>TLIconThumbnail</code>（L1）</td>
+<td>內聯在兩個畫面裡各寫一份，尺寸還不一樣</td>
+</tr>
+<tr>
+<td><code>TLBackBar</code>（L2）</td>
+<td>同上。<strong>加了 <code>trailing</code> slot</strong> —— 抽的時候查到 <code>RotationDetailView</code>／<code>ProgramDetailView</code> 有同樣的返回列但右側多一個「編輯」，不先留位置的話階段 4 會回頭改它</td>
+</tr>
+<tr>
+<td><code>TLCircleIconButton</code>（L1）</td>
+<td>從 <code>Support/ButtonStyles.swift</code> 抽出。它是 View 卻和 8 個 <code>ButtonStyle</code> 住同一個檔，第一輪就記進已知缺口了</td>
+</tr>
+</tbody>
+</table>
+<h3>機器檢查的兩個修正</h3>
+<ul>
+<li><strong>檢查 7 的正則量錯了東西。</strong> 原本只看 <code>.font(.system</code> 這種 API 形狀，所以
+  <code>.font(.system(size: TLIcon.sm))</code>（已經吃 token）也被算成違規。改成每一條都要求後面接數字
+  —— <strong>ratchet 量的是字面值，不是 API 用法</strong>。</li>
+<li><strong>檢查 7 漏了 <code>spacing:</code>。</strong> 那明確是樣式，全專案 Presentation 有 110 處沒被計數。
+  補上（<code>spacing: 0</code> 除外 —— 那是「不要間距、讓子項自己決定」的結構選擇，不是設計值）。</li>
+</ul>
+<p>兩者合計讓基線重算：<code>Ability 12 / History 27 / Plan 70 / Spec 5 / Training 66</code>。
+<strong>這是量測方式改變，不是程式碼退步</strong> —— Settings 已從 13 歸零，不在基線裡。</p>
+<h3>新增 token</h3>
+<p><code>space.pageBottom</code> / <code>space.groupGap</code> / <code>space.cardGap</code> / <code>space.labelGap</code> /
+<code>size.iconThumb</code> / <code>size.stepField</code> / <code>size.hairline</code> / <code>radius.iconThumb</code> /
+<code>icon.sm</code> / <code>icon.button</code></p>
+<p>順帶把生成器裡寫死的<strong>註解搬進 <code>tokens.json</code> 的 <code>_notes</code></strong> —— 原本加一個新 token 會讓
+生成器 <code>KeyError</code>，那是「資料放在生成器裡」的同一類問題（跟 <code>--icon-stroke</code> 那次一樣）。</p>
+<hr />
 <h2>2026-08-30 · 第三輪設計端審閱後</h2>
 <p>審閱結論是可以往下走階段 1。這輪主要是回答五個提問，順帶修四個新發現。</p>
 <h3>契約</h3>
@@ -165,9 +252,24 @@
 <td>階段 2</td>
 </tr>
 <tr>
-<td><code>TLCircleIconButton</code> 是 View 卻住在 <code>Support/ButtonStyles.swift</code></td>
-<td>1 處</td>
-<td>任一階段順手</td>
+<td>~~<code>TLCircleIconButton</code> 是 View 卻住在 <code>Support/ButtonStyles.swift</code>~~</td>
+<td>—</td>
+<td>✅ 階段 1 已抽出</td>
+</tr>
+<tr>
+<td><code>icon</code> 已經不是一個尺度：<code>s13 / sm14 / m16 / button18 / l20</code> 五個值都是從既有程式碼撈出來的特設值，彼此沒有比例關係</td>
+<td>全 app</td>
+<td>等更多圖示 token 化之後一次收斂</td>
+</tr>
+<tr>
+<td><code>RotationDetailView</code> / <code>ProgramDetailView</code> 仍各自寫返回列（字面 <code>12</code>）。改用 <code>TLBackBar</code> 之後會變成 <code>8</code></td>
+<td>2 處</td>
+<td>階段 4（那是 Plan 的視覺改變，不屬於這一輪）</td>
+</tr>
+<tr>
+<td><code>TLCircleIconButton.init(systemImage:filled:)</code> 是標了「舊呼叫端相容」的 shim</td>
+<td>3 處呼叫端</td>
+<td>各階段順手換成 <code>style:</code></td>
 </tr>
 </tbody>
 </table>

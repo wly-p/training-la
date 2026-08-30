@@ -30,7 +30,7 @@ struct SettingsSelectionView<Value: Hashable & Identifiable>: View {
                 .padding(.horizontal, TLSpace.page)
                 .padding(.top, TLSpace.section)
             }
-            .padding(.bottom, 40)
+            .padding(.bottom, TLSpace.pageBottom)
         }
         .background(TLColor.bg.ignoresSafeArea())
         #if os(iOS)
@@ -39,13 +39,7 @@ struct SettingsSelectionView<Value: Hashable & Identifiable>: View {
     }
 
     private var backBar: some View {
-        HStack {
-            TLCircleIconButton(systemImage: "chevron.left", filled: false) { onBack() }
-                .accessibilityLabel(localText("settings.common.back"))
-            Spacer()
-        }
-        .padding(.horizontal, TLSpace.page)
-        .padding(.top, 12)
+        TLBackBar(accessibilityLabel: localText("settings.common.back"), onBack: onBack)
     }
 
     /// 選項的 id 由 `Identifiable.id` 推出來（`AppTheme` / `AppLanguage` / `AppIcon` 的
@@ -63,16 +57,13 @@ struct SettingsSelectionView<Value: Hashable & Identifiable>: View {
             },
             leading: {
                 if let leadingImageName {
-                    Image(leadingImageName(option))
-                        .resizable()
-                        .frame(width: 30, height: 30)
-                        .clipShape(RoundedRectangle(cornerRadius: 7, style: .continuous))
+                    TLIconThumbnail(imageName: leadingImageName(option))
                 }
             },
             trailing: {
                 if option == current {
                     Image(systemName: "checkmark")
-                        .font(.system(size: 14, weight: .bold))
+                        .font(.system(size: TLIcon.sm, weight: .bold))
                         .foregroundStyle(TLColor.accent)
                 }
             }

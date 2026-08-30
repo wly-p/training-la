@@ -106,18 +106,23 @@ public enum TLColor {
 // MARK: - Spacing / Radius / Size
 
 public enum TLSpace {
-    public static let page:     CGFloat = 26  // 頁面左右邊距
-    public static let section:  CGFloat = 26  // 區塊之間
-    public static let rowInset: CGFloat = 18  // 列內左右 padding、分隔線左內縮
-    public static let gapS:     CGFloat = 8   
-    public static let gapM:     CGFloat = 13  
-    public static let gapL:     CGFloat = 20  
+    public static let page:       CGFloat = 26  // 頁面左右邊距
+    public static let section:    CGFloat = 26  // 區塊之間
+    public static let rowInset:   CGFloat = 18  // 列內左右 padding、分隔線左內縮
+    public static let gapS:       CGFloat = 8
+    public static let gapM:       CGFloat = 13
+    public static let gapL:       CGFloat = 20
+    public static let pageBottom: CGFloat = 40  // 捲動內容的頁尾留白
+    public static let groupGap:   CGFloat = 22  // 設定頁的群組之間。比 section(26) 緊——這一頁群組多，26 會把最後幾張卡推出畫面
+    public static let cardGap:    CGFloat = 12  // 同一個群組標題底下、兩張卡之間
+    public static let labelGap:   CGFloat = 6   // 元件與它下方的說明文字之間
 }
 
 public enum TLRadius {
     public static let container: CGFloat = 28  // 卡片／群組容器
     public static let inner:     CGFloat = 20  // 容器內的小方塊
     public static let pill:      CGFloat = 999 // 按鈕、輸入、標籤（實作用 .capsule）
+    public static let iconThumb: CGFloat = 7   // App 圖示縮圖。25% ≈ iOS 圖示的 squircle 比例（22.4%）
 }
 
 public enum TLSize {
@@ -128,15 +133,20 @@ public enum TLSize {
     public static let badge:           CGFloat = 36  // 列左側圓章
     public static let iconButton:      CGFloat = 44  // 標題右側圓鈕（＝最小觸控）
     public static let iconButtonSmall: CGFloat = 34  // 月曆標題列的 ‹ ›，觸控區另外補到 44
-    public static let minTap:          CGFloat = 44  
-    public static let switchW:         CGFloat = 46  
-    public static let switchH:         CGFloat = 28  
+    public static let minTap:          CGFloat = 44
+    public static let switchW:         CGFloat = 46
+    public static let switchH:         CGFloat = 28
+    public static let stepField:       CGFloat = 88  // 級距頁自訂輸入框寬度
+    public static let hairline:        CGFloat = 1   // 1px 分隔線與外框
+    public static let iconThumb:       CGFloat = 28  // App 圖示縮圖，兩處統一
 }
 
 public enum TLIcon {
-    // SF Symbol 的視覺尺寸。weight 只作用於 SF Symbol（實作側）；web／設計側用 Lucide 形狀配 strokeWeb。
+    // SF Symbol 的視覺尺寸。weight 只作用於 SF Symbol（實作側）；web／設計側用 Lucide 形狀配 strokeWeb。 ⚠ 這已經不是一個尺度：s13／sm14／m16／button18／l20 五個值都是從既有程式碼撈出來的特設值，彼此沒有比例關係（13 來自 chevron、14 來自勾號、18 來自圓形按鈕）。等更多圖示 token 化之後要一次收斂。
     public static let s: CGFloat = 13
+    public static let sm: CGFloat = 14
     public static let m: CGFloat = 16
+    public static let button: CGFloat = 18
     public static let l: CGFloat = 20
     public static let weight: Font.Weight = .semibold
 }

@@ -43,6 +43,240 @@
         "preview": "atoms/TLChevron/TLChevron.preview.html",
         "impl": "Packages/DesignSystem/Sources/DesignSystem/Atoms/TLChevron.swift"
       }
+    },
+    {
+      "name": "TLCircleIconButton",
+      "level": "L1",
+      "layer": "atoms",
+      "responsibility": "圓形的圖示按鈕",
+      "prototypeIds": [],
+      "prototypeNote": "4c、月曆標題列的",
+      "standalone": true,
+      "requiresContainer": null,
+      "containerOwns": "與相鄰元素的間距由放它的列或列容器負責",
+      "props": [
+        {
+          "name": "systemImage",
+          "type": "`String`",
+          "kind": null,
+          "values": null,
+          "required": "是",
+          "default": "—",
+          "description": "SF Symbol 名稱"
+        },
+        {
+          "name": "style",
+          "type": "`Style`",
+          "kind": "enum",
+          "values": [
+            "accent",
+            "outline",
+            "neutral"
+          ],
+          "required": "否",
+          "default": "`accent`",
+          "description": "材質。見第 3 節"
+        },
+        {
+          "name": "size",
+          "type": "`CGFloat`",
+          "kind": null,
+          "values": [
+            "只吃 `size.*` token"
+          ],
+          "required": "否",
+          "default": "`size.iconButton`",
+          "description": "整顆的直徑"
+        },
+        {
+          "name": "iconSize",
+          "type": "`CGFloat`",
+          "kind": null,
+          "values": [
+            "只吃 `icon.*` token"
+          ],
+          "required": "否",
+          "default": "`icon.button`",
+          "description": "圖示字級"
+        },
+        {
+          "name": "iconWeight",
+          "type": "`Font.Weight`",
+          "kind": null,
+          "values": null,
+          "required": "否",
+          "default": "`semibold`",
+          "description": "圖示字重"
+        },
+        {
+          "name": "action",
+          "type": "`() -> Void`",
+          "kind": null,
+          "values": null,
+          "required": "是",
+          "default": "—",
+          "description": "點擊"
+        }
+      ],
+      "slots": [],
+      "events": [
+        "action"
+      ],
+      "variants": [
+        {
+          "name": "accent",
+          "note": "赭紅實心、淺色圖示。主要動作"
+        },
+        {
+          "name": "outline",
+          "note": "線框、赭色圖示。次要動作（返回、關閉）"
+        },
+        {
+          "name": "neutral",
+          "note": "`surfaceTrack` 實心、深墨圖示。月曆標題列的 `‹ ›` 用 —— 與「今天」膠囊同材質，導航鍵不跟狀態搶顏色"
+        }
+      ],
+      "states": [
+        "default",
+        "pressed"
+      ],
+      "themes": [
+        "light",
+        "dark"
+      ],
+      "confusableWith": [
+        {
+          "name": "TLIconThumbnail",
+          "note": "`TLIconThumbnail`（列裡的方形圖片預覽）—— 這個是**可點的動作**，那個是唯讀的縮圖。"
+        }
+      ],
+      "dontUseFor": [
+        "放文字進去 —— 它是圖示按鈕，文字動作用文字按鈕樣式",
+        "用 `size.iconButtonSmall` 卻不補觸控區 —— 那會做出 34pt 的觸控目標",
+        "用 `accent` 當次要動作 —— 一個畫面最多一個主要動作區"
+      ],
+      "composedOf": null,
+      "paths": {
+        "spec": "atoms/TLCircleIconButton/TLCircleIconButton.spec.md",
+        "preview": "atoms/TLCircleIconButton/TLCircleIconButton.preview.html",
+        "impl": "Packages/DesignSystem/Sources/DesignSystem/Atoms/TLCircleIconButton.swift"
+      }
+    },
+    {
+      "name": "TLIconThumbnail",
+      "level": "L1",
+      "layer": "atoms",
+      "responsibility": "App 圖示的方形預覽縮圖",
+      "prototypeIds": [],
+      "prototypeNote": "4b。也用在圖示選擇頁的每一列",
+      "standalone": false,
+      "requiresContainer": [
+        "TLSettingsRow",
+        "TLListRow"
+      ],
+      "containerOwns": "與相鄰元素的間距由列負責；這個元件只決定自己的尺寸與圓角",
+      "props": [
+        {
+          "name": "imageName",
+          "type": "`String`",
+          "kind": null,
+          "values": null,
+          "required": "是",
+          "default": "—",
+          "description": "asset 名稱。元件不管圖從哪來"
+        }
+      ],
+      "slots": [],
+      "events": [],
+      "variants": [],
+      "states": [
+        "default"
+      ],
+      "themes": [
+        "light",
+        "dark"
+      ],
+      "confusableWith": [
+        {
+          "name": "TLBadge",
+          "note": "`TLBadge`（列左側的圓章，表達分類或數量）—— 這個是**圖片預覽**，不表達任何值。"
+        }
+      ],
+      "dontUseFor": [
+        "當主要內容 —— 它是列的附屬，尺寸小到只能當提示",
+        "放非方形、非圖示的圖 —— 圓角比例是為 App 圖示調的",
+        "自己加 padding 到元件裡 —— 間距是列的責任"
+      ],
+      "composedOf": null,
+      "paths": {
+        "spec": "atoms/TLIconThumbnail/TLIconThumbnail.spec.md",
+        "preview": "atoms/TLIconThumbnail/TLIconThumbnail.preview.html",
+        "impl": "Packages/DesignSystem/Sources/DesignSystem/Atoms/TLIconThumbnail.swift"
+      }
+    },
+    {
+      "name": "TLBackBar",
+      "level": "L2",
+      "layer": "molecules",
+      "responsibility": "drill-in 子頁左上角的返回列",
+      "prototypeIds": [],
+      "prototypeNote": "無 —— **這一層從來沒有設計稿**，見第 12 節",
+      "standalone": true,
+      "requiresContainer": null,
+      "containerOwns": "左右邊距與上邊距由這個元件自己負責；下方的間距由畫面給",
+      "props": [
+        {
+          "name": "accessibilityLabel",
+          "type": "`Text`",
+          "kind": null,
+          "values": null,
+          "required": "是",
+          "default": "—",
+          "description": "返回鈕的無障礙標籤。文案由呼叫端給，元件庫不做 i18n"
+        },
+        {
+          "name": "onBack",
+          "type": "`() -> Void`",
+          "kind": null,
+          "values": null,
+          "required": "是",
+          "default": "—",
+          "description": "點返回鈕"
+        }
+      ],
+      "slots": [
+        "trailing"
+      ],
+      "events": [
+        "onBack"
+      ],
+      "variants": [],
+      "states": [
+        "default"
+      ],
+      "themes": [
+        "light",
+        "dark"
+      ],
+      "confusableWith": [
+        {
+          "name": "TLPageHeader",
+          "note": "`TLPageHeader`（頁面主標）—— 這個是**主標上方的導航列**，兩者通常上下相鄰但職責不同："
+        }
+      ],
+      "dontUseFor": [
+        "當作 navigation bar 用 —— 它只有返回與一個動作，不是完整的工具列",
+        "在根層畫面用 —— 根層沒有「回去」，放了會騙使用者",
+        "把標題塞進 trailing —— 標題是 `TLPageHeader` 的事"
+      ],
+      "composedOf": [
+        "TLCircleIconButton"
+      ],
+      "paths": {
+        "spec": "molecules/TLBackBar/TLBackBar.spec.md",
+        "preview": "molecules/TLBackBar/TLBackBar.preview.html",
+        "impl": "Packages/DesignSystem/Sources/DesignSystem/Molecules/TLBackBar.swift"
+      }
     }
   ]
 }

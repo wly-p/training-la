@@ -119,28 +119,24 @@ def gen_swift() -> str:
     L += ["}", ""]
 
     # Space / Radius / Size
-    L += ["// MARK: - Spacing / Radius / Size", "", "public enum TLSpace {"]
-    notes = {"page": "頁面左右邊距", "section": "區塊之間", "rowInset": "列內左右 padding、分隔線左內縮"}
-    w = max(len(k) for k in D["space"])
-    for k, v in D["space"].items():
-        L.append(f"    public static let {k+':':<{w+1}} CGFloat = {num(v):<4}" + (f"// {notes[k]}" if k in notes else ""))
-    L += ["}", "", "public enum TLRadius {"]
-    rn = {"container": "卡片／群組容器", "inner": "容器內的小方塊", "pill": "按鈕、輸入、標籤（實作用 .capsule）"}
-    w = max(len(k) for k in D["radius"])
-    for k, v in D["radius"].items():
-        L.append(f"    public static let {k+':':<{w+1}} CGFloat = {num(v):<4}// {rn[k]}")
-    L += ["}", "", "public enum TLSize {"]
-    sn = {"row": "標準列高（設定列）", "rowWithSub": "有副標的列", "rowWithDetail": "有細節行的列（器材 pill ＋ 重量）",
-          "rowHistory": "歷史列", "badge": "列左側圓章", "iconButton": "標題右側圓鈕（＝最小觸控）",
-          "iconButtonSmall": "月曆標題列的 ‹ ›，觸控區另外補到 44"}
-    w = max(len(k) for k in D["size"])
-    for k, v in D["size"].items():
-        L.append(f"    public static let {k+':':<{w+1}} CGFloat = {num(v):<4}" + (f"// {sn[k]}" if k in sn else ""))
-    L += ["}", ""]
+    # 註解的來源是 tokens.json 的 _notes，不是這支腳本——生成器裡不放資料。
+    NOTES = D.get("_notes", {})
+    L += ["// MARK: - Spacing / Radius / Size", ""]
+    for group, enum in (("space", "TLSpace"), ("radius", "TLRadius"), ("size", "TLSize")):
+        L.append(f"public enum {enum} {{")
+        notes = NOTES.get(group, {})
+        w = max(len(k) for k in D[group])
+        for k, v in D[group].items():
+            note = notes.get(k, "")
+            line = f"    public static let {k+':':<{w+1}} CGFloat = {num(v):<4}" + (f"// {note}" if note else "")
+            L.append(line.rstrip())
+        L += ["}", ""]
 
     I = D["icon"]
     L += ["public enum TLIcon {", f"    // {I['_note']}"]
-    for k in ("s", "m", "l"):
+    # strokeWeb 只作用於 web／設計側（Lucide 的 stroke），Swift 這邊用不到，不輸出。
+    for k in [k for k, v in I.items()
+              if not k.startswith("_") and isinstance(v, (int, float)) and k != "strokeWeb"]:
         L.append(f"    public static let {k}: CGFloat = {num(I[k])}")
     L += [f"    public static let weight: Font.Weight = .{I['weight']}", "}", ""]
 
@@ -233,8 +229,10 @@ def gen_css() -> str:
     L.append("")
     L.append("  /* ── 尺寸 ── */")
     for group in ("space", "radius", "size"):
+        notes = D.get("_notes", {}).get(group, {})
         for k, v in D[group].items():
-            L.append(f"  --{group}-{kebab(k)}: {num(v)}px;")
+            note = notes.get(k, "")
+            L.append(f"  --{group}-{kebab(k)}: {num(v)}px;" + (f"  /* {note} */" if note else ""))
     L.append("")
     L.append("  /* ── 字級（中文值；英文 × %s）── */" % T["languageScale"]["en"])
     for k, r in T["roles"].items():
@@ -249,7 +247,7 @@ def gen_css() -> str:
         L.append(f"  --font-{kebab(k)}-family: var(--font-{r['family']});")
     L.append("")
     L.append(f"  /* 圖示。{D['icon']['_note']} */")
-    for k in ("s", "m", "l"):
+    for k in [k for k, v in D["icon"].items() if not k.startswith("_") and isinstance(v, (int, float))]:
         L.append(f"  --icon-{k}: {num(D['icon'][k])}px;")
     L.append(f"  --icon-stroke: {D['icon']['strokeWeb']};")
     L.append("")
@@ -376,7 +374,9 @@ def gen_tokens_preview() -> str:
     L.append('</p><p class="cap">' + " · ".join(f"{k}（{s['use']}）" for k, s in D["shadow"].items()) + '</p>')
 
     L.append('<div class="kicker">圖示尺寸與動效</div><p class="note">'
-             + " · ".join(f"<code>icon.{k}</code> {num(D['icon'][k])}" for k in ("s", "m", "l"))
+             + " · ".join(f"<code>icon.{k}</code> {num(v)}"
+                           for k, v in D["icon"].items()
+                           if not k.startswith("_") and isinstance(v, (int, float)))
              + f" · stroke {D['icon']['strokeWeb']}<br>"
              + f'<code>motion.fast</code> {D["motion"]["fast"]}s · '
              + f'<code>motion.base</code> {D["motion"]["base"]}s · {D["motion"]["curve"]}</p>')

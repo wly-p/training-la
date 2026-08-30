@@ -24,9 +24,17 @@ def kebab(x):
 
 SECTIONS = ["1 身分", "2 介面", "3 變體", "4 狀態", "5 度量", "6 配色",
             "7 文字行為", "8 動態", "9 無障礙", "10 用法與禁用法", "11 組成", "12 變更紀錄"]
+# 量的是**字面值**，不是 API 用法：`.font(.system(size: TLIcon.sm))` 已經吃 token 了，
+# 不該被算成違規（第一次把 Settings 推到 0 時抓到的誤判）。所以每一條都要求後面接數字。
 LITERAL_STYLE = re.compile(
-    r"\.font\(\.system|\.font\(\.custom|cornerRadius|RoundedRectangle"
-    r"|\.padding\((?:\.[a-z]+, )?[0-9]|\.frame\(.*?(?:width|height): ?[0-9]")
+    r"\.font\(\.system\(size: ?[0-9]"
+    r"|\.font\(\.custom\([^,]*, ?size: ?[0-9]"
+    r"|cornerRadius: ?[0-9]"
+    r"|\.padding\((?:\.[a-z]+, )?[0-9]"
+    r"|\.frame\(.*?(?:width|height): ?[0-9]"
+    # spacing 也是樣式。`spacing: 0` 不算——那是「不要間距、讓子項自己決定」的結構選擇，
+    # 不是設計值，強迫它吃 token 只會逼出一個 TLSpace.none = 0。
+    r"|spacing: ?[1-9]")
 FEATURE_MODULES = ("Spec", "Plan", "Training", "History", "Settings", "Ability", "Reminders")
 
 # 這張表是 README §8 檢查清單的**唯一來源** —— scripts/ 不進交付包，
@@ -39,8 +47,9 @@ CHECKS = {
     4:  ("`states` 每個都有對應的 `data-state`、`themes` 每個都有對應的 `data-theme`；"
          "主題不得混進 states", "§6.4、§7.4"),
     6:  ("spec 與 preview 內零字面色值（**所有檔案，無豁免**）；preview 無外部請求", "§6.6、§7.2"),
-    14: ("**元件** preview 內零字面尺寸。豁免只適用設計系統自身的展示頁"
-         "（`tokens/tokens.preview.html`、未來的 `foundations/*.html`），按路徑判定不靠語意", "§7.3"),
+    14: ("**元件 preview 與 examples** 內零字面尺寸。豁免只適用設計系統自身的展示頁"
+         "（`tokens/tokens.preview.html`），按路徑判定不靠語意", "§7.3"),
+    15: ("`examples/` 的整頁組合只用元件與 token —— 它是畫面的規格，不是另一份設計稿", "§6.5"),
     9:  ("preview 用到的 `var(--…)` 都在 `tokens.css` 或 `preview.css` 裡定義", "§5"),
     10: ("preview 用到的字都在子集字型裡（缺字會靜默掉回系統字型）", "§7"),
     11: ("第 11 節宣告的組成元件真的存在於元件庫", "§6.11"),
@@ -51,6 +60,10 @@ CHECKS = {
     8:  ("`DesignSystem` 未 import 任何功能 package", "§4 規則三"),
     5:  ("生成物與來源一致：`tokens.json` → Swift／CSS；各 spec → `components.json`／`index.html`", "§5、§6"),
 }
+
+DEFINED_VARS = set()
+for _css in ("tokens/tokens.css", "preview.css"):
+    DEFINED_VARS |= set(re.findall(r"^\s*(--[a-z0-9-]+):", (DS / _css).read_text(), re.M))
 
 errs, warns = [], []
 def err(c, m): errs.append(f"✘ [檢查 {c}] {m}")
@@ -138,11 +151,9 @@ for layer, cdir in components():
     for u in re.findall(r'(?:src|href)="(https?:)?//[^"]+"', prev):
         err(6, f"{name}.preview.html：有外部請求，preview 必須自足")
 
-    # preview 用到的 CSS 變數必須在 tokens.css 裡定義（打錯名字會靜默渲染成空值）
-    defined = set(re.findall(r"^\s*(--[a-z0-9-]+):", (DS / "tokens/tokens.css").read_text(), re.M))
-    defined |= set(re.findall(r"^\s*(--[a-z0-9-]+):", (DS / "preview.css").read_text(), re.M))
+    # preview 用到的 CSS 變數必須有定義（打錯名字會靜默渲染成空值）
     for v in sorted(set(re.findall(r"var\((--[a-z0-9-]+)\)", prev))):
-        if v not in defined:
+        if v not in DEFINED_VARS:
             err(9, f"{name}.preview.html：用了未定義的 token `var({v})`")
 
     # §11 組成宣告的元件要真的存在
@@ -202,7 +213,9 @@ if mani.exists():
 DOMAIN_WORDS = [
     "Exercise", "Workout", "Template", "Rotation", "Program", "PlanWorkout", "AbilityValue",
     "臥推", "深蹲", "硬舉", "引體", "划船", "肩推", "二頭", "三頭", "棒式",
-    "動作", "課表", "範本", "循環", "訓練日", "組數", "次數", "熱身組", "能力值", "最大重量",
+    "課表", "範本", "循環", "訓練日", "組數", "次數", "熱身組", "能力值", "最大重量",
+    # 「動作」刻意不列：在這個 app 它同時是 domain 名詞（exercise）與 UI 名詞（action），
+    # 留著會把「文字動作」這種正常敘述判成違規。改用不會歧義的詞就夠擋住真正的問題。
 ]
 for layer in ("atoms", "molecules"):
     for f in (DS / layer).rglob("*.preview.html"):
@@ -212,19 +225,33 @@ for layer in ("atoms", "molecules"):
             err(13, f"{f.relative_to(DS)}：L1／L2 的 preview 出現 domain 詞彙 {hits}"
                     f"——改用與 domain 無關的假資料")
 
-# ── 14：元件 preview 不得有字面尺寸（展示頁按路徑豁免）────────────────
+# ── 14／15：元件 preview 與 examples 不得有字面尺寸或未定義 token ──────
 # 豁免是白名單而不是判斷題：「這段算不算展示骨架」人在趕的時候一定會判成算。
+# examples/ 是整頁組合，代表「這個畫面長什麼樣」。它是畫面的規格、不是另一份設計稿，
+# 所以只准用元件與 token——一旦允許字面值，它會慢慢長成第三份真相。
 SCAFFOLD_OK = ("tokens/tokens.preview.html", "index.html")
 LITERAL_SIZE = re.compile(r":\s*-?\d+(?:\.\d+)?(?:px|pt)\b"
                           r"|\b(?:width|height|stroke-width)=\"-?\d")
-for layer in ("atoms", "molecules", "organisms"):
-    for f in (DS / layer).rglob("*.preview.html"):
+n_example = 0
+for layer in ("atoms", "molecules", "organisms", "examples"):
+    d = DS / layer
+    if not d.is_dir():
+        continue
+    for f in sorted(list(d.rglob("*.preview.html")) + list(d.rglob("*.example.html"))):
         rel = str(f.relative_to(DS))
         if rel.startswith(SCAFFOLD_OK):
             continue
-        for lit in sorted(set(LITERAL_SIZE.findall(f.read_text())))[:5]:
-            err(14, f"{rel}：元件 preview 出現字面尺寸 `{lit.strip()}`，一律用 var(--…)"
-                    f"（豁免只給設計系統自身的展示頁，按路徑判定）")
+        body = f.read_text()
+        is_example = layer == "examples"
+        n_example += is_example
+        cid = 15 if is_example else 14
+        for lit in sorted(set(LITERAL_SIZE.findall(body)))[:5]:
+            err(cid, f"{rel}：出現字面尺寸 `{lit.strip()}`，一律用 var(--…)"
+                     f"（豁免只給設計系統自身的展示頁，按路徑判定）")
+        if is_example:
+            for v in sorted(set(re.findall(r"var\((--[a-z0-9-]+)\)", body))):
+                if v not in DEFINED_VARS:
+                    err(15, f"{rel}：用了未定義的 token `var({v})`")
 
 # ── 12：文件提到的 token 名都要真的存在 ───────────────────────────
 # 抓「token 被刪／改名，但正典或規格還在講它」——README 是正典，
@@ -252,4 +279,5 @@ for w in warns: print(w)
 if errs:
     print("\n".join(errs)); sys.exit(1)
 tot = sum(counts.values())
-print(f"✔ 元件庫契約通過（{n_comp} 個元件；Presentation 字面樣式 {tot} 處，未超過基線）")
+print(f"✔ 元件庫契約通過（{n_comp} 個元件、{n_example} 份 example；"
+      f"Presentation 字面樣式 {tot} 處，未超過基線）")

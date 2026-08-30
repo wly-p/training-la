@@ -29,8 +29,12 @@ def rows(table_md):
         line = line.strip()
         if not line.startswith("|") or set(line) <= set("|- :"):
             continue
-        cells = [c.strip().strip("`") for c in line.strip("|").split("|")]
-        if cells and cells[0] in ("名稱", "類別", "日期", "", "（無）", "用途"):
+        cells = [c.strip() for c in line.strip("|").split("|")]
+        # 只剝第一格（名稱）的 backtick——其餘格子可能是 `a` ＋ `b` 這種，
+        # 整格 strip 會剝成殘缺（第一輪真內容進來時抓到的）。
+        if cells:
+            cells[0] = cells[0].strip("`")
+        if cells and cells[0] in ("名稱", "類別", "日期", "變體", "", "（無）", "用途", "#"):
             continue
         out.append(cells)
     return out
@@ -164,9 +168,25 @@ def render(comps):
          f'規格樣板見 <a href="_template.spec.html">規格樣板</a>　·　'
          f'token 與契約的改動見 <a href="CHANGELOG.html">CHANGELOG</a><br>'
          f'<b>這輪先讀 <a href="HANDOFF.html">HANDOFF</a></b>（跟上輪的差別、想請你看什麼）。<br>'
-         f'組畫面時讀 <a href="components.json">components.json</a>（機器讀的登錄檔，'
+         f'先看 <b>Examples</b> 知道整頁長什麼樣，再讀 '
+         f'<a href="components.json">components.json</a>（機器讀的登錄檔，'
          f'每個元件的 props／狀態／組成都在裡面），再開個別 preview。<br>'
          f'token 的實際樣子見 <a href="tokens/tokens.preview.html">tokens.preview.html</a>。</p>']
+    # examples：整頁組合。設計端要看的第一件事往往是「這個畫面長什麼樣」，
+    # 而不是「有哪些原子」——所以放在最前面。
+    ex = sorted((DS / "examples").glob("*.example.html")) if (DS / "examples").is_dir() else []
+    if ex:
+        L.append('<div class="kicker">Examples —— 整頁長什麼樣</div>')
+        L.append('<div class="group">')
+        for f in ex:
+            title = re.search(r"<title>(.*?)</title>", f.read_text())
+            sub = re.search(r'subtitle="([^"]*)"', f.read_text())
+            L.append(f'  <div class="row"><span class="label">'
+                     f'<a href="examples/{f.name}">{title.group(1) if title else f.stem}</a>'
+                     + (f' <span class="lvl">— {sub.group(1)}</span>' if sub else "")
+                     + '</span></div>')
+        L.append('</div>')
+
     # 按畫面找。組畫面的人的實際問題不是「列出所有原子」，是「我要做設定頁，有什麼可以用？」——
     # 依層分組是元件庫作者的視角，依畫面才是使用者的視角。兩種分組同一份 components.json 就能生成。
     scr = json.loads((DS / "screens.json").read_text())["screens"]

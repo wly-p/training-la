@@ -74,25 +74,33 @@
   --danger-on-surface: rgb(126 49 35);  /* 在容器底上的破壞性文字／外框 */
 
   /* ── 尺寸 ── */
-  --space-page: 26px;
-  --space-section: 26px;
-  --space-row-inset: 18px;
+  --space-page: 26px;  /* 頁面左右邊距 */
+  --space-section: 26px;  /* 區塊之間 */
+  --space-row-inset: 18px;  /* 列內左右 padding、分隔線左內縮 */
   --space-gap-s: 8px;
   --space-gap-m: 13px;
   --space-gap-l: 20px;
-  --radius-container: 28px;
-  --radius-inner: 20px;
-  --radius-pill: 999px;
-  --size-row: 56px;
-  --size-row-with-sub: 62px;
-  --size-row-with-detail: 68px;
-  --size-row-history: 66px;
-  --size-badge: 36px;
-  --size-icon-button: 44px;
-  --size-icon-button-small: 34px;
+  --space-page-bottom: 40px;  /* 捲動內容的頁尾留白 */
+  --space-group-gap: 22px;  /* 設定頁的群組之間。比 section(26) 緊——這一頁群組多，26 會把最後幾張卡推出畫面 */
+  --space-card-gap: 12px;  /* 同一個群組標題底下、兩張卡之間 */
+  --space-label-gap: 6px;  /* 元件與它下方的說明文字之間 */
+  --radius-container: 28px;  /* 卡片／群組容器 */
+  --radius-inner: 20px;  /* 容器內的小方塊 */
+  --radius-pill: 999px;  /* 按鈕、輸入、標籤（實作用 .capsule） */
+  --radius-icon-thumb: 7px;  /* App 圖示縮圖。25% ≈ iOS 圖示的 squircle 比例（22.4%） */
+  --size-row: 56px;  /* 標準列高（設定列） */
+  --size-row-with-sub: 62px;  /* 有副標的列 */
+  --size-row-with-detail: 68px;  /* 有細節行的列（器材 pill ＋ 重量） */
+  --size-row-history: 66px;  /* 歷史列 */
+  --size-badge: 36px;  /* 列左側圓章 */
+  --size-icon-button: 44px;  /* 標題右側圓鈕（＝最小觸控） */
+  --size-icon-button-small: 34px;  /* 月曆標題列的 ‹ ›，觸控區另外補到 44 */
   --size-min-tap: 44px;
   --size-switch-w: 46px;
   --size-switch-h: 28px;
+  --size-step-field: 88px;  /* 級距頁自訂輸入框寬度 */
+  --size-hairline: 1px;  /* 1px 分隔線與外框 */
+  --size-icon-thumb: 28px;  /* App 圖示縮圖，兩處統一 */
 
   /* ── 字級（中文值；英文 × 1.08）── */
   --font-page-title: 34px;
@@ -114,10 +122,13 @@
   --font-kicker-family: var(--font-zh);
   --font-big-number-family: var(--font-display);
 
-  /* 圖示。SF Symbol 的視覺尺寸。weight 只作用於 SF Symbol（實作側）；web／設計側用 Lucide 形狀配 strokeWeb。 */
+  /* 圖示。SF Symbol 的視覺尺寸。weight 只作用於 SF Symbol（實作側）；web／設計側用 Lucide 形狀配 strokeWeb。 ⚠ 這已經不是一個尺度：s13／sm14／m16／button18／l20 五個值都是從既有程式碼撈出來的特設值，彼此沒有比例關係（13 來自 chevron、14 來自勾號、18 來自圓形按鈕）。等更多圖示 token 化之後要一次收斂。 */
   --icon-s: 13px;
+  --icon-sm: 14px;
   --icon-m: 16px;
+  --icon-button: 18px;
   --icon-l: 20px;
+  --icon-strokeWeb: 2.75px;
   --icon-stroke: 2.75;
 
   /* 動效 */

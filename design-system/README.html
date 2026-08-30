@@ -317,6 +317,24 @@ accessibility label／trait、最小觸控 44pt、<code>accessibilityIdentifier<
 取代目前把偏離寫在各 handoff README 尾巴的做法 —— 那些字散在八個資料夾、沒有一處能一次看完，而且 <code>temp/</code> 不進版控。</p>
 <p>L1 原子通常沒有第 2 節的 slots、也沒有第 11 節；其餘各節都要填。</p>
 <hr />
+<h3>examples —— 整頁長什麼樣</h3>
+<p>元件規格教的是<strong>零件</strong>。但組畫面的人第一個問題往往是「這個畫面長什麼樣」，
+而那件事到目前為止整包裡沒有任何地方講過。</p>
+<p><code>examples/*.example.html</code> 補這個缺口：<strong>用元件庫組出一整頁</strong>，零字面值。</p>
+<p>它的定位很重要 —— <strong>example 是那個畫面的規格，不是另一張設計稿</strong>：</p>
+<ul>
+<li>有設計稿的畫面（例如設定頁主畫面），example 是對照用的組合示範</li>
+<li><strong>沒有設計稿的畫面</strong>（例如兩個 drill-in 子頁），example <strong>就是</strong>它的規格。
+  要改那一頁，改的是 example 與元件規格，不是再畫一張圖</li>
+</ul>
+<p>為什麼不補設計稿：那兩頁 100% 由元件組成，而元件規格正在被寫出來。
+再畫一張圖只會產生<strong>第三份真相</strong>（設計稿、實作、元件庫規格）——
+那正是這整輪重構要消滅的東西。</p>
+<p><strong>約束與元件 preview 相同</strong>（機器檢查第 15 條）：零字面尺寸、零字面色值、
+<code>var(--…)</code> 必須有定義。共用外殼（手機外框、<code>TLBackBar</code> 與 <code>TLPageHeader</code> 的視覺表述）
+放 <code>preview.css</code>，理由跟元件 preview 一樣 —— 每份 example 各自重寫的話，
+第二份就會開始漂移。</p>
+<hr />
 <h2>7. 打包契約</h2>
 <p>元件庫必須能直接 <code>zip</code> 餵進 Claude Design。這不只是交付方式，它是<strong>「拆得夠乾淨」的可執行檢驗</strong> ——
 一個元件如果出不成自足的 HTML preview，通常代表它職責混了。</p>
@@ -339,6 +357,8 @@ accessibility label／trait、最小觸控 44pt、<code>accessibilityIdentifier<
     TLChevron/
       TLChevron.spec.md
       TLChevron.preview.html
+  examples/
+    settings-selection.example.html   整頁組合。零字面值，受檢查 15 管
 </code></pre>
 <p>生成的 <code>DesignTokens.swift</code> 落在 <code>Packages/DesignSystem/</code> 裡，<strong>不在這個目錄、也不在 zip 裡</strong> ——
 設計端不需要它。</p>
@@ -450,8 +470,13 @@ Noto 子集（<code>make preview-font</code> 重生；原始字型 11MB，不進
 </tr>
 <tr>
 <td>14</td>
-<td><strong>元件</strong> preview 內零字面尺寸。豁免只適用設計系統自身的展示頁（<code>tokens/tokens.preview.html</code>、未來的 <code>foundations/*.html</code>），按路徑判定不靠語意</td>
+<td><strong>元件 preview 與 examples</strong> 內零字面尺寸。豁免只適用設計系統自身的展示頁（<code>tokens/tokens.preview.html</code>），按路徑判定不靠語意</td>
 <td>§7.3</td>
+</tr>
+<tr>
+<td>15</td>
+<td><code>examples/</code> 的整頁組合只用元件與 token —— 它是畫面的規格，不是另一份設計稿</td>
+<td>§6.5</td>
 </tr>
 </tbody>
 </table>

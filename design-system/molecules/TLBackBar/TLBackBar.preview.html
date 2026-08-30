@@ -1,0 +1,79 @@
+<!-- @dsCard group="Molecules" name="TLBackBar" subtitle="drill-in 子頁的返回列" -->
+<!doctype html>
+<meta charset="utf-8">
+<title>TLBackBar</title>
+<link rel="stylesheet" href="../../tokens/tokens.css">
+<link rel="stylesheet" href="../../preview.css">
+<style>
+  /* 返回列自己負責左右與上邊距，所以 preview 裡用一個「畫面」框起來才看得出來 */
+  .screen { background: var(--surface-base); border-radius: var(--radius-inner);
+            border: var(--size-hairline) solid var(--border-subtle); overflow: hidden; }
+  .bar { display: flex; align-items: center;
+         padding-left: var(--space-page); padding-right: var(--space-page); }
+  .bar { padding-top: var(--space-gap-s); }
+  .btn { width: var(--size-icon-button); height: var(--size-icon-button);
+         border-radius: var(--radius-pill); border: var(--size-hairline) solid var(--accent-on-surface);
+         color: var(--accent-on-surface);
+         display: flex; align-items: center; justify-content: center; flex: none; }
+  .btn svg { width: var(--icon-button); height: var(--icon-button); stroke-width: var(--icon-stroke); }
+  .spacer { flex: 1; }
+  .action { color: var(--accent-on-surface); font-size: var(--font-row-title); }
+  .below { padding: var(--space-gap-m) var(--space-page) var(--space-gap-l);
+           font-size: var(--font-page-title); font-family: var(--font-page-title-family); }
+</style>
+
+<h1>TLBackBar</h1>
+<p class="note">
+  L2 分子，由 <code>TLCircleIconButton</code> 組成。自己負責左右與上邊距。<br>
+  右側的 <code>trailing</code> 預設是空的；某些子頁在那裡放一個文字操作。<br>上邊距只有一個值（<code>space.gapS</code>）——不做變體。
+</p>
+
+<div class="kicker">狀態</div>
+<div class="screen" data-state="default">
+  <div class="bar">
+    <span class="btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg></span>
+    <span class="spacer"></span>
+  </div>
+  <div class="below">頁面主標</div>
+</div>
+<p class="note">按下態由返回鈕自己表現，這個容器不變。</p>
+
+<div class="kicker">trailing slot</div>
+<div class="screen">
+  <div class="bar">
+    <span class="btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg></span>
+    <span class="spacer"></span>
+    <span class="action">編輯</span>
+  </div>
+  <div class="below" style="font-size: var(--font-row-sub); font-family: var(--font-zh)">
+    右側放一個文字操作
+  </div>
+</div>
+
+<div class="kicker">主題</div>
+<div class="themes">
+  <div class="pane" data-theme="light">
+    <div class="kicker">light</div>
+    <div class="screen"><div class="bar">
+      <span class="btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+        stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg></span>
+      <span class="spacer"></span></div><div class="below">主標</div></div>
+  </div>
+  <div class="pane" data-theme="dark">
+    <div class="kicker">dark（目前是 light 的複製）</div>
+    <div class="screen"><div class="bar">
+      <span class="btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+        stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg></span>
+      <span class="spacer"></span></div><div class="below">主標</div></div>
+  </div>
+</div>
+
+<div class="kicker">不適用的狀態</div>
+<p class="note">
+  disabled／focused —— 返回永遠可用，沒有停用態。<br>
+  selected —— 它不表達選取。<br>
+  empty／loading／error —— 沒有資料輸入。<br>
+  內容極值 —— trailing 放太寬時中間空白先被壓掉，返回鈕不縮。
+</p>

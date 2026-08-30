@@ -255,6 +255,30 @@ L1 原子通常沒有第 2 節的 slots、也沒有第 11 節；其餘各節都�
 
 ---
 
+### examples —— 整頁長什麼樣
+
+元件規格教的是**零件**。但組畫面的人第一個問題往往是「這個畫面長什麼樣」，
+而那件事到目前為止整包裡沒有任何地方講過。
+
+`examples/*.example.html` 補這個缺口：**用元件庫組出一整頁**，零字面值。
+
+它的定位很重要 —— **example 是那個畫面的規格，不是另一張設計稿**：
+
+- 有設計稿的畫面（例如設定頁主畫面），example 是對照用的組合示範
+- **沒有設計稿的畫面**（例如兩個 drill-in 子頁），example **就是**它的規格。
+  要改那一頁，改的是 example 與元件規格，不是再畫一張圖
+
+為什麼不補設計稿：那兩頁 100% 由元件組成，而元件規格正在被寫出來。
+再畫一張圖只會產生**第三份真相**（設計稿、實作、元件庫規格）——
+那正是這整輪重構要消滅的東西。
+
+**約束與元件 preview 相同**（機器檢查第 15 條）：零字面尺寸、零字面色值、
+`var(--…)` 必須有定義。共用外殼（手機外框、`TLBackBar` 與 `TLPageHeader` 的視覺表述）
+放 `preview.css`，理由跟元件 preview 一樣 —— 每份 example 各自重寫的話，
+第二份就會開始漂移。
+
+---
+
 ## 7. 打包契約
 
 元件庫必須能直接 `zip` 餵進 Claude Design。這不只是交付方式，它是**「拆得夠乾淨」的可執行檢驗** ——
@@ -280,6 +304,8 @@ design-system/
     TLChevron/
       TLChevron.spec.md
       TLChevron.preview.html
+  examples/
+    settings-selection.example.html   整頁組合。零字面值，受檢查 15 管
 ```
 
 生成的 `DesignTokens.swift` 落在 `Packages/DesignSystem/` 裡，**不在這個目錄、也不在 zip 裡** ——
@@ -341,7 +367,8 @@ Noto 子集（`make preview-font` 重生；原始字型 11MB，不進版控，�
 | 11 | 第 11 節宣告的組成元件真的存在於元件庫 | §6.11 |
 | 12 | 文件裡提到的 token 名都存在於 `tokens.json` | §5 |
 | 13 | L1／L2 的 preview 不出現 domain 詞彙（Exercise／Workout／組數…）—— 假資料最順手的來源就是真的運動名稱，那一刻就違反了規則三 | §4 規則三、§7.5 |
-| 14 | **元件** preview 內零字面尺寸。豁免只適用設計系統自身的展示頁（`tokens/tokens.preview.html`、未來的 `foundations/*.html`），按路徑判定不靠語意 | §7.3 |
+| 14 | **元件 preview 與 examples** 內零字面尺寸。豁免只適用設計系統自身的展示頁（`tokens/tokens.preview.html`），按路徑判定不靠語意 | §7.3 |
+| 15 | `examples/` 的整頁組合只用元件與 token —— 它是畫面的規格，不是另一份設計稿 | §6.5 |
 <!-- checks:end -->
 
 **編號是永久 id：只增不重排、刪除的號碼不回收。** `CHANGELOG.md` 與這份文件的正文都用編號指稱

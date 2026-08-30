@@ -1,0 +1,71 @@
+<!-- @dsCard group="Atoms" name="TLIconThumbnail" subtitle="App 圖示的方形預覽縮圖" -->
+<!doctype html>
+<meta charset="utf-8">
+<title>TLIconThumbnail</title>
+<link rel="stylesheet" href="../../tokens/tokens.css">
+<link rel="stylesheet" href="../../preview.css">
+<style>
+  /* 尺寸與圓角都走 token。示意用的圖案是漸層，不是真的 asset。 */
+  .thumb {
+    background: linear-gradient(135deg, var(--accent-300), var(--accent-600));
+    width: var(--size-icon-thumb); height: var(--size-icon-thumb);
+    border-radius: var(--radius-icon-thumb);
+    flex: none;
+  }
+  .chev { color: var(--text-tertiary); width: var(--icon-s); height: var(--icon-s);
+          stroke-width: var(--icon-stroke); }
+</style>
+
+<h1>TLIconThumbnail</h1>
+<p class="note">
+  L1 原子。App 圖示的方形預覽，附屬於列。無變體 —— 一個元件一個尺寸。<br>
+  圓角是 <b>比例不是定值</b>：25% ≈ iOS App 圖示的 squircle（22.4%），
+  所以它讀起來像圖示而不是圓角方塊。尺寸若改，圓角要一起等比調。
+</p>
+
+<div class="kicker">狀態</div>
+<div class="group">
+  <div class="row" data-state="default">
+    <span class="label">預設（唯一的狀態）</span>
+    <span class="thumb"></span>
+  </div>
+</div>
+
+<div class="kicker">在列裡的兩個位置</div>
+<div class="group">
+  <div class="row">
+    <span class="label">列右側的值 —— 後面接指向記號</span>
+    <span class="thumb"></span>
+    <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+         stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg>
+  </div>
+  <div class="row">
+    <span class="thumb"></span>
+    <span class="label">選擇清單裡 —— 放在列的左側</span>
+  </div>
+</div>
+
+<div class="kicker">主題</div>
+<div class="themes">
+  <div class="pane" data-theme="light">
+    <div class="kicker">light</div>
+    <div class="group">
+      <div class="row"><span class="label">在群組容器裡</span><span class="thumb"></span></div>
+    </div>
+  </div>
+  <div class="pane" data-theme="dark">
+    <div class="kicker">dark（目前是 light 的複製）</div>
+    <div class="group">
+      <div class="row"><span class="label">在群組容器裡</span><span class="thumb"></span></div>
+    </div>
+  </div>
+</div>
+
+<div class="kicker">不適用的狀態</div>
+<p class="note">
+  pressed／disabled／focused —— 按下態由整列表現。<br>
+  selected —— 選取由列右側的勾號表達，不是這個元件。<br>
+  empty／loading／error —— 圖片由 app 打包，不會缺。<br>
+  內容極值 —— 固定尺寸的方形，圖片被裁切填滿。<br>
+  語言 —— 無文字。
+</p>
