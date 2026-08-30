@@ -4,26 +4,16 @@
 <title>TLListRow</title>
 <link rel="stylesheet" href="../../tokens/tokens.css">
 <link rel="stylesheet" href="../../preview.css">
+<link rel="stylesheet" href="../../components.preview.css">
 <style>
-  .badge { width: var(--size-badge); height: var(--size-badge); flex: none;
-           border-radius: var(--radius-pill); background: var(--sage-200);
+border-radius: var(--radius-pill); background: var(--sage-200);
            color: var(--sage-800); font-size: var(--font-badge-text); font-weight: 600;
            display: flex; align-items: center; justify-content: center; }
-  .sub { font-size: var(--font-row-sub); color: var(--text-tertiary); }
-  .rv { display: flex; align-items: baseline; gap: var(--space-value-unit-gap); }
-  .num { font-family: var(--font-row-number-family); font-size: var(--font-row-number);
          color: var(--text-primary); }
-  .unit { font-size: var(--font-row-title); color: var(--text-body); }
-  .chev { color: var(--text-tertiary); width: var(--icon-s); height: var(--icon-s);
           stroke-width: var(--icon-stroke); }
-  .row.pressed { background: var(--border-subtle); }
-  .row.tall { height: var(--size-row-with-detail); }
-  .circle { width: var(--size-check-circle); height: var(--size-check-circle); flex: none;
             border-radius: var(--radius-pill); background: var(--action-primary);
             color: var(--surface-base);
             display: flex; align-items: center; justify-content: center; }
-  .circle svg { width: var(--icon-xs); height: var(--icon-xs); stroke-width: var(--icon-stroke); }
-  .pill { display: inline-block; font-size: var(--font-row-sub); color: var(--text-body);
           background: var(--surface-track); border-radius: var(--radius-pill);
           padding: 0 var(--space-gap-s); margin-right: var(--space-gap-s); }
 </style>
@@ -37,26 +27,26 @@
 <div class="kicker">狀態</div>
 <div class="group">
   <div class="row" data-state="default">
-    <span class="badge">甲</span>
-    <span class="label">項目名稱<br><span class="sub">組成摘要 · 分類</span></span>
-    <span class="rv"><span class="num">62.5</span><span class="unit">kg</span></span>
-    <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+    <span class="tl-badge">甲</span>
+    <span class="label">項目名稱<br><span class="tl-list-row__sub">組成摘要 · 分類</span></span>
+    <span class="tl-row-value"><span class="tl-row-value__number">62.5</span><span class="tl-row-value__unit">kg</span></span>
+    <svg class="tl-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor"
       stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg>
   </div>
-  <div class="row pressed" data-state="pressed">
-    <span class="badge">乙</span>
+  <div class="row tl-settings-row--pressed" data-state="pressed">
+    <span class="tl-badge">乙</span>
     <span class="label">按下 —— 底色淡入</span>
-    <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+    <svg class="tl-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor"
       stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg>
   </div>
   <div class="row" data-state="selectable">
-    <span class="circle on"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+    <span class="tl-check-circle tl-check-circle--on"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
       stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg></span>
     <span class="label">可勾選型 —— 沒有 chevron</span>
   </div>
-  <div class="row tall" data-state="withDetail">
-    <span class="badge">丙</span>
-    <span class="label">有細節行<br><span class="pill">標籤甲</span><span class="pill">標籤乙</span></span>
+  <div class="row tl-settings-toggle-row--tall" data-state="withDetail">
+    <span class="tl-badge">丙</span>
+    <span class="label">有細節行<br><span class="tl-list-row__pill">標籤甲</span><span class="tl-list-row__pill">標籤乙</span></span>
   </div>
 </div>
 
@@ -72,13 +62,13 @@
 <div class="themes">
   <div class="pane" data-theme="light">
     <div class="kicker">light</div>
-    <div class="group"><div class="row"><span class="badge">甲</span>
-      <span class="label">項目名稱<br><span class="sub">組成摘要 · 分類</span></span></div></div>
+    <div class="group"><div class="row"><span class="tl-badge">甲</span>
+      <span class="label">項目名稱<br><span class="tl-list-row__sub">組成摘要 · 分類</span></span></div></div>
   </div>
   <div class="pane" data-theme="dark">
     <div class="kicker">dark（目前是 light 的複製）</div>
-    <div class="group"><div class="row"><span class="badge">甲</span>
-      <span class="label">項目名稱<br><span class="sub">組成摘要 · 分類</span></span></div></div>
+    <div class="group"><div class="row"><span class="tl-badge">甲</span>
+      <span class="label">項目名稱<br><span class="tl-list-row__sub">組成摘要 · 分類</span></span></div></div>
   </div>
 </div>
 

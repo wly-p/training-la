@@ -4,14 +4,11 @@
 <title>TLSectionHeader</title>
 <link rel="stylesheet" href="../../tokens/tokens.css">
 <link rel="stylesheet" href="../../preview.css">
+<link rel="stylesheet" href="../../components.preview.css">
 <style>
-  .sh { display: flex; align-items: baseline;
-        margin-bottom: var(--space-section-header-gap); }
-  .sh-title { flex: 1; font-size: var(--font-kicker);
+margin-bottom: var(--space-section-header-gap); }
               letter-spacing: var(--font-kicker-tracking);
               text-transform: uppercase; color: var(--text-tertiary); font-weight: 600; }
-  .sh-title.tinted { color: var(--action-pressed); }
-  .sh-action { font-size: var(--font-row-sub); color: var(--accent-on-surface); }
 </style>
 <h1>TLSectionHeader</h1>
 <p class="note">
@@ -21,7 +18,7 @@
 
 <div class="kicker">狀態</div>
 <div data-state="default">
-  <div class="sh"><span class="sh-title">外觀</span></div>
+  <div class="tl-section-header"><span class="tl-section-header__title">外觀</span></div>
   <div class="group">
     <div class="row"><span class="label">主題</span></div>
     <div class="row"><span class="label">語言</span></div>
@@ -29,31 +26,31 @@
 </div>
 
 <div class="kicker">變體</div>
-<div class="sh"><span class="sh-title">訓練偏好</span></div>
+<div class="tl-section-header"><span class="tl-section-header__title">訓練偏好</span></div>
 <div class="group"><div class="row"><span class="label">純標題</span></div></div>
-<div class="sh" style="margin-top: var(--space-group-gap)">
-  <span class="sh-title">最近練過</span><span class="sh-action">看全部</span>
+<div class="tl-section-header" style="margin-top: var(--space-group-gap)">
+  <span class="tl-section-header__title">最近練過</span><span class="tl-section-header__action">看全部</span>
 </div>
 <div class="group"><div class="row"><span class="label">標題 ＋ 文字操作</span></div></div>
 
 <div class="kicker">著色</div>
-<div class="sh"><span class="sh-title">預設（三級文字）</span></div>
-<div class="sh"><span class="sh-title tinted">進行中（accent）</span></div>
+<div class="tl-section-header"><span class="tl-section-header__title">預設（三級文字）</span></div>
+<div class="tl-section-header"><span class="tl-section-header__title tl-section-header__title--tinted">進行中（accent）</span></div>
 <p class="note">
-  ⚠ 預設色對容器底只有 <b>2.6:1</b>，低於 WCAG 對大字的 3:1 門檻。
-  這是全 app 的 <code>text-tertiary</code> 問題，見 CHANGELOG 已知缺口。
+  <code>text-tertiary</code> 對容器底是 <b>4.0:1</b> —— 過得了大字與圖示的 3:1，
+  過不了正文的 4.5:1。區塊標題是「掃視就過的標示」不是要讀完的句子，所以用它是對的。
 </p>
 
 <div class="kicker">主題</div>
 <div class="themes">
   <div class="pane" data-theme="light">
     <div class="kicker">light</div>
-    <div class="sh"><span class="sh-title">外觀</span></div>
+    <div class="tl-section-header"><span class="tl-section-header__title">外觀</span></div>
     <div class="group"><div class="row"><span class="label">主題</span></div></div>
   </div>
   <div class="pane" data-theme="dark">
     <div class="kicker">dark（目前是 light 的複製）</div>
-    <div class="sh"><span class="sh-title">外觀</span></div>
+    <div class="tl-section-header"><span class="tl-section-header__title">外觀</span></div>
     <div class="group"><div class="row"><span class="label">主題</span></div></div>
   </div>
 </div>

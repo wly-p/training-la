@@ -63,6 +63,10 @@
 <td>Preview</td>
 <td><code>design-system/atoms/TLRowValue/TLRowValue.preview.html</code></td>
 </tr>
+<tr>
+<td>Preview CSS</td>
+<td><code>components.preview.css</code> §TLRowValue</td>
+</tr>
 </tbody>
 </table>
 <h2>2 介面 ★</h2>
@@ -190,7 +194,7 @@
 </tr>
 <tr>
 <td>單位</td>
-<td><code>textBody</code></td>
+<td><code>textSecondary</code></td>
 </tr>
 </tbody>
 </table>
@@ -237,8 +241,8 @@
 </tr>
 <tr>
 <td>2026-08-30</td>
-<td>單位色 <code>neutral700</code> → <code>textBody</code>（新語意 token）</td>
-<td><code>neutral700</code> 被用 16 處卻沒有任何語意角色，第一輪就記進已知缺口。⚠ 它與 <code>textSecondary</code>(neutral600) 的分界目前不清楚，<strong>待設計端釐清</strong> —— 尤其考慮到 <code>textSecondary</code> 對容器底只有 3.9:1，<code>textBody</code> 反而更讀得到</td>
+<td>單位色 <code>neutral700</code> → <code>textBody</code> → <strong><code>textSecondary</code></strong></td>
+<td><code>neutral700</code> 被用 16 處卻沒有語意角色，所以先命名為 <code>textBody</code>。設計端隨即指出<strong>兩個 token 同值就是一個 token</strong>，並把 <code>textSecondary</code> 本身移到 <code>neutral.700</code>（為了 4.5:1）。所以 <code>textBody</code> 併入 <code>textSecondary</code> 並刪除，值不變</td>
 </tr>
 </tbody>
 </table>

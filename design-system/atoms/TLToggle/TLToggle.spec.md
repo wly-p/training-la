@@ -11,6 +11,7 @@
 | 容器責任 | 位置與間距由列負責 |
 | 實作 | `Packages/DesignSystem/Sources/DesignSystem/Atoms/TLToggle.swift` |
 | Preview | `design-system/atoms/TLToggle/TLToggle.preview.html` |
+| Preview CSS | `components.preview.css` §TLToggle |
 
 **實作形式與其他原子不同**：它是 `ToggleStyle` 而不是 `View`，用法是
 `Toggle(...).toggleStyle(.tlSwitch)`。這是刻意的 —— 見第 9 節。

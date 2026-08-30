@@ -85,9 +85,8 @@ public enum TLColor {
     public static let surfaceTrack    = Color(hex: 0xEEE7DB)  // 分段控制軌道
     public static let surfaceInput    = Color(hex: 0xDCD3C4)  // 輸入色帶（訓練頁）
     public static let textPrimary     = Color(hex: 0x201E1D)  // 主文字
-    public static let textSecondary   = Color(hex: 0x82796A)  // 二級文字
-    public static let textBody        = Color(hex: 0x645C50)  // 需要比 textSecondary 更讀得到的次要文字（單位、對話框內文、未選 chip）
-    public static let textTertiary    = Color(hex: 0xA19786)  // 三級文字／icon
+    public static let textSecondary   = Color(hex: 0x645C50)  // 二級文字、需要讀完的說明句
+    public static let textTertiary    = Color(hex: 0x82796A)  // 掃視就過的標示：圖示與 ≥13pt 的非句子文字（4.0:1，過不了正文的 4.5）
     public static let textNumeric     = Color(hex: 0x2E2B25)  // 大數字
     public static let borderSubtle    = Color(hex: 0x201E1D).opacity(0.08)  // 列間分隔線
     public static let actionPrimary   = Color(hex: 0xC67139)  // 可操作的東西（赭紅）

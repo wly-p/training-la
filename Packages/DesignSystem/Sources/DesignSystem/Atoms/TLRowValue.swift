@@ -17,7 +17,7 @@ public struct TLRowValue: View {
             if let unit {
                 Text(unit)
                     .font(TLFont.zh(TLFont.rowTitle))
-                    .foregroundStyle(TLColor.textBody)
+                    .foregroundStyle(TLColor.textSecondary)
             }
         }
     }

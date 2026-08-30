@@ -11,6 +11,7 @@
 | 容器責任 | 與 chevron 的間距由列的 `trailingGap` 決定 |
 | 實作 | `Packages/DesignSystem/Sources/DesignSystem/Atoms/TLSettingsValue.swift` |
 | Preview | `design-system/atoms/TLSettingsValue/TLSettingsValue.preview.html` |
+| Preview CSS | `components.preview.css` §TLSettingsValue |
 
 ## 2 介面 ★
 
@@ -58,7 +59,7 @@
 | 值文字 | `textSecondary` |
 
 **為什麼是二級不是三級**：值比標題輕（它是答案不是問題），但比 chevron 重
-（chevron 是裝飾，值要讀得到）。三級文字對容器底只有 2.6:1，用在這裡會讀不動。
+（chevron 是裝飾，值要讀得到）。判準是**會不會被逐字讀** —— 值會，所以用二級。
 
 ## 7 文字行為
 

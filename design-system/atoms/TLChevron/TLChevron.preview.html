@@ -4,10 +4,10 @@
 <title>TLChevron</title>
 <link rel="stylesheet" href="../../tokens/tokens.css">
 <link rel="stylesheet" href="../../preview.css">
+<link rel="stylesheet" href="../../components.preview.css">
 <style>
-  /* 尺寸與 stroke 一律走 token。SVG 的 width/height 屬性吃不到 var()，
+/* 尺寸與 stroke 一律走 token。SVG 的 width/height 屬性吃不到 var()，
      但改用 CSS 就可以，stroke-width 本身也是 CSS 屬性。 */
-  .chevron {
     display: block;
     color: var(--text-tertiary);
     width: var(--icon-s);
@@ -28,7 +28,7 @@
 <div class="group">
   <div class="row" data-state="default">
     <span class="label">預設（唯一的狀態）</span>
-    <svg class="chevron" viewBox="0 0 24 24" fill="none"
+    <svg class="tl-chevron" viewBox="0 0 24 24" fill="none"
          stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"
          aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg>
   </div>
@@ -41,7 +41,7 @@
     <div class="group">
       <div class="row">
         <span class="label">在群組容器裡的實際位置</span>
-        <svg class="chevron" viewBox="0 0 24 24" fill="none"
+        <svg class="tl-chevron" viewBox="0 0 24 24" fill="none"
              stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"
              aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg>
       </div>
@@ -52,7 +52,7 @@
     <div class="group">
       <div class="row">
         <span class="label">在群組容器裡的實際位置</span>
-        <svg class="chevron" viewBox="0 0 24 24" fill="none"
+        <svg class="tl-chevron" viewBox="0 0 24 24" fill="none"
              stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"
              aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg>
       </div>

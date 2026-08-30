@@ -291,7 +291,8 @@ design-system/
   components.json            ← 生成。機器讀的登錄檔，從各 spec 抽出
   _template.spec.md          規格樣板
   *.html                     ← 生成。每份 markdown 的瀏覽器版本（連結一併改寫成 .html）
-  preview.css                preview 的共用外殼（手改，不是生成物）
+  preview.css                展示骨架（手改，不是生成物）
+  components.preview.css     元件的 CSS 鏡像，一元件一段（手改）
   tokens/
     tokens.json              ← 唯一來源
     tokens.css               ← 生成
@@ -332,7 +333,18 @@ design-system/
    （**並排雙欄或切換皆可**；並排通常好用，不必點擊就能對照）。
    preview 要主動標注「dark（目前是 light 的複製）」
 5. **L1／L2 的 preview 不出現任何 domain 詞彙**（Exercise／Workout／Set）
-6. `make design-zip` 產出，且**實際餵進 Claude Design 驗證過能組出新畫面**
+6. **元件的 CSS 鏡像放 `components.preview.css`，一元件一段、`.tl-<name>` 前綴**。
+   `preview.css` 只放展示骨架（`.group` `.row` `.kicker` `.pane` `.screen`）。
+
+   為什麼要分：CSS 鏡像是元件的**第二份實作**，沒有規格、沒有狀態窮舉、沒有版本紀錄。
+   混在骨架裡的話，40 個元件時會長成一份平行的設計系統。
+   一致性沒辦法自動驗（要跨語言比對），但**孤兒與遺漏**擋得了（檢查 16），
+   而那是實際會發生的兩種漂移。
+
+   前綴不能省：`.btn`／`.check` 這種通用名等 `TLButton`／`TLTag` 進來一定撞，
+   靠後代選擇器閃避撐不到 40 個元件。
+
+7. `make design-zip` 產出，且**實際餵進 Claude Design 驗證過能組出新畫面**
 
 第 6 條是唯一真正的驗收：文件寫得再好，餵不進去就是沒做到。
 
@@ -369,6 +381,7 @@ Noto 子集（`make preview-font` 重生；原始字型 11MB，不進版控，�
 | 13 | L1／L2 的 preview 不出現 domain 詞彙（Exercise／Workout／組數…）—— 假資料最順手的來源就是真的運動名稱，那一刻就違反了規則三 | §4 規則三、§7.5 |
 | 14 | **元件 preview 與 examples** 內零字面尺寸。豁免只適用設計系統自身的展示頁（`tokens/tokens.preview.html`），按路徑判定不靠語意 | §7.3 |
 | 15 | `examples/` 的整頁組合只用元件與 token —— 它是畫面的規格，不是另一份設計稿 | §6.5 |
+| 16 | `components.preview.css` 與元件庫成對：每個元件有且僅有一段 `.tl-<name>`，且沒有孤兒段落。**兩份實作的一致性擋不了**（要跨語言比對），但孤兒與遺漏擋得了，而那是實際會發生的兩種漂移 | §7.7 |
 <!-- checks:end -->
 
 **編號是永久 id：只增不重排、刪除的號碼不回收。** `CHANGELOG.md` 與這份文件的正文都用編號指稱

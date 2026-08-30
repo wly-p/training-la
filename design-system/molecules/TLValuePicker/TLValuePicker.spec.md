@@ -11,6 +11,7 @@
 | 容器責任 | 自己負責滾輪與快捷列的內部排版；外部間距由畫面給 |
 | 實作 | `Packages/DesignSystem/Sources/DesignSystem/Molecules/TLValuePicker.swift` |
 | Preview | `design-system/molecules/TLValuePicker/TLValuePicker.preview.html` |
+| Preview CSS | `components.preview.css` §TLValuePicker |
 
 ## 2 介面 ★
 

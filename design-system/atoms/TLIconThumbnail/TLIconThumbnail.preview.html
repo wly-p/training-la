@@ -4,15 +4,14 @@
 <title>TLIconThumbnail</title>
 <link rel="stylesheet" href="../../tokens/tokens.css">
 <link rel="stylesheet" href="../../preview.css">
+<link rel="stylesheet" href="../../components.preview.css">
 <style>
-  /* 尺寸與圓角都走 token。示意用的圖案是漸層，不是真的 asset。 */
-  .thumb {
+/* 尺寸與圓角都走 token。示意用的圖案是漸層，不是真的 asset。 */
     background: linear-gradient(135deg, var(--accent-300), var(--accent-600));
     width: var(--size-icon-thumb); height: var(--size-icon-thumb);
     border-radius: var(--radius-icon-thumb);
     flex: none;
   }
-  .chev { color: var(--text-tertiary); width: var(--icon-s); height: var(--icon-s);
           stroke-width: var(--icon-stroke); }
 </style>
 
@@ -27,7 +26,7 @@
 <div class="group">
   <div class="row" data-state="default">
     <span class="label">預設（唯一的狀態）</span>
-    <span class="thumb"></span>
+    <span class="tl-icon-thumbnail"></span>
   </div>
 </div>
 
@@ -35,12 +34,12 @@
 <div class="group">
   <div class="row">
     <span class="label">列右側的值 —— 後面接指向記號</span>
-    <span class="thumb"></span>
-    <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+    <span class="tl-icon-thumbnail"></span>
+    <svg class="tl-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor"
          stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg>
   </div>
   <div class="row">
-    <span class="thumb"></span>
+    <span class="tl-icon-thumbnail"></span>
     <span class="label">選擇清單裡 —— 放在列的左側</span>
   </div>
 </div>
@@ -50,13 +49,13 @@
   <div class="pane" data-theme="light">
     <div class="kicker">light</div>
     <div class="group">
-      <div class="row"><span class="label">在群組容器裡</span><span class="thumb"></span></div>
+      <div class="row"><span class="label">在群組容器裡</span><span class="tl-icon-thumbnail"></span></div>
     </div>
   </div>
   <div class="pane" data-theme="dark">
     <div class="kicker">dark（目前是 light 的複製）</div>
     <div class="group">
-      <div class="row"><span class="label">在群組容器裡</span><span class="thumb"></span></div>
+      <div class="row"><span class="label">在群組容器裡</span><span class="tl-icon-thumbnail"></span></div>
     </div>
   </div>
 </div>

@@ -11,6 +11,7 @@
 | 容器責任 | 間距與位置由列負責；按下態也由整列表現，這個元件本身不含 padding、不變樣子 |
 | 實作 | `Packages/DesignSystem/Sources/DesignSystem/Atoms/TLChevron.swift` |
 | Preview | `design-system/atoms/TLChevron/TLChevron.preview.html` |
+| Preview CSS | `components.preview.css` §TLChevron |
 
 ## 2 介面 ★
 

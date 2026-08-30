@@ -11,6 +11,7 @@
 | 容器責任 | 圓角、底色、分隔線由 `TLGroup` 負責 |
 | 實作 | `Packages/DesignSystem/Sources/DesignSystem/Molecules/TLListRow.swift` |
 | Preview | `design-system/molecules/TLListRow/TLListRow.preview.html` |
+| Preview CSS | `components.preview.css` §TLListRow |
 
 ## 2 介面 ★
 
@@ -72,7 +73,7 @@
 | 用途 | token |
 |---|---|
 | 標題 | `textPrimary` |
-| 副標 | `textTertiary` |
+| 副標 | `textSecondary` |
 | 按下態底色 | `textPrimary` @ 6% |
 
 ## 7 文字行為

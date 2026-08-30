@@ -11,6 +11,7 @@
 | 容器責任 | 位置與間距由列負責 |
 | 實作 | `Packages/DesignSystem/Sources/DesignSystem/Atoms/TLBadge.swift` |
 | Preview | `design-system/atoms/TLBadge/TLBadge.preview.html` |
+| Preview CSS | `components.preview.css` §TLBadge |
 
 ## 2 介面 ★
 

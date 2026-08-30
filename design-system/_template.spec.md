@@ -15,6 +15,7 @@
 | 容器責任 | 哪些事情不歸這個元件管（間距、位置、按下態…） |
 | 實作 | `Packages/…/X.swift` |
 | Preview | `design-system/…/X.preview.html` |
+| Preview CSS | `components.preview.css` §X |
 
 > 「獨立使用」與「容器責任」是給組畫面的人的護欄。L1 原子幾乎都**自己不完整**——
 > badge 要放在列裡、chevron 要放在可進入的列裡。不寫清楚的話，組畫面的人會直接把它

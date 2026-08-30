@@ -4,17 +4,14 @@
 <title>TLToggle</title>
 <link rel="stylesheet" href="../../tokens/tokens.css">
 <link rel="stylesheet" href="../../preview.css">
+<link rel="stylesheet" href="../../components.preview.css">
 <style>
-  .sw { width: var(--size-switch-w); height: var(--size-switch-h); flex: none;
-        border-radius: var(--radius-pill); background: var(--surface-input);
+border-radius: var(--radius-pill); background: var(--surface-input);
         position: relative; transition: background var(--motion-base) var(--motion-curve); }
-  .sw.on { background: var(--action-primary); }
-  .sw::after { content: ""; position: absolute; top: var(--space-switch-knob-inset);
                left: var(--space-switch-knob-inset);
                width: calc(var(--size-switch-h) - var(--space-switch-knob-inset) * 2);
                height: calc(var(--size-switch-h) - var(--space-switch-knob-inset) * 2);
                border-radius: var(--radius-pill); background: var(--surface-raised); }
-  .sw.on::after { left: auto; right: var(--space-switch-knob-inset);
                   background: var(--surface-base); }
 </style>
 
@@ -28,8 +25,8 @@
 
 <div class="kicker">狀態</div>
 <div class="group">
-  <div class="row" data-state="on"><span class="label">on</span><span class="sw on"></span></div>
-  <div class="row" data-state="off"><span class="label">off</span><span class="sw"></span></div>
+  <div class="row" data-state="on"><span class="label">on</span><span class="tl-toggle tl-toggle--on"></span></div>
+  <div class="row" data-state="off"><span class="label">off</span><span class="tl-toggle"></span></div>
 </div>
 <p class="note">
   沒有獨立的 pressed —— 點下去就切換，旋鈕滑過去（<code>motion.base</code>）即是回饋。
@@ -46,15 +43,15 @@
   <div class="pane" data-theme="light">
     <div class="kicker">light</div>
     <div class="group">
-      <div class="row"><span class="label">開</span><span class="sw on"></span></div>
-      <div class="row"><span class="label">關</span><span class="sw"></span></div>
+      <div class="row"><span class="label">開</span><span class="tl-toggle tl-toggle--on"></span></div>
+      <div class="row"><span class="label">關</span><span class="tl-toggle"></span></div>
     </div>
   </div>
   <div class="pane" data-theme="dark">
     <div class="kicker">dark（目前是 light 的複製）</div>
     <div class="group">
-      <div class="row"><span class="label">開</span><span class="sw on"></span></div>
-      <div class="row"><span class="label">關</span><span class="sw"></span></div>
+      <div class="row"><span class="label">開</span><span class="tl-toggle tl-toggle--on"></span></div>
+      <div class="row"><span class="label">關</span><span class="tl-toggle"></span></div>
     </div>
   </div>
 </div>

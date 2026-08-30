@@ -11,6 +11,7 @@
 | 容器責任 | 左內縮由這個元件自己負責；頭尾不畫線是 `TLDividedVStack` 的責任 |
 | 實作 | `Packages/DesignSystem/Sources/DesignSystem/Atoms/TLDivider.swift` |
 | Preview | `design-system/atoms/TLDivider/TLDivider.preview.html` |
+| Preview CSS | `components.preview.css` §TLDivider |
 
 ## 2 介面 ★
 

@@ -4,13 +4,9 @@
 <title>級距設定頁</title>
 <link rel="stylesheet" href="../tokens/tokens.css">
 <link rel="stylesheet" href="../preview.css">
+<link rel="stylesheet" href="../components.preview.css">
 <style>
-  /* 滾輪是這一頁特有的呈現，不是共用外殼 */
-  .wheel { text-align: center; }
-  .wheel .val { font-family: var(--font-display); padding: var(--space-gap-s) 0; }
-  .wheel .val.far  { font-size: var(--font-row-title); color: var(--text-tertiary); opacity: .5; }
-  .wheel .val.near { font-size: var(--font-card-title); color: var(--text-secondary); }
-  .wheel .val.sel  { font-size: var(--font-page-title); color: var(--text-numeric); }
+/* 滾輪是這一頁特有的呈現，不是共用外殼 */
   .field { display: flex; flex-direction: column; gap: var(--space-label-gap); }
   .field .input { font-family: var(--font-display); font-size: var(--font-row-title);
                   width: var(--size-step-field); text-align: right; color: var(--text-primary); }
@@ -27,20 +23,20 @@
 
 <div class="kicker">重量級距</div>
 <div class="screen">
-  <div class="backbar">
-    <span class="btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+  <div class="tl-back-bar">
+    <span class="tl-circle-icon-button tl-circle-icon-button--outline"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
       stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg></span>
   </div>
-  <div class="pagehead">重量調整級距</div>
+  <div class="tl-page-header">重量調整級距</div>
   <div class="body">
     <div>
       <div class="kicker">kg</div>
-      <div class="wheel">
-        <div class="val far">1</div>
-        <div class="val near">1.25</div>
-        <div class="val sel">2.5</div>
-        <div class="val near">5</div>
-        <div class="val far">10</div>
+      <div class="tl-value-picker__wheel">
+        <div class="tl-value-picker__value tl-value-picker__value--far">1</div>
+        <div class="tl-value-picker__value tl-value-picker__value--near">1.25</div>
+        <div class="tl-value-picker__value tl-value-picker__value--selected">2.5</div>
+        <div class="tl-value-picker__value tl-value-picker__value--near">5</div>
+        <div class="tl-value-picker__value tl-value-picker__value--far">10</div>
       </div>
     </div>
     <div class="field">

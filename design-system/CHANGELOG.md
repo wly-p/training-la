@@ -52,7 +52,68 @@
 
 ---
 
-## 2026-08-30 · 階段 1（設定頁榨取）· 進行中
+## 2026-08-30 · 階段 1 交付審閱後
+
+### `preview.css` 分家（審閱 A）
+
+審閱指出：`preview.css` 已經從「展示骨架」變成**元件的第二份實作** ——
+`.thumb` 有 `linear-gradient` 與 `--size-icon-thumb`，那是元件的樣子不是骨架。
+`TLBackBar` 因此有兩份實作（Swift 一份、CSS 一份）而**沒有東西檢查它們一致**。
+19 個元件時看得住，40 個時會長成一份沒有規格、沒有狀態窮舉的平行設計系統。
+
+**不退回去**（每份 preview 各自寫會更糟），改成**顯性化並可計數**：
+
+- `preview.css` 只留骨架（`.group` `.row` `.kicker` `.pane` `.screen` `.note`）
+- 元件的 CSS 鏡像進 **`components.preview.css`**，一元件一段、順序同 `components.json`
+- 選擇器一律 `.tl-<kebab-name>`。原本的 `.btn` `.check` `.thumb` 是通用名，
+  等 `TLButton`／`TLTag` 進來一定撞；靠 `.backbar .btn` 這種後代選擇器閃避撐不到 40 個元件
+- 規格第 1 節多一列 `Preview CSS` —— **三件套變四件套，因為事實上已經是了**
+- **新增檢查 16**：每個元件有且僅有一段對應的 `.tl-<name>`，反向也擋（孤兒段落）
+
+一致性仍然沒人擋（那要跨語言比對，不值得做），但**孤兒與遺漏**擋得了 ——
+而那是實際會發生的兩種漂移。加上檢查後立刻抓到一個孤兒（`.tl-over`，
+那是 `TLBadge` preview 特有的溢出示意，不是元件的一部分，已改成本地 class）。
+
+### 文字階合併與下移（審閱 B）
+
+審閱：**兩個 token 同值就是一個 token。** `textBody` 與建議中的 `textSecondary`
+都是 `neutral.700`，所以合併。同時整階下移一階：
+
+| token | 原本 | 現在 | 對 `surfaceRaised` |
+|---|---|---|---|
+| `textPrimary` | ink.900 | ink.900 | 15.2:1 |
+| `textSecondary` | neutral.600 | **neutral.700** | **6.0:1**（原 3.9） |
+| `textTertiary` | neutral.500 | **neutral.600** | **3.9:1**（原 2.6） |
+| ~~`textBody`~~ | neutral.700 | 刪除 | 併入 `textSecondary` |
+
+**分界的判準**（審閱給的，值得記住）：
+> 要讀完的**句子**用 `textSecondary`，掃視就過的**標示**用 `textTertiary`。
+> 不是「重要程度」，是「會不會被逐字讀」。
+
+`textTertiary` 的 3.9:1 過得了大字與圖示的 3:1、過不了正文的 4.5:1，
+所以它的用途被限定成「圖示 ＋ ≥13pt 的非句子文字」。
+順帶把 `preview.css` 的 `.kicker` 從 tertiary 改成 secondary —— 10.5px 的小字
+配低對比會讀不動。
+
+**視覺影響現在很小**：Swift 端還在直接用 `neutral500`(91 處)／`neutral600`(64 處)，
+只有 2 處走語意層。所以這是改**定義**，效果會在後續階段逐步遷移時才落地 ——
+`TLChevron` 是唯一立刻變的（2.6:1 → 3.9:1，變深，是修正）。
+
+### icon 尺度（審閱 C）
+
+清單產出在 `temp/icon-scale-usage.md`。**產清單時發現兩個值從來沒被用過**：
+
+`icon.m`(16) 與 `icon.l`(20) 是第一輪建立 `icon` token 時憑空造的三階，
+全專案 0 處引用。**這跟 `surfaceSunken` 是同一個錯誤** —— 為沒有用途的值發明名字。
+已在清單裡建議刪除，等設計端確認。
+
+清單同時指出一個可能的分法：跟文字並排的圖示（13/14/15，差異全在 ±1px 內）
+與裝在固定容器裡的圖示（11 在 22pt 圓裡＝50%、18 在 44pt 圓裡＝41%）
+**可能不是同一個尺度上的刻度**，後者是容器的比例。等設計端回覆。
+
+---
+
+## 2026-08-30 · 階段 1（設定頁榨取）· 完成
 
 ### 階段 1 的核心問題：「設定頁完全由 L2 組成」成立嗎？
 
@@ -230,9 +291,9 @@
 | `neutral700` 被用 **16 處**，但沒有任何語意角色（`textSecondary` 是 neutral600、比它淺） | 跨 Plan／Training／DesignSystem | 撞到它的第一個階段順手命名 |
 | `TLFont.display(N)` 用了 **16 種字面字級**（15／20／16／34／30／28／26／13.5／60／56／19／17／14…），只有 2 處走 token | 全 app | 數字的字級尺度需要一次性收斂，建議在階段 5（訓練）之前決定 |
 | Presentation 層 **181 處**字面樣式 | 見 `.presentation-baseline.json` | 每階段往下推，階段 5 結束歸零 |
-| **`textSecondary` 對 `surfaceRaised` 只有 3.9:1、`textTertiary` 只有 2.6:1**（WCAG 正文要 4.5、大字與圖示要 3）。`textTertiary` 是 chevron 與三級文字的顏色，連圖示門檻都不到 | 全 app | 這是實作第三輪審閱的「標對比度」建議才浮出來的。改色值是設計決策，建議併進 C6a 深色色階一起處理 |
+| ~~`textSecondary` 3.9:1、`textTertiary` 2.6:1~~ | — | ✅ 已修（整階下移一階，見上方 2026-08-30 交付審閱後） |
 | `TLExerciseNameWithEquipment` 名字帶 domain 詞彙（實際不 import domain，層級沒錯，只是命名有味道） | 1 處 | 階段 2 |
 | ~~`TLCircleIconButton` 是 View 卻住在 `Support/ButtonStyles.swift`~~ | — | ✅ 階段 1 已抽出 |
-| `icon` 已經不是一個尺度：`s13 / sm14 / m16 / button18 / l20` 五個值都是從既有程式碼撈出來的特設值，彼此沒有比例關係 | 全 app | 等更多圖示 token 化之後一次收斂 |
+| `icon` 不是一個尺度，**而且其中兩個值(m16／l20)從來沒被用過** | 全 app | 清單已給設計端（`temp/icon-scale-usage.md`），等回覆 |
 | `RotationDetailView` / `ProgramDetailView` 仍各自寫返回列（字面 `12`）。改用 `TLBackBar` 之後會變成 `8` | 2 處 | 階段 4（那是 Plan 的視覺改變，不屬於這一輪） |
 | `TLCircleIconButton.init(systemImage:filled:)` 是標了「舊呼叫端相容」的 shim | 3 處呼叫端 | 各階段順手換成 `style:` |

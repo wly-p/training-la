@@ -4,15 +4,12 @@
 <title>TLPageHeader</title>
 <link rel="stylesheet" href="../../tokens/tokens.css">
 <link rel="stylesheet" href="../../preview.css">
+<link rel="stylesheet" href="../../components.preview.css">
 <style>
-  .screen { padding-bottom: var(--space-gap-l); }
-  .ph-row { display: flex; align-items: baseline; gap: var(--space-gap-m);
+.screen { padding-bottom: var(--space-gap-l); }
             padding: 0 var(--space-page); }
-  .ph-row .pagehead { flex: 1; padding: 0; }
-  .ph-kicker { font-size: var(--font-kicker); letter-spacing: var(--font-kicker-tracking);
                text-transform: uppercase; color: var(--action-pressed);
                padding: 0 var(--space-page); margin-bottom: var(--space-kicker-gap); }
-  .btn-accent { width: var(--size-icon-button); height: var(--size-icon-button);
                 border-radius: var(--radius-pill); background: var(--action-primary);
                 color: var(--surface-base); flex: none;
                 display: flex; align-items: center; justify-content: center; }
@@ -25,22 +22,22 @@
 
 <div class="kicker">狀態</div>
 <div class="screen" data-state="default">
-  <div class="pagehead">今天練什麼</div>
+  <div class="tl-page-header">今天練什麼</div>
 </div>
 
 <div class="kicker">三種填法</div>
 <div class="screen">
-  <div class="pagehead">設定</div>
+  <div class="tl-page-header">設定</div>
 </div>
 <div class="screen" style="margin-top: var(--space-gap-m)">
-  <div class="ph-row">
-    <span class="pagehead">動作庫</span>
-    <span class="btn-accent">＋</span>
+  <div class="tl-page-header__row">
+    <span class="tl-page-header">動作庫</span>
+    <span class="tl-circle-icon-button tl-circle-icon-button--accent">＋</span>
   </div>
 </div>
 <div class="screen" style="margin-top: var(--space-gap-m)">
-  <div class="ph-kicker">本週</div>
-  <div class="pagehead">歷史</div>
+  <div class="tl-page-header__kicker">本週</div>
+  <div class="tl-page-header">歷史</div>
 </div>
 <p class="note">
   kicker 用 accent 而不是灰 —— 它是「這一頁屬於哪個脈絡」，是資訊不是裝飾。
@@ -49,7 +46,7 @@
 
 <div class="kicker">內容極值</div>
 <div class="screen">
-  <div class="pagehead">主標允許兩行，超過就截斷</div>
+  <div class="tl-page-header">主標允許兩行，超過就截斷</div>
 </div>
 <p class="note">英文主標普遍較長，兩行的情況比中文常見。有 accessory 時可用空間更少。</p>
 
@@ -57,11 +54,11 @@
 <div class="themes">
   <div class="pane" data-theme="light">
     <div class="kicker">light</div>
-    <div class="screen"><div class="ph-kicker">本週</div><div class="pagehead">歷史</div></div>
+    <div class="screen"><div class="tl-page-header__kicker">本週</div><div class="tl-page-header">歷史</div></div>
   </div>
   <div class="pane" data-theme="dark">
     <div class="kicker">dark（目前是 light 的複製）</div>
-    <div class="screen"><div class="ph-kicker">本週</div><div class="pagehead">歷史</div></div>
+    <div class="screen"><div class="tl-page-header__kicker">本週</div><div class="tl-page-header">歷史</div></div>
   </div>
 </div>
 

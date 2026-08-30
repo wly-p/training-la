@@ -4,19 +4,12 @@
 <title>TLSegmentedControl</title>
 <link rel="stylesheet" href="../../tokens/tokens.css">
 <link rel="stylesheet" href="../../preview.css">
+<link rel="stylesheet" href="../../components.preview.css">
 <style>
-  .seg { display: inline-flex; background: var(--surface-track);
-         border-radius: var(--radius-pill); }
-  .seg span { border-radius: var(--radius-pill); color: var(--text-secondary);
+border-radius: var(--radius-pill); }
               font-weight: 500; text-align: center; }
-  .seg .on { background: var(--surface-base); color: var(--text-primary); font-weight: 700; }
-  .seg.c { padding: var(--space-seg-track-pad-compact); }
-  .seg.c span { padding: var(--space-seg-item-pad-v-compact) var(--space-seg-item-pad-h);
                 font-size: var(--font-seg-compact); }
-  .seg.r { padding: var(--space-seg-track-pad); display: flex; width: 100%; }
-  .seg.r span { padding: var(--space-seg-item-pad-v) 0; flex: 1;
                 font-size: var(--font-row-title); }
-  .seg.r .on { box-shadow: var(--shadow-sm); }
 </style>
 <h1>TLSegmentedControl</h1>
 <p class="note">
@@ -27,18 +20,18 @@
 <div class="kicker">狀態</div>
 <div class="group">
   <div class="row" data-state="default"><span class="label">未選的段</span>
-    <span class="seg c"><span>kg</span><span class="on">lb</span></span></div>
+    <span class="tl-segmented-control tl-segmented-control--compact"><span>kg</span><span class="is-on">lb</span></span></div>
   <div class="row" data-state="selected"><span class="label">選中的段</span>
-    <span class="seg c"><span class="on">kg</span><span>lb</span></span></div>
+    <span class="tl-segmented-control tl-segmented-control--compact"><span class="is-on">kg</span><span>lb</span></span></div>
 </div>
 <p class="note">永遠恰好一個被選中，沒有 indeterminate。沒有獨立的 pressed —— 點下去就是選中。</p>
 
 <div class="kicker">變體</div>
-<div class="seg r"><span class="on">依日期</span><span>依動作</span></div>
+<div class="tl-segmented-control tl-segmented-control--regular"><span class="is-on">依日期</span><span>依動作</span></div>
 <p class="note"><code>regular</code> —— 全寬平分，選中項有陰影。</p>
 <div class="group" style="margin-top: var(--space-gap-m)">
   <div class="row"><span class="label">重量單位</span>
-    <span class="seg c"><span class="on">kg</span><span>lb</span></span></div>
+    <span class="tl-segmented-control tl-segmented-control--compact"><span class="is-on">kg</span><span>lb</span></span></div>
 </div>
 <p class="note">
   <code>compact</code> —— 依內容寬，<b>選中項沒有陰影</b>。
@@ -48,18 +41,18 @@
 </p>
 
 <div class="kicker">內容極值</div>
-<div class="seg r"><span class="on">全部</span><span>胸</span><span>背</span><span>腿</span></div>
+<div class="tl-segmented-control tl-segmented-control--regular"><span class="is-on">全部</span><span>胸</span><span>背</span><span>腿</span></div>
 <p class="note">2–3 段最好。<b>4 段以上在 compact 會擠</b>，那時該改用 drill-in 選擇頁。</p>
 
 <div class="kicker">主題</div>
 <div class="themes">
   <div class="pane" data-theme="light">
     <div class="kicker">light</div>
-    <div class="seg r"><span class="on">依日期</span><span>依動作</span></div>
+    <div class="tl-segmented-control tl-segmented-control--regular"><span class="is-on">依日期</span><span>依動作</span></div>
   </div>
   <div class="pane" data-theme="dark">
     <div class="kicker">dark（目前是 light 的複製）</div>
-    <div class="seg r"><span class="on">依日期</span><span>依動作</span></div>
+    <div class="tl-segmented-control tl-segmented-control--regular"><span class="is-on">依日期</span><span>依動作</span></div>
   </div>
 </div>
 

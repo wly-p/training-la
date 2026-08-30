@@ -11,6 +11,7 @@
 | 容器責任 | 與相鄰元素的間距由放它的列或列容器負責 |
 | 實作 | `Packages/DesignSystem/Sources/DesignSystem/Atoms/TLCircleIconButton.swift` |
 | Preview | `design-system/atoms/TLCircleIconButton/TLCircleIconButton.preview.html` |
+| Preview CSS | `components.preview.css` §TLCircleIconButton |
 
 ## 2 介面 ★
 

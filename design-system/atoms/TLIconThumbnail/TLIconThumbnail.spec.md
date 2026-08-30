@@ -11,6 +11,7 @@
 | 容器責任 | 與相鄰元素的間距由列負責；這個元件只決定自己的尺寸與圓角 |
 | 實作 | `Packages/DesignSystem/Sources/DesignSystem/Atoms/TLIconThumbnail.swift` |
 | Preview | `design-system/atoms/TLIconThumbnail/TLIconThumbnail.preview.html` |
+| Preview CSS | `components.preview.css` §TLIconThumbnail |
 
 ## 2 介面 ★
 

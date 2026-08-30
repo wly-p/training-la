@@ -11,6 +11,7 @@
 | 容器責任 | 圓角、底色、與相鄰列的分隔線由 `TLGroup` 負責 |
 | 實作 | `Packages/DesignSystem/Sources/DesignSystem/Molecules/TLSettingsRow.swift` |
 | Preview | `design-system/molecules/TLSettingsRow/TLSettingsRow.preview.html` |
+| Preview CSS | `components.preview.css` §TLSettingsRow |
 
 ## 2 介面 ★
 

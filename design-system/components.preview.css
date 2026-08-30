@@ -1,0 +1,200 @@
+/* 元件在 preview 裡的視覺表述。**手改，不是生成物。**
+ *
+ * 這裡的每一段都是某個元件的**第二份實作**（Swift 一份、CSS 一份），
+ * 沒有東西能自動驗證兩者一致——那要跨語言比對，不值得做。
+ * 能擋的是另外兩種漂移，而那兩種才是實際會發生的：
+ *
+ *   1. 孤兒：CSS 有段落但元件庫沒有那個元件
+ *   2. 遺漏：元件的 preview 用了 .tl-x 但這裡沒有對應段落
+ *
+ * 機器檢查（第 16 條）擋這兩種。規格第 1 節有一列指回這裡。
+ *
+ * 規則：
+ *   - 一個元件一段，段落順序與 components.json 相同
+ *   - 選擇器一律 .tl-<kebab-name>，不用通用名（.btn/.check 這種等 TLButton
+ *     進來一定撞，靠後代選擇器閃避撐不到 40 個元件）
+ *   - 只用 token，不用字面值
+ */
+
+/* TLBadge */
+.tl-badge {
+  width: var(--size-badge); height: var(--size-badge); flex: none;
+  border-radius: var(--radius-pill);
+  background: var(--sage-200); color: var(--sage-800); font-weight: 600;
+  display: flex; align-items: center; justify-content: center;
+}
+.tl-badge--text { font-size: var(--font-badge-text); }
+.tl-badge--number { font-size: var(--font-row-number); font-family: var(--font-row-number-family); }
+.tl-badge svg { width: var(--icon-m); height: var(--icon-m); stroke-width: var(--icon-stroke); }
+
+/* TLCheckCircle */
+.tl-check-circle {
+  width: var(--size-check-circle); height: var(--size-check-circle); flex: none;
+  border-radius: var(--radius-pill);
+  border: var(--size-hairline-thick) solid var(--neutral-400);
+  display: flex; align-items: center; justify-content: center;
+}
+.tl-check-circle--on {
+  background: var(--action-primary); border-color: transparent; color: var(--surface-base);
+}
+.tl-check-circle svg { width: var(--icon-xs); height: var(--icon-xs); stroke-width: var(--icon-stroke); }
+
+/* TLChevron */
+.tl-chevron {
+  display: block; color: var(--text-tertiary);
+  width: var(--icon-s); height: var(--icon-s); stroke-width: var(--icon-stroke);
+}
+
+/* TLCircleIconButton */
+.tl-circle-icon-button {
+  width: var(--size-icon-button); height: var(--size-icon-button); flex: none;
+  border-radius: var(--radius-pill);
+  display: inline-flex; align-items: center; justify-content: center;
+  transition: transform var(--motion-fast) var(--motion-curve);
+}
+.tl-circle-icon-button svg {
+  width: var(--icon-button); height: var(--icon-button); stroke-width: var(--icon-stroke);
+}
+.tl-circle-icon-button--accent { background: var(--action-primary); color: var(--surface-base); }
+.tl-circle-icon-button--outline {
+  background: transparent; color: var(--accent-on-surface);
+  border: var(--size-hairline) solid var(--accent-on-surface);
+}
+.tl-circle-icon-button--neutral { background: var(--surface-track); color: var(--text-primary); }
+.tl-circle-icon-button--pressed { transform: scale(0.92); }
+.tl-circle-icon-button--small {
+  width: var(--size-icon-button-small); height: var(--size-icon-button-small);
+}
+
+/* TLIconThumbnail */
+.tl-icon-thumbnail {
+  width: var(--size-icon-thumb); height: var(--size-icon-thumb); flex: none;
+  border-radius: var(--radius-icon-thumb);
+  /* 示意用的圖案，不是真的 asset */
+  background: linear-gradient(135deg, var(--accent-300), var(--accent-600));
+}
+
+/* TLRowValue */
+.tl-row-value { display: flex; align-items: baseline; gap: var(--space-value-unit-gap); }
+.tl-row-value__number {
+  font-family: var(--font-row-number-family); font-size: var(--font-row-number);
+  color: var(--text-primary);
+}
+.tl-row-value__unit { font-size: var(--font-row-title); color: var(--text-secondary); }
+
+/* TLSettingsValue */
+.tl-settings-value { font-size: var(--font-row-value); color: var(--text-secondary); }
+
+/* TLToggle */
+.tl-toggle {
+  width: var(--size-switch-w); height: var(--size-switch-h); flex: none;
+  border-radius: var(--radius-pill); background: var(--surface-input);
+  position: relative; transition: background var(--motion-base) var(--motion-curve);
+}
+.tl-toggle--on { background: var(--action-primary); }
+.tl-toggle::after {
+  content: ""; position: absolute;
+  top: var(--space-switch-knob-inset); left: var(--space-switch-knob-inset);
+  width: calc(var(--size-switch-h) - var(--space-switch-knob-inset) * 2);
+  height: calc(var(--size-switch-h) - var(--space-switch-knob-inset) * 2);
+  border-radius: var(--radius-pill); background: var(--surface-raised);
+}
+.tl-toggle--on::after {
+  left: auto; right: var(--space-switch-knob-inset); background: var(--surface-base);
+}
+
+/* TLBackBar */
+.tl-back-bar {
+  display: flex; align-items: center;
+  padding: var(--space-gap-s) var(--space-page) 0;
+}
+
+/* TLPageHeader */
+.tl-page-header {
+  font-family: var(--font-page-title-family); font-size: var(--font-page-title);
+  padding: 0 var(--space-page);
+}
+.tl-page-header__row { display: flex; align-items: baseline; gap: var(--space-gap-m);
+                       padding: 0 var(--space-page); }
+.tl-page-header__row .tl-page-header { flex: 1; padding: 0; }
+.tl-page-header__kicker {
+  font-size: var(--font-kicker); letter-spacing: var(--font-kicker-tracking);
+  text-transform: uppercase; color: var(--action-pressed);
+  padding: 0 var(--space-page); margin-bottom: var(--space-kicker-gap);
+}
+
+/* TLSectionHeader */
+.tl-section-header {
+  display: flex; align-items: baseline; margin-bottom: var(--space-section-header-gap);
+}
+.tl-section-header__title {
+  flex: 1; font-size: var(--font-kicker); letter-spacing: var(--font-kicker-tracking);
+  text-transform: uppercase; color: var(--text-tertiary); font-weight: 600;
+}
+.tl-section-header__title--tinted { color: var(--action-pressed); }
+.tl-section-header__action { font-size: var(--font-row-sub); color: var(--accent-on-surface); }
+
+/* TLSegmentedControl */
+.tl-segmented-control {
+  display: inline-flex; background: var(--surface-track); border-radius: var(--radius-pill);
+}
+.tl-segmented-control span {
+  border-radius: var(--radius-pill); color: var(--text-secondary);
+  font-weight: 500; text-align: center;
+}
+.tl-segmented-control .is-on {
+  background: var(--surface-base); color: var(--text-primary); font-weight: 700;
+}
+.tl-segmented-control--compact { padding: var(--space-seg-track-pad-compact); }
+.tl-segmented-control--compact span {
+  padding: var(--space-seg-item-pad-v-compact) var(--space-seg-item-pad-h);
+  font-size: var(--font-seg-compact);
+}
+.tl-segmented-control--regular { padding: var(--space-seg-track-pad); display: flex; width: 100%; }
+.tl-segmented-control--regular span {
+  padding: var(--space-seg-item-pad-v) 0; flex: 1; font-size: var(--font-row-title);
+}
+.tl-segmented-control--regular .is-on { box-shadow: var(--shadow-sm); }
+
+/* TLSettingsRow */
+.tl-settings-row__hint { font-size: var(--font-row-sub); color: var(--text-tertiary); }
+.tl-settings-row--pressed { background: var(--border-subtle); }
+.tl-settings-row--destructive { color: var(--danger-on-surface); font-weight: 600; }
+.tl-settings-row__icon { margin-right: var(--space-section-header-gap); }
+
+/* TLSettingsToggleRow */
+.tl-settings-toggle-row__sub { font-size: var(--font-row-sub); color: var(--text-tertiary); }
+.tl-settings-toggle-row--tall { height: var(--size-row-with-sub); }
+
+/* TLListRow */
+.tl-list-row__sub { font-size: var(--font-row-sub); color: var(--text-secondary); }
+.tl-list-row--pressed { background: var(--border-subtle); }
+.tl-list-row--with-detail { height: var(--size-row-with-detail); }
+.tl-list-row__pill {
+  display: inline-block; font-size: var(--font-row-sub); color: var(--text-secondary);
+  background: var(--surface-track); border-radius: var(--radius-pill);
+  padding: 0 var(--space-gap-s); margin-right: var(--space-gap-s);
+}
+
+/* TLValuePicker */
+.tl-value-picker { display: flex; flex-direction: column; gap: var(--space-picker-gap); }
+.tl-value-picker__wheel { text-align: center; }
+.tl-value-picker__value { font-family: var(--font-display); padding: var(--space-gap-s) 0; }
+.tl-value-picker__value--far {
+  font-size: var(--font-row-title); color: var(--text-tertiary); opacity: .5;
+}
+.tl-value-picker__value--near { font-size: var(--font-card-title); color: var(--text-secondary); }
+.tl-value-picker__value--selected { font-size: var(--font-page-title); color: var(--text-numeric); }
+.tl-value-picker__quick {
+  display: flex; gap: var(--space-gap-s);
+  height: var(--size-quick-action-row); align-items: center;
+}
+.tl-value-picker__chip {
+  flex: 1; text-align: center; border-radius: var(--radius-pill);
+  padding: var(--space-chip-pad-v) 0; font-size: var(--font-row-sub);
+  border: var(--size-hairline) solid var(--border-subtle); color: var(--text-secondary);
+}
+
+/* TLGroup / TLDivider / TLDividedVStack —— 它們的視覺表述就是骨架的 .group / .row，
+   在 preview.css 裡。這是刻意的：那三個元件「是」容器與分隔線本身，
+   不是放在容器裡的東西。 */

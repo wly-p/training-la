@@ -344,7 +344,8 @@ accessibility label／trait、最小觸控 44pt、<code>accessibilityIdentifier<
   components.json            ← 生成。機器讀的登錄檔，從各 spec 抽出
   _template.spec.md          規格樣板
   *.html                     ← 生成。每份 markdown 的瀏覽器版本（連結一併改寫成 .html）
-  preview.css                preview 的共用外殼（手改，不是生成物）
+  preview.css                展示骨架（手改，不是生成物）
+  components.preview.css     元件的 CSS 鏡像，一元件一段（手改）
   tokens/
     tokens.json              ← 唯一來源
     tokens.css               ← 生成
@@ -381,7 +382,17 @@ accessibility label／trait、最小觸控 44pt、<code>accessibilityIdentifier<
    （<strong>並排雙欄或切換皆可</strong>；並排通常好用，不必點擊就能對照）。
    preview 要主動標注「dark（目前是 light 的複製）」
 5. <strong>L1／L2 的 preview 不出現任何 domain 詞彙</strong>（Exercise／Workout／Set）
-6. <code>make design-zip</code> 產出，且<strong>實際餵進 Claude Design 驗證過能組出新畫面</strong></p>
+6. <strong>元件的 CSS 鏡像放 <code>components.preview.css</code>，一元件一段、<code>.tl-&lt;name&gt;</code> 前綴</strong>。
+   <code>preview.css</code> 只放展示骨架（<code>.group</code> <code>.row</code> <code>.kicker</code> <code>.pane</code> <code>.screen</code>）。</p>
+<p>為什麼要分：CSS 鏡像是元件的<strong>第二份實作</strong>，沒有規格、沒有狀態窮舉、沒有版本紀錄。
+   混在骨架裡的話，40 個元件時會長成一份平行的設計系統。
+   一致性沒辦法自動驗（要跨語言比對），但<strong>孤兒與遺漏</strong>擋得了（檢查 16），
+   而那是實際會發生的兩種漂移。</p>
+<p>前綴不能省：<code>.btn</code>／<code>.check</code> 這種通用名等 <code>TLButton</code>／<code>TLTag</code> 進來一定撞，
+   靠後代選擇器閃避撐不到 40 個元件。</p>
+<ol start="7">
+<li><code>make design-zip</code> 產出，且<strong>實際餵進 Claude Design 驗證過能組出新畫面</strong></li>
+</ol>
 <p>第 6 條是唯一真正的驗收：文件寫得再好，餵不進去就是沒做到。</p>
 <p><strong>字型</strong>：數字與英文兩邊都是 Caprasimo。中文是刻意的已知差異 —— 實作用系統的 PingFang TC，
 設計稿與 preview 用 Noto Sans TC。為了讓 preview 自足，包裡帶一份<strong>只含 preview 實際用到的字</strong>的
@@ -477,6 +488,11 @@ Noto 子集（<code>make preview-font</code> 重生；原始字型 11MB，不進
 <td>15</td>
 <td><code>examples/</code> 的整頁組合只用元件與 token —— 它是畫面的規格，不是另一份設計稿</td>
 <td>§6.5</td>
+</tr>
+<tr>
+<td>16</td>
+<td><code>components.preview.css</code> 與元件庫成對：每個元件有且僅有一段 <code>.tl-&lt;name&gt;</code>，且沒有孤兒段落。<strong>兩份實作的一致性擋不了</strong>（要跨語言比對），但孤兒與遺漏擋得了，而那是實際會發生的兩種漂移</td>
+<td>§7.7</td>
 </tr>
 </tbody>
 </table>

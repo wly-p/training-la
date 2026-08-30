@@ -11,6 +11,7 @@
 | 容器責任 | 自己負責與下方群組的間距；左右邊距由畫面給 |
 | 實作 | `Packages/DesignSystem/Sources/DesignSystem/Molecules/TLSectionHeader.swift` |
 | Preview | `design-system/molecules/TLSectionHeader/TLSectionHeader.preview.html` |
+| Preview CSS | `components.preview.css` §TLSectionHeader |
 
 ## 2 介面 ★
 
@@ -65,8 +66,8 @@
 | 標題（進行中） | `actionPressed` |
 | 文字操作 | 由 `tlText` 按鈕樣式決定 |
 
-⚠ **預設色的對比度只有 2.6:1**（`textTertiary` 對容器底），低於 WCAG 對大字的 3:1 門檻。
-這是全 app 的 `textTertiary` 問題，見 `CHANGELOG.md` 已知缺口。
+`textTertiary` 對容器底是 **4.0:1** —— 過得了大字與圖示的 3:1，過不了正文的 4.5:1。
+區塊標題是「掃視就過的標示」而不是要讀完的句子，所以用它是對的。
 
 ## 7 文字行為
 

@@ -11,6 +11,7 @@
 | 容器責任 | 與 chevron 的間距由列負責 |
 | 實作 | `Packages/DesignSystem/Sources/DesignSystem/Atoms/TLRowValue.swift` |
 | Preview | `design-system/atoms/TLRowValue/TLRowValue.preview.html` |
+| Preview CSS | `components.preview.css` §TLRowValue |
 
 ## 2 介面 ★
 
@@ -59,7 +60,7 @@
 | 用途 | token |
 |---|---|
 | 數字 | `textPrimary` |
-| 單位 | `textBody` |
+| 單位 | `textSecondary` |
 
 單位比數字淡一階：數字是資訊，單位是脈絡。
 
@@ -100,4 +101,4 @@ N/A（L1 原子）。
 |---|---|---|
 | 2026-08-30 | 從 `TLListRow.swift` 拆成獨立檔 | 那個檔有 4 個 public 元件 |
 | 2026-08-30 | 字級 `display(16)` → `type.rowNumber`、間距 `4` → `space.valueUnitGap` | 元件內部的字面值也是字面值 |
-| 2026-08-30 | 單位色 `neutral700` → `textBody`（新語意 token） | `neutral700` 被用 16 處卻沒有任何語意角色，第一輪就記進已知缺口。⚠ 它與 `textSecondary`(neutral600) 的分界目前不清楚，**待設計端釐清** —— 尤其考慮到 `textSecondary` 對容器底只有 3.9:1，`textBody` 反而更讀得到 |
+| 2026-08-30 | 單位色 `neutral700` → `textBody` → **`textSecondary`** | `neutral700` 被用 16 處卻沒有語意角色，所以先命名為 `textBody`。設計端隨即指出**兩個 token 同值就是一個 token**，並把 `textSecondary` 本身移到 `neutral.700`（為了 4.5:1）。所以 `textBody` 併入 `textSecondary` 並刪除，值不變 |

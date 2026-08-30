@@ -27,7 +27,9 @@ h1 {
   font-size: var(--font-kicker);
   letter-spacing: var(--font-kicker-tracking);
   text-transform: uppercase;
-  color: var(--text-tertiary);
+  /* tertiary 是給「掃視就過」的標示用的，但 kicker 只有 10.5px——
+     小字 ＋ 低對比會讀不動，所以用 secondary。 */
+  color: var(--text-secondary);
   margin: var(--space-section) 0 var(--space-gap-s);
 }
 .kicker:first-child { margin-top: 0; }
@@ -90,11 +92,11 @@ code {
 }
 
 /* ── examples/ 用的畫面外殼 ─────────────────────────────────────────
- * examples 是「整頁長什麼樣」的規格，由元件組成。這裡放的是那些元件在
- * preview 裡的視覺表述（TLBackBar / TLPageHeader…）與手機外框。
+ * 只放**展示骨架**：手機外框、頁面內容區。
  *
- * 每份 example 各自重寫這些的話，第二份就會開始漂移——跟元件 preview
- * 是同一個問題，所以同樣收在這裡。
+ * 元件在 preview 裡的視覺表述（TLBackBar / TLPageHeader / TLIconThumbnail…）
+ * 不在這裡，在 components.preview.css —— 那些是元件的第二份實作，
+ * 必須一元件一段、可計數、被檢查盯著，否則會長成一份沒有規格的平行設計系統。
  */
 
 /* 手機外框。純展示骨架，不是產品的一部分。 */
@@ -105,39 +107,4 @@ code {
   overflow: hidden;
   max-width: 22rem;
   padding-bottom: var(--space-page-bottom);
-}
-
-/* TLBackBar */
-.backbar { display: flex; align-items: center; padding: var(--space-gap-s) var(--space-page) 0; }
-.backbar .btn {
-  width: var(--size-icon-button); height: var(--size-icon-button);
-  border-radius: var(--radius-pill); flex: none;
-  border: var(--size-hairline) solid var(--accent-on-surface);
-  color: var(--accent-on-surface);
-  display: flex; align-items: center; justify-content: center;
-}
-.backbar .btn svg { width: var(--icon-button); height: var(--icon-button); stroke-width: var(--icon-stroke); }
-
-/* TLPageHeader */
-.pagehead {
-  font-family: var(--font-page-title-family);
-  font-size: var(--font-page-title);
-  padding: 0 var(--space-page);
-}
-
-/* 頁面內容區 */
-.body { padding: var(--space-section) var(--space-page) 0; }
-
-/* TLIconThumbnail */
-.thumb {
-  background: linear-gradient(135deg, var(--accent-300), var(--accent-600));
-  width: var(--size-icon-thumb); height: var(--size-icon-thumb);
-  border-radius: var(--radius-icon-thumb); flex: none;
-}
-
-/* 選中記號 */
-.check {
-  color: var(--action-primary);
-  width: var(--icon-sm); height: var(--icon-sm);
-  stroke-width: var(--icon-stroke);
 }

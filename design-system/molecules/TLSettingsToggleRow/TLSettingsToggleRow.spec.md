@@ -11,6 +11,7 @@
 | 容器責任 | 圓角、底色、分隔線由 `TLGroup` 負責 |
 | 實作 | `Packages/DesignSystem/Sources/DesignSystem/Molecules/TLSettingsToggleRow.swift` |
 | Preview | `design-system/molecules/TLSettingsToggleRow/TLSettingsToggleRow.preview.html` |
+| Preview CSS | `components.preview.css` §TLSettingsToggleRow |
 
 ## 2 介面 ★
 

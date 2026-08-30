@@ -4,20 +4,14 @@
 <title>TLSettingsToggleRow</title>
 <link rel="stylesheet" href="../../tokens/tokens.css">
 <link rel="stylesheet" href="../../preview.css">
+<link rel="stylesheet" href="../../components.preview.css">
 <style>
-  .hint { font-size: var(--font-row-sub); color: var(--text-tertiary); }
-  .sub { font-size: var(--font-row-sub); color: var(--text-tertiary); }
-  .row.tall { height: var(--size-row-with-sub); }
-  .sw { width: var(--size-switch-w); height: var(--size-switch-h); flex: none;
-        border-radius: var(--radius-pill); background: var(--surface-input);
+border-radius: var(--radius-pill); background: var(--surface-input);
         position: relative; }
-  .sw.on { background: var(--action-primary); }
-  .sw::after { content: ""; position: absolute; top: var(--size-hairline-thick);
                left: var(--size-hairline-thick);
                width: calc(var(--size-switch-h) - var(--size-hairline-thick) * 2);
                height: calc(var(--size-switch-h) - var(--size-hairline-thick) * 2);
                border-radius: var(--radius-pill); background: var(--surface-base); }
-  .sw.on::after { left: auto; right: var(--size-hairline-thick); }
 </style>
 <h1>TLSettingsToggleRow</h1>
 <p class="note">
@@ -28,13 +22,13 @@
 
 <div class="kicker">狀態</div>
 <div class="group">
-  <div class="row" data-state="on"><span class="label">彈窗</span><span class="sw on"></span></div>
-  <div class="row" data-state="off"><span class="label">背景通知</span><span class="sw"></span></div>
+  <div class="row" data-state="on"><span class="label">彈窗</span><span class="tl-toggle tl-toggle--on"></span></div>
+  <div class="row" data-state="off"><span class="label">背景通知</span><span class="tl-toggle"></span></div>
   <div class="row" data-state="withHint">
-    <span class="label">聲音 <span class="hint">含震動</span></span><span class="sw on"></span></div>
-  <div class="row tall" data-state="withSubtitle">
-    <span class="label">背景通知<br><span class="sub">App 不在前景時以系統通知提醒</span></span>
-    <span class="sw on"></span></div>
+    <span class="label">聲音 <span class="tl-settings-row__hint">含震動</span></span><span class="tl-toggle tl-toggle--on"></span></div>
+  <div class="row tl-settings-toggle-row--tall" data-state="withSubtitle">
+    <span class="label">背景通知<br><span class="tl-list-row__sub">App 不在前景時以系統通知提醒</span></span>
+    <span class="tl-toggle tl-toggle--on"></span></div>
 </div>
 <p class="note">
   說明文字兩種放法<b>擇一</b>：<code>hint</code> 短詞同一行、<code>subtitle</code> 整句第二行。
@@ -46,15 +40,15 @@
   <div class="pane" data-theme="light">
     <div class="kicker">light</div>
     <div class="group">
-      <div class="row"><span class="label">彈窗</span><span class="sw on"></span></div>
-      <div class="row"><span class="label">聲音</span><span class="sw"></span></div>
+      <div class="row"><span class="label">彈窗</span><span class="tl-toggle tl-toggle--on"></span></div>
+      <div class="row"><span class="label">聲音</span><span class="tl-toggle"></span></div>
     </div>
   </div>
   <div class="pane" data-theme="dark">
     <div class="kicker">dark（目前是 light 的複製）</div>
     <div class="group">
-      <div class="row"><span class="label">彈窗</span><span class="sw on"></span></div>
-      <div class="row"><span class="label">聲音</span><span class="sw"></span></div>
+      <div class="row"><span class="label">彈窗</span><span class="tl-toggle tl-toggle--on"></span></div>
+      <div class="row"><span class="label">聲音</span><span class="tl-toggle"></span></div>
     </div>
   </div>
 </div>

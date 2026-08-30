@@ -4,14 +4,13 @@
 <title>TLBadge</title>
 <link rel="stylesheet" href="../../tokens/tokens.css">
 <link rel="stylesheet" href="../../preview.css">
+<link rel="stylesheet" href="../../components.preview.css">
 <style>
-  .badge { width: var(--size-badge); height: var(--size-badge); flex: none;
-           border-radius: var(--radius-pill); background: var(--sage-200);
+  /* 這一頁特有的「溢出示意」，不是元件的一部分 */
+  .is-overflowing { color: var(--danger-on-surface); }
+border-radius: var(--radius-pill); background: var(--sage-200);
            color: var(--sage-800); font-weight: 600;
            display: flex; align-items: center; justify-content: center; }
-  .badge.txt { font-size: var(--font-badge-text); }
-  .badge.num { font-size: var(--font-row-number); font-family: var(--font-row-number-family); }
-  .badge svg { width: var(--icon-m); height: var(--icon-m); stroke-width: var(--icon-stroke); }
   .over { color: var(--danger-on-surface); }
 </style>
 
@@ -24,25 +23,25 @@
 <div class="kicker">狀態</div>
 <div class="group">
   <div class="row" data-state="default">
-    <span class="badge txt">甲</span>
+    <span class="tl-badge tl-badge--text">甲</span>
     <span class="label">預設（唯一的狀態）</span>
   </div>
 </div>
 
 <div class="kicker">三種填法</div>
 <div class="group">
-  <div class="row"><span class="badge txt">甲</span><span class="label">分類字</span></div>
-  <div class="row"><span class="badge num">3</span><span class="label">數字（display 家族）</span></div>
-  <div class="row"><span class="badge"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+  <div class="row"><span class="tl-badge tl-badge--text">甲</span><span class="label">分類字</span></div>
+  <div class="row"><span class="tl-badge tl-badge--number">3</span><span class="label">數字（display 家族）</span></div>
+  <div class="row"><span class="tl-badge"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
       stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
       <path d="M3 12h18M3 6h18M3 18h18"/></svg></span><span class="label">圖示</span></div>
 </div>
 
 <div class="kicker">內容極值</div>
 <div class="group">
-  <div class="row"><span class="badge txt">甲</span><span class="label">一字 —— 剛好</span></div>
-  <div class="row"><span class="badge txt">甲乙</span><span class="label">兩字 —— 上限</span></div>
-  <div class="row"><span class="badge txt over">甲乙丙</span>
+  <div class="row"><span class="tl-badge tl-badge--text">甲</span><span class="label">一字 —— 剛好</span></div>
+  <div class="row"><span class="tl-badge tl-badge--text">甲乙</span><span class="label">兩字 —— 上限</span></div>
+  <div class="row"><span class="tl-badge tl-badge--text is-overflowing">甲乙丙</span>
     <span class="label">三字 —— <b>會撐出圓形</b>，該改的是縮寫不是元件</span></div>
 </div>
 <p class="note">英文縮寫比中文長，2–3 字母是常態 —— <b>這是最容易溢出的組合</b>。</p>
@@ -51,12 +50,12 @@
 <div class="themes">
   <div class="pane" data-theme="light">
     <div class="kicker">light</div>
-    <div class="group"><div class="row"><span class="badge txt">甲</span>
+    <div class="group"><div class="row"><span class="tl-badge tl-badge--text">甲</span>
       <span class="label">項目</span></div></div>
   </div>
   <div class="pane" data-theme="dark">
     <div class="kicker">dark（目前是 light 的複製）</div>
-    <div class="group"><div class="row"><span class="badge txt">甲</span>
+    <div class="group"><div class="row"><span class="tl-badge tl-badge--text">甲</span>
       <span class="label">項目</span></div></div>
   </div>
 </div>

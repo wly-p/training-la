@@ -62,9 +62,8 @@
   --surface-track: rgb(238 231 219);  /* 分段控制軌道 */
   --surface-input: rgb(220 211 196);  /* 輸入色帶（訓練頁） */
   --text-primary: rgb(32 30 29);  /* 主文字 */
-  --text-secondary: rgb(130 121 106);  /* 二級文字 */
-  --text-body: rgb(100 92 80);  /* 需要比 textSecondary 更讀得到的次要文字（單位、對話框內文、未選 chip） */
-  --text-tertiary: rgb(161 151 134);  /* 三級文字／icon */
+  --text-secondary: rgb(100 92 80);  /* 二級文字、需要讀完的說明句 */
+  --text-tertiary: rgb(130 121 106);  /* 掃視就過的標示：圖示與 ≥13pt 的非句子文字（4.0:1，過不了正文的 4.5） */
   --text-numeric: rgb(46 43 37);  /* 大數字 */
   --border-subtle: rgb(32 30 29 / 8%);  /* 列間分隔線 */
   --action-primary: rgb(198 113 57);  /* 可操作的東西（赭紅） */
@@ -184,9 +183,8 @@
     --surface-track: rgb(238 231 219);
     --surface-input: rgb(220 211 196);
     --text-primary: rgb(32 30 29);
-    --text-secondary: rgb(130 121 106);
-    --text-body: rgb(100 92 80);
-    --text-tertiary: rgb(161 151 134);
+    --text-secondary: rgb(100 92 80);
+    --text-tertiary: rgb(130 121 106);
     --text-numeric: rgb(46 43 37);
     --border-subtle: rgb(32 30 29 / 8%);
     --action-primary: rgb(198 113 57);
@@ -204,9 +202,8 @@
   --surface-track: rgb(238 231 219);
   --surface-input: rgb(220 211 196);
   --text-primary: rgb(32 30 29);
-  --text-secondary: rgb(130 121 106);
-  --text-body: rgb(100 92 80);
-  --text-tertiary: rgb(161 151 134);
+  --text-secondary: rgb(100 92 80);
+  --text-tertiary: rgb(130 121 106);
   --text-numeric: rgb(46 43 37);
   --border-subtle: rgb(32 30 29 / 8%);
   --action-primary: rgb(198 113 57);
@@ -223,9 +220,8 @@
   --surface-track: rgb(238 231 219);
   --surface-input: rgb(220 211 196);
   --text-primary: rgb(32 30 29);
-  --text-secondary: rgb(130 121 106);
-  --text-body: rgb(100 92 80);
-  --text-tertiary: rgb(161 151 134);
+  --text-secondary: rgb(100 92 80);
+  --text-tertiary: rgb(130 121 106);
   --text-numeric: rgb(46 43 37);
   --border-subtle: rgb(32 30 29 / 8%);
   --action-primary: rgb(198 113 57);

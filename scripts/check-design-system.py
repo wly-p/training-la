@@ -50,6 +50,9 @@ CHECKS = {
     14: ("**元件 preview 與 examples** 內零字面尺寸。豁免只適用設計系統自身的展示頁"
          "（`tokens/tokens.preview.html`），按路徑判定不靠語意", "§7.3"),
     15: ("`examples/` 的整頁組合只用元件與 token —— 它是畫面的規格，不是另一份設計稿", "§6.5"),
+    16: ("`components.preview.css` 與元件庫成對：每個元件有且僅有一段 `.tl-<name>`，"
+         "且沒有孤兒段落。**兩份實作的一致性擋不了**（要跨語言比對），"
+         "但孤兒與遺漏擋得了，而那是實際會發生的兩種漂移", "§7.7"),
     9:  ("preview 用到的 `var(--…)` 都在 `tokens.css` 或 `preview.css` 裡定義", "§5"),
     10: ("preview 用到的字都在子集字型裡（缺字會靜默掉回系統字型）", "§7"),
     11: ("第 11 節宣告的組成元件真的存在於元件庫", "§6.11"),
@@ -289,6 +292,49 @@ for layer in ("atoms", "molecules", "organisms", "examples"):
             for v in sorted(set(re.findall(r"var\((--[a-z0-9-]+)\)", body))):
                 if v not in DEFINED_VARS:
                     err(15, f"{rel}：用了未定義的 token `var({v})`")
+
+# ── 16：components.preview.css 與元件庫成對 ────────────────────────
+# preview.css 原本裝的是展示骨架（.group/.row/.kicker），但元件的 CSS 鏡像
+# 慢慢混了進去——那些是元件的**第二份實作**，沒有規格、沒有狀態窮舉、沒有版本紀錄。
+# 19 個元件時看得住，40 個時會長成一份平行的設計系統。
+#
+# 兩份實作的一致性沒辦法自動驗（要跨語言比對，不值得做），但**孤兒與遺漏**擋得了，
+# 而那正是實際會發生的兩種漂移。
+def kebab_name(n):
+    out = []
+    for i, c in enumerate(n):
+        if c.isupper() and i:
+            out.append("-")
+        out.append(c.lower())
+    return "".join(out)
+
+CPCSS = DS / "components.preview.css"
+if CPCSS.exists():
+    css_body = CPCSS.read_text()
+    # 每一段由 `/* TLXxx */` 標頭起算
+    sections = re.findall(r"^/\* (TL\w+)(?: [^*]*)? \*/", css_body, re.M)
+    lib = {c.name for _, c in components()}
+
+    for sec in sections:
+        if sec not in lib:
+            err(16, f"components.preview.css：`{sec}` 段落沒有對應的元件（孤兒樣式）")
+    dupes = {x for x in sections if sections.count(x) > 1}
+    for dup in sorted(dupes):
+        err(16, f"components.preview.css：`{dup}` 有多個段落，一個元件只該有一段")
+
+    # preview 用到 .tl-x 卻沒有定義
+    defined_classes = set(re.findall(r"\.(tl-[a-z0-9_-]+)", css_body))
+    for layer in ("atoms", "molecules", "organisms", "examples"):
+        d = DS / layer
+        if not d.is_dir():
+            continue
+        for f in sorted(list(d.rglob("*.preview.html")) + list(d.rglob("*.example.html"))):
+            body = f.read_text()
+            local = set(re.findall(r"\.(tl-[a-z0-9_-]+)", body))  # 本地 <style> 也算
+            for cls in sorted(set(re.findall(r"class=\"([^\"]*)\"", body))):
+                for one in cls.split():
+                    if one.startswith("tl-") and one not in defined_classes and one not in local:
+                        err(16, f"{f.relative_to(DS)}：用了 `.{one}` 但 components.preview.css 沒有定義")
 
 # ── 12：文件提到的 token 名都要真的存在 ───────────────────────────
 # 抓「token 被刪／改名，但正典或規格還在講它」——README 是正典，

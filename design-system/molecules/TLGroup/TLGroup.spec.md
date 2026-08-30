@@ -11,6 +11,7 @@
 | 容器責任 | 自己負責圓角、底色、列間分隔線；**左右邊距由畫面給**（`space.page`） |
 | 實作 | `Packages/DesignSystem/Sources/DesignSystem/Molecules/TLGroup.swift` |
 | Preview | `design-system/molecules/TLGroup/TLGroup.preview.html` |
+| Preview CSS | `components.preview.css` §TLGroup |
 
 ## 2 介面 ★
 

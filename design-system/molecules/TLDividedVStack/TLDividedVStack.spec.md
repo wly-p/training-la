@@ -11,6 +11,7 @@
 | 容器責任 | 只管分隔線與堆疊；圓角與底色是 `TLGroup` 的事 |
 | 實作 | `Packages/DesignSystem/Sources/DesignSystem/Molecules/TLDividedVStack.swift` |
 | Preview | `design-system/molecules/TLDividedVStack/TLDividedVStack.preview.html` |
+| Preview CSS | `components.preview.css` §TLDividedVStack |
 
 ## 2 介面 ★
 

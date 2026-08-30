@@ -4,18 +4,11 @@
 <title>TLValuePicker</title>
 <link rel="stylesheet" href="../../tokens/tokens.css">
 <link rel="stylesheet" href="../../preview.css">
+<link rel="stylesheet" href="../../components.preview.css">
 <style>
-  .picker { display: flex; flex-direction: column; gap: var(--space-picker-gap); }
-  .wheel { text-align: center; }
-  .wheel .v { font-family: var(--font-display); padding: var(--space-gap-s) 0; }
-  .wheel .far  { font-size: var(--font-row-title); color: var(--text-tertiary); opacity: .5; }
-  .wheel .near { font-size: var(--font-card-title); color: var(--text-secondary); }
-  .wheel .sel  { font-size: var(--font-page-title); color: var(--text-numeric); }
-  .quick { display: flex; gap: var(--space-gap-s); height: var(--size-quick-action-row);
-           align-items: center; }
-  .chip { flex: 1; text-align: center; border-radius: var(--radius-pill);
+align-items: center; }
           padding: var(--space-chip-pad-v) 0; font-size: var(--font-row-sub);
-          border: var(--size-hairline) solid var(--border-subtle); color: var(--text-body); }
+          border: var(--size-hairline) solid var(--border-subtle); color: var(--text-secondary); }
 </style>
 
 <h1>TLValuePicker</h1>
@@ -26,25 +19,25 @@
 </p>
 
 <div class="kicker">狀態</div>
-<div class="picker" data-state="idle">
+<div class="tl-value-picker" data-state="idle">
   <div>
     <div class="kicker">單位</div>
-    <div class="wheel">
-      <div class="v far">1</div>
-      <div class="v near">1.25</div>
-      <div class="v sel">2.5</div>
-      <div class="v near">5</div>
-      <div class="v far">10</div>
+    <div class="tl-value-picker__wheel">
+      <div class="tl-value-picker__value tl-value-picker__value--far">1</div>
+      <div class="tl-value-picker__value tl-value-picker__value--near">1.25</div>
+      <div class="tl-value-picker__value tl-value-picker__value--selected">2.5</div>
+      <div class="tl-value-picker__value tl-value-picker__value--near">5</div>
+      <div class="tl-value-picker__value tl-value-picker__value--far">10</div>
     </div>
   </div>
 </div>
-<div class="picker" data-state="dragging" style="margin-top: var(--space-section)">
-  <div class="wheel">
-    <div class="v far">1.25</div>
-    <div class="v near">2.5</div>
-    <div class="v sel">5</div>
-    <div class="v near">10</div>
-    <div class="v far">15</div>
+<div class="tl-value-picker" data-state="dragging" style="margin-top: var(--space-section)">
+  <div class="tl-value-picker__wheel">
+    <div class="tl-value-picker__value tl-value-picker__value--far">1.25</div>
+    <div class="tl-value-picker__value tl-value-picker__value--near">2.5</div>
+    <div class="tl-value-picker__value tl-value-picker__value--selected">5</div>
+    <div class="tl-value-picker__value tl-value-picker__value--near">10</div>
+    <div class="tl-value-picker__value tl-value-picker__value--far">15</div>
   </div>
 </div>
 <p class="note">
@@ -53,16 +46,16 @@
 </p>
 
 <div class="kicker">快捷列</div>
-<div class="picker">
-  <div class="wheel">
-    <div class="v near">60</div>
-    <div class="v sel">90</div>
-    <div class="v near">120</div>
+<div class="tl-value-picker">
+  <div class="tl-value-picker__wheel">
+    <div class="tl-value-picker__value tl-value-picker__value--near">60</div>
+    <div class="tl-value-picker__value tl-value-picker__value--selected">90</div>
+    <div class="tl-value-picker__value tl-value-picker__value--near">120</div>
   </div>
-  <div class="quick">
-    <span class="chip">−30</span>
-    <span class="chip">+30</span>
-    <span class="chip">重設</span>
+  <div class="tl-value-picker__quick">
+    <span class="tl-value-picker__chip">−30</span>
+    <span class="tl-value-picker__chip">+30</span>
+    <span class="tl-value-picker__chip">重設</span>
   </div>
 </div>
 <p class="note">有沒有快捷列會改變整體高度。快捷列高度 ＝ 最小觸控。</p>
@@ -71,13 +64,13 @@
 <div class="themes">
   <div class="pane" data-theme="light">
     <div class="kicker">light</div>
-    <div class="wheel"><div class="v near">1.25</div><div class="v sel">2.5</div>
-      <div class="v near">5</div></div>
+    <div class="tl-value-picker__wheel"><div class="tl-value-picker__value tl-value-picker__value--near">1.25</div><div class="tl-value-picker__value tl-value-picker__value--selected">2.5</div>
+      <div class="tl-value-picker__value tl-value-picker__value--near">5</div></div>
   </div>
   <div class="pane" data-theme="dark">
     <div class="kicker">dark（目前是 light 的複製）</div>
-    <div class="wheel"><div class="v near">1.25</div><div class="v sel">2.5</div>
-      <div class="v near">5</div></div>
+    <div class="tl-value-picker__wheel"><div class="tl-value-picker__value tl-value-picker__value--near">1.25</div><div class="tl-value-picker__value tl-value-picker__value--selected">2.5</div>
+      <div class="tl-value-picker__value tl-value-picker__value--near">5</div></div>
   </div>
 </div>
 

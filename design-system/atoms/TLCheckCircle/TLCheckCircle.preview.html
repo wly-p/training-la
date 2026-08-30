@@ -4,16 +4,14 @@
 <title>TLCheckCircle</title>
 <link rel="stylesheet" href="../../tokens/tokens.css">
 <link rel="stylesheet" href="../../preview.css">
+<link rel="stylesheet" href="../../components.preview.css">
 <style>
-  .circle {
-    width: var(--size-check-circle); height: var(--size-check-circle);
+width: var(--size-check-circle); height: var(--size-check-circle);
     border-radius: var(--radius-pill); flex: none;
     border: var(--size-hairline-thick) solid var(--neutral-400);
     display: flex; align-items: center; justify-content: center;
   }
-  .circle.on { background: var(--action-primary); border-color: transparent;
                color: var(--surface-base); }
-  .circle svg { width: var(--icon-xs); height: var(--icon-xs); stroke-width: var(--icon-stroke); }
 </style>
 <h1>TLCheckCircle</h1>
 <p class="note">
@@ -25,12 +23,12 @@
 <div class="group">
   <div class="row" data-state="selected">
     <span class="label">selected</span>
-    <span class="circle on"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+    <span class="tl-check-circle tl-check-circle--on"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
       stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg></span>
   </div>
   <div class="row" data-state="unselected">
     <span class="label">unselected</span>
-    <span class="circle"></span>
+    <span class="tl-check-circle"></span>
   </div>
 </div>
 <p class="note">選中與否是<b>狀態不是變體</b> —— 同一個元件的兩個樣子。</p>
@@ -38,10 +36,10 @@
 <div class="kicker">在清單裡</div>
 <div class="group">
   <div class="row"><span class="label">跟隨系統</span>
-    <span class="circle on"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+    <span class="tl-check-circle tl-check-circle--on"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
       stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg></span></div>
-  <div class="row"><span class="label">淺色</span><span class="circle"></span></div>
-  <div class="row"><span class="label">深色</span><span class="circle"></span></div>
+  <div class="row"><span class="label">淺色</span><span class="tl-check-circle"></span></div>
+  <div class="row"><span class="label">深色</span><span class="tl-check-circle"></span></div>
 </div>
 
 <div class="kicker">主題</div>
@@ -50,18 +48,18 @@
     <div class="kicker">light</div>
     <div class="group">
       <div class="row"><span class="label">選中</span>
-        <span class="circle on"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+        <span class="tl-check-circle tl-check-circle--on"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
           stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg></span></div>
-      <div class="row"><span class="label">未選</span><span class="circle"></span></div>
+      <div class="row"><span class="label">未選</span><span class="tl-check-circle"></span></div>
     </div>
   </div>
   <div class="pane" data-theme="dark">
     <div class="kicker">dark（目前是 light 的複製）</div>
     <div class="group">
       <div class="row"><span class="label">選中</span>
-        <span class="circle on"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+        <span class="tl-check-circle tl-check-circle--on"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
           stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg></span></div>
-      <div class="row"><span class="label">未選</span><span class="circle"></span></div>
+      <div class="row"><span class="label">未選</span><span class="tl-check-circle"></span></div>
     </div>
   </div>
 </div>

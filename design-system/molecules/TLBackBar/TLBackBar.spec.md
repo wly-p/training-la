@@ -11,6 +11,7 @@
 | 容器責任 | 左右邊距與上邊距由這個元件自己負責；下方的間距由畫面給 |
 | 實作 | `Packages/DesignSystem/Sources/DesignSystem/Molecules/TLBackBar.swift` |
 | Preview | `design-system/molecules/TLBackBar/TLBackBar.preview.html` |
+| Preview CSS | `components.preview.css` §TLBackBar |
 
 ## 2 介面 ★
 

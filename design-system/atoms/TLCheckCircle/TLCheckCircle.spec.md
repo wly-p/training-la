@@ -11,6 +11,7 @@
 | 容器責任 | 位置與間距由列負責 |
 | 實作 | `Packages/DesignSystem/Sources/DesignSystem/Atoms/TLCheckCircle.swift` |
 | Preview | `design-system/atoms/TLCheckCircle/TLCheckCircle.preview.html` |
+| Preview CSS | `components.preview.css` §TLCheckCircle |
 
 ## 2 介面 ★
 

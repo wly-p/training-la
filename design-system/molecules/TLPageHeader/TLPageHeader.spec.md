@@ -11,6 +11,7 @@
 | 容器責任 | 自己負責上邊距；**左右邊距由畫面給** |
 | 實作 | `Packages/DesignSystem/Sources/DesignSystem/Molecules/TLPageHeader.swift` |
 | Preview | `design-system/molecules/TLPageHeader/TLPageHeader.preview.html` |
+| Preview CSS | `components.preview.css` §TLPageHeader |
 
 ## 2 介面 ★
 

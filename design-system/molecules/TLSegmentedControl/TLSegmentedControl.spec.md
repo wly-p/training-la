@@ -11,6 +11,7 @@
 | 容器責任 | 自己負責軌道與內距；外部間距由放它的容器給 |
 | 實作 | `Packages/DesignSystem/Sources/DesignSystem/Molecules/TLSegmentedControl.swift` |
 | Preview | `design-system/molecules/TLSegmentedControl/TLSegmentedControl.preview.html` |
+| Preview CSS | `components.preview.css` §TLSegmentedControl |
 
 ## 2 介面 ★
 
