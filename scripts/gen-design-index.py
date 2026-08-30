@@ -131,7 +131,8 @@ def render(comps):
          f'{len(comps)} 個元件　·　規則見 <a href="README.md">README.md</a>、'
          f'規格樣板見 <a href="_template.spec.md">_template.spec.md</a>　·　'
          f'token 與契約的改動見 <a href="CHANGELOG.md">CHANGELOG.md</a><br>'
-         f'先讀 <a href="components.json">components.json</a>（機器讀的登錄檔，'
+         f'<b>這輪先讀 <a href="HANDOFF.md">HANDOFF.md</a></b>（跟上輪的差別、想請你看什麼）。<br>'
+         f'組畫面時讀 <a href="components.json">components.json</a>（機器讀的登錄檔，'
          f'每個元件的 props／狀態／組成都在裡面），再開個別 preview。<br>'
          f'token 的實際樣子見 <a href="tokens/tokens.preview.html">tokens.preview.html</a>。</p>']
     for layer, label in LEVELS:
