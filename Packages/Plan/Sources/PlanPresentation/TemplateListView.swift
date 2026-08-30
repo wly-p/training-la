@@ -25,7 +25,7 @@ public struct TemplateListView: View {
                     emptyState
                 } else {
                     VStack(alignment: .leading, spacing: 0) {
-                        SectionHeader(localText("template.sectionTitle")
+                        TLSectionHeader(localText("template.sectionTitle")
                             + Text(verbatim: " · \(viewModel.templates.count)"))
                         TLGroup {
                             ForEach(viewModel.templates) { row($0) }
@@ -95,7 +95,7 @@ public struct TemplateListView: View {
 
     private func row(_ template: WorkoutTemplate) -> some View {
         // 左滑露出「複製」（14a，88pt、neutral-400 底）——左滑只有複製，刪除依 8b 原則不放滑動裡。
-        SwipeToRevealRow(
+        TLSwipeToRevealRow(
             actionLabel: localText("template.duplicate"),
             actionSystemImage: "doc.on.doc",
             onAction: {
@@ -109,7 +109,7 @@ public struct TemplateListView: View {
                 }
             }
         ) {
-            ListRow(
+            TLListRow(
                 title: Text(verbatim: template.name),
                 subtitle: Text(PlanFormatting.templateSummary(template, name: viewModel.name(for:), language: AppLanguage(locale: locale))),
                 showChevron: true,
@@ -119,7 +119,7 @@ public struct TemplateListView: View {
                 },
                 leading: {
                     // 數字圓章＝含幾個動作（neutral 底，設計稿 5b）。
-                    CircleBadge(fill: TLColor.neutral300) {
+                    TLBadge(fill: TLColor.neutral300) {
                         Text(verbatim: "\(template.blocks.count)")
                             .font(TLFont.display(16))
                             .foregroundStyle(TLColor.neutral800)

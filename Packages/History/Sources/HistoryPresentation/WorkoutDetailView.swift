@@ -214,7 +214,7 @@ struct WorkoutDetailView: View {
         let visible = (viewModel.isEditing || expandedAll) ? lines : Array(lines.prefix(collapseThreshold))
         let remaining = lines.count - visible.count
         return VStack(alignment: .leading, spacing: TLSpace.gapS) {
-            SectionHeader(localText("history.setComparison"))
+            TLSectionHeader(localText("history.setComparison"))
             TLGroup {
                 if viewModel.isEditing {
                     // 編輯模式維持單一平表：每列都要能點進去改，分組標頭只會擋路。
@@ -276,7 +276,7 @@ struct WorkoutDetailView: View {
     /// 舊版每列重印動作名，加上器材標會變成 N 個 pill（handoff-15 D 節）。
     private func groupHeader(_ group: LineGroup) -> some View {
         HStack(spacing: 0) {
-            ExerciseNameWithEquipment(
+            TLExerciseNameWithEquipment(
                 title: Text(verbatim: group.exerciseName)
                     .font(TLFont.zh(14, .semibold))
                     .foregroundColor(TLColor.text),
@@ -418,7 +418,7 @@ struct WorkoutDetailView: View {
 
     private var deleteRow: some View {
         TLGroup {
-            SettingsRow(
+            TLSettingsRow(
                 localText("history.deleteWorkout"),
                 role: .destructive,
                 onTap: { showsDeleteConfirm = true }

@@ -1,6 +1,6 @@
 import Foundation
 
-/// `MonthDateStrip` 的日期數學。
+/// `TLMonthDateStrip` 的日期數學。
 ///
 /// 抽成純函式是因為這個 repo 的 View 測不到（沒有 preview、沒有 snapshot test），
 /// 而格線與月名規則正好是唯一會算錯的地方。比照 `WheelGeometry` 的做法。

@@ -50,7 +50,7 @@ public struct ExerciseListView: View {
                         ForEach(sections, id: \.id) { section in
                             VStack(alignment: .leading, spacing: 0) {
                                 if let header = section.header {
-                                    SectionHeader(header)
+                                    TLSectionHeader(header)
                                 }
                                 TLGroup {
                                     ForEach(section.exercises) { exercise in
@@ -124,7 +124,7 @@ public struct ExerciseListView: View {
         // 內建動作（OfficialExerciseCatalog）唯讀：不進編輯表單、沒有刪除選單，
         // 也不顯示 chevron——留著箭頭卻點不動比沒有箭頭更難懂。
         let isOfficial = exercise.source == .official
-        ListRow(
+        TLListRow(
             title: Text(verbatim: exercise.name),
             showChevron: !isOfficial,
             onTap: isOfficial ? nil : { editingTarget = .edit(exercise) },
@@ -133,7 +133,7 @@ public struct ExerciseListView: View {
                 // 80pt 是「槓鈴」「機械」那些兩字標籤的欄寬，但「自體重量」比它寬——用 minWidth
                 // 讓長標往左長、右緣仍然對齊；寫死 width 會把長標壓成兩行。
                 let tail = tailTag(for: exercise)
-                EquipmentTag(tail.label, identifier: tail.identifier)
+                TLEquipmentTag(tail.label, identifier: tail.identifier)
                     .frame(minWidth: 80, alignment: .trailing)
             }
         )

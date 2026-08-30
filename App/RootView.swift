@@ -105,7 +105,7 @@ struct RootView: View {
     }
 }
 
-/// 動作庫 tab：共用單一 NavigationStack，頂部 PageHeader ＋自訂分段控制切換四種訓練素材
+/// 動作庫 tab：共用單一 NavigationStack，頂部 TLPageHeader ＋自訂分段控制切換四種訓練素材
 /// （動作／範本／循環／長期）。子頁不各自帶 NavigationStack，drill-in 掛到這層共用的 stack。
 ///
 /// 頁首 44pt 圓形「+」為四個子分頁共用：點擊自增 `createToken`；當前被實例化的那個子分頁
@@ -127,8 +127,8 @@ private struct LibraryTabView: View {
     var body: some View {
         NavigationStack {
             VStack(spacing: 0) {
-                PageHeader(Text("tab.exercises")) {
-                    CircleIconButton(systemImage: "plus", filled: true) { createToken += 1 }
+                TLPageHeader(Text("tab.exercises")) {
+                    TLCircleIconButton(systemImage: "plus", filled: true) { createToken += 1 }
                         .accessibilityLabel(Text("library.add"))
                         .accessibilityIdentifier("library.add")
                         // 長按 → 跨類新增選單（設計稿 10a）；短按維持直接新增當前分頁。
@@ -154,7 +154,7 @@ private struct LibraryTabView: View {
             .toolbar(.hidden, for: .navigationBar)
             #endif
             .sheet(isPresented: $showAddSheet) {
-                AddSheet(
+                TLAddSheet(
                     title: Text("library.add.title"),
                     subtitle: Text("library.add.subtitle"),
                     currentTag: Text("library.add.current"),
@@ -171,8 +171,8 @@ private struct LibraryTabView: View {
         }
     }
 
-    private func addItem(_ target: Mode, _ icon: String, _ title: Text, _ subtitle: Text) -> AddSheet.Item {
-        AddSheet.Item(
+    private func addItem(_ target: Mode, _ icon: String, _ title: Text, _ subtitle: Text) -> TLAddSheet.Item {
+        TLAddSheet.Item(
             id: "\(target)",
             systemImage: icon,
             title: title,

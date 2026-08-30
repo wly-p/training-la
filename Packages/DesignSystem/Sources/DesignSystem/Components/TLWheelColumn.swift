@@ -1,6 +1,6 @@
 import SwiftUI
 
-/// 滾輪的純幾何運算。`WheelColumn` 是 View 測不動，所以會出錯的數學全部搬到這裡。
+/// 滾輪的純幾何運算。`TLWheelColumn` 是 View 測不動，所以會出錯的數學全部搬到這裡。
 ///
 /// 座標約定：`anchor` ＝ 手勢開始時停在高亮帶上的那一格；`offset` ＝ 手指往下拖的位移
 /// （跟 `DragGesture.translation.height` 同號，往下為正）。第 i 格畫在
@@ -79,11 +79,11 @@ struct WheelGeometry {
 }
 
 /// 模板 8 的滾輪本體：一欄數字 ＋ 拖曳手勢。高亮帶由呼叫端畫在底下
-/// （`DualValuePicker` 是一條橫跨兩欄的帶子，`ValuePicker` 只有一欄）。
+/// （`TLDualValuePicker` 是一條橫跨兩欄的帶子，`TLValuePicker` 只有一欄）。
 ///
-/// `ValuePicker` 與 `DualValuePicker` 原本各自複製了一份同樣的滾輪，改一次要改兩邊；
+/// `TLValuePicker` 與 `TLDualValuePicker` 原本各自複製了一份同樣的滾輪，改一次要改兩邊；
 /// 併成這一個之後兩邊行為一定一致。
-struct WheelColumn: View {
+struct TLWheelColumn: View {
     @Binding var value: Double
     let values: [Double]
     let format: (Double) -> String

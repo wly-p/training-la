@@ -38,7 +38,7 @@ public struct SettingsView: View {
         NavigationStack {
             ScrollView {
                 VStack(alignment: .leading, spacing: 0) {
-                    PageHeader(localText("settings.title"))
+                    TLPageHeader(localText("settings.title"))
                         .accessibilityIdentifier("settings.title")
 
                     // 群組間距 22（handoff-20 A 節）：比全域的 TLSpace.section(26) 緊一點，
@@ -93,27 +93,27 @@ public struct SettingsView: View {
 
     private var appearanceSection: some View {
         VStack(alignment: .leading, spacing: 0) {
-            SectionHeader(localText("settings.appearance.section"))
+            TLSectionHeader(localText("settings.appearance.section"))
             TLGroup {
-                SettingsRow(
+                TLSettingsRow(
                     localText("settings.theme.title"),
                     showChevron: true,
                     accessibilityValue: localText(viewModel.theme.displayName),
                     onTap: { route = .theme }
                 ) {
-                    SettingsValue(localText(viewModel.theme.displayName))
+                    TLSettingsValue(localText(viewModel.theme.displayName))
                 }
                 .accessibilityIdentifier("settings.row.theme")
-                SettingsRow(
+                TLSettingsRow(
                     localText("settings.language.title"),
                     showChevron: true,
                     accessibilityValue: Text(verbatim: viewModel.language.nativeName),
                     onTap: { route = .language }
                 ) {
-                    SettingsValue(Text(verbatim: viewModel.language.nativeName))
+                    TLSettingsValue(Text(verbatim: viewModel.language.nativeName))
                 }
                 .accessibilityIdentifier("settings.row.language")
-                SettingsRow(
+                TLSettingsRow(
                     localText("settings.appIcon.title"),
                     showChevron: true,
                     accessibilityValue: localText(viewModel.icon.displayName),
@@ -137,9 +137,9 @@ public struct SettingsView: View {
 
     private var trainingPreferenceSection: some View {
         VStack(alignment: .leading, spacing: 0) {
-            SectionHeader(localText("settings.trainingPreference.section"))
+            TLSectionHeader(localText("settings.trainingPreference.section"))
             TLGroup {
-                SettingsRow(localText("settings.weightUnit.title")) {
+                TLSettingsRow(localText("settings.weightUnit.title")) {
                     // compact：整顆 26pt，不撐高 56pt 的列，也不再是全頁最亮的元素。
                     TLSegmentedControl(
                         selection: Binding(
@@ -151,28 +151,28 @@ public struct SettingsView: View {
                     )
                 }
                 .accessibilityIdentifier("settings.row.weightUnit")
-                SettingsRow(
+                TLSettingsRow(
                     localText("settings.weightStep.title"),
                     showChevron: true,
                     accessibilityValue: Text(verbatim: Weight.formatted(viewModel.weightStep)),
                     onTap: { route = .weightStep }
                 ) {
-                    SettingsValue(
+                    TLSettingsValue(
                         Text(verbatim: "\(Weight.formatted(viewModel.weightStep)) \(viewModel.weightUnit.rawValue)")
                     )
                 }
                 .accessibilityIdentifier("settings.row.weightStep")
-                SettingsRow(
+                TLSettingsRow(
                     localText("settings.restStep.title"),
                     showChevron: true,
                     accessibilityValue: Text(verbatim: "\(viewModel.restStep)"),
                     onTap: { route = .restStep }
                 ) {
-                    SettingsValue(localText("settings.restStep.value \(viewModel.restStep)"))
+                    TLSettingsValue(localText("settings.restStep.value \(viewModel.restStep)"))
                 }
                 .accessibilityIdentifier("settings.row.restStep")
                 if abilityDestination != nil {
-                    SettingsRow(
+                    TLSettingsRow(
                         localText("settings.ability.title"),
                         showChevron: true,
                         onTap: { route = .ability }
@@ -187,15 +187,15 @@ public struct SettingsView: View {
 
     private var restReminderSection: some View {
         VStack(alignment: .leading, spacing: 0) {
-            SectionHeader(localText("settings.restReminder.section"))
+            TLSectionHeader(localText("settings.restReminder.section"))
                 .accessibilityIdentifier("settings.restReminder.header")
             TLGroup {
-                SettingsToggleRow(
+                TLSettingsToggleRow(
                     localText("settings.restReminder.popup"),
                     isOn: $viewModel.restReminder.popup
                 )
                 .accessibilityIdentifier("settings.toggle.popup")
-                SettingsToggleRow(
+                TLSettingsToggleRow(
                     localText("settings.restReminder.sound"),
                     hint: localText("settings.restReminder.sound.hint"),
                     isOn: $viewModel.restReminder.sound
@@ -203,7 +203,7 @@ public struct SettingsView: View {
                 .accessibilityIdentifier("settings.toggle.sound")
                 // 說明原本是整組下方的獨立段落，會讓人分不清它在解釋整組還是最後一列；
                 // 改成這一列自己的副標（同「聲音／含震動」的歸屬，只是句子長、排第二行）。
-                SettingsToggleRow(
+                TLSettingsToggleRow(
                     localText("settings.restReminder.background.toggle"),
                     subtitle: localText("settings.restReminder.background.hint"),
                     isOn: $viewModel.restReminder.backgroundNotification
@@ -220,12 +220,12 @@ public struct SettingsView: View {
     private var dataSection: some View {
         VStack(alignment: .leading, spacing: 12) {
             VStack(alignment: .leading, spacing: 0) {
-                SectionHeader(localText("settings.data.header"))
+                TLSectionHeader(localText("settings.data.header"))
                 TLGroup {
                     exportRow
                     // 隱私政策沒有自己的設計稿；併進「資料」區而不是另開一個只有一列的「關於」群組。
                     if privacyPolicyBaseURL != nil {
-                        SettingsRow(
+                        TLSettingsRow(
                             localText("settings.privacy.title"),
                             showChevron: true,
                             onTap: { showPrivacyPolicy = true }
@@ -235,7 +235,7 @@ public struct SettingsView: View {
                 }
             }
             TLGroup {
-                SettingsRow(
+                TLSettingsRow(
                     localText("settings.eraseAll.button"),
                     role: .destructive,
                     onTap: { if !viewModel.isErasing { showEraseConfirm = true } }
@@ -251,7 +251,7 @@ public struct SettingsView: View {
     /// 不能只用灰字表示——純灰字會被讀成壞掉；整列降透明度（設計系統的 disabled 規則）、
     /// 拿掉 chevron（沒有下一頁）、右側明說「尚未開放」。
     private var exportRow: some View {
-        SettingsRow(localText("settings.export.title")) {
+        TLSettingsRow(localText("settings.export.title")) {
             localText("settings.export.unavailable")
                 .font(TLFont.zh(13))
                 .foregroundStyle(TLColor.neutral600)

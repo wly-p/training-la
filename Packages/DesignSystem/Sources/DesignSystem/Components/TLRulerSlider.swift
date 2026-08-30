@@ -5,7 +5,7 @@ import SwiftUI
 /// 中央 accent 刻線對齊當前值，下方五個標籤（間距＝級距、範圍＝當前值 ±2 級距），
 /// 當前值那個標籤用 accent-700 加粗。拖曳左右微調。
 ///
-/// 跟 `ValuePicker` 的差別：那個是「從一長串值裡選一個」，這個是「在當前值附近推一推」。
+/// 跟 `TLValuePicker` 的差別：那個是「從一長串值裡選一個」，這個是「在當前值附近推一推」。
 /// 能力值編輯已經有大數字輸入負責跳到任意值，剩下的只需要微調。
 public struct TLRulerSlider: View {
     @Binding private var value: Double

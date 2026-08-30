@@ -2,19 +2,19 @@ import SwiftUI
 
 /// 模板 4：設定列。同容器規則（放進 `TLGroup`），列高 56、無圓章。
 ///
-/// 文字吃 `Text`（呼叫端用 `localText` 建，見 PageHeader 說明）。
+/// 文字吃 `Text`（呼叫端用 `localText` 建，見 TLPageHeader 說明）。
 ///
 /// 右側型（用 trailing ViewBuilder 塞）：
-///   - 值＋chevron：`trailing: { SettingsValue(localText("...")) }`、`showChevron: true`
+///   - 值＋chevron：`trailing: { TLSettingsValue(localText("...")) }`、`showChevron: true`
 ///   - 分段控制：`trailing: { TLSegmentedControl(...) }`
-/// 開關型請用 `SettingsToggleRow`（底層是 `Toggle`，保留 switch 無障礙語意）。
+/// 開關型請用 `TLSettingsToggleRow`（底層是 `Toggle`，保留 switch 無障礙語意）。
 ///
-/// 破壞性列：`SettingsRow(localText("..."), role: .destructive) { … }`
+/// 破壞性列：`TLSettingsRow(localText("..."), role: .destructive) { … }`
 /// → `danger-700` 文字＋垃圾桶圖示。
 ///
 /// drill-in（值＋chevron 可點）建議傳 `accessibilityValue:`，讓 VoiceOver / UITest
 /// 能以「標籤＋目前值」辨識（例：主題 = 深色）。
-public struct SettingsRow<Trailing: View>: View {
+public struct TLSettingsRow<Trailing: View>: View {
     public enum Role { case normal, destructive }
 
     private let title: Text
@@ -78,7 +78,7 @@ public struct SettingsRow<Trailing: View>: View {
             }
             Spacer(minLength: TLSpace.gapS)
             trailing
-            if showChevron { Chevron().padding(.leading, trailingGap) }
+            if showChevron { TLChevron().padding(.leading, trailingGap) }
         }
         .padding(.horizontal, TLSpace.rowInset)
         .frame(minHeight: TLSize.row)
@@ -90,7 +90,7 @@ public struct SettingsRow<Trailing: View>: View {
             // 只覆寫 label/value（Button 本身已是單一 a11y 元素）；
             // 不要用 accessibilityElement(children:.ignore)——套在 Button 上會多出一個重複元素。
             Button(action: onTap) { content }
-                .buttonStyle(RowPressStyle())
+                .buttonStyle(TLRowPressStyle())
                 .accessibilityLabel(title)
                 .modifier(OptionalA11yValue(value: accessibilityValue))
         } else {
@@ -111,7 +111,7 @@ private struct OptionalA11yValue: ViewModifier {
     }
 }
 
-public extension SettingsRow where Trailing == EmptyView {
+public extension TLSettingsRow where Trailing == EmptyView {
     /// 只有標題／chevron 的最單純設定列。
     init(
         _ title: Text,
@@ -131,7 +131,7 @@ public extension SettingsRow where Trailing == EmptyView {
 
 /// 設定列右側的值文字（14pt weight 500、`neutral-600`）。搭配 `showChevron: true` 呈現「值＋chevron」。
 /// 比標題小一號、比 chevron 深一階：值是列的答案，不該跟標題一樣重，也不該淡到讀不到。
-public struct SettingsValue: View {
+public struct TLSettingsValue: View {
     private let text: Text
     public init(_ text: Text) { self.text = text }
     public var body: some View {
@@ -148,7 +148,7 @@ public struct SettingsValue: View {
 ///   - `subtitle`：標題下方第二行，整句用（如「App 不在前景時以系統通知提醒」）。列高改吃 62。
 ///
 /// 說明文字固定屬於某一列，不要放在群組下方——那會產生「這段在解釋整組還是最後一列」的歧義。
-public struct SettingsToggleRow: View {
+public struct TLSettingsToggleRow: View {
     private let title: Text
     private let hint: Text?
     private let subtitle: Text?

@@ -33,7 +33,7 @@ public struct TrainingHomeView: View {
         NavigationStack {
             ScrollView {
                 VStack(alignment: .leading, spacing: 0) {
-                    PageHeader(headerTitle, kicker: headerKicker)
+                    TLPageHeader(headerTitle, kicker: headerKicker)
 
                     if hasAnyPlan {
                         carousel
@@ -612,7 +612,7 @@ public struct TrainingHomeView: View {
             // 「今天沒有排課」這張沙卡，測試用它驗排課有沒有被標成完成／還原。
             // id 掛在卡片上而不是整個 section——套在容器上會讓它變成單一無障礙元素，
             // 底下的按鈕整批查不到。
-            EmptyState(
+            TLEmptyState(
                 systemImage: "waveform.path.ecg",
                 title: localString("training.home.noPlan.cardTitle", locale),
                 message: localString("training.home.noPlanMessage", locale)

@@ -112,7 +112,7 @@ final class SettingsUITests: XCTestCase {
 
         // 回歸（bug2）：其他分頁的標題也要更新——原本用 navigationTitle 橋接 UIKit 會被快取、
         // 不隨 \.locale 重解析，靠 .id(language) 重建整個 TabView 才會以新語言重產。
-        // 歷史頁改版後標題是 PageHeader（純 SwiftUI Text），不再是 navigationTitle，
+        // 歷史頁改版後標題是 TLPageHeader（純 SwiftUI Text），不再是 navigationTitle，
         // 但一樣要驗證切語言後這個標題確實跟著換。
         app.buttons["tabBar.item.history"].tap()
         XCTAssertTrue(app.staticTexts["History"].waitForExistence(timeout: 5), "切英文後歷史大標題應為 History")

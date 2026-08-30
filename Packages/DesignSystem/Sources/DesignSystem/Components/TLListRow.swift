@@ -14,7 +14,7 @@ import SwiftUI
 // 狀態一律放右側 meta。
 
 /// 左側 36pt 圓章。內容可為肌群字（動作）、數字（範本）、圖示（循環／長期）。
-public struct CircleBadge<Content: View>: View {
+public struct TLBadge<Content: View>: View {
     private let fill: Color
     private let size: CGFloat
     private let content: Content
@@ -34,7 +34,7 @@ public struct CircleBadge<Content: View>: View {
     }
 }
 
-public extension CircleBadge where Content == Text {
+public extension TLBadge where Content == Text {
     /// 肌群字圓章（動作用）：sage-200 底、sage-800 字。
     init(muscle: String) {
         self.init(fill: TLColor.sage200) {
@@ -53,7 +53,7 @@ public extension CircleBadge where Content == Text {
     }
 }
 
-public extension CircleBadge where Content == AnyView {
+public extension TLBadge where Content == AnyView {
     /// 圖示圓章（循環＝循環箭頭、長期＝長條圖）。`fill` 底、`tint` 圖示色。
     init(icon systemName: String, fill: Color, tint: Color) {
         self.init(fill: fill) {
@@ -67,7 +67,7 @@ public extension CircleBadge where Content == AnyView {
 }
 
 /// 22pt 赭紅圓形勾（可勾選列）。
-public struct CheckBadge: View {
+public struct TLCheckCircle: View {
     private let isChecked: Bool
     public init(isChecked: Bool) { self.isChecked = isChecked }
     public var body: some View {
@@ -86,7 +86,7 @@ public struct CheckBadge: View {
 }
 
 /// 右側 chevron（16pt、neutral-500）。
-public struct Chevron: View {
+public struct TLChevron: View {
     public init() {}
     public var body: some View {
         Image(systemName: "chevron.right")
@@ -96,8 +96,8 @@ public struct Chevron: View {
 }
 
 /// 右側數值 meta：數字用 Caprasimo，可選單位（15pt、neutral-700）。
-/// 例：`RowValue("62.5", unit: "kg")`、`RowValue("3 × 8")`。
-public struct RowValue: View {
+/// 例：`TLRowValue("62.5", unit: "kg")`、`TLRowValue("3 × 8")`。
+public struct TLRowValue: View {
     private let value: String
     private let unit: String?
     public init(_ value: String, unit: String? = nil) {
@@ -118,7 +118,7 @@ public struct RowValue: View {
     }
 }
 
-public struct ListRow<Leading: View, Detail: View, Trailing: View>: View {
+public struct TLListRow<Leading: View, Detail: View, Trailing: View>: View {
     private let leading: Leading
     private let title: Text
     private let subtitle: Text?
@@ -166,7 +166,7 @@ public struct ListRow<Leading: View, Detail: View, Trailing: View>: View {
                     .font(TLFont.zh(TLFont.rowTitle))          // 15pt weight 500
                     .foregroundColor(TLColor.text)
                 if let equipment {
-                    ExerciseNameWithEquipment(title: styledTitle, equipment: equipment)
+                    TLExerciseNameWithEquipment(title: styledTitle, equipment: equipment)
                 } else {
                     styledTitle
                         .lineLimit(1)
@@ -184,7 +184,7 @@ public struct ListRow<Leading: View, Detail: View, Trailing: View>: View {
             }
             Spacer(minLength: TLSpace.gapS)
             trailing
-            if showChevron { Chevron() }
+            if showChevron { TLChevron() }
         }
         .padding(.horizontal, TLSpace.rowInset)
         .frame(minHeight: minHeight)
@@ -194,7 +194,7 @@ public struct ListRow<Leading: View, Detail: View, Trailing: View>: View {
     public var body: some View {
         if let onTap {
             Button(action: onTap) { content }
-                .buttonStyle(RowPressStyle())
+                .buttonStyle(TLRowPressStyle())
         } else {
             content
         }
@@ -202,7 +202,7 @@ public struct ListRow<Leading: View, Detail: View, Trailing: View>: View {
 }
 
 /// 列的按下回饋：底色 → text @6%（無縮放）。
-struct RowPressStyle: ButtonStyle {
+struct TLRowPressStyle: ButtonStyle {
     func makeBody(configuration: Configuration) -> some View {
         configuration.label
             .background(configuration.isPressed ? TLColor.text.opacity(0.06) : Color.clear)

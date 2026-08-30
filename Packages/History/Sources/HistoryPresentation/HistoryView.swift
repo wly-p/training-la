@@ -17,7 +17,7 @@ public struct HistoryView: View {
         NavigationStack {
             ScrollView {
                 VStack(alignment: .leading, spacing: 0) {
-                    PageHeader(localText("history.title"))
+                    TLPageHeader(localText("history.title"))
                     TLSegmentedControl(
                         selection: $viewModel.mode,
                         options: [
@@ -77,7 +77,7 @@ public struct HistoryView: View {
 
     @ViewBuilder private var byDate: some View {
         if viewModel.workouts.isEmpty {
-            EmptyState(
+            TLEmptyState(
                 systemImage: "calendar",
                 title: localString("history.empty", locale),
                 message: localString("history.empty.hint", locale)
@@ -128,7 +128,7 @@ public struct HistoryView: View {
         NavigationLink {
             WorkoutDetailView(summary: summary, makeViewModel: viewModel.makeDetailViewModel(for: summary.id))
         } label: {
-            ListRow(
+            TLListRow(
                 title: summary.name.map { Text(verbatim: $0) } ?? Text(verbatim: freeTrainingLabel),
                 subtitle: Text(daySummaryLine(summary)),
                 showChevron: true,
@@ -161,7 +161,7 @@ public struct HistoryView: View {
 
     @ViewBuilder private var byExercise: some View {
         if viewModel.exerciseOptions.isEmpty {
-            EmptyState(
+            TLEmptyState(
                 systemImage: "chart.line.uptrend.xyaxis",
                 title: localString("history.empty", locale),
                 message: localString("history.empty.hint", locale)
@@ -171,11 +171,11 @@ public struct HistoryView: View {
             TLGroup {
                 ForEach(viewModel.exerciseOptions) { option in
                     NavigationLink(value: option.id) {
-                        ListRow(
+                        TLListRow(
                             title: Text(verbatim: option.name),
                             subtitle: Text(verbatim: option.muscleGroup.displayName(locale)),
                             showChevron: true,
-                            leading: { CircleBadge(muscle: option.muscleGroup.badgeText(locale)) }
+                            leading: { TLBadge(muscle: option.muscleGroup.badgeText(locale)) }
                         )
                     }
                 }

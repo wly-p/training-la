@@ -5,7 +5,7 @@ import SwiftUI
 /// 圓章一律用**圖示**（設計原則 10：沒有實體數量的地方不用數字章）。
 ///
 /// 用 `.sheet` 呈現，建議搭 `.presentationDetents([.height(...)])`。文字吃 `Text`（呼叫端 localText 建）。
-public struct AddSheet: View {
+public struct TLAddSheet: View {
     public struct Item: Identifiable {
         public let id: String
         public let systemImage: String
@@ -68,7 +68,7 @@ public struct AddSheet: View {
     private func row(_ item: Item) -> some View {
         Button(action: item.action) {
             HStack(spacing: TLSpace.gapM) {
-                CircleBadge(
+                TLBadge(
                     icon: item.systemImage,
                     fill: item.isCurrent ? TLColor.accent : TLColor.neutral200,
                     tint: item.isCurrent ? TLColor.bg : TLColor.neutral600
@@ -97,6 +97,6 @@ public struct AddSheet: View {
             .contentShape(Rectangle())
             .background(item.isCurrent ? TLColor.accent100 : Color.clear)
         }
-        .buttonStyle(RowPressStyle())
+        .buttonStyle(TLRowPressStyle())
     }
 }

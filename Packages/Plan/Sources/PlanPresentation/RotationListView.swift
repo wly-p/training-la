@@ -146,7 +146,7 @@ public struct RotationListView: View {
         @ViewBuilder content: () -> Content
     ) -> some View {
         VStack(alignment: .leading, spacing: 0) {
-            SectionHeader(header, tint: tint)
+            TLSectionHeader(header, tint: tint)
             TLGroup(content: content)
                 .overlay {
                     if bordered {
@@ -161,18 +161,18 @@ public struct RotationListView: View {
 
     private func activeRow(_ rotation: Rotation) -> some View {
         // 左滑露出「停用」（8b，neutral-400、非紅）→ accent 確認；drill-in 用 value-based NavigationLink。
-        SwipeToRevealRow(
+        TLSwipeToRevealRow(
             actionLabel: localText("rotation.manage.deactivate"),
             actionSystemImage: "pause",
             onAction: { pendingDeactivate = rotation.id }
         ) {
             NavigationLink(value: rotation.id) {
-                ListRow(
+                TLListRow(
                     title: Text(verbatim: rotation.name),
                     subtitle: Text(PlanFormatting.rotationSummary(rotation, language: AppLanguage(locale: locale))),
                     showChevron: true,
                     leading: {
-                        CircleBadge(icon: "arrow.triangle.2.circlepath", fill: TLColor.accent, tint: TLColor.bg)
+                        TLBadge(icon: "arrow.triangle.2.circlepath", fill: TLColor.accent, tint: TLColor.bg)
                     },
                     trailing: { statusPill(rotation) }
                 )
@@ -185,11 +185,11 @@ public struct RotationListView: View {
     private func inactiveRow(_ rotation: Rotation) -> some View {
         // 未啟用列：設計稿無 chevron、不 drill-in（低頻編輯先啟用再進）；右側 inline「啟用」。
         // 有進度者副標顯示「停在第 N 輪 · 目前範本」（8b）；沒進度就顯示組成摘要。
-        ListRow(
+        TLListRow(
             title: Text(verbatim: rotation.name),
             subtitle: inactiveSubtitle(rotation),
             leading: {
-                CircleBadge(icon: "arrow.triangle.2.circlepath", fill: TLColor.neutral300, tint: TLColor.neutral600)
+                TLBadge(icon: "arrow.triangle.2.circlepath", fill: TLColor.neutral300, tint: TLColor.neutral600)
             },
             trailing: {
                 Button {

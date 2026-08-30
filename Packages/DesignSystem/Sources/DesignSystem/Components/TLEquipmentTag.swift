@@ -3,7 +3,7 @@ import SwiftUI
 /// 器材小標（handoff-15 B 節）。`sage-200` 底 + `sage-900` 字、10.5pt weight 600、
 /// padding 5×9、pill。
 ///
-/// 跟 ``MuscleTag`` 同一個綠但更小、更輕：肌群是使用者會去點的篩選 chip，
+/// 跟 ``TLMuscleTag`` 同一個綠但更小、更輕：肌群是使用者會去點的篩選 chip，
 /// 器材只是跟在動作名旁邊的 metadata。**不用 accent（terracotta）**——那是主行動色。
 ///
 /// 存在的理由是動作名允許重複（肩推有槓鈴／啞鈴／機械三筆），
@@ -13,8 +13,8 @@ import SwiftUI
 ///   - **尾欄**（動作庫 `18b`）：列的右緣、靠右對齊。分組依據不在列上重複，所以按器材分組時
 ///     這個位置改放**肌群**——同一個尾欄、同一個 pill 形狀，只是內容換掉，故 `identifier` 可換。
 ///   - **細節行**（範本 `19a`）：退到第二行、與名稱共用左緣。
-///   - 名稱右側（訓練中、預覽 sheet、歷史詳情、能力值）：見 ``ExerciseNameWithEquipment``。
-public struct EquipmentTag: View {
+///   - 名稱右側（訓練中、預覽 sheet、歷史詳情、能力值）：見 ``TLExerciseNameWithEquipment``。
+public struct TLEquipmentTag: View {
     private let label: String
     private let identifier: String
 
@@ -49,7 +49,7 @@ public struct EquipmentTag: View {
 /// 沒有這兩個，長名稱會把 pill 擠掉或推到第二行。
 ///
 /// 字體與顏色由呼叫端先套在 `title` 上（大標題 28pt、列 15pt 各有各的）。
-public struct ExerciseNameWithEquipment: View {
+public struct TLExerciseNameWithEquipment: View {
     private let title: Text
     private let equipment: String
 
@@ -68,7 +68,7 @@ public struct ExerciseNameWithEquipment: View {
             title
                 .lineLimit(1)
                 .truncationMode(.tail)
-            EquipmentTag(equipment)
+            TLEquipmentTag(equipment)
                 .layoutPriority(1)
         }
     }

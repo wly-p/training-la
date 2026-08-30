@@ -5,8 +5,8 @@ import SwiftUI
 /// 可選右側文字動作（`accent-700`）。**不加底色、不加圖示。** 下方 margin 10。
 /// 可選 `tint`：預設 `neutral-500`；循環／長期「進行中」區用 `accent-600`。
 ///
-/// 文字吃 `Text`（見 PageHeader 說明）。
-public struct SectionHeader: View {
+/// 文字吃 `Text`（見 TLPageHeader 說明）。
+public struct TLSectionHeader: View {
     private let title: Text
     private let tint: Color
     private let action: (label: Text, handler: () -> Void)?

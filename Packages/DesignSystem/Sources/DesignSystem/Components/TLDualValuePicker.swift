@@ -1,12 +1,12 @@
 import SwiftUI
 
 /// 模板 8 變體：兩個數值並排的選擇器（設計稿 4a「08 · 數值選擇器」：重量／次數共用一個容器、
-/// 一條高亮帶、一排快捷）。單一數值的情境仍用 `ValuePicker`；這個給「重量 ＋ 次數」一次編兩個值用
+/// 一條高亮帶、一排快捷）。單一數值的情境仍用 `TLValuePicker`；這個給「重量 ＋ 次數」一次編兩個值用
 /// （範本逐組編輯 11b）。
 ///
-/// 兩欄滾輪本體（渲染窗口、手勢、慣性）在 `WheelColumn`，跟 `ValuePicker` 共用同一份。
-public struct DualValuePicker: View {
-    public typealias QuickAction = ValuePicker.QuickAction
+/// 兩欄滾輪本體（渲染窗口、手勢、慣性）在 `TLWheelColumn`，跟 `TLValuePicker` 共用同一份。
+public struct TLDualValuePicker: View {
+    public typealias QuickAction = TLValuePicker.QuickAction
 
     @Binding private var primaryValue: Double
     @Binding private var secondaryValue: Double
@@ -24,11 +24,11 @@ public struct DualValuePicker: View {
         primaryValue: Binding<Double>,
         primaryValues: [Double],
         primaryKicker: String,
-        primaryFormat: @escaping (Double) -> String = ValuePicker.defaultFormat,
+        primaryFormat: @escaping (Double) -> String = TLValuePicker.defaultFormat,
         secondaryValue: Binding<Double>,
         secondaryValues: [Double],
         secondaryKicker: String,
-        secondaryFormat: @escaping (Double) -> String = ValuePicker.defaultFormat,
+        secondaryFormat: @escaping (Double) -> String = TLValuePicker.defaultFormat,
         quickActions: [QuickAction] = []
     ) {
         self._primaryValue = primaryValue
@@ -54,11 +54,11 @@ public struct DualValuePicker: View {
                     .fill(TLColor.neutral300)
                     .frame(height: rowHeight)
                 HStack(spacing: 0) {
-                    WheelColumn(
+                    TLWheelColumn(
                         value: $primaryValue, values: primaryValues,
                         format: primaryFormat, rowHeight: rowHeight
                     )
-                    WheelColumn(
+                    TLWheelColumn(
                         value: $secondaryValue, values: secondaryValues,
                         format: secondaryFormat, rowHeight: rowHeight
                     )

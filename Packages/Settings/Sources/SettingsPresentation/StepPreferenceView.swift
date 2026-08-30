@@ -4,8 +4,8 @@ import SwiftUI
 
 /// 級距偏好的 drill-in 編輯頁（重量／休息時間共用）。
 ///
-/// 設計稿還沒畫這層，先照 `SettingsSelectionView` 的骨架（返回鈕＋`PageHeader`＋`TLGroup`）自建，
-/// 內容用既有的 `ValuePicker` 滾輪選常用值，另外附一個輸入框給滾輪清單裡沒有的值
+/// 設計稿還沒畫這層，先照 `SettingsSelectionView` 的骨架（返回鈕＋`TLPageHeader`＋`TLGroup`）自建，
+/// 內容用既有的 `TLValuePicker` 滾輪選常用值，另外附一個輸入框給滾輪清單裡沒有的值
 /// （例：一個卡扣 0.17kg）。等 UI 設計出來再改這一層，行為與持久化不受影響。
 struct StepPreferenceView: View {
     /// 目前語言：`localString` 要靠它才能查到 app 設定的語言（而非手機語系）。
@@ -57,9 +57,9 @@ struct StepPreferenceView: View {
             ScrollView {
                 VStack(alignment: .leading, spacing: 0) {
                     backBar
-                    PageHeader(title)
+                    TLPageHeader(title)
                     VStack(alignment: .leading, spacing: TLSpace.gapL) {
-                        ValuePicker(
+                        TLValuePicker(
                             value: $value,
                             values: options,
                             kicker: unitLabel,
@@ -102,7 +102,7 @@ struct StepPreferenceView: View {
 
     private var backBar: some View {
         HStack {
-            CircleIconButton(systemImage: "chevron.left", filled: false) { onBack() }
+            TLCircleIconButton(systemImage: "chevron.left", filled: false) { onBack() }
                 .accessibilityLabel(localText("settings.back"))
             Spacer()
         }

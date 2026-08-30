@@ -3,7 +3,7 @@ import SwiftUI
 /// 模板 10：空狀態。
 /// 52pt 圓（`neutral-200`）內含圖示 → 標題 16pt weight 700 → 說明 12.5pt `neutral-600` → 主要按鈕。
 /// 整體置中，容器圓角 28、`neutral-100` 底、padding 26×22。
-public struct EmptyState: View {
+public struct TLEmptyState: View {
     private let systemImage: String
     private let title: String
     private let message: String

@@ -8,8 +8,8 @@ import SwiftUI
 /// - 上下各兩階遞減：20pt `neutral-500`（±1）→ 17pt `neutral-400`（±2）
 /// - 下方一排快捷 capsule（如 `−2.5` / `+2.5` / `同上組`）
 ///
-/// 滾輪本體（渲染窗口、手勢、慣性）在 `WheelColumn`，跟 `DualValuePicker` 共用同一份。
-public struct ValuePicker: View {
+/// 滾輪本體（渲染窗口、手勢、慣性）在 `TLWheelColumn`，跟 `TLDualValuePicker` 共用同一份。
+public struct TLValuePicker: View {
     /// 快捷鍵。`flex` 控制寬度比例（README：−2.5 : +2.5 : 同上組 = 1 : 1 : 1.4）。
     public struct QuickAction: Identifiable {
         public let id = UUID()
@@ -35,7 +35,7 @@ public struct ValuePicker: View {
         value: Binding<Double>,
         values: [Double],
         kicker: String? = nil,
-        format: @escaping (Double) -> String = ValuePicker.defaultFormat,
+        format: @escaping (Double) -> String = TLValuePicker.defaultFormat,
         quickActions: [QuickAction] = []
     ) {
         self._value = value
@@ -75,7 +75,7 @@ public struct ValuePicker: View {
                 .fill(TLColor.neutral300)
                 .frame(height: rowHeight)
 
-            WheelColumn(value: $value, values: values, format: format, rowHeight: rowHeight)
+            TLWheelColumn(value: $value, values: values, format: format, rowHeight: rowHeight)
         }
         .frame(height: rowHeight * 5)
         .clipped()

@@ -22,11 +22,11 @@ public struct AbilityListView: View {
     public var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 0) {
-                PageHeader(localText("ability.title"))
+                TLPageHeader(localText("ability.title"))
                 if !viewModel.rows.isEmpty { summaryLine }
 
                 if viewModel.rows.isEmpty {
-                    EmptyState(
+                    TLEmptyState(
                         systemImage: "chart.bar.xaxis",
                         title: localString("ability.empty.title", locale),
                         message: localString("ability.empty.message", locale)
@@ -86,7 +86,7 @@ public struct AbilityListView: View {
                 unsetChip
                 ForEach(Equipment.allCases, id: \.self) { equipment in
                     let enabled = viewModel.hasExercises(for: equipment)
-                    MuscleTag(
+                    TLMuscleTag(
                         equipment.displayName(locale),
                         isSelected: viewModel.filter == .equipment(equipment),
                         onTap: enabled ? { toggle(.equipment(equipment)) } : nil
@@ -127,9 +127,9 @@ public struct AbilityListView: View {
     private var rowsGroup: some View {
         TLGroup {
             ForEach(viewModel.visibleRows(locale: locale)) { row in
-                // trailing 要具名傳：ListRow 的 leading 排在 trailing 前面，
+                // trailing 要具名傳：TLListRow 的 leading 排在 trailing 前面，
                 // 用尾隨閉包會綁到 leading，值就跑到列的左邊去。
-                ListRow(
+                TLListRow(
                     title: Text(verbatim: row.exerciseName),
                     subtitle: subtitle(for: row),
                     equipment: row.equipment.displayName(locale),
@@ -221,7 +221,7 @@ private struct AbilityEditSheet: View {
                 .font(TLFont.zh(15.5, .medium))
                 .foregroundStyle(TLColor.neutral600)
             Spacer()
-            ExerciseNameWithEquipment(
+            TLExerciseNameWithEquipment(
                 name: row.exerciseName,
                 equipment: row.equipment.displayName(locale)
             )

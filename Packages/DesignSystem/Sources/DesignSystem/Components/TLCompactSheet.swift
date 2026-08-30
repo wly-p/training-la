@@ -12,7 +12,7 @@ import SwiftUI
 ///
 /// 內容用 `fixedSize(vertical:)` 取理想高度，不會被「還沒量到、暫時是 0」的 sheet 高度壓扁，
 /// 量測因此第一輪就穩定。
-public struct CompactSheet<Content: View>: View {
+public struct TLCompactSheet<Content: View>: View {
     private let title: Text
     private let cancelTitle: Text?
     private let confirmTitle: Text

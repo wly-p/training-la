@@ -5,7 +5,7 @@ import SwiftUI
 /// （週期清單那一列的膠囊，不歸這個元件管）。
 ///
 /// 純顯示元件，不做 i18n：字串／Text 由呼叫端（各 package 的 String Catalog）決定，這裡只排版。
-public struct IntensityFactorGroup: View {
+public struct TLIntensityFactorGroup: View {
     /// 「套用後」試算的一行：例如「臥推 組3」「80% × 85%」「67.5 kg」。
     public struct PreviewLine: Identifiable {
         public let id = UUID()
@@ -49,7 +49,7 @@ public struct IntensityFactorGroup: View {
         VStack(alignment: .leading, spacing: 14) {
             chipsRow
             if showCustom {
-                ValuePicker(
+                TLValuePicker(
                     value: $factor,
                     values: Self.customRange,
                     format: { String(format: "%.0f%%", $0 * 100) }
@@ -72,14 +72,14 @@ public struct IntensityFactorGroup: View {
     private var chipsRow: some View {
         HStack(spacing: 8) {
             ForEach(Self.presets, id: \.self) { preset in
-                SelectableChip(
+                TLSelectableChip(
                     String(format: "%.0f%%", preset * 100),
                     isSelected: !showCustom && factor == preset,
                     selectedFill: TLColor.accent, selectedText: TLColor.bg,
                     onTap: { showCustom = false; factor = preset }
                 )
             }
-            SelectableChip(
+            TLSelectableChip(
                 customLabel, isSelected: showCustom,
                 selectedFill: TLColor.accent, selectedText: TLColor.bg,
                 onTap: { showCustom = true }
@@ -114,8 +114,8 @@ public struct IntensityFactorGroup: View {
 }
 
 /// 週期清單格子尾端的強度覆寫膠囊（14b）：未覆寫＝線框「基準」，已覆寫＝accent 實心「×75%」。
-/// 點擊開 `ValuePicker`（呼叫端接手示範層，這裡只負責膠囊外觀＋點擊回呼）。
-public struct IntensityOverridePill: View {
+/// 點擊開 `TLValuePicker`（呼叫端接手示範層，這裡只負責膠囊外觀＋點擊回呼）。
+public struct TLIntensityOverridePill: View {
     private let factor: Double?
     private let baselineLabel: String
     private let onTap: () -> Void

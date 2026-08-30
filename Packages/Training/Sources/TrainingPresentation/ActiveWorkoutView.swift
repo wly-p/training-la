@@ -282,14 +282,14 @@ public struct ActiveWorkoutView: View {
         )
     }
 
-    /// 訓練中挑動作 sheet（自由訓練加動作／13e 換動作共用）：跟課表/範本加動作同一套 PickerSheet，
+    /// 訓練中挑動作 sheet（自由訓練加動作／13e 換動作共用）：跟課表/範本加動作同一套 TLPickerSheet，
     /// 單選、肌群 filter、點一列即回呼。
     private func exercisePicker(onSelect: @escaping (CatalogExercise) -> Void) -> some View {
-        PickerSheet(
+        TLPickerSheet(
             title: localText("training.chooseExercise"),
             searchPrompt: localText("training.searchExercises"),
             allItems: viewModel.catalog.map { ExercisePickerItem(exercise: $0, locale: locale) },
-            filters: MuscleGroup.allCases.map { PickerSheetFilterChip(id: $0.rawValue, label: $0.displayName(locale)) },
+            filters: MuscleGroup.allCases.map { TLPickerSheetFilterChip(id: $0.rawValue, label: $0.displayName(locale)) },
             matchesFilter: { item, filter in item.exercise.muscleGroup.rawValue == filter.id },
             selection: .single { item in onSelect(item.exercise) },
             labels: TrainingPickerLabels.standard
@@ -299,7 +299,7 @@ public struct ActiveWorkoutView: View {
     private var emptyState: some View {
         ZStack {
             TLColor.bg.ignoresSafeArea()
-            EmptyState(
+            TLEmptyState(
                 systemImage: "dumbbell",
                 title: localString("training.pickToStart", locale),
                 message: localString("training.pickToStart.hint", locale),
@@ -498,7 +498,7 @@ public struct ActiveWorkoutView: View {
                     .tracking(TLFont.kickerTracking)
                     .textCase(.uppercase)
                     .foregroundStyle(viewModel.showExerciseComplete ? TLColor.sage700 : TLColor.accent600)
-                ExerciseNameWithEquipment(
+                TLExerciseNameWithEquipment(
                     title: Text(verbatim: viewModel.name(for: exerciseId))
                         .font(TLFont.zh(TLFont.pageTitle, .bold))
                         .foregroundColor(TLColor.text),
@@ -913,7 +913,7 @@ public struct ActiveWorkoutView: View {
         return parts.joined(separator: " ")
     }
 
-    /// 輸入色帶（11c）：大數字讀出（點開 DualValuePicker 改重量／次數）＋來源標示（14c）＋
+    /// 輸入色帶（11c）：大數字讀出（點開 TLDualValuePicker 改重量／次數）＋來源標示（14c）＋
     /// 快捷鍵；neutral-300 底、右側大圓角且不到底的不對稱形狀，左緣貼齊螢幕。取代原本的 ± stepper
     /// ——設計稿沒有 stepper，數字直接點開選擇器；快捷膠囊做 ±級距／回到目標微調。
     private var inputBand: some View {
@@ -964,17 +964,17 @@ public struct ActiveWorkoutView: View {
 
     /// 大數字點開的重量／次數選擇器（取代 stepper）；重量依使用者的級距偏好、次數 1…40。
     ///
-    /// 外框用 `CompactSheet`：高度跟著內容量測，不再寫死 —— 之前寫死 260 讓滾輪被壓扁，
+    /// 外框用 `TLCompactSheet`：高度跟著內容量測，不再寫死 —— 之前寫死 260 讓滾輪被壓扁，
     /// 而且「好」是 NavigationStack 的 toolbar，浮在標題列上蓋到下面的欄名。
     private var valueEditorSheet: some View {
         let weightValues = WeightRange.values(for: viewModel.draftWeightUnit, step: viewModel.weightStep)
         let repsValues = (1...40).map(Double.init)
-        return CompactSheet(
+        return TLCompactSheet(
             title: Text(verbatim: viewModel.currentExerciseId.map { viewModel.name(for: $0) } ?? ""),
             confirmTitle: localText("training.ok"),
             onConfirm: { showsValueEditor = false }
         ) {
-            DualValuePicker(
+            TLDualValuePicker(
                 primaryValue: $viewModel.draftWeightValue,
                 primaryValues: weightValues,
                 primaryKicker: localString("training.weight", locale),

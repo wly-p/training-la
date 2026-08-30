@@ -4,7 +4,7 @@ import SharedKernel
 import SwiftUI
 
 /// 當日排課表單（課表「+」→ 空白建立／點未完成排課編輯）。套動作庫同一套新版元件：
-/// `EditScaffold` ＋ `PickerSheet` ＋ `TLGroup`/`ListRow`；逐動作用 `DraftEditSheet`（`DualValuePicker`）
+/// `TLEditScaffold` ＋ `TLPickerSheet` ＋ `TLGroup`/`TLListRow`；逐動作用 `DraftEditSheet`（`TLDualValuePicker`）
 /// 編組數／重量／次數／休息。`readOnly`（已完成排課）時走精簡的唯讀畫面、不可編輯。
 ///
 /// 資料模型維持 `ExerciseTargetDraft`（每個動作統一的 組數×重量×次數＋休息，非逐組），
@@ -69,12 +69,12 @@ struct PlanWorkoutFormView: View {
             }
         }
         .sheet(isPresented: $pickingExercise) {
-            PickerSheet(
+            TLPickerSheet(
                 title: localText("plan.addExercise"),
                 searchPrompt: localText("plan.searchExercises"),
                 allItems: catalog.map { ExercisePickerItem(exercise: $0, locale: locale) },
                 recentItemIds: recentExerciseIds,
-                filters: MuscleGroup.allCases.map { PickerSheetFilterChip(id: $0.rawValue, label: $0.displayName(locale)) },
+                filters: MuscleGroup.allCases.map { TLPickerSheetFilterChip(id: $0.rawValue, label: $0.displayName(locale)) },
                 matchesFilter: { item, filter in item.exercise.muscleGroup.rawValue == filter.id },
                 selection: .multiple(
                     selectedIds: $selectedExerciseIds,
@@ -101,7 +101,7 @@ struct PlanWorkoutFormView: View {
     // MARK: - 編輯（新增/編輯）
 
     private var editView: some View {
-        EditScaffold(
+        TLEditScaffold(
             title: $name,
             titlePrompt: localText("plan.name.placeholder"),
             canSave: canSave,
@@ -121,7 +121,7 @@ struct PlanWorkoutFormView: View {
     }
 
     private var dateSection: some View {
-        EditSection(localText("plan.date")) {
+        TLEditSection(localText("plan.date")) {
             TLGroup {
                 HStack {
                     localText("plan.date")
@@ -139,15 +139,15 @@ struct PlanWorkoutFormView: View {
     }
 
     private var exercisesSection: some View {
-        EditSection(localText("plan.exercises")) {
+        TLEditSection(localText("plan.exercises")) {
             TLGroup {
                 ForEach(drafts) { draft in
                     draftRow(draft)
                 }
-                ListRow(
+                TLListRow(
                     title: localText("plan.addExercise"),
                     onTap: { pickingExercise = true },
-                    leading: { CircleBadge(icon: "plus", fill: TLColor.neutral200, tint: TLColor.neutral600) }
+                    leading: { TLBadge(icon: "plus", fill: TLColor.neutral200, tint: TLColor.neutral600) }
                 )
                 .accessibilityIdentifier("planForm.addExercise")
             }
@@ -157,7 +157,7 @@ struct PlanWorkoutFormView: View {
     /// 跟範本編輯（19a）同一個列型：主行「名稱 ＋ 組數 × 次數」，器材與技術欄位退到細節行。
     /// 同一種列在兩個畫面不該長得不一樣。
     private func draftRow(_ draft: ExerciseTargetDraft) -> some View {
-        ListRow(
+        TLListRow(
             title: Text(verbatim: name(for: draft.exerciseId)),
             onTap: { editingDraftId = draft.id },
             detail: { detailLine(for: draft) },
@@ -216,11 +216,11 @@ struct PlanWorkoutFormView: View {
                             .font(TLFont.zh(TLFont.rowSub, .regular))
                             .foregroundStyle(TLColor.neutral500)
                     }
-                    EditSection(localText("plan.exercises")) {
+                    TLEditSection(localText("plan.exercises")) {
                         TLGroup {
                             ForEach(drafts) { draft in
                                 // 唯讀版跟可編輯版同一個列型，只是不能點。
-                                ListRow(
+                                TLListRow(
                                     title: Text(verbatim: name(for: draft.exerciseId)),
                                     detail: { detailLine(for: draft) },
                                     trailing: {
@@ -291,7 +291,7 @@ struct PlanWorkoutFormView: View {
     @ViewBuilder
     private func detailLine(for draft: ExerciseTargetDraft) -> some View {
         HStack(spacing: 6) {
-            EquipmentTag(equipmentName(for: draft.exerciseId))
+            TLEquipmentTag(equipmentName(for: draft.exerciseId))
             let parts = [
                 draft.targetWeight?.displayString(in: displayUnit),
                 (draft.restSec ?? 0) > 0
@@ -313,7 +313,7 @@ private func formatNumber(_ v: Double) -> String {
     v == v.rounded() ? String(Int(v)) : String(v)
 }
 
-/// 單一動作草稿的編輯 sheet：組數（stepper）＋重量×次數（`DualValuePicker`）＋休息（stepper）。
+/// 單一動作草稿的編輯 sheet：組數（stepper）＋重量×次數（`TLDualValuePicker`）＋休息（stepper）。
 /// 對齊動作庫 `SetEditSheet` 的視覺與互動。
 private struct DraftEditSheet: View {
     /// 目前語言：`localString` 要靠它才能查到 app 設定的語言（而非手機語系）。
@@ -361,7 +361,7 @@ private struct DraftEditSheet: View {
     private var repsValues: [Double] { Array(stride(from: 1, through: 30, by: 1)) }
 
     var body: some View {
-        CompactSheet(
+        TLCompactSheet(
             title: Text(verbatim: exerciseName),
             cancelTitle: localText("plan.cancel"),
             confirmTitle: localText("plan.done"),
@@ -375,7 +375,7 @@ private struct DraftEditSheet: View {
                     stepperRow(restLabel, value: $rest, range: 0...600, step: 15)
                         .accessibilityIdentifier("planForm.restStepper")
                 }
-                DualValuePicker(
+                TLDualValuePicker(
                     primaryValue: $weightValue,
                     primaryValues: weightValues,
                     primaryKicker: localString("plan.weight", locale),

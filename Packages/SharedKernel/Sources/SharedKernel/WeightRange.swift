@@ -18,7 +18,7 @@ public enum WeightRange {
     /// 給選擇器滾輪用的可選值清單。`step` 由使用者的級距偏好決定。
     ///
     /// 清單筆數 = 上限 / 級距，所以級距很細時清單會很長（0.17 → 約 2900 筆）。
-    /// `DualValuePicker` 只渲染當前 index ±2 列，長度不影響繪製成本，但它的
+    /// `TLDualValuePicker` 只渲染當前 index ±2 列，長度不影響繪製成本，但它的
     /// `index(of:in:)` 是線性搜尋，必要時再換二分搜尋。
     public static func values(for unit: WeightUnit, step: Double) -> [Double] {
         let step = step > 0 ? step : 1

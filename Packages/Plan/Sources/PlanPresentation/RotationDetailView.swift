@@ -71,7 +71,7 @@ public struct RotationDetailView: View {
     private func header(_ rotation: Rotation) -> some View {
         VStack(alignment: .leading, spacing: 8) {
             HStack {
-                CircleIconButton(systemImage: "chevron.left", filled: false) { dismiss() }
+                TLCircleIconButton(systemImage: "chevron.left", filled: false) { dismiss() }
                     .accessibilityLabel(localText("plan.back"))
                 Spacer()
                 NavigationLink(value: RotationEditRoute(id: rotation.id)) {
@@ -112,7 +112,7 @@ public struct RotationDetailView: View {
                     .foregroundStyle(TLColor.neutral600)
             }
             if !rotation.workouts.isEmpty {
-                FlowLayout(spacing: 8, lineSpacing: 8) {
+                TLFlowLayout(spacing: 8, lineSpacing: 8) {
                     ForEach(Array(rotation.workouts.enumerated()), id: \.offset) { index, spec in
                         templateCapsule(spec.name, isCurrent: index == rotation.cursor)
                     }
@@ -138,10 +138,10 @@ public struct RotationDetailView: View {
 
     private func composition(_ rotation: Rotation) -> some View {
         VStack(alignment: .leading, spacing: 0) {
-            SectionHeader(localText("rotation.detail.composition \(rotation.workouts.count)"))
+            TLSectionHeader(localText("rotation.detail.composition \(rotation.workouts.count)"))
             TLGroup {
                 ForEach(Array(rotation.workouts.enumerated()), id: \.offset) { index, spec in
-                    ListRow(
+                    TLListRow(
                         title: Text(verbatim: spec.name),
                         subtitle: Text(PlanFormatting.summary(spec, name: viewModel.name(for:), language: AppLanguage(locale: locale))),
                         leading: { indexBadge(index + 1, isCurrent: index == rotation.cursor) }
@@ -152,7 +152,7 @@ public struct RotationDetailView: View {
     }
 
     private func indexBadge(_ n: Int, isCurrent: Bool) -> some View {
-        CircleBadge(fill: isCurrent ? TLColor.accent200 : TLColor.neutral200) {
+        TLBadge(fill: isCurrent ? TLColor.accent200 : TLColor.neutral200) {
             Text(verbatim: "\(n)")
                 .font(TLFont.display(15))
                 .foregroundStyle(isCurrent ? TLColor.accent800 : TLColor.neutral700)
@@ -163,24 +163,24 @@ public struct RotationDetailView: View {
 
     private func manage(_ rotation: Rotation) -> some View {
         VStack(alignment: .leading, spacing: 8) {
-            SectionHeader(localText("rotation.manage.section"))
+            TLSectionHeader(localText("rotation.manage.section"))
             TLGroup {
-                ListRow(
+                TLListRow(
                     title: localText("rotation.manage.next"),
                     onTap: { Task { await viewModel.advance() } },
                     trailing: { rightText(Text(verbatim: nextName(rotation))) }
                 )
-                ListRow(
+                TLListRow(
                     title: localText("rotation.manage.reset"),
                     onTap: { Task { await viewModel.reset() } },
                     trailing: { rightText(localText("rotation.manage.reset.hint")) }
                 )
-                ListRow(
+                TLListRow(
                     title: localText("rotation.manage.deactivate"),
                     onTap: { showDeactivateConfirm = true },
                     trailing: { rightText(localText("rotation.manage.deactivate.hint")) }
                 )
-                SettingsRow(
+                TLSettingsRow(
                     localText("rotation.manage.delete"),
                     role: .destructive,
                     onTap: { showDeleteConfirm = true }

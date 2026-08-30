@@ -21,7 +21,7 @@ import SwiftUI
 ///
 /// **滑動＝瀏覽，點擊＝選取。** 滑動只移動 `anchorDate`（視窗），不動 `selectedDate`，
 /// 所以下方的當日課表不會因為滑一下就換掉。離開太遠的成本由常駐的「今天」膠囊吸收。
-public struct MonthDateStrip: View {
+public struct TLMonthDateStrip: View {
     /// 某一天的排課狀態。`projected` 是長期課表的投影（尚未落地）。
     public enum DayMark: Sendable {
         case none
@@ -147,7 +147,7 @@ public struct MonthDateStrip: View {
 
             todayPill.fixedSize()
 
-            CircleIconButton(
+            TLCircleIconButton(
                 systemImage: "chevron.left",
                 style: .neutral,
                 size: TLSize.iconButtonSmall,
@@ -157,7 +157,7 @@ public struct MonthDateStrip: View {
                 .accessibilityLabel(labels.previousMonth)
                 .accessibilityIdentifier("\(identifierPrefix).prev")
 
-            CircleIconButton(
+            TLCircleIconButton(
                 systemImage: "chevron.right",
                 style: .neutral,
                 size: TLSize.iconButtonSmall,
@@ -302,7 +302,7 @@ public struct MonthDateStrip: View {
     /// 六種畫法全靠形狀區分，沒有文字的話「實線圓 vs 虛線圓」要自己猜。
     /// 英文的長標籤要能換行（handoff-21 F.4）。
     private var legend: some View {
-        FlowLayout(spacing: 16, lineSpacing: TLSpace.gapS) {
+        TLFlowLayout(spacing: 16, lineSpacing: TLSpace.gapS) {
             legendItem(labels.legendCompleted) {
                 Circle().fill(TLColor.accent).frame(width: 12, height: 12)
             }

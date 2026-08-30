@@ -1,7 +1,7 @@
 import SwiftUI
 
 /// 換行流式排列（chip 群用）：一列排不下就換行。左齊。
-public struct FlowLayout: Layout {
+public struct TLFlowLayout: Layout {
     private let spacing: CGFloat
     private let lineSpacing: CGFloat
 
@@ -55,7 +55,7 @@ public struct FlowLayout: Layout {
 /// 可選取的 capsule chip（單/多選群共用）。`tint` 決定選中色（肌群 `sage`、器材 `accent`）。
 ///  - 已選：`tint.opacity` 淺底＋深字。未選：1px `text@16%` 線框＋`neutral-700` 字。
 /// 標籤吃 `String`（多為 enum 資料 verbatim）。
-public struct SelectableChip: View {
+public struct TLSelectableChip: View {
     private let label: String
     private let isSelected: Bool
     private let selectedFill: Color

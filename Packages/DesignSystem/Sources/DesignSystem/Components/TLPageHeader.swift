@@ -2,15 +2,15 @@ import SwiftUI
 
 /// 模板 1：頁面主標。
 /// 左齊 34pt 主標（允許兩行）。三種變體共用同一 API：
-///  - 純標題：`PageHeader(localText("settings.title"))`
-///  - 標題＋右側 44pt 圓鈕：`PageHeader(...) { CircleIconButton(systemImage: "plus") { … } }`
-///  - 標題上方 kicker：`PageHeader(..., kicker: localText("..."))`
+///  - 純標題：`TLPageHeader(localText("settings.title"))`
+///  - 標題＋右側 44pt 圓鈕：`TLPageHeader(...) { TLCircleIconButton(systemImage: "plus") { … } }`
+///  - 標題上方 kicker：`TLPageHeader(..., kicker: localText("..."))`
 ///
 /// 文字吃 `Text`（不是 `String`）：呼叫端用各 package 的 `localText(key)`＝`Text(key, bundle:.module)`
 /// 建好再傳進來，才對得到該 package 的 String Catalog、且切語言即時重繪。
 ///
 /// padding：水平 26、頂部 22。
-public struct PageHeader<Accessory: View>: View {
+public struct TLPageHeader<Accessory: View>: View {
     private let title: Text
     private let kicker: Text?
     private let accessory: Accessory

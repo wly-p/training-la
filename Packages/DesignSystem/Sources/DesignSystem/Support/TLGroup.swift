@@ -1,7 +1,7 @@
 import SwiftUI
 
 /// 群組容器：圓角 28 + `neutral-100` 底 + 列間分隔線（頭尾不畫線）。
-/// 取代原生 List／Form 的底框。`ListRow` 與 `SettingsRow` 都放進這裡。
+/// 取代原生 List／Form 的底框。`TLListRow` 與 `TLSettingsRow` 都放進這裡。
 public struct TLGroup<Content: View>: View {
     private let content: Content
 
@@ -10,7 +10,7 @@ public struct TLGroup<Content: View>: View {
     }
 
     public var body: some View {
-        DividedVStack {
+        TLDividedVStack {
             content
         }
         .background(TLColor.neutral100)

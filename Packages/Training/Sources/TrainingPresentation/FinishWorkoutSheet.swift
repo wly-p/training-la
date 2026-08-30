@@ -307,7 +307,7 @@ struct FinishWorkoutSheet: View {
                 feelingChip(value: 1, label: "training.finish.feeling.easy")
                 feelingChip(value: 3, label: "training.finish.feeling.justRight")
                 feelingChip(value: 5, label: "training.finish.feeling.hard")
-                SelectableChip(
+                TLSelectableChip(
                     localString("training.finish.addNote", locale),
                     isSelected: showsNoteField,
                     selectedFill: TLColor.accent, selectedText: TLColor.bg,
@@ -318,7 +318,7 @@ struct FinishWorkoutSheet: View {
     }
 
     private func feelingChip(value: Int, label: String) -> some View {
-        SelectableChip(
+        TLSelectableChip(
             localString(label, locale),
             isSelected: feeling == value,
             selectedFill: TLColor.accent, selectedText: TLColor.bg,

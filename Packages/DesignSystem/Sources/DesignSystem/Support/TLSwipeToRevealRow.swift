@@ -4,7 +4,7 @@ import SwiftUI
 /// 用在 DesignSystem 自訂容器（`TLGroup`）內的列——原生 `.swipeActions` 只能用在 `List`，故自建。
 ///
 /// 內容自帶不透明底（關閉時完全蓋住底下的動作鈕）。水平為主的拖曳才觸發，避免搶走垂直捲動。
-public struct SwipeToRevealRow<Content: View>: View {
+public struct TLSwipeToRevealRow<Content: View>: View {
     private let actionLabel: Text
     private let actionSystemImage: String
     private let actionTint: Color

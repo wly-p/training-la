@@ -1,9 +1,9 @@
 import DesignSystem
 import SwiftUI
 
-/// `PickerSheet` 固定文字（取消／最近用過／全部…）：9b/12a/12b 三個情境共用同一套。
+/// `TLPickerSheet` 固定文字（取消／最近用過／全部…）：9b/12a/12b 三個情境共用同一套。
 enum PlanPickerLabels {
-    static let standard = PickerSheetLabels(
+    static let standard = TLPickerSheetLabels(
         cancel: localText("plan.cancel"),
         createNewButton: localText("picker.createNew"),
         recentSection: localText("picker.section.recent"),

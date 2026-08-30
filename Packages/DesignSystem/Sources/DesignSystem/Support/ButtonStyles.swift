@@ -5,7 +5,7 @@ import SwiftUI
 // 互動：按下實心 → accent-700（破壞性 → danger-800）；按下線框／文字 → text @6%。無縮放動畫。
 //
 // 水平 padding 要寫在 `.frame(maxWidth: .infinity)` **之前**：全寬使用時它被撐開、看不出差別，
-// 但呼叫端一旦加 `.fixedSize(horizontal: true)`（例如 EmptyState 的按鈕要內容寬），
+// 但呼叫端一旦加 `.fixedSize(horizontal: true)`（例如 TLEmptyState 的按鈕要內容寬），
 // 沒有水平 padding 的膠囊就會直接貼死文字，看起來又小又擠。
 
 /// 主要：capsule、accent 底、bg 字、15.5pt weight 700。
@@ -166,7 +166,7 @@ public extension ButtonStyle where Self == TLDestructiveTextButtonStyle {
 }
 
 /// 圓形圖示鈕：預設 44×44 赭紅實心＋白色圖示（如頁首 `+`）。
-public struct CircleIconButton: View {
+public struct TLCircleIconButton: View {
     /// 三種材質。`neutral` 是月曆標題列那組導航（`‹ ›`）用的——與「今天」膠囊同材質，
     /// 赭色留給日期格子的「已排定」，導航鍵不跟狀態搶同一個顏色。
     public enum Style: Sendable {

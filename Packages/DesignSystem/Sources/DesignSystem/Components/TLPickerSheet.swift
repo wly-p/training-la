@@ -7,7 +7,7 @@ import SwiftUI
 /// - 分組清單：「最近用過」／「全部 · 篩選標籤」（`sections` 由呼叫端依目前搜尋字＋篩選算好傳入）
 /// - 多選：列左側勾選圈，底部常駐主要按鈕；單選：點一列即關閉，無底部按鈕
 /// - 右上「新建」＋搜尋時清單最後一列「新建「X」」：就地新增，交給呼叫端處理
-public struct PickerSheet<Item: PickerSheetItem>: View {
+public struct TLPickerSheet<Item: TLPickerSheetItem>: View {
     public enum Selection {
         /// 多選＋一次加入：`confirmLabel` 依已選數量給文字（`加入 N 個動作`）。
         case multiple(selectedIds: Binding<Set<Item.ID>>, confirmLabel: (Int) -> Text, onConfirm: () -> Void)
@@ -19,11 +19,11 @@ public struct PickerSheet<Item: PickerSheetItem>: View {
     private let searchPrompt: Text
     private let allItems: [Item]
     private let recentItemIds: [Item.ID]
-    private let filters: [PickerSheetFilterChip]
-    private let matchesFilter: (Item, PickerSheetFilterChip) -> Bool
+    private let filters: [TLPickerSheetFilterChip]
+    private let matchesFilter: (Item, TLPickerSheetFilterChip) -> Bool
     private let selection: Selection
     private let onCreateNew: ((String) -> Void)?
-    private let labels: PickerSheetLabels
+    private let labels: TLPickerSheetLabels
 
     @Environment(\.dismiss) private var dismiss
     @State private var searchText = ""
@@ -34,11 +34,11 @@ public struct PickerSheet<Item: PickerSheetItem>: View {
         searchPrompt: Text,
         allItems: [Item],
         recentItemIds: [Item.ID] = [],
-        filters: [PickerSheetFilterChip] = [],
-        matchesFilter: @escaping (Item, PickerSheetFilterChip) -> Bool = { _, _ in true },
+        filters: [TLPickerSheetFilterChip] = [],
+        matchesFilter: @escaping (Item, TLPickerSheetFilterChip) -> Bool = { _, _ in true },
         selection: Selection,
         onCreateNew: ((String) -> Void)? = nil,
-        labels: PickerSheetLabels
+        labels: TLPickerSheetLabels
     ) {
         self.title = title
         self.searchPrompt = searchPrompt
@@ -156,7 +156,7 @@ public struct PickerSheet<Item: PickerSheetItem>: View {
         ScrollView(.horizontal, showsIndicators: false) {
             HStack(spacing: 8) {
                 ForEach(filters) { filter in
-                    SelectableChip(
+                    TLSelectableChip(
                         filter.label,
                         isSelected: selectedFilterId == filter.id,
                         selectedFill: TLColor.sage200,
@@ -174,7 +174,7 @@ public struct PickerSheet<Item: PickerSheetItem>: View {
 
     private func section(title: Text, items: [Item]) -> some View {
         VStack(alignment: .leading, spacing: 0) {
-            SectionHeader(title)
+            TLSectionHeader(title)
             TLGroup {
                 ForEach(items) { item in
                     row(item)
@@ -212,7 +212,7 @@ public struct PickerSheet<Item: PickerSheetItem>: View {
     private func rowContent(_ item: Item, isSelected: Bool) -> some View {
         HStack(spacing: TLSpace.gapM) {
             if case .multiple = selection {
-                CheckBadge(isChecked: isSelected)
+                TLCheckCircle(isChecked: isSelected)
             }
             VStack(alignment: .leading, spacing: 2) {
                 highlightedTitle(item.title)
@@ -251,7 +251,7 @@ public struct PickerSheet<Item: PickerSheetItem>: View {
             onCreateNew(searchText)
         } label: {
             HStack(spacing: TLSpace.gapM) {
-                CircleBadge(icon: "plus", fill: TLColor.neutral200, tint: TLColor.neutral600)
+                TLBadge(icon: "plus", fill: TLColor.neutral200, tint: TLColor.neutral600)
                 labels.createNewRow(searchText)
                     .font(TLFont.zh(TLFont.rowTitle, .semibold))
                     .foregroundStyle(TLColor.accent700)
@@ -301,8 +301,8 @@ public struct PickerSheet<Item: PickerSheetItem>: View {
     }
 }
 
-/// `PickerSheet` 的資料項協議：只需要標題／副標／可選右側說明文字。
-public protocol PickerSheetItem: Identifiable {
+/// `TLPickerSheet` 的資料項協議：只需要標題／副標／可選右側說明文字。
+public protocol TLPickerSheetItem: Identifiable {
     var title: String { get }
     var subtitle: String { get }
     /// 右側說明（如「已在此範本」）；多數情境用 nil。
@@ -312,34 +312,34 @@ public protocol PickerSheetItem: Identifiable {
     var accessibilityIdentifier: String? { get }
 }
 
-public extension PickerSheetItem {
+public extension TLPickerSheetItem {
     var trailingNote: String? { nil }
     var accessibilityIdentifier: String? { nil }
 }
 
-/// 篩選膠囊（如肌群）。獨立於 `PickerSheet<Item>` 之外，讓不同 Item 型別的 picker 能共用同一套
-/// `PickerSheetLabels`（若巢狀在 generic 型別裡，每個 Item 具現化會各自算一個型別，無法共用實例）。
-public struct PickerSheetFilterChip: Identifiable, Sendable {
+/// 篩選膠囊（如肌群）。獨立於 `TLPickerSheet<Item>` 之外，讓不同 Item 型別的 picker 能共用同一套
+/// `TLPickerSheetLabels`（若巢狀在 generic 型別裡，每個 Item 具現化會各自算一個型別，無法共用實例）。
+public struct TLPickerSheetFilterChip: Identifiable, Sendable {
     public let id: String
     public let label: String
     public init(id: String, label: String) { self.id = id; self.label = label }
 }
 
 /// 固定文字（取消／新建／最近用過／全部…）由呼叫端傳入，元件本身不吃 i18n
-/// （DesignSystem 沒有自己的 String Catalog，跟 `EditScaffold` 等元件同一慣例）。
+/// （DesignSystem 沒有自己的 String Catalog，跟 `TLEditScaffold` 等元件同一慣例）。
 /// 存成 `static let` 跨情境共用時要求 `Sendable`，故 closure 都標 `@Sendable`。
-public struct PickerSheetLabels: Sendable {
+public struct TLPickerSheetLabels: Sendable {
     public let cancel: Text
     public let createNewButton: Text
     public let recentSection: Text
-    public let allSection: @Sendable (PickerSheetFilterChip?) -> Text
+    public let allSection: @Sendable (TLPickerSheetFilterChip?) -> Text
     public let matchCount: @Sendable (Int) -> Text
     public let createNewRow: @Sendable (String) -> Text
     public init(
         cancel: Text,
         createNewButton: Text,
         recentSection: Text,
-        allSection: @escaping @Sendable (PickerSheetFilterChip?) -> Text,
+        allSection: @escaping @Sendable (TLPickerSheetFilterChip?) -> Text,
         matchCount: @escaping @Sendable (Int) -> Text,
         createNewRow: @escaping @Sendable (String) -> Text
     ) {

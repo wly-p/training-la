@@ -2,7 +2,7 @@ import DesignSystem
 import SwiftUI
 
 /// drill-in 選擇子畫面（主題／語言／App 圖示共用）。
-/// 設計稿未畫這層 → 用 DesignSystem 風格自建：返回鈕＋`PageHeader`＋`TLGroup` 選項清單，
+/// 設計稿未畫這層 → 用 DesignSystem 風格自建：返回鈕＋`TLPageHeader`＋`TLGroup` 選項清單，
 /// 目前選中者右側打勾。點選即更新並自動返回。
 struct SettingsSelectionView<Value: Hashable & Identifiable>: View {
     let title: Text
@@ -21,7 +21,7 @@ struct SettingsSelectionView<Value: Hashable & Identifiable>: View {
         ScrollView {
             VStack(alignment: .leading, spacing: 0) {
                 backBar
-                PageHeader(title)
+                TLPageHeader(title)
                 TLGroup {
                     ForEach(options) { option in
                         row(for: option)
@@ -40,7 +40,7 @@ struct SettingsSelectionView<Value: Hashable & Identifiable>: View {
 
     private var backBar: some View {
         HStack {
-            CircleIconButton(systemImage: "chevron.left", filled: false) { onBack() }
+            TLCircleIconButton(systemImage: "chevron.left", filled: false) { onBack() }
                 .accessibilityLabel(localText("settings.common.back"))
             Spacer()
         }
@@ -55,7 +55,7 @@ struct SettingsSelectionView<Value: Hashable & Identifiable>: View {
     }
 
     private func row(for option: Value) -> some View {
-        ListRow(
+        TLListRow(
             title: label(option),
             showChevron: false,
             onTap: {

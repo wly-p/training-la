@@ -59,7 +59,7 @@ public struct ProgramListView: View {
                 }
                 if !viewModel.activePrograms.isEmpty {
                     VStack(alignment: .leading, spacing: 0) {
-                        SectionHeader(localText("rotation.active.section") + Text(verbatim: " · \(viewModel.activePrograms.count)"), tint: TLColor.accent600)
+                        TLSectionHeader(localText("rotation.active.section") + Text(verbatim: " · \(viewModel.activePrograms.count)"), tint: TLColor.accent600)
                         VStack(spacing: TLSpace.gapM) {
                             ForEach(viewModel.activePrograms) { activeCard($0) }
                         }
@@ -67,7 +67,7 @@ public struct ProgramListView: View {
                 }
                 if !viewModel.inactivePrograms.isEmpty {
                     VStack(alignment: .leading, spacing: 0) {
-                        SectionHeader(localText("rotation.inactive.section") + Text(verbatim: " · \(viewModel.inactivePrograms.count)"), tint: TLColor.neutral500)
+                        TLSectionHeader(localText("rotation.inactive.section") + Text(verbatim: " · \(viewModel.inactivePrograms.count)"), tint: TLColor.neutral500)
                         TLGroup {
                             ForEach(viewModel.inactivePrograms) { inactiveRow($0) }
                         }
@@ -144,7 +144,7 @@ public struct ProgramListView: View {
             // 上半：點進詳情頁（8a）
             NavigationLink(value: program.id) {
                 HStack(spacing: TLSpace.gapM) {
-                    CircleBadge(icon: "chart.bar", fill: TLColor.accent, tint: TLColor.bg)
+                    TLBadge(icon: "chart.bar", fill: TLColor.accent, tint: TLColor.bg)
                     VStack(alignment: .leading, spacing: 2) {
                         Text(verbatim: program.name)
                             .font(TLFont.zh(TLFont.rowTitle))
@@ -156,7 +156,7 @@ public struct ProgramListView: View {
                             .lineLimit(1)
                     }
                     Spacer(minLength: TLSpace.gapS)
-                    Chevron()
+                    TLChevron()
                 }
                 .contentShape(Rectangle())
             }
@@ -208,7 +208,7 @@ public struct ProgramListView: View {
         HStack(spacing: TLSpace.gapM) {
             NavigationLink(value: program.id) {
                 HStack(spacing: TLSpace.gapM) {
-                    CircleBadge(icon: "chart.bar", fill: TLColor.neutral300, tint: TLColor.neutral600)
+                    TLBadge(icon: "chart.bar", fill: TLColor.neutral300, tint: TLColor.neutral600)
                     VStack(alignment: .leading, spacing: 2) {
                         Text(verbatim: program.name)
                             .font(TLFont.zh(TLFont.rowTitle))

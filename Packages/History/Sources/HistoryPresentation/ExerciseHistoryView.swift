@@ -31,12 +31,12 @@ public struct ExerciseHistoryView: View {
     public var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 0) {
-                PageHeader(Text(verbatim: option.name))
+                TLPageHeader(Text(verbatim: option.name))
 
                 if !hasLoaded {
                     ProgressView().padding(.top, 40).frame(maxWidth: .infinity)
                 } else if points.isEmpty {
-                    EmptyState(
+                    TLEmptyState(
                         systemImage: "chart.line.uptrend.xyaxis",
                         title: localString("history.exerciseTrend.empty.title", locale),
                         message: localString("history.exerciseTrend.empty.message", locale)
@@ -78,7 +78,7 @@ public struct ExerciseHistoryView: View {
 
     private var trendChart: some View {
         VStack(alignment: .leading, spacing: 8) {
-            SectionHeader(localText("history.exerciseTrend.section"))
+            TLSectionHeader(localText("history.exerciseTrend.section"))
             Chart(points) { point in
                 LineMark(
                     x: .value(AxisID.day, point.day.chartDate),
@@ -111,17 +111,17 @@ public struct ExerciseHistoryView: View {
 
     private var sessionSection: some View {
         VStack(alignment: .leading, spacing: 0) {
-            SectionHeader(localText("history.exerciseTrend.sessions \(sessions.count)"))
+            TLSectionHeader(localText("history.exerciseTrend.sessions \(sessions.count)"))
             TLGroup {
                 ForEach(sessions) { session in
-                    ListRow(
+                    TLListRow(
                         title: Text(HistoryFormatting.dayLabel(session.day, locale: locale)),
                         subtitle: Text(HistoryFormatting.summary(of: session.sets, in: weightUnit)),
                         leading: {
                             if prSessionIds.contains(session.id) {
-                                CircleBadge(icon: "trophy.fill", fill: TLColor.sage200, tint: TLColor.sage700)
+                                TLBadge(icon: "trophy.fill", fill: TLColor.sage200, tint: TLColor.sage700)
                             } else {
-                                CircleBadge(fill: TLColor.neutral200) {
+                                TLBadge(fill: TLColor.neutral200) {
                                     Text(verbatim: "\(session.day.day)")
                                         .font(TLFont.display(14))
                                         .foregroundStyle(TLColor.neutral600)

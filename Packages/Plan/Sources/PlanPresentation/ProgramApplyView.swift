@@ -4,8 +4,8 @@ import SharedKernel
 import SwiftUI
 
 /// 套用長期課表到月曆（課表「+」→ 長期）：選課表 ＋ 起始日 ＋ 模式（跑一次／重複），也可停用已套用的。
-/// 套動作庫同一套 DesignSystem 元件（`TLGroup`／`ListRow`／`TLSegmentedControl`／`.tlPrimary`），
-/// 取代原生 `Form`。這頁沒有可編輯的「名稱」，故不套 `EditScaffold`，改自訂頂列。
+/// 套動作庫同一套 DesignSystem 元件（`TLGroup`／`TLListRow`／`TLSegmentedControl`／`.tlPrimary`），
+/// 取代原生 `Form`。這頁沒有可編輯的「名稱」，故不套 `TLEditScaffold`，改自訂頂列。
 struct ProgramApplyView: View {
     let programs: [Program]
     let assignments: [ProgramAssignment]
@@ -78,19 +78,19 @@ struct ProgramApplyView: View {
 
     private var applyForm: some View {
         VStack(alignment: .leading, spacing: TLSpace.section) {
-            EditSection(localText("program.apply.pick")) {
+            TLEditSection(localText("program.apply.pick")) {
                 TLGroup {
                     ForEach(programs) { program in
-                        ListRow(
+                        TLListRow(
                             title: Text(verbatim: program.name),
                             onTap: { selectedProgramId = program.id },
-                            leading: { CheckBadge(isChecked: selectedProgramId == program.id) }
+                            leading: { TLCheckCircle(isChecked: selectedProgramId == program.id) }
                         )
                     }
                 }
             }
 
-            EditSection(localText("program.apply.startDate")) {
+            TLEditSection(localText("program.apply.startDate")) {
                 TLGroup {
                     HStack {
                         localText("program.apply.startDate")
@@ -106,7 +106,7 @@ struct ProgramApplyView: View {
                 }
             }
 
-            EditSection(localText("program.apply.mode")) {
+            TLEditSection(localText("program.apply.mode")) {
                 TLSegmentedControl(
                     selection: $mode,
                     options: [
@@ -136,7 +136,7 @@ struct ProgramApplyView: View {
     }
 
     private var activeSection: some View {
-        EditSection(localText("program.apply.activeHeader")) {
+        TLEditSection(localText("program.apply.activeHeader")) {
             TLGroup {
                 ForEach(assignments) { assignment in
                     HStack(spacing: TLSpace.gapM) {

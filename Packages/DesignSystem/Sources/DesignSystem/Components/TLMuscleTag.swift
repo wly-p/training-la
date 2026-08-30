@@ -5,7 +5,7 @@ import SwiftUI
 ///  - 未選：1px `#201E1D`@16% 線框 + `neutral-700` 字
 ///
 /// 八個肌群共用一個綠，不要八種顏色。
-public struct MuscleTag: View {
+public struct TLMuscleTag: View {
     private let label: String
     private let isSelected: Bool
     private let onTap: (() -> Void)?

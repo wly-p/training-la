@@ -69,7 +69,7 @@ public struct ProgramDetailView: View {
     private func header(_ program: Program) -> some View {
         VStack(alignment: .leading, spacing: 8) {
             HStack {
-                CircleIconButton(systemImage: "chevron.left", filled: false) { dismiss() }
+                TLCircleIconButton(systemImage: "chevron.left", filled: false) { dismiss() }
                     .accessibilityLabel(localText("plan.back"))
                 Spacer()
                 NavigationLink(value: ProgramEditRoute(id: program.id)) {
@@ -128,11 +128,11 @@ public struct ProgramDetailView: View {
 
     private func schedule(_ program: Program) -> some View {
         VStack(alignment: .leading, spacing: 0) {
-            SectionHeader(localText("program.schedule.section"))
+            TLSectionHeader(localText("program.schedule.section"))
             TLGroup {
                 ForEach(0..<program.cycleLength, id: \.self) { dayIndex in
                     let spec = program.workout(dayIndex: dayIndex)
-                    ListRow(
+                    TLListRow(
                         title: spec.map { Text(verbatim: $0.name) } ?? localText("program.day.rest"),
                         leading: { indexBadge(dayIndex + 1, rest: spec == nil) }
                     )
@@ -142,7 +142,7 @@ public struct ProgramDetailView: View {
     }
 
     private func indexBadge(_ n: Int, rest: Bool) -> some View {
-        CircleBadge(fill: rest ? TLColor.neutral200 : TLColor.accent200) {
+        TLBadge(fill: rest ? TLColor.neutral200 : TLColor.accent200) {
             Text(verbatim: "\(n)")
                 .font(TLFont.display(15))
                 .foregroundStyle(rest ? TLColor.neutral500 : TLColor.accent800)
@@ -151,21 +151,21 @@ public struct ProgramDetailView: View {
 
     private var manage: some View {
         VStack(alignment: .leading, spacing: 8) {
-            SectionHeader(localText("rotation.manage.section"))
+            TLSectionHeader(localText("rotation.manage.section"))
             TLGroup {
                 if viewModel.isActive {
-                    ListRow(
+                    TLListRow(
                         title: localText("program.manage.resetProgress"),
                         onTap: { Task { await viewModel.resetProgressToStart() } },
                         trailing: { rightText(localText("program.manage.resetProgress.hint")) }
                     )
-                    ListRow(
+                    TLListRow(
                         title: localText("program.manage.deactivate"),
                         onTap: { showDeactivateConfirm = true },
                         trailing: { rightText(localText("program.manage.deactivate.hint")) }
                     )
                 }
-                SettingsRow(
+                TLSettingsRow(
                     localText("program.manage.delete"),
                     role: .destructive,
                     onTap: { showDeleteConfirm = true }

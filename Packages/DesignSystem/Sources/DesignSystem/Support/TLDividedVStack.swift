@@ -17,7 +17,7 @@ public struct TLDivider: View {
 ///
 /// 用 `_VariadicView` 解析子 View，才能對「一組異質靜態列」（如設定頁）自動加分隔線，
 /// 不必逼呼叫端改成 data-driven 的 ForEach。
-public struct DividedVStack<Content: View>: View {
+public struct TLDividedVStack<Content: View>: View {
     private let content: Content
 
     public init(@ViewBuilder content: () -> Content) {
