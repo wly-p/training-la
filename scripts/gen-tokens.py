@@ -232,12 +232,12 @@ def gen_css() -> str:
     L.append(f"  /* 圖示。{D['icon']['_note']} */")
     for k in ("s", "m", "l"):
         L.append(f"  --icon-{k}: {num(D['icon'][k])}px;")
-    L.append("  --icon-stroke: 2.75;")
+    L.append(f"  --icon-stroke: {D['icon']['strokeWeb']};")
     L.append("")
     L.append("  /* 動效 */")
     L.append(f"  --motion-fast: {D['motion']['fast']}s;")
     L.append(f"  --motion-base: {D['motion']['base']}s;")
-    L.append("  --motion-curve: cubic-bezier(0, 0, 0.58, 1);  /* easeOut */")
+    L.append(f"  --motion-curve: cubic-bezier(0, 0, 0.58, 1);  /* {D['motion']['_curveNote']} */")
     L.append("")
     L.append("  /* ── 陰影 ── */")
     for k, s in D["shadow"].items():
@@ -273,6 +273,7 @@ def gen_tokens_preview() -> str:
          '  .swatches { display: flex; flex-wrap: wrap; gap: 2px; }',
          '  .sw { width: 76px; }',
          '  .chip { height: 46px; border-radius: 6px; border: 1px solid var(--border-subtle); }',
+
          '  .cap { font-size: var(--font-kicker); color: var(--text-tertiary); margin-top: 4px; }',
          '  .bar { background: var(--action-primary); height: 12px; border-radius: 3px; }',
          '  .box { background: var(--surface-track); width: 92px; height: 60px;',
@@ -298,8 +299,11 @@ def gen_tokens_preview() -> str:
 
     L.append('<div class="kicker">語意層 semantic — 元件只准用這一層</div><div class="group">')
     for name, spec in SEM.items():
+        # 半透明的 token（borderSubtle 是 8%）疊在同色底上幾乎看不見。
+        # 用分層背景把它合成在 neutral-400 上，才分辨得出實際的濃度。
         L.append(f'  <div class="row"><span class="chip" style="width:34px;height:34px;'
-                 f'background: var(--{kebab(name)})"></span>'
+                 f'background: linear-gradient(var(--{kebab(name)}), var(--{kebab(name)})),'
+                 f' var(--neutral-400)"></span>'
                  f'<span class="label"><code>{kebab(name)}</code> — {spec["role"]}</span>'
                  f'<span class="cap">→ {spec["light"]["ref"]}'
                  + (f' @ {spec["light"]["alpha"]:g}' if "alpha" in spec["light"] else "")
@@ -336,7 +340,7 @@ def gen_tokens_preview() -> str:
 
     L.append('<div class="kicker">圖示尺寸與動效</div><p class="note">'
              + " · ".join(f"<code>icon.{k}</code> {num(D['icon'][k])}" for k in ("s", "m", "l"))
-             + f' · stroke {2.75}<br>'
+             + f" · stroke {D['icon']['strokeWeb']}<br>"
              + f'<code>motion.fast</code> {D["motion"]["fast"]}s · '
              + f'<code>motion.base</code> {D["motion"]["base"]}s · {D["motion"]["curve"]}</p>')
     return "\n".join(L) + "\n"

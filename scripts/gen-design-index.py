@@ -6,7 +6,7 @@
 不必逐份開 40 個 spec（開了也容易猜錯 props，然後被迫硬編，
 規則一就從設計端先破功）。
 """
-import json, pathlib, re, sys
+import datetime, json, pathlib, re, sys
 
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 DS   = ROOT / "design-system"
@@ -46,28 +46,74 @@ def collect():
             if not spec_p.exists():
                 continue
             md = spec_p.read_text()
-            s1, s2, s4, s11 = (sect(md, x) for x in ("1 身分", "2 介面", "4 狀態 states ★", "11 組成 ★"))
-            props = [{"name": r[0], "type": r[1], "required": r[2], "default": r[3]}
-                     for r in rows(s2) if len(r) >= 4 and r[0] not in ("（無）",)]
-            st = re.search(r"<!--\s*states:\s*([^>]+?)\s*-->", s4)
-            th = re.search(r"<!--\s*themes:\s*([^>]+?)\s*-->", s4)
-            split = lambda m: [x.strip() for x in m.group(1).split(",") if x.strip()] if m else []
-            comps.append({
-                "name": cdir.name,
-                "level": label.split()[0],
-                "layer": layer,
-                "responsibility": kv(s1, "職責"),
-                "prototypeIds": kv(s1, "原型 id"),
-                "props": props,
-                "states": split(st),
-                "themes": split(th),
-                "composedOf": sorted(set(re.findall(r"`(TL\w+)`", s11))) or None,
-                "paths": {
-                    "spec": f"{layer}/{cdir.name}/{cdir.name}.spec.md",
-                    "preview": f"{layer}/{cdir.name}/{cdir.name}.preview.html",
-                    "impl": kv(s1, "實作"),
-                },
-            })
+            comps.append(parse(md, cdir.name, layer, label))
+    return comps
+
+def parse(md, name, layer, label):
+    s1, s2, s3, s4, s10, s11 = (sect(md, x) for x in (
+        "1 身分", "2 介面", "3 變體 variants", "4 狀態 states ★",
+        "10 用法與禁用法", "11 組成 ★"))
+    st = re.search(r"<!--\s*states:\s*([^>]+?)\s*-->", s4)
+    th = re.search(r"<!--\s*themes:\s*([^>]+?)\s*-->", s4)
+    split = lambda m: [x.strip() for x in m.group(1).split(",") if x.strip()] if m else []
+    ids = re.findall(r"`([0-9]+[a-z])`", kv(s1, "原型 id") or "")
+    note = re.sub(r"[`（(][^）)]*[）)]?", "", kv(s1, "原型 id") or "").strip(" 。") or None
+    return {
+        "name": name,
+        "level": label.split()[0],
+        "layer": layer,
+        "responsibility": kv(s1, "職責"),
+        "prototypeIds": ids,
+        "prototypeNote": note,
+        "props": props_of(s2),
+        "slots": inline_list(s2, "Slots"),
+        "events": inline_list(s2, "事件"),
+        "variants": variants_of(s3),
+        "states": split(st),
+        "themes": split(th),
+        "dontUseFor": dont_use_for(s10),
+        "composedOf": sorted(set(re.findall(r"`(TL\w+)`", s11))) or None,
+        "paths": {
+            "spec": f"{layer}/{name}/{name}.spec.md",
+            "preview": f"{layer}/{name}/{name}.preview.html",
+            "impl": kv(s1, "實作"),
+        },
+    }
+
+NONE = ("（無）", "無", "N/A", "無。", "N/A。")
+
+def props_of(s2):
+    out = []
+    for r in rows(s2):
+        if len(r) < 4 or r[0] in NONE or not r[0]:
+            continue
+        out.append({"name": r[0], "type": r[1], "required": r[2],
+                    "default": r[3], "description": r[4] if len(r) > 4 else None})
+    return out
+
+def inline_list(s2, label):
+    """`**Slots** — …` / `**事件** — …` 這種一行式宣告。回傳 [] 表示明確沒有。"""
+    m = re.search(rf"\*\*{label}\*\*\s*[—-]+\s*(.+)", s2)
+    if not m:
+        return []
+    body = m.group(1).strip()
+    if body.startswith(NONE):
+        return []
+    return [x.strip() for x in re.findall(r"`(\w+)`", body)] or [body]
+
+def variants_of(s3):
+    body = s3.strip()
+    if not body or body.startswith(NONE):
+        return []
+    return [r[0] for r in rows(s3) if r and r[0] not in NONE] or [body.splitlines()[0]]
+
+def dont_use_for(s10):
+    """第 10 節『不要用它』底下的條列。這是防止設計端用錯的那幾句話。"""
+    m = re.search(r"\*\*不要用它\*\*[^\n]*\n(.*?)(?=\n\*\*|\Z)", s10, re.S)
+    if not m:
+        return []
+    return [re.sub(r"^[-*]\s*", "", ln).strip()
+            for ln in m.group(1).splitlines() if ln.strip().startswith(("-", "*"))]
     return comps
 
 def render(comps):
@@ -83,7 +129,8 @@ def render(comps):
          '<h1>Training La 元件庫</h1>',
          f'<p class="note">token 版本 {tok["meta"]["version"]}　·　'
          f'{len(comps)} 個元件　·　規則見 <a href="README.md">README.md</a>、'
-         f'規格樣板見 <a href="_template.spec.md">_template.spec.md</a><br>'
+         f'規格樣板見 <a href="_template.spec.md">_template.spec.md</a>　·　'
+         f'token 與契約的改動見 <a href="CHANGELOG.md">CHANGELOG.md</a><br>'
          f'先讀 <a href="components.json">components.json</a>（機器讀的登錄檔，'
          f'每個元件的 props／狀態／組成都在裡面），再開個別 preview。<br>'
          f'token 的實際樣子見 <a href="tokens/tokens.preview.html">tokens.preview.html</a>。</p>']
@@ -103,18 +150,50 @@ def render(comps):
         L.append('</div>')
     return "\n".join(L) + "\n"
 
+def render_checks() -> str:
+    """把 check-design-system.py 的 CHECKS 表渲染進 README §8。
+
+    scripts/ 不進交付包，README 是設計端唯一看得到「實際擋了什麼」的地方。
+    手寫那張表一定會過期，然後審閱會針對虛構的清單提意見。
+    """
+    import subprocess
+    out = subprocess.run([sys.executable, str(ROOT / "scripts/check-design-system.py"), "--list"],
+                         capture_output=True, text=True, check=True).stdout
+    rows_ = json.loads(out)
+    L = ["| # | 檢查 | 對應 |", "|---|---|---|"]
+    L += [f"| {c['id']} | {c['desc']} | {c['ref']} |" for c in rows_]
+    return "\n".join(L)
+
+def inject_checks() -> bool:
+    p = DS / "README.md"
+    s = p.read_text()
+    m = re.search(r"(<!-- checks:start[^>]*-->\n)(.*?)(<!-- checks:end -->)", s, re.S)
+    if not m:
+        return False
+    new = m.group(1) + render_checks() + "\n" + m.group(3)
+    if new == m.group(0):
+        return False
+    p.write_text(s[:m.start()] + new + s[m.end():])
+    return True
+
 if __name__ == "__main__":
     comps = collect()
-    payload = {"tokensVersion": json.loads((DS / "tokens/tokens.json").read_text())["meta"]["version"],
+    payload = {"generatedAt": datetime.date.today().isoformat(),
+               "tokensVersion": json.loads((DS / "tokens/tokens.json").read_text())["meta"]["version"],
                "components": comps}
     new_json = json.dumps(payload, ensure_ascii=False, indent=2) + "\n"
     new_html = render(comps)
     if "--check" in sys.argv:
         bad = False
+        if inject_checks():
+            print("✘ design-system/README.md §8 的檢查表與 CHECKS 不一致"
+                  "——請跑 scripts/gen-design-index.py")
+            bad = True
         for path, content in ((JSON, new_json), (HTML, new_html)):
             if not path.exists() or path.read_text() != content:
                 print(f"✘ {path.relative_to(ROOT)} 與各元件 spec 不一致——請跑 scripts/gen-design-index.py")
                 bad = True
         sys.exit(1 if bad else 0)
     JSON.write_text(new_json); HTML.write_text(new_html)
-    print(f"✔ components.json ＋ index.html（{len(comps)} 個元件）")
+    inject_checks()
+    print(f"✔ components.json ＋ index.html ＋ README §8 檢查表（{len(comps)} 個元件）")

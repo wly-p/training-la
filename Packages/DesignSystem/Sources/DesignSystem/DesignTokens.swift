@@ -134,7 +134,7 @@ public enum TLSize {
 }
 
 public enum TLIcon {
-    // SF Symbol 的視覺尺寸。設計端對應 Lucide，stroke width 2.75。
+    // SF Symbol 的視覺尺寸。weight 只作用於 SF Symbol（實作側）；web／設計側用 Lucide 形狀配 strokeWeb。
     public static let s: CGFloat = 13
     public static let m: CGFloat = 16
     public static let l: CGFloat = 20

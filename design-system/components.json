@@ -1,4 +1,5 @@
 {
+  "generatedAt": "2026-08-30",
   "tokensVersion": 1,
   "components": [
     {
@@ -6,14 +7,28 @@
       "level": "L1",
       "layer": "atoms",
       "responsibility": "可進入的列右側的指向記號",
-      "prototypeIds": "出現在所有可進入的列（`4b` `4c` `5b` `5c`）",
+      "prototypeIds": [
+        "4b",
+        "4c",
+        "5b",
+        "5c"
+      ],
+      "prototypeNote": "出現在所有可進入的列",
       "props": [],
+      "slots": [],
+      "events": [],
+      "variants": [],
       "states": [
         "default"
       ],
       "themes": [
         "light",
         "dark"
+      ],
+      "dontUseFor": [
+        "表達展開／收合 —— 那要的是會旋轉的記號，不是這個",
+        "當作裝飾放在不可進入的列上 —— 那會騙使用者",
+        "自己加 padding 到元件裡 —— 間距是列的責任"
       ],
       "composedOf": null,
       "paths": {

@@ -114,7 +114,7 @@
   --font-kicker-family: var(--font-zh);
   --font-big-number-family: var(--font-display);
 
-  /* 圖示。SF Symbol 的視覺尺寸。設計端對應 Lucide，stroke width 2.75。 */
+  /* 圖示。SF Symbol 的視覺尺寸。weight 只作用於 SF Symbol（實作側）；web／設計側用 Lucide 形狀配 strokeWeb。 */
   --icon-s: 13px;
   --icon-m: 16px;
   --icon-l: 20px;
@@ -123,7 +123,7 @@
   /* 動效 */
   --motion-fast: 0.15s;
   --motion-base: 0.2s;
-  --motion-curve: cubic-bezier(0, 0, 0.58, 1);  /* easeOut */
+  --motion-curve: cubic-bezier(0, 0, 0.58, 1);  /* SwiftUI 的 .easeOut 對應 CSS 的 cubic-bezier(0, 0, 0.58, 1)（＝ ease-out）。這個換算是刻意的，不是隨手填的。 */
 
   /* ── 陰影 ── */
   --shadow-sm: 0 1px 2px rgb(46 43 37 / 14%);  /* 卡片 */

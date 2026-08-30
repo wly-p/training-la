@@ -14,12 +14,38 @@ DS   = ROOT / "design-system"
 PKG  = ROOT / "Packages"
 BASE = DS / ".presentation-baseline.json"
 
+_TOK    = json.loads((DS / "tokens/tokens.json").read_text())
+PRIM_C  = _TOK["primitive"]["color"]
+SEM_NAMES = list(_TOK["semantic"]["color"])
+LEGACY  = [k for k in json.loads((DS / "tokens/_legacy-aliases.json").read_text()) if k != "note"]
+
+def kebab(x):
+    return "".join("-" + c.lower() if c.isupper() else c for c in x)
+
 SECTIONS = ["1 身分", "2 介面", "3 變體", "4 狀態", "5 度量", "6 配色",
             "7 文字行為", "8 動態", "9 無障礙", "10 用法與禁用法", "11 組成", "12 變更紀錄"]
 LITERAL_STYLE = re.compile(
     r"\.font\(\.system|\.font\(\.custom|cornerRadius|RoundedRectangle"
     r"|\.padding\((?:\.[a-z]+, )?[0-9]|\.frame\(.*?(?:width|height): ?[0-9]")
 FEATURE_MODULES = ("Spec", "Plan", "Training", "History", "Settings", "Ability", "Reminders")
+
+# 這張表是 README §8 檢查清單的**唯一來源** —— scripts/ 不進交付包，
+# 設計端只看得到 README，所以那份表由 gen-design-index.py 從這裡生成，不能手改。
+CHECKS = {
+    1:  ("每個元件有 spec ＋ preview，spec 十二節齊全，實作檔存在", "§6"),
+    2:  ("Swift 側一個檔一個 public 元件", "§7.1"),
+    3:  ("spec 宣告的 props 與 `init` 參數一致", "§6.2"),
+    4:  ("`states` 每個都有對應的 `data-state`、`themes` 每個都有對應的 `data-theme`；"
+         "主題不得混進 states", "§6.4、§7.4"),
+    6:  ("spec 與 preview 內零字面色值；preview 無外部請求", "§6.6、§7.2–3"),
+    9:  ("preview 用到的 `var(--…)` 都在 `tokens.css` 或 `preview.css` 裡定義", "§5"),
+    10: ("preview 用到的字都在子集字型裡（缺字會靜默掉回系統字型）", "§7"),
+    11: ("第 11 節宣告的組成元件真的存在於元件庫", "§6.11"),
+    12: ("文件裡提到的 token 名都存在於 `tokens.json`", "§5"),
+    7:  ("Presentation 層字面樣式**不得增加**（ratchet，不是硬門檻）", "§4 規則一"),
+    8:  ("`DesignSystem` 未 import 任何功能 package", "§4 規則三"),
+    5:  ("生成物與來源一致：`tokens.json` → Swift／CSS；各 spec → `components.json`／`index.html`", "§5、§6"),
+}
 
 errs, warns = [], []
 def err(c, m): errs.append(f"✘ [檢查 {c}] {m}")
@@ -132,6 +158,11 @@ for pkg in sorted(p.name for p in PKG.iterdir() if p.is_dir() and p.name != "Des
     if n:
         counts[pkg] = n
 
+if "--list" in sys.argv:
+    print(json.dumps([{"id": k, "desc": v[0], "ref": v[1]} for k, v in CHECKS.items()],
+                     ensure_ascii=False))
+    sys.exit(0)
+
 if "--update-baseline" in sys.argv:
     BASE.write_text(json.dumps(counts, indent=2, sort_keys=True) + "\n")
     print(f"✔ 基線已更新：{counts}（總計 {sum(counts.values())}）")
@@ -158,6 +189,20 @@ if mani.exists():
     if missing:
         err(10, f"preview 用到 {len(missing)} 個不在子集字型裡的字（{''.join(sorted(missing)[:12])}…）"
                 f"——跑 make preview-font 重生，否則設計端會看到方框")
+
+# ── 12：文件提到的 token 名都要真的存在 ───────────────────────────
+# 抓「token 被刪／改名，但正典或規格還在講它」——README 是正典，
+# 它的 token 名寫錯比生成物寫錯更容易誤導人。
+known = set(SEM_NAMES) | set(LEGACY) | {
+    f"{scale}-{k}" for scale, ramp in PRIM_C.items() if isinstance(ramp, dict) for k in ramp}
+known |= {kebab(n) for n in list(SEM_NAMES) + list(LEGACY)}
+for doc in [DS / "README.md"] + list(DS.rglob("*.spec.md")):
+    body = doc.read_text()
+    for m in re.finditer(r"`(surface-[a-z-]+|text-[a-z-]+|border-[a-z-]+|action-[a-z-]+"
+                         r"|accent-on-[a-z-]+|danger-[a-z-]+|category-[a-z-]+)`", body):
+        if m.group(1) not in known:
+            err(12, f"{doc.relative_to(ROOT)}：提到不存在的 token `{m.group(1)}`"
+                    f"——被刪掉或改名了，文件沒跟上")
 
 # ── 8：DesignSystem 不得認識 domain ────────────────────────────────
 for f in (PKG / "DesignSystem").rglob("*.swift"):

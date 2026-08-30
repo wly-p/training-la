@@ -123,7 +123,8 @@ L4 畫面檔裡不得出現任何樣式定義：沒有 hex、沒有字級數字�
 色階層 primitive   accent-100..900 / sage-100..900 / neutral-100..900 / danger-100..900
 語意層 semantic    surface-base / surface-raised / surface-track / surface-input
                    text-primary / text-secondary / text-tertiary / text-numeric
-                   border-subtle / accent-on-light / danger-solid / danger-on-light
+                   border-subtle / action-primary / action-pressed
+                   accent-on-surface / category-tag / danger-solid / danger-on-surface
                    ↑ 每個語意 token 在每個維度組合下各自指向一個色階值
 元件層             只准用語意層
 ```
@@ -287,7 +288,10 @@ design-system/
 
 1. **一元件一目錄**，Swift 側一個檔一個 public 元件
 2. **preview 自足** —— 瀏覽器直接開無 404，除字型外無外部請求
-3. **preview 內零字面樣式值** —— 顏色／字級／間距／圓角一律 `var(--…)`
+3. **preview 內零字面樣式值** —— 顏色／字級／間距／圓角一律 `var(--…)`。
+   **豁免**：不代表任何元件的**展示骨架**（色票方塊、示意方塊的尺寸）可以用字面值，
+   因為「色票要畫多大」跟設計系統無關。但**字面色值永遠不豁免**。
+   `tokens/tokens.preview.html` 就屬於這一類
 4. **preview 窮舉規格宣告的每個狀態**，並呈現 light／dark 兩個主題
    （**並排雙欄或切換皆可**；並排通常好用，不必點擊就能對照）。
    preview 要主動標注「dark（目前是 light 的複製）」
@@ -311,21 +315,32 @@ Noto 子集（`make preview-font` 重生；原始字型 11MB，不進版控，�
 
 `scripts/check-design-system.py` ＋ `scripts/gen-tokens.py --check`，都接在 `make lint`：
 
+<!-- checks:start 由 scripts/gen-design-index.py 從 check-design-system.py 的 CHECKS 生成，不要手改 -->
 | # | 檢查 | 對應 |
 |---|---|---|
 | 1 | 每個元件有 spec ＋ preview，spec 十二節齊全，實作檔存在 | §6 |
 | 2 | Swift 側一個檔一個 public 元件 | §7.1 |
-| 3 | spec 宣告的 props 與 `init` 參數一致（含「宣告無 props 但 init 有參數」） | §6.2 |
-| 4 | spec 的 `<!-- states: … -->` 每個都有對應的 `data-state` | §6.4 |
-| 5 | spec 與 preview 內零字面色值；preview 無外部請求 | §6.6、§7.2–3 |
-| 6 | preview 用到的 `var(--…)` 都在 `tokens.css` 裡定義 | §5 |
-| 7 | Presentation 層字面樣式**不得增加**（ratchet） | §4 規則一 |
+| 3 | spec 宣告的 props 與 `init` 參數一致 | §6.2 |
+| 4 | `states` 每個都有對應的 `data-state`、`themes` 每個都有對應的 `data-theme`；主題不得混進 states | §6.4、§7.4 |
+| 6 | spec 與 preview 內零字面色值；preview 無外部請求 | §6.6、§7.2–3 |
+| 9 | preview 用到的 `var(--…)` 都在 `tokens.css` 或 `preview.css` 裡定義 | §5 |
+| 10 | preview 用到的字都在子集字型裡（缺字會靜默掉回系統字型） | §7 |
+| 11 | 第 11 節宣告的組成元件真的存在於元件庫 | §6.11 |
+| 12 | 文件裡提到的 token 名都存在於 `tokens.json` | §5 |
+| 7 | Presentation 層字面樣式**不得增加**（ratchet，不是硬門檻） | §4 規則一 |
 | 8 | `DesignSystem` 未 import 任何功能 package | §4 規則三 |
-| 9 | 生成物與 `tokens.json` 一致 | §5 |
+| 5 | 生成物與來源一致：`tokens.json` → Swift／CSS；各 spec → `components.json`／`index.html` | §5、§6 |
+<!-- checks:end -->
 
-第 4 條的 `<!-- states: … -->` 是規格裡唯一機器讀的一行 —— 沒有它，「窮舉狀態」只是一句口號。
+**這張表由 `check-design-system.py` 的 `CHECKS` 生成，不是手寫的。**
+`scripts/` 不進交付包，所以這份 README 是設計端唯一看得到「實際擋了什麼」的地方 ——
+手寫的話它一定會過期，然後審閱會針對一份虛構的清單提意見。
 
-第 6 條看起來瑣碎但很重要：CSS 變數打錯名字會**靜默渲染成空值**，沒有這條就要靠肉眼。
+第 4 條的 `<!-- states: … -->` / `<!-- themes: … -->` 是規格裡僅有的兩行機器讀內容 ——
+沒有它們，「窮舉狀態」只是一句口號。**主題是維度不是狀態**，混進 `states` 會讓檢查通過得沒有意義。
+
+第 9、10、12 條都是同一類：**靜默失效**。CSS 變數打錯名字渲染成空值、
+子集字型缺字掉回系統字型、文件講一個已經被刪掉的 token —— 三者都不會報錯，只會安靜地錯。
 
 **第 7 條是 ratchet 不是硬門檻。** Presentation 現在還有 181 處字面樣式，一次擋掉會讓所有工作停擺。
 所以記錄目前數量、只擋「變多」；每個榨取階段把數字往下推（`make baseline` 重設），

@@ -34,9 +34,17 @@
 ## 4 狀態 states ★
 
 <!-- states: default -->
+<!-- themes: light, dark -->
 
-上面那行是**機器讀的**：列出這個元件實際具備的狀態，`preview.html` 必須每個都有
-對應的 `data-state="…"`。下面的表格是給人讀的，逐項回答，不適用寫 `N/A` ＋ 理由。
+上面兩行是**機器讀的**，分工要分清楚：
+
+- `states` = **這個元件自身**會有的樣子（default／pressed／disabled／selected／loading…）。
+  `preview.html` 必須每個都有對應的 `data-state="…"`。
+- `themes` = **維度**，不是狀態。由 preview 的 `data-theme="…"` 承接（並排雙欄或切換皆可）。
+  **不要把 light／dark 寫進 `states`** —— 那會讓機器檢查通過得沒有意義，
+  而且到了有真狀態的 L2／L3，會分不出哪些是真狀態、哪些是維度。機器檢查會擋。
+
+下面的表格是給人讀的，逐項回答，不適用寫 `N/A` ＋ 理由。
 
 | 類別 | 狀態 | 這個元件 |
 |---|---|---|
