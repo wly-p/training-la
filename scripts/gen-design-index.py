@@ -160,10 +160,10 @@ def render(comps):
          '</style>',
          '<h1>Training La 元件庫</h1>',
          f'<p class="note">token 版本 {tok["meta"]["version"]}　·　'
-         f'{len(comps)} 個元件　·　規則見 <a href="README.md">README.md</a>、'
-         f'規格樣板見 <a href="_template.spec.md">_template.spec.md</a>　·　'
-         f'token 與契約的改動見 <a href="CHANGELOG.md">CHANGELOG.md</a><br>'
-         f'<b>這輪先讀 <a href="HANDOFF.md">HANDOFF.md</a></b>（跟上輪的差別、想請你看什麼）。<br>'
+         f'{len(comps)} 個元件　·　規則見 <a href="README.html">README</a>、'
+         f'規格樣板見 <a href="_template.spec.html">規格樣板</a>　·　'
+         f'token 與契約的改動見 <a href="CHANGELOG.html">CHANGELOG</a><br>'
+         f'<b>這輪先讀 <a href="HANDOFF.html">HANDOFF</a></b>（跟上輪的差別、想請你看什麼）。<br>'
          f'組畫面時讀 <a href="components.json">components.json</a>（機器讀的登錄檔，'
          f'每個元件的 props／狀態／組成都在裡面），再開個別 preview。<br>'
          f'token 的實際樣子見 <a href="tokens/tokens.preview.html">tokens.preview.html</a>。</p>']
@@ -199,10 +199,12 @@ def render(comps):
                 bits.append(f'{len(c["states"])} 狀態')
             # 不能單獨用的元件要一眼看得出來——40 個元件時記不住哪些需要容器
             need = ("　⚑ 需容器 " + "／".join(c["requiresContainer"])) if not c["standalone"] else ""
+            spec_html = c["paths"]["spec"].replace(".md", ".html")
             L.append(f'  <div class="row"><span class="label">'
                      f'<a href="{c["paths"]["preview"]}">{c["name"]}</a> '
                      f'<span class="lvl">— {c["responsibility"]}{need}</span></span>'
-                     f'<span class="lvl">{" · ".join(bits)}</span></div>')
+                     f'<span class="lvl">{" · ".join(bits)} · '
+                     f'<a href="{spec_html}">規格</a></span></div>')
         L.append('</div>')
     return "\n".join(L) + "\n"
 

@@ -1,0 +1,33 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>L2 分子</title>
+<link rel="stylesheet" href="../tokens/tokens.css">
+<link rel="stylesheet" href="../preview.css">
+<style>
+  body { max-width: 62rem; line-height: 1.7; }
+  h1, h2, h3 { font-family: var(--font-page-title-family); line-height: 1.35; }
+  h1 { font-size: var(--font-page-title); margin: 0 0 var(--space-gap-l); }
+  h2 { font-size: var(--font-card-title); margin: var(--space-section) 0 var(--space-gap-m);
+       padding-top: var(--space-gap-m); border-top: 1px solid var(--border-subtle); }
+  h3 { font-size: var(--font-row-title); margin: var(--space-gap-l) 0 var(--space-gap-s); }
+  a { color: var(--accent-on-surface); }
+  table { border-collapse: collapse; width: 100%; margin: var(--space-gap-m) 0;
+          display: block; overflow-x: auto; }
+  th, td { text-align: left; padding: var(--space-gap-s) var(--space-gap-m);
+           border-bottom: 1px solid var(--border-subtle); vertical-align: top; }
+  th { font-size: var(--font-kicker); letter-spacing: var(--font-kicker-tracking);
+       text-transform: uppercase; color: var(--text-tertiary); }
+  pre { background: var(--surface-raised); border-radius: var(--radius-inner);
+        padding: var(--space-gap-m); overflow-x: auto; }
+  pre code { background: none; padding: 0; }
+  blockquote { margin: var(--space-gap-m) 0; padding-left: var(--space-gap-m);
+               border-left: 3px solid var(--border-subtle); color: var(--text-secondary); }
+  .back { font-size: var(--font-row-sub); margin-bottom: var(--space-gap-l); display: block; }
+</style>
+<a class="back" href="../index.html">← 元件庫索引</a>
+<h1>L2 分子</h1>
+<p>由原子組成，仍與 domain 無關。<strong>不得認識任何 domain 型別</strong>。住 <code>Packages/DesignSystem/Sources/DesignSystem/Molecules/</code>，一律 <code>TL</code> 前綴。</p>
+<p>每個元件一個目錄，含 <code>X.spec.md</code> 與 <code>X.preview.html</code>（實作檔的位置由 spec 第 1 節指出）。
+規格樣板見 <a href="../_template.spec.html"><code>../_template.spec.md</code></a>，規則見 <a href="../README.html"><code>../README.md</code></a>。</p>
+<p>規格第 11 節要列出它由哪些 L1 組成 —— <code>make lint</code> 會檢查那些原子真的在庫裡，而且會擋「preview 出現不屬於任何 L1 的裸樣式」。</p>
+<p>preview 需要假資料時，<strong>不要用真的運動名稱</strong>（臥推、組數…）。那是最順手的假資料，但寫下去的那一刻 L2 就認識 domain 了。機器檢查會擋。</p>

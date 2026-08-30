@@ -124,12 +124,19 @@ lint:
 	@./scripts/check-i18n.sh
 	@python3 scripts/gen-tokens.py --check && echo "✔ token 生成物與 tokens.json 一致"
 	@python3 scripts/gen-design-index.py --check && echo "✔ components.json / index.html 與各元件 spec 一致"
+	@uv run --quiet --with markdown python3 scripts/gen-doc-html.py --check && echo "✔ 文件 HTML 與 markdown 一致"
 	@python3 scripts/check-design-system.py
 
 # 從 tokens.json 重生 DesignTokens.swift 與 tokens.css。改完 token 一定要跑這個。
 tokens:
 	@python3 scripts/gen-tokens.py
 	@python3 scripts/gen-design-index.py
+	@$(MAKE) --no-print-directory doc-html
+
+# design-system/ 底下的 markdown 渲染成瀏覽器讀得動的 HTML。
+# 設計端從 index.html 點過去時，.md 會被當純文字開或直接下載——等於寫了但對方讀不到。
+doc-html:
+	@uv run --quiet --with markdown python3 scripts/gen-doc-html.py
 
 # preview 的中文子集字型。只有在 preview 出現新的中文字時才需要重跑（會聯網下載原字型一次）。
 preview-font:
@@ -137,6 +144,7 @@ preview-font:
 
 # 榨取階段把 Presentation 的字面樣式往下推之後，重設 lint 的 ratchet 基線。
 baseline:
+	@uv run --quiet --with markdown python3 scripts/gen-doc-html.py --check && echo "✔ 文件 HTML 與 markdown 一致"
 	@python3 scripts/check-design-system.py --update-baseline
 
 # 打包交付給設計端：規格書 ＋ token ＋ 字型 ＋ 每個元件的 spec 與 preview。

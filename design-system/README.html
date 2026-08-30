@@ -1,0 +1,505 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>元件庫架構</title>
+<link rel="stylesheet" href="tokens/tokens.css">
+<link rel="stylesheet" href="preview.css">
+<style>
+  body { max-width: 62rem; line-height: 1.7; }
+  h1, h2, h3 { font-family: var(--font-page-title-family); line-height: 1.35; }
+  h1 { font-size: var(--font-page-title); margin: 0 0 var(--space-gap-l); }
+  h2 { font-size: var(--font-card-title); margin: var(--space-section) 0 var(--space-gap-m);
+       padding-top: var(--space-gap-m); border-top: 1px solid var(--border-subtle); }
+  h3 { font-size: var(--font-row-title); margin: var(--space-gap-l) 0 var(--space-gap-s); }
+  a { color: var(--accent-on-surface); }
+  table { border-collapse: collapse; width: 100%; margin: var(--space-gap-m) 0;
+          display: block; overflow-x: auto; }
+  th, td { text-align: left; padding: var(--space-gap-s) var(--space-gap-m);
+           border-bottom: 1px solid var(--border-subtle); vertical-align: top; }
+  th { font-size: var(--font-kicker); letter-spacing: var(--font-kicker-tracking);
+       text-transform: uppercase; color: var(--text-tertiary); }
+  pre { background: var(--surface-raised); border-radius: var(--radius-inner);
+        padding: var(--space-gap-m); overflow-x: auto; }
+  pre code { background: none; padding: 0; }
+  blockquote { margin: var(--space-gap-m) 0; padding-left: var(--space-gap-m);
+               border-left: 3px solid var(--border-subtle); color: var(--text-secondary); }
+  .back { font-size: var(--font-row-sub); margin-bottom: var(--space-gap-l); display: block; }
+</style>
+<a class="back" href="index.html">← 元件庫索引</a>
+<h1>元件庫架構</h1>
+<blockquote>
+<p>這份是<strong>正典</strong>（single source of truth），不是提案也不是記錄。
+取代設計交付包 v14 的 <code>10-architecture.md</code> 與 <code>11-component-inventory.md</code> ——
+那兩份寫的是提案時的假設，已與實作分歧。兩邊有衝突時以這份為準。</p>
+<p>對應 Notion 母票「元件庫原子化與設計雙向同步」。</p>
+</blockquote>
+<hr />
+<h2>1. 為什麼要有這份文件</h2>
+<p>設計稿與實作已經結構性漂移。根因不是缺對照表，是<strong>元件沒有邊界</strong>：</p>
+<ul>
+<li>設計端列的 17 個 L3 有機體，在程式碼裡沒有一個以檔案形式存在，全部內聯在大 View 檔裡</li>
+<li>L1 原子層沒有地址 —— <code>Chevron</code> / <code>CircleBadge</code> / <code>CheckBadge</code> 是原子，卻埋在 <code>ListRow.swift</code> 裡（該檔一共 6 個 type）</li>
+<li>Presentation 層有約 136 處硬編樣式（font 字面 14、圓角 33、padding 67、frame 22）</li>
+</ul>
+<p>於是每做一個新畫面都是<strong>重畫</strong>而不是<strong>重用</strong>，每重畫一次就多一次偏離機會。</p>
+<p>對照表只能<strong>記錄</strong>偏離；原子化才能<strong>阻止</strong>偏離。</p>
+<hr />
+<h2>2. 目標架構</h2>
+<pre><code>        sync &amp; generate                  只准單向
+design ◄─────────────────► 元件庫(code) ─────────────► app ui
+                              ▲                          │
+                    唯一擁有定義權的樞紐          只能引入、排列、堆疊
+                                                  不得定義任何新元件
+</code></pre>
+<p>三件事各自的角色：</p>
+<table>
+<thead>
+<tr>
+<th></th>
+<th>角色</th>
+<th>不可以做的事</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>design</strong></td>
+<td>用元件庫組新畫面、提出新元件需求</td>
+<td>不得憑空發明元件庫裡沒有的東西</td>
+</tr>
+<tr>
+<td><strong>元件庫</strong></td>
+<td>唯一定義 token、元件、狀態、行為</td>
+<td>L1/L2 不得認識任何 domain 型別</td>
+</tr>
+<tr>
+<td><strong>app ui</strong></td>
+<td>引入元件、排列、堆疊、接資料</td>
+<td><strong>不得定義新元件、不得寫任何字面樣式值</strong></td>
+</tr>
+</tbody>
+</table>
+<p>左邊是<strong>雙向</strong>：實作發現問題會回頭改元件庫，元件庫的改動要同步給設計端。
+右邊是<strong>單向</strong>：app 只消費，不生產。</p>
+<hr />
+<h2>3. 分層</h2>
+<table>
+<thead>
+<tr>
+<th>層</th>
+<th>定義</th>
+<th>住在哪</th>
+<th>可以 import domain 嗎</th>
+<th>命名</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>L0 Token</strong></td>
+<td>顏色、字級、間距、圓角、陰影</td>
+<td><code>design-system/tokens/</code></td>
+<td>—</td>
+<td>語意名</td>
+</tr>
+<tr>
+<td><strong>L1 原子</strong></td>
+<td>不可再分。只收 <code>String</code>/<code>Int</code>/<code>Bool</code>/closure</td>
+<td><code>DesignSystem/Atoms/</code></td>
+<td><strong>不行</strong></td>
+<td><code>TL</code> 前綴</td>
+</tr>
+<tr>
+<td><strong>L2 分子</strong></td>
+<td>由原子組成，仍與 domain 無關</td>
+<td><code>DesignSystem/Molecules/</code></td>
+<td><strong>不行</strong></td>
+<td><code>TL</code> 前綴</td>
+</tr>
+<tr>
+<td><strong>L3 有機體</strong></td>
+<td>綁自己 package 的 model，出現在多個畫面</td>
+<td>各 package <code>Presentation/Components/</code></td>
+<td>可以</td>
+<td><strong>無</strong>前綴</td>
+</tr>
+<tr>
+<td><strong>L4 畫面</strong></td>
+<td>一整頁或一整張 sheet</td>
+<td>各 package <code>Presentation/Screens/</code></td>
+<td>可以</td>
+<td>無前綴</td>
+</tr>
+</tbody>
+</table>
+<p><strong>唯一的判斷法</strong>：這個元件需要 <code>import</code> 某個 package 的 model 嗎？
+需要 → L3，留在該 package。不需要 → L1/L2，進元件庫。</p>
+<p><code>TL</code> 前綴的意義是<strong>一眼分辨有沒有 domain 相依</strong>：看到 <code>TL</code> 就知道它是純的、可跨 package 用、規格在元件庫裡。
+目前程式碼前綴不一致（<code>TLNumberField</code> 有、<code>PageHeader</code> 沒有）。統一改名由<strong>階段 0c 獨立一次做完</strong>，排在所有其他階段之前 —— 純機械改名要在沒有其他工作在飛的時候完成，之後的階段才不會抽到一半還要改名。</p>
+<p><code>ButtonStyles</code>（ViewStyle）與 <code>CalendarStripGeometry</code>（純函式）不是元件，不加前綴。</p>
+<p>L0 的 App 根層（<code>RootView</code> + <code>TLTabBar</code>）不屬於任何一層，已合規，不在榨取範圍。</p>
+<hr />
+<h2>4. 三條不可違反的規則</h2>
+<h3>規則一 · 應用層不得定義新元件</h3>
+<p>L4 畫面檔裡不得出現任何樣式定義：沒有 hex、沒有字級數字、沒有硬編 padding／圓角／frame。
+畫面檔應該讀起來像一份組裝清單。</p>
+<p><strong>畫面真的需要新東西時的出口</strong>（規則要有出口，否則會被靜默繞過）：</p>
+<pre><code>1. 能不能由既有 L1/L2 組成？
+   能 → 組起來，結束。
+2. 不能 → 它需要 import domain model 嗎？
+   需要   → 新增 L3，放該 package 的 Presentation/Components/
+   不需要 → 新增 L1/L2，進元件庫
+3. 任何情況下都不准直接寫在 Screen 檔裡。
+</code></pre>
+<p>新增 L3 一樣要有規格與 preview（用假資料），一樣受狀態窮舉約束。
+唯一的差別是實作檔留在該 package，因為它認識 domain。</p>
+<h3>規則二 · 元件必須窮舉狀態</h3>
+<p>一個元件的規格要<strong>列完它所有可能的樣子</strong>，preview 要<strong>全部畫出來</strong>。
+不適用的狀態要<strong>明確標記 N/A</strong>，不能省略 —— 省略正是狀態遺失的方式。</p>
+<p>標準狀態矩陣（逐項回答，不適用就寫 N/A）：</p>
+<table>
+<thead>
+<tr>
+<th>類別</th>
+<th>狀態</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>互動</td>
+<td>default / pressed / disabled / focused</td>
+</tr>
+<tr>
+<td>選取</td>
+<td>selected / unselected / indeterminate</td>
+</tr>
+<tr>
+<td>資料</td>
+<td>empty / loading / error</td>
+</tr>
+<tr>
+<td>內容極值</td>
+<td>最短內容 / 最長內容 / 溢出處理 / 數字最大位數</td>
+</tr>
+<tr>
+<td>主題</td>
+<td>light / dark</td>
+</tr>
+<tr>
+<td>語言</td>
+<td>中文 / 英文（字級 ×1.08 補償）</td>
+</tr>
+</tbody>
+</table>
+<p>「狀態」是設計稿最常漏的一層，也是「設計稿沒有、實作到一半才發現」的最大來源。
+窮舉的價值不在文件完整，在於<strong>設計端能一眼看到這個元件有什麼可用</strong>，不必猜、不必問。</p>
+<h3>規則三 · L1/L2 不得認識 domain</h3>
+<p>元件庫裡不存在 <code>Exercise</code>、<code>Workout</code>、<code>Template</code> 這些型別，元件只收 <code>String</code>／<code>Int</code>／<code>Bool</code>／closure。
+這是它能被五個 package 共用的唯一前提，也是「改 A 頁不會弄壞 B 頁」的保證。
+<code>DesignSystem</code> package 不准 import 任何功能 package、不准 import SwiftData。</p>
+<hr />
+<h2>5. Token 架構</h2>
+<h3>兩層</h3>
+<pre><code>色階層 primitive   accent-100..900 / sage-100..900 / neutral-100..900 / danger-100..900
+語意層 semantic    surface-base / surface-raised / surface-track / surface-input
+                   text-primary / text-secondary / text-tertiary / text-numeric
+                   border-subtle / action-primary / action-pressed
+                   accent-on-surface / category-tag / danger-solid / danger-on-surface
+                   ↑ 每個語意 token 在每個維度組合下各自指向一個色階值
+元件層             只准用語意層
+</code></pre>
+<p><strong>為什麼一定要兩層</strong>：色階兩端在深色下反轉方向相反 —— <code>neutral-100</code> 是卡片容器底、深色要變<strong>深</strong>；<code>neutral-500</code> 是三級文字、深色要變<strong>淺</strong>。整條 scale 翻不過去，必須有語意層架在上面才有地方掛第二組值。</p>
+<p>語意對照表大部分已經寫在現行 <code>DesignTokens.swift</code> 的註解裡，token 化的工作有一半是「把註解升格成 token」。</p>
+<p><strong>命名規則</strong>：語意 token 名<strong>不得帶外觀</strong>。<code>surface-base</code> 可以，<code>cream-bg</code> 不行 —— 名字不能預設它是淺的，否則位置留了等於沒留。</p>
+<h3>三個維度</h3>
+<table>
+<thead>
+<tr>
+<th>維度</th>
+<th>影響</th>
+<th>現在</th>
+<th>之後</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>theme</strong></td>
+<td>顏色</td>
+<td>結構建立，<code>dark</code> 值先複製 <code>light</code></td>
+<td>C6a 換成真的深色色階</td>
+</tr>
+<tr>
+<td><strong>語言</strong></td>
+<td>字級</td>
+<td>已存在（英文 ×1.08 補償）</td>
+<td>—</td>
+</tr>
+<tr>
+<td><strong>Dynamic Type</strong></td>
+<td>字級</td>
+<td>只留 <code>relativeTo</code> 的位置</td>
+<td>C7a 決定支援範圍</td>
+</tr>
+</tbody>
+</table>
+<p>四捨五入只作用在「中文值 × 1.08」的結果，<strong>基準值本身可以是小數</strong>
+（<code>rowSub</code> 11.5 × 1.08 = 12.42 → 12）。</p>
+<h3>token 還涵蓋兩組容易被漏掉的東西</h3>
+<ul>
+<li><strong><code>icon</code></strong> —— 圖示尺寸 <code>s</code>/<code>m</code>/<code>l</code> ＋ 字重 ＋ stroke。沒有它，每個有圖示的元件都會在規格
+  第 5 節寫死數字，而機器檢查只擋色值、擋不到尺寸。</li>
+<li><strong><code>motion</code></strong> —— 時長與曲線。規格第 8 節要填轉場與動畫，沒有 token 就會全變成 <code>0.2s ease-out</code>
+  這種字面值。值取自程式碼現況（easeOut 0.2／0.18／0.15），<strong>不是憑空定的三階</strong>；
+  <code>0.18</code> 是落單值，之後應收斂，收斂前不要新增第四個值。</li>
+</ul>
+<p>字級角色另外標明<strong>歸屬家族</strong>（<code>bigNumber</code> 是 Caprasimo，其餘是中文家族），
+所以 <code>--font-big-number-family</code> 跟著字級一起輸出 —— 否則用的人要自己記得再配一個
+<code>font-family</code>，忘了就是靜默用錯字型。</p>
+<p><code>dark</code> 的值先複製 <code>light</code>，<strong>不填 <code>null</code>、不填機械推導的暫時值</strong>：生成物要永遠可編譯、preview 要永遠渲染得出來、切換機制要永遠可測。差別只在「深色目前長得跟淺色一樣」—— 這是誠實的中間狀態。</p>
+<p>同樣的原則套用在 Dynamic Type：<strong>位置現在留，值之後填</strong>。否則那張票會逼你回頭改每一份規格。</p>
+<h3>單一來源與生成</h3>
+<pre><code>design-system/tokens/tokens.json     ← 唯一手寫的來源
+              ↓ scripts/gen-tokens
+    tokens.css              DesignTokens.swift
+    （設計端 / preview）      （app 端）        ← 兩個都是生成物，不可手改
+</code></pre>
+<p>schema 表達 <strong>alias 與 alpha</strong>：<code>borderSubtle = ink.900 @ 8%</code>、<code>shadow.sm = neutral.900 @ 14%</code>。</p>
+<pre><code>make tokens   # 從 tokens.json 重生兩個產物
+make lint     # 生成物與來源不一致就擋（i18n 檢查之後）
+</code></pre>
+<p><strong>深色接上時要改的只有兩處</strong>：<code>tokens.json</code> 的 <code>dark</code> 值，以及生成器裡 Swift 語意色的輸出形式
+（改成 <code>#if canImport(UIKit)</code> 的 traits 分支）。呼叫端拿到的型別仍然是 <code>Color</code>，
+所以<strong>不需要動任何元件或畫面</strong> —— 這就是「留位置」的兌現。</p>
+<p><code>design-system/fonts/Caprasimo-Regular.ttf</code> 是 <code>Packages/DesignSystem/.../Resources/</code> 那份的副本（41K）。
+刻意重複：SPM 的資源必須在 target 目錄內，而 zip 又必須自足，兩邊都要有一份。
+真實來源是 package 裡那份，這裡是給 preview 與交付用的。</p>
+<hr />
+<h2>6. 每個元件要有哪些資訊</h2>
+<p>每個元件三件套，缺一不可：</p>
+<pre><code>design-system/atoms/TLChevron/
+  TLChevron.spec.md        ← 規格（十二節）
+  TLChevron.preview.html   ← 自足的 HTML preview，窮舉所有狀態
+→ Packages/DesignSystem/Sources/DesignSystem/Atoms/TLChevron.swift   ← 實作
+</code></pre>
+<p>L3 有機體的實作檔留在各 package，但 <code>spec.md</code> 與 <code>preview.html</code>（用假資料）集中在 <code>design-system/organisms/</code>，
+否則設計端拿不到完整的一包。</p>
+<h3>規格十二節</h3>
+<p>標 ★ 的可以機器檢查。</p>
+<p><strong>1 · 身分</strong>
+層級（L1/L2/L3）、一句話職責、對應的原型 id（沿用 <code>4c</code>／<code>13a</code> 這套）、三件套的檔案路徑。</p>
+<p><strong>2 · 介面</strong> ★
+Props（名稱／型別／必填／預設值）、Slots（可插入的子內容，SwiftUI 的 <code>@ViewBuilder</code>）、事件（<code>onTap</code>／<code>onChange</code>）。
+<strong>這節決定規則一是否可能</strong> —— props 不夠，應用層就會被迫硬編，「只能排列堆疊」直接破功。
+它也是判斷「元件庫夠不夠用」的唯一依據。
+可驗：規格宣告的 props 與 Swift signature 一致。</p>
+<p><strong>3 · 變體 variants</strong>
+互斥的樣式選擇。例：<code>TLTag</code> 的 6 種 style；按鈕的 primary／secondary／text／header。</p>
+<p><strong>4 · 狀態 states</strong> ★
+照規則二的標準狀態矩陣逐項回答，不適用寫 N/A。
+可驗：規格宣告的每個狀態，preview 都有窮舉呈現。</p>
+<p><strong>5 · 度量</strong>
+尺寸／內距／圖示大小／最小點擊區。全部寫 token 名，<strong>不寫數字</strong>。</p>
+<p><strong>6 · 配色</strong> ★
+只列語意 token，規格本身不出現任何 hex。light／dark 因此自動都成立。
+可驗：spec 與 preview 內零字面色值。</p>
+<p><strong>7 · 文字行為</strong>
+溢出處理（截斷／換行／縮放）、多語系寬度（中英長度差）、Dynamic Type 行為。
+最後一項現在不實作，但<strong>現在就要寫</strong>。</p>
+<p><strong>8 · 動態</strong>
+轉場、動畫時長與曲線、觸覺回饋。</p>
+<p><strong>9 · 無障礙</strong>
+accessibility label／trait、最小觸控 44pt、<code>accessibilityIdentifier</code> 命名（見 <code>ARCHITECTURE.md</code> 的 UI test 定位慣例）。</p>
+<p><strong>10 · 用法與禁用法</strong>
+何時用這個而不是那個。明確禁止項。
+既有的好例子：<code>TLChipRow</code> 是「選一個<strong>值</strong>」、<code>TLSegmentedControl</code> 是「切換<strong>檢視</strong>」；「不可用系統 <code>Toggle</code>」。</p>
+<p><strong>11 · 組成</strong> ★（L2／L3 才有）
+由哪些下層元件組成。
+可驗：L2 的 preview 若出現不屬於任何 L1 的裸樣式，判定為漏了一個原子。</p>
+<p><strong>12 · 變更紀錄</strong>
+偏離設計稿時記這裡，含原因。
+取代目前把偏離寫在各 handoff README 尾巴的做法 —— 那些字散在八個資料夾、沒有一處能一次看完，而且 <code>temp/</code> 不進版控。</p>
+<p>L1 原子通常沒有第 2 節的 slots、也沒有第 11 節；其餘各節都要填。</p>
+<hr />
+<h2>7. 打包契約</h2>
+<p>元件庫必須能直接 <code>zip</code> 餵進 Claude Design。這不只是交付方式，它是<strong>「拆得夠乾淨」的可執行檢驗</strong> ——
+一個元件如果出不成自足的 HTML preview，通常代表它職責混了。</p>
+<pre><code>design-system/
+  README.md                  這份（規則書，跟著 zip 一起交付）
+  index.html                 ← 生成。元件索引，先看這頁
+  components.json            ← 生成。機器讀的登錄檔，從各 spec 抽出
+  _template.spec.md          規格樣板
+  *.html                     ← 生成。每份 markdown 的瀏覽器版本（連結一併改寫成 .html）
+  preview.css                preview 的共用外殼（手改，不是生成物）
+  tokens/
+    tokens.json              ← 唯一來源
+    tokens.css               ← 生成
+    tokens.preview.html      ← 生成。token 的實際樣子
+    _legacy-aliases.json     遷移中的舊名，**不進交付包**
+  fonts/
+    Caprasimo-Regular.ttf    數字與英文
+    NotoSansTC-subset.woff2  ← 生成。preview 的中文，只含實際用到的字
+  atoms/  molecules/  organisms/
+    TLChevron/
+      TLChevron.spec.md
+      TLChevron.preview.html
+</code></pre>
+<p>生成的 <code>DesignTokens.swift</code> 落在 <code>Packages/DesignSystem/</code> 裡，<strong>不在這個目錄、也不在 zip 裡</strong> ——
+設計端不需要它。</p>
+<p><strong>每份 <code>.md</code> 都有同名的 <code>.html</code></strong>（<code>make doc-html</code> 生成）。<code>.md</code> 是來源，可編輯可 diff；
+<code>.html</code> 是給瀏覽器讀的 —— 從 <code>index.html</code> 點到 <code>.md</code> 的話，瀏覽器會當純文字開或直接下載，
+那等於「寫了但對方讀不到」。連結會一起改寫，所以瀏覽時不會跳回純文字。</p>
+<p>契約條款：</p>
+<ol>
+<li><strong>一元件一目錄</strong>，Swift 側一個檔一個 public 元件</li>
+<li><strong>preview 自足</strong> —— 瀏覽器直接開無 404，除字型外無外部請求</li>
+<li><strong>preview 內零字面樣式值</strong> —— 顏色／字級／間距／圓角一律 <code>var(--…)</code>。</li>
+</ol>
+<p><strong>豁免是路徑白名單，不是判斷題</strong>：只適用 <code>tokens/tokens.preview.html</code>、<code>index.html</code>
+   與未來的 <code>foundations/*.html</code>（設計系統自身的展示頁 —— 色票要畫多大跟設計系統無關）。
+   <strong><code>atoms/</code> <code>molecules/</code> <code>organisms/</code> 底下的元件 preview 一律不豁免。</strong>
+   <strong>字面色值在所有檔案都不豁免。</strong></p>
+<p>為什麼是白名單：寫成「不代表任何元件的展示骨架」需要人判斷，而人在趕的時候
+   會判成「這個 46px 也不代表元件啊」。按路徑判定，lint 擋得住，也不必爭論語意
+4. <strong>preview 窮舉規格宣告的每個狀態</strong>，並呈現 light／dark 兩個主題
+   （<strong>並排雙欄或切換皆可</strong>；並排通常好用，不必點擊就能對照）。
+   preview 要主動標注「dark（目前是 light 的複製）」
+5. <strong>L1／L2 的 preview 不出現任何 domain 詞彙</strong>（Exercise／Workout／Set）
+6. <code>make design-zip</code> 產出，且<strong>實際餵進 Claude Design 驗證過能組出新畫面</strong></p>
+<p>第 6 條是唯一真正的驗收：文件寫得再好，餵不進去就是沒做到。</p>
+<p><strong>字型</strong>：數字與英文兩邊都是 Caprasimo。中文是刻意的已知差異 —— 實作用系統的 PingFang TC，
+設計稿與 preview 用 Noto Sans TC。為了讓 preview 自足，包裡帶一份<strong>只含 preview 實際用到的字</strong>的
+Noto 子集（<code>make preview-font</code> 重生；原始字型 11MB，不進版控，需要時才下載到 gitignore 的快取）。
+每份規格的第 7 節要標明這個差異。</p>
+<p><strong>preview 的共用外殼</strong>：<code>.group</code> / <code>.row</code> / <code>.kicker</code> / <code>.pane</code> 這些外殼樣式放 <code>preview.css</code>，
+各 preview 只寫自己元件特有的樣式。每份 preview 各自重寫外殼的話，第二個會 copy-paste、
+第十個開始漂移 —— <strong>那會讓防漂移的這包東西自己成為漂移來源</strong>。<code>preview.css</code> 不是生成物，可以手改。</p>
+<hr />
+<h2>8. 機器檢查</h2>
+<p><code>scripts/check-design-system.py</code> ＋ <code>scripts/gen-tokens.py --check</code>，都接在 <code>make lint</code>：</p>
+<!-- checks:start 由 scripts/gen-design-index.py 從 check-design-system.py 的 CHECKS 生成，不要手改 -->
+<table>
+<thead>
+<tr>
+<th>#</th>
+<th>檢查</th>
+<th>對應</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td>每個元件有 spec ＋ preview，spec 十二節齊全，實作檔存在</td>
+<td>§6</td>
+</tr>
+<tr>
+<td>2</td>
+<td>Swift 側一個檔一個 public 元件</td>
+<td>§7.1</td>
+</tr>
+<tr>
+<td>3</td>
+<td>spec 宣告的 props 與 <code>init</code> 參數一致 —— 兩個方向都擋：宣告了 init 沒有的 prop、以及<strong>宣告無 props 但 init 其實收參數</strong></td>
+<td>§6.2</td>
+</tr>
+<tr>
+<td>4</td>
+<td><code>states</code> 每個都有對應的 <code>data-state</code>、<code>themes</code> 每個都有對應的 <code>data-theme</code>；主題不得混進 states</td>
+<td>§6.4、§7.4</td>
+</tr>
+<tr>
+<td>5</td>
+<td>生成物與來源一致：<code>tokens.json</code> → Swift／CSS；各 spec → <code>components.json</code>／<code>index.html</code></td>
+<td>§5、§6</td>
+</tr>
+<tr>
+<td>6</td>
+<td>spec 與 preview 內零字面色值（<strong>所有檔案，無豁免</strong>）；preview 無外部請求</td>
+<td>§6.6、§7.2</td>
+</tr>
+<tr>
+<td>7</td>
+<td>Presentation 層字面樣式<strong>不得增加</strong>（ratchet，不是硬門檻）</td>
+<td>§4 規則一</td>
+</tr>
+<tr>
+<td>8</td>
+<td><code>DesignSystem</code> 未 import 任何功能 package</td>
+<td>§4 規則三</td>
+</tr>
+<tr>
+<td>9</td>
+<td>preview 用到的 <code>var(--…)</code> 都在 <code>tokens.css</code> 或 <code>preview.css</code> 裡定義</td>
+<td>§5</td>
+</tr>
+<tr>
+<td>10</td>
+<td>preview 用到的字都在子集字型裡（缺字會靜默掉回系統字型）</td>
+<td>§7</td>
+</tr>
+<tr>
+<td>11</td>
+<td>第 11 節宣告的組成元件真的存在於元件庫</td>
+<td>§6.11</td>
+</tr>
+<tr>
+<td>12</td>
+<td>文件裡提到的 token 名都存在於 <code>tokens.json</code></td>
+<td>§5</td>
+</tr>
+<tr>
+<td>13</td>
+<td>L1／L2 的 preview 不出現 domain 詞彙（Exercise／Workout／組數…）—— 假資料最順手的來源就是真的運動名稱，那一刻就違反了規則三</td>
+<td>§4 規則三、§7.5</td>
+</tr>
+<tr>
+<td>14</td>
+<td><strong>元件</strong> preview 內零字面尺寸。豁免只適用設計系統自身的展示頁（<code>tokens/tokens.preview.html</code>、未來的 <code>foundations/*.html</code>），按路徑判定不靠語意</td>
+<td>§7.3</td>
+</tr>
+</tbody>
+</table>
+<!-- checks:end -->
+
+<p><strong>編號是永久 id：只增不重排、刪除的號碼不回收。</strong> <code>CHANGELOG.md</code> 與這份文件的正文都用編號指稱
+（「第 4 條」「第 7 條是 ratchet」），重排會讓那些指稱失效。表格輸出時依 id 排序。</p>
+<p><strong>這張表由 <code>check-design-system.py</code> 的 <code>CHECKS</code> 生成，不是手寫的。</strong>
+<code>scripts/</code> 不進交付包，所以這份 README 是設計端唯一看得到「實際擋了什麼」的地方 ——
+手寫的話它一定會過期，然後審閱會針對一份虛構的清單提意見。</p>
+<p>第 4 條的 <code>&lt;!-- states: … --&gt;</code> / <code>&lt;!-- themes: … --&gt;</code> 是規格裡僅有的兩行機器讀內容 ——
+沒有它們，「窮舉狀態」只是一句口號。<strong>主題是維度不是狀態</strong>，混進 <code>states</code> 會讓檢查通過得沒有意義。</p>
+<p>第 9、10、12 條都是同一類：<strong>靜默失效</strong>。CSS 變數打錯名字渲染成空值、
+子集字型缺字掉回系統字型、文件講一個已經被刪掉的 token —— 三者都不會報錯，只會安靜地錯。</p>
+<p><strong>第 7 條是 ratchet 不是硬門檻。</strong> Presentation 現在還有 181 處字面樣式，一次擋掉會讓所有工作停擺。
+所以記錄目前數量、只擋「變多」；每個榨取階段把數字往下推（<code>make baseline</code> 重設），
+階段 5 結束時應該歸零，屆時再改成硬門檻。</p>
+<pre><code>make lint       # 全部跑一遍
+make tokens     # 從 tokens.json 重生生成物
+make baseline   # 榨取後重設第 7 條的基線
+make design-zip # 打包交付（會先跑 lint）
+</code></pre>
+<hr />
+<h2>9. 流程</h2>
+<h3>新增一個元件</h3>
+<ol>
+<li>走 §4 規則一的出口判斷層級</li>
+<li>寫 <code>spec.md</code> 十二節（先寫規格再寫程式，狀態才不會漏）</li>
+<li>寫實作</li>
+<li>寫 <code>preview.html</code>，窮舉狀態</li>
+<li><code>make lint</code> 綠</li>
+<li><code>make design-zip</code> 更新，同步設計端</li>
+</ol>
+<h3>修改一個元件</h3>
+<ol>
+<li>改 <code>spec.md</code>，含第 12 節記錄原因</li>
+<li>改實作與 preview</li>
+<li><code>make lint</code> 綠</li>
+<li>同步設計端 —— <strong>這一步不做，就是下一輪漂移的起點</strong></li>
+</ol>
+<h3>改一個 token</h3>
+<p>只改 <code>tokens.json</code>。Swift／CSS／preview／設計端同時跟著變。</p>
+<h3>實作時發現要偏離設計稿</h3>
+<p>正常，不是例外。但<strong>必須寫進第 12 節並同步回設計端</strong>，不能只寫在 commit message 或 handoff README 尾巴。</p>
+<hr />
+<h2>10. 與設計端的關係</h2>
+<p>設計端下一輪從<strong>這份文件 ＋ <code>design-system.zip</code></strong> 起手，不從舊的 canvas 起手。
+<code>Training La Style Directions.dc.html</code> 退回它本來的角色 —— <strong>探索記錄</strong>，不再假裝是現況。</p>
+<p>v14 交付包裡 <code>10-architecture.md</code>（實作順序）與 <code>11-component-inventory.md</code>（元件總表）已被這份文件取代。
+其餘規格文件（<code>01-training.md</code> ～ <code>05-settings.md</code>、<code>90-tokens-components.md</code>）仍有效，
+但其中的元件名稱與檔案落點以這份為準。</p>

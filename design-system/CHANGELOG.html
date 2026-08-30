@@ -1,0 +1,173 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>元件庫變更紀錄</title>
+<link rel="stylesheet" href="tokens/tokens.css">
+<link rel="stylesheet" href="preview.css">
+<style>
+  body { max-width: 62rem; line-height: 1.7; }
+  h1, h2, h3 { font-family: var(--font-page-title-family); line-height: 1.35; }
+  h1 { font-size: var(--font-page-title); margin: 0 0 var(--space-gap-l); }
+  h2 { font-size: var(--font-card-title); margin: var(--space-section) 0 var(--space-gap-m);
+       padding-top: var(--space-gap-m); border-top: 1px solid var(--border-subtle); }
+  h3 { font-size: var(--font-row-title); margin: var(--space-gap-l) 0 var(--space-gap-s); }
+  a { color: var(--accent-on-surface); }
+  table { border-collapse: collapse; width: 100%; margin: var(--space-gap-m) 0;
+          display: block; overflow-x: auto; }
+  th, td { text-align: left; padding: var(--space-gap-s) var(--space-gap-m);
+           border-bottom: 1px solid var(--border-subtle); vertical-align: top; }
+  th { font-size: var(--font-kicker); letter-spacing: var(--font-kicker-tracking);
+       text-transform: uppercase; color: var(--text-tertiary); }
+  pre { background: var(--surface-raised); border-radius: var(--radius-inner);
+        padding: var(--space-gap-m); overflow-x: auto; }
+  pre code { background: none; padding: 0; }
+  blockquote { margin: var(--space-gap-m) 0; padding-left: var(--space-gap-m);
+               border-left: 3px solid var(--border-subtle); color: var(--text-secondary); }
+  .back { font-size: var(--font-row-sub); margin-bottom: var(--space-gap-l); display: block; }
+</style>
+<a class="back" href="index.html">← 元件庫索引</a>
+<h1>元件庫變更紀錄</h1>
+<p>元件自身的改動記在各自 spec 的第 12 節。<strong>token 與契約層級的改動記這裡</strong> ——
+那些改動不屬於任何單一元件，但會影響每一個元件，之前沒有地方可以記。</p>
+<p>刪一個 token 是設計決策，不是清理。所以刪除也要記，而且要寫清楚是哪一種情況：
+角色不需要了／只是改名／被別的 token 吸收。</p>
+<hr />
+<h2>2026-08-30 · 第二輪設計端審閱後</h2>
+<h3>token</h3>
+<ul>
+<li>
+<p><strong>刪除語意 token <code>surfaceSunken</code></strong>（原本指向 <code>sand.raised</code> <code>#EBDDC5</code>，職責「頁面上的表面色塊」）。
+  <strong>屬於「角色不需要了」</strong>：查證 <code>TLColor.surface</code> 全專案 <strong>0 處使用</strong>，
+  它是 0a 建立語意層時，我幫一個從未被用過的色票發明的角色 —— 為沒有用途的顏色發明語意名，
+  正是取錯名字的來源。舊名 alias <code>surface</code> 一併移除。
+  <strong>沒有任何畫面的顏色因此改變。</strong>
+  色階層的 <code>sand.raised</code> <strong>保留</strong>：它是原始色票的一員，只是目前沒有語意角色指向它。
+  之後若有畫面需要「頁面上的表面色塊」，在那時依實際用途命名，不要現在預先發明。</p>
+</li>
+<li>
+<p>新增 <code>icon</code>（<code>s</code>/<code>m</code>/<code>l</code>／<code>weight</code>／<code>strokeWeb</code>）與 <code>motion</code>（<code>fast</code>/<code>base</code>/<code>curve</code>）兩組。
+  <code>motion</code> 的值取自程式碼現況（easeOut 0.2／0.18／0.15），不是憑空定的三階；
+  <code>0.18</code> 是落單值，收斂前不要新增第四個值。</p>
+</li>
+<li>
+<p>語意色改名：<code>accentOnLight</code> → <code>accentOnSurface</code>、<code>dangerOnLight</code> → <code>dangerOnSurface</code>。
+  違反 §5「語意 token 名不得帶外觀」—— <code>OnLight</code> 預設了底色是淺的，深色接上時會直接說謊。</p>
+</li>
+<li>
+<p><code>--icon-stroke</code> 的 <code>2.75</code> 原本是生成器裡的字面值，不是從 <code>tokens.json</code> 來的。
+  補 <code>icon.strokeWeb</code> 當來源 —— 單一來源在這裡漏了一個洞。</p>
+</li>
+</ul>
+<h3>契約</h3>
+<ul>
+<li>§7.3 加上<strong>展示骨架的豁免</strong>：色票方塊、示意方塊的尺寸可以用字面值（「色票要畫多大」跟設計系統無關），
+  但<strong>字面色值永遠不豁免</strong>。不寫的話，第一次跑 lint 就會有人為了過檢查把 <code>46px</code> 塞成 token，汙染 token 表。</li>
+<li>§8 的檢查表改成<strong>從 <code>check-design-system.py</code> 的 <code>CHECKS</code> 生成</strong>。
+  <code>scripts/</code> 不進交付包，README 是設計端唯一看得到「實際擋了什麼」的地方；
+  手寫一定會過期，然後審閱會針對一份虛構的清單提意見（第二輪就發生了兩次）。</li>
+</ul>
+<h3>preview</h3>
+<ul>
+<li>共用外殼 <code>preview.css</code> 的<strong>列間分隔線原本橫跨整列寬，是錯的</strong>。
+  app 的 <code>TLDivider</code> 有 <code>.padding(.leading, TLSpace.rowInset)</code>，分隔線左內縮 18。
+  改用 <code>::after</code> 定位。錯在共用外殼裡，所有元件會一起錯。</li>
+</ul>
+<h3>新增檢查</h3>
+<ul>
+<li><strong>10</strong> preview 用到的字都要在子集字型裡。內嵌中文子集換來 preview 自足，
+  代價是「改了文案沒重生子集就靜默缺字」。</li>
+<li><strong>12</strong> 文件裡提到的 token 名都要真的存在。抓「token 被刪／改名，文件還在講它」。</li>
+</ul>
+<hr />
+<h2>2026-08-30 · 第三輪設計端審閱後</h2>
+<p>審閱結論是可以往下走階段 1。這輪主要是回答五個提問，順帶修四個新發現。</p>
+<h3>契約</h3>
+<ul>
+<li><strong>展示骨架的豁免從判斷題改成路徑白名單。</strong> 原本寫「不代表任何元件的展示骨架可以用字面值」，
+  那需要人判斷，而人在趕的時候會判成「這個 46px 也不代表元件啊」。
+  現在豁免<strong>只</strong>適用 <code>tokens/tokens.preview.html</code> 與未來的 <code>foundations/*.html</code>；
+  元件 preview 一律不豁免，字面色值在所有檔案都不豁免。lint 看路徑就知道，不必判斷語意。</li>
+<li><strong>§8 的編號是永久 id，只增不重排、刪除的號碼不回收。</strong> <code>CHANGELOG</code> 與 README 正文都用編號指稱。
+  生成時依 id 排序（原本照宣告順序輸出，表格看起來像壞掉的）。</li>
+</ul>
+<h3>規格樣板</h3>
+<p>三格新欄位，都是組畫面時真的會卡住的：</p>
+<ul>
+<li>第 1 節「<strong>獨立使用</strong>／<strong>容器責任</strong>」—— L1 原子幾乎都自己不完整，必須放在容器裡才成立。
+  不寫的話組畫面的人會直接把它擺在畫面上，然後間距全錯。這兩格進 <code>components.json</code>
+  （<code>standalone</code> / <code>requiresContainer</code>），<code>index.html</code> 也標記出來。</li>
+<li>第 5 節「<strong>最小寬度／壓縮行為</strong>」—— 元件的橫向極限。跟第 7 節的多語系文字寬度不同，
+  那講的是文字，這講的是元件的佔位。</li>
+<li>第 10 節「<strong>易混淆</strong>」—— 固定一行對照，<strong>兩邊的規格都要寫</strong>。
+  會搞混的時候人看的是其中一份，不是兩份。</li>
+</ul>
+<h3>components.json</h3>
+<ul>
+<li><code>props</code> 帶<strong>值域</strong>（<code>kind</code> / <code>values</code>），不只型別名。<code>style: TLTagStyle</code> 的資訊量是零 ——
+  要的是那 6 種 style 分別叫什麼。沒有值域只能猜，猜錯就硬編。</li>
+<li><code>variants</code> 改成物件（<code>name</code> + <code>note</code>），因為要寫得下「變體之間哪些狀態不通用」。</li>
+<li><code>dontUseFor</code> 的粒度維持不變（審閱確認現在是對的）。<strong>每個元件 3–4 條是上限</strong> ——
+  超過代表職責混了，那時該拆元件不是加禁令。這是軟訊號，不做成檢查。</li>
+</ul>
+<h3>新增檢查</h3>
+<ul>
+<li><strong>13</strong> L1／L2 的 preview 不得出現 domain 詞彙。到了階段 1 的分子，preview 需要假資料，
+  而最順手的假資料就是真的運動名稱 ——「臥推 60kg × 8」寫起來毫不費力，
+  但那一刻 L2 就認識 domain 了。詞表在 <code>scripts/</code>，隨階段成長。</li>
+<li><strong>14</strong> 元件 preview 不得有字面尺寸。原本契約寫「零字面樣式值」，但檢查只擋色值，
+  <strong>尺寸從來沒被擋過</strong>。白名單讓它變得可執行。</li>
+</ul>
+<h3>tokens 參考頁</h3>
+<p>文字類 token 改成「<strong>壓在它該壓的底上</strong>」呈現，並標出對比度 —— 看色票方塊永遠判斷不出
+「三級文字在這個底上會不會太淡」。三份層級 README 改成從共用骨架生成（手寫三份已開始分岔）。</p>
+<h3>交付包</h3>
+<ul>
+<li><strong>每份 markdown 加生成 <code>.html</code></strong>（<code>make doc-html</code>）。第二輪的 D2 當時判為「可接受」而沒做，
+  但那個顧慮是實的：設計端從 <code>index.html</code> 點到 <code>.md</code>，瀏覽器會當純文字開或直接下載 ——
+  規則書、變更紀錄、規格全是 markdown，等於寫了但對方讀不到。
+  <code>.md</code> 仍是來源，<code>.html</code> 是生成物，連結一併改寫。
+  代價：中文子集從 313 字長到 843 字（102KB → 255KB），因為文件也要用同一支字型。</li>
+</ul>
+<hr />
+<h2>已知缺口（留給榨取階段）</h2>
+<p>不是 bug，是 token 化尚未覆蓋到的地方。記在這裡免得每個階段重新發現一次。</p>
+<table>
+<thead>
+<tr>
+<th>缺口</th>
+<th>規模</th>
+<th>何時處理</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>neutral700</code> 被用 <strong>16 處</strong>，但沒有任何語意角色（<code>textSecondary</code> 是 neutral600、比它淺）</td>
+<td>跨 Plan／Training／DesignSystem</td>
+<td>撞到它的第一個階段順手命名</td>
+</tr>
+<tr>
+<td><code>TLFont.display(N)</code> 用了 <strong>16 種字面字級</strong>（15／20／16／34／30／28／26／13.5／60／56／19／17／14…），只有 2 處走 token</td>
+<td>全 app</td>
+<td>數字的字級尺度需要一次性收斂，建議在階段 5（訓練）之前決定</td>
+</tr>
+<tr>
+<td>Presentation 層 <strong>181 處</strong>字面樣式</td>
+<td>見 <code>.presentation-baseline.json</code></td>
+<td>每階段往下推，階段 5 結束歸零</td>
+</tr>
+<tr>
+<td><strong><code>textSecondary</code> 對 <code>surfaceRaised</code> 只有 3.9:1、<code>textTertiary</code> 只有 2.6:1</strong>（WCAG 正文要 4.5、大字與圖示要 3）。<code>textTertiary</code> 是 chevron 與三級文字的顏色，連圖示門檻都不到</td>
+<td>全 app</td>
+<td>這是實作第三輪審閱的「標對比度」建議才浮出來的。改色值是設計決策，建議併進 C6a 深色色階一起處理</td>
+</tr>
+<tr>
+<td><code>TLExerciseNameWithEquipment</code> 名字帶 domain 詞彙（實際不 import domain，層級沒錯，只是命名有味道）</td>
+<td>1 處</td>
+<td>階段 2</td>
+</tr>
+<tr>
+<td><code>TLCircleIconButton</code> 是 View 卻住在 <code>Support/ButtonStyles.swift</code></td>
+<td>1 處</td>
+<td>任一階段順手</td>
+</tr>
+</tbody>
+</table>

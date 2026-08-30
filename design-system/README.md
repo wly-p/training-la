@@ -266,6 +266,7 @@ design-system/
   index.html                 ← 生成。元件索引，先看這頁
   components.json            ← 生成。機器讀的登錄檔，從各 spec 抽出
   _template.spec.md          規格樣板
+  *.html                     ← 生成。每份 markdown 的瀏覽器版本（連結一併改寫成 .html）
   preview.css                preview 的共用外殼（手改，不是生成物）
   tokens/
     tokens.json              ← 唯一來源
@@ -283,6 +284,10 @@ design-system/
 
 生成的 `DesignTokens.swift` 落在 `Packages/DesignSystem/` 裡，**不在這個目錄、也不在 zip 裡** ——
 設計端不需要它。
+
+**每份 `.md` 都有同名的 `.html`**（`make doc-html` 生成）。`.md` 是來源，可編輯可 diff；
+`.html` 是給瀏覽器讀的 —— 從 `index.html` 點到 `.md` 的話，瀏覽器會當純文字開或直接下載，
+那等於「寫了但對方讀不到」。連結會一起改寫，所以瀏覽時不會跳回純文字。
 
 契約條款：
 
