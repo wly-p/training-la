@@ -14,10 +14,13 @@ ROOT = pathlib.Path(__file__).resolve().parent.parent
 SRC  = ROOT / "design-system/tokens/tokens.json"
 SWIFT= ROOT / "Packages/DesignSystem/Sources/DesignSystem/DesignTokens.swift"
 CSS  = ROOT / "design-system/tokens/tokens.css"
+PREV = ROOT / "design-system/tokens/tokens.preview.html"
+LEGP = ROOT / "design-system/tokens/_legacy-aliases.json"
 
 D = json.loads(SRC.read_text())
 PRIM, SEM = D["primitive"]["color"], D["semantic"]["color"]
 BASE = D["primitive"]["scaleBase"]
+LEG  = {k: v for k, v in json.loads(LEGP.read_text()).items() if k != "note"}
 
 _B1 = "由 scripts/gen-tokens.py 從 design-system/tokens/tokens.json 生成。"
 _B2 = "不要手改這個檔——改 tokens.json 然後重跑生成器。make lint 會擋不一致。"
@@ -90,12 +93,9 @@ def gen_swift() -> str:
                  f"  // {spec['role']}")
 
     # 舊名
-    LEG = D["legacyAliases"]
     L += ["", "    // ── 遷移中：舊名 ─────────────────────────────────",
-          f"    // {LEG['note']}"]
+          "    // 各階段榨取時逐步換成語意名。來源 tokens/_legacy-aliases.json（不進交付包）。"]
     for old, new in LEG.items():
-        if old == "note":
-            continue
         L.append(f"    public static let {old:<8} = {new}")
     L += ["}", ""]
 
@@ -118,6 +118,20 @@ def gen_swift() -> str:
     for k, v in D["size"].items():
         L.append(f"    public static let {k+':':<{w+1}} CGFloat = {num(v):<4}" + (f"// {sn[k]}" if k in sn else ""))
     L += ["}", ""]
+
+    I = D["icon"]
+    L += ["public enum TLIcon {", f"    // {I['_note']}"]
+    for k in ("s", "m", "l"):
+        L.append(f"    public static let {k}: CGFloat = {num(I[k])}")
+    L += [f"    public static let weight: Font.Weight = .{I['weight']}", "}", ""]
+
+    M = D["motion"]
+    L += ["public enum TLMotion {", f"    // {M['_note']}",
+          f"    public static let fast: Double = {M['fast']}",
+          f"    public static let base: Double = {M['base']}",
+          f"    public static var quick: Animation {{ .{M['curve']}(duration: fast) }}",
+          f"    public static var standard: Animation {{ .{M['curve']}(duration: base) }}",
+          "}", ""]
 
     # Typography
     T = D["type"]; sc = T["languageScale"]["en"]
@@ -150,8 +164,8 @@ def gen_swift() -> str:
           f"    // 角色字級（中文值；英文乘 {sc}）"]
     w = max(len(k) for k in T["roles"])
     for k, r in T["roles"].items():
-        note = r.get("note", "")
-        L.append(f"    public static let {k+':':<{w+1}} CGFloat = {num(r['size']):<5}" + (f"// {note}" if note else ""))
+        bits = [f"{r['family']} 家族"] + ([r["note"]] if r.get("note") else [])
+        L.append(f"    public static let {k+':':<{w+1}} CGFloat = {num(r['size']):<5}// {'；'.join(bits)}")
     kick = T["roles"]["kicker"]
     L += ["",
           f"    /// kicker 的字距（{kick['trackingUnit']} → pt）。SwiftUI 的 tracking 吃點數，不是 {kick['trackingUnit']}。",
@@ -178,6 +192,11 @@ def gen_css() -> str:
          "@font-face {",
          f"  font-family: '{T['families']['display']['name']}';",
          f"  src: url('../fonts/{T['families']['display']['file']}') format('truetype');",
+         "  font-display: swap;", "}", "",
+         f"/* {T['families']['zh']['_note']} */",
+         "@font-face {",
+         f"  font-family: '{T['families']['zh']['designProxy']}';",
+         f"  src: url('../fonts/{T['families']['zh']['previewFont']}') format('woff2');",
          "  font-display: swap;", "}", "", ":root {", "  /* ── 色階層 primitive ── */"]
     for scale in ("accent", "sage", "neutral", "danger"):
         for k in sorted(PRIM[scale], key=int):
@@ -202,8 +221,23 @@ def gen_css() -> str:
     for k, r in T["roles"].items():
         L.append(f"  --font-{kebab(k)}: {num(r['size'])}px;")
     L.append(f"  --font-kicker-tracking: {T['roles']['kicker']['tracking']}em;")
+    L.append("")
+    L.append("  /* 家族。每個角色歸屬哪一支見下面的 --font-<role>-family。 */")
     L.append(f"  --font-display: '{T['families']['display']['name']}', serif;")
     L.append(f"  --font-zh: '{T['families']['zh']['designProxy']}', '{T['families']['zh']['name']}', sans-serif;")
+    L.append("  --font-en: system-ui, -apple-system, sans-serif;")
+    for k, r in T["roles"].items():
+        L.append(f"  --font-{kebab(k)}-family: var(--font-{r['family']});")
+    L.append("")
+    L.append(f"  /* 圖示。{D['icon']['_note']} */")
+    for k in ("s", "m", "l"):
+        L.append(f"  --icon-{k}: {num(D['icon'][k])}px;")
+    L.append("  --icon-stroke: 2.75;")
+    L.append("")
+    L.append("  /* 動效 */")
+    L.append(f"  --motion-fast: {D['motion']['fast']}s;")
+    L.append(f"  --motion-base: {D['motion']['base']}s;")
+    L.append("  --motion-curve: cubic-bezier(0, 0, 0.58, 1);  /* easeOut */")
     L.append("")
     L.append("  /* ── 陰影 ── */")
     for k, s in D["shadow"].items():
@@ -211,19 +245,105 @@ def gen_css() -> str:
     L.append("}")
 
     dark = ["", "/* 深色：目前是淺色的複製——位置先留好，實際色階等 C6a。",
-            "   只有語意層有 theme 分支；色階層是固定色票，不在這裡覆寫。 */",
+            "   只有語意層有 theme 分支；色階層是固定色票，不在這裡覆寫。",
+            "",
+            "   選擇器刻意用 [data-theme=\"dark\"] 而不是 :root[data-theme=\"dark\"]：",
+            "   preview 要能把兩個主題並排在同一頁（各自掛在子元素上對照），",
+            "   綁死 :root 的話只有整頁切換才生效，並排永遠是同一個主題。 */",
             "@media (prefers-color-scheme: dark) {", "  :root:not([data-theme=\"light\"]) {"]
     for name, spec in SEM.items():
         dark.append(f"    --{kebab(name)}: {css_color(spec['dark'])};")
-    dark += ["  }", "}", "", ":root[data-theme=\"dark\"] {"]
+    dark += ["  }", "}", "", "[data-theme=\"dark\"] {"]
     for name, spec in SEM.items():
         dark.append(f"  --{kebab(name)}: {css_color(spec['dark'])};")
+    dark += ["}", "", "[data-theme=\"light\"] {"]
+    for name, spec in SEM.items():
+        dark.append(f"  --{kebab(name)}: {css_color(spec['light'])};")
     dark.append("}")
     return "\n".join(L + dark) + "\n"
 
+# ─────────────────────── tokens 視覺參考頁 ───────────────────────
+def gen_tokens_preview() -> str:
+    T = D["type"]
+    def kebab(s): return "".join("-" + c.lower() if c.isupper() else c for c in s)
+    L = ['<!doctype html>', '<meta charset="utf-8">', '<title>Token 參考</title>',
+         '<link rel="stylesheet" href="tokens.css">',
+         '<link rel="stylesheet" href="../preview.css">',
+         '<style>',
+         '  .swatches { display: flex; flex-wrap: wrap; gap: 2px; }',
+         '  .sw { width: 76px; }',
+         '  .chip { height: 46px; border-radius: 6px; border: 1px solid var(--border-subtle); }',
+         '  .cap { font-size: var(--font-kicker); color: var(--text-tertiary); margin-top: 4px; }',
+         '  .bar { background: var(--action-primary); height: 12px; border-radius: 3px; }',
+         '  .box { background: var(--surface-track); width: 92px; height: 60px;',
+         '         display: inline-block; margin-right: var(--space-gap-m); }',
+         '</style>',
+         '<h1>Token 參考</h1>',
+         '<p class="note">全部由 <code>tokens.json</code> 生成。要改值改來源，不要改這頁。<br>'
+         '色階層是固定色票，元件不該直接用；語意層才是元件該用的東西。</p>']
+
+    L.append('<div class="kicker">色階層 primitive</div>')
+    for scale in ("accent", "sage", "neutral", "danger"):
+        L.append(f'<div class="cap">{scale}</div><div class="swatches">')
+        for k in sorted(PRIM[scale], key=int):
+            L.append(f'  <div class="sw"><div class="chip" style="background: var(--{scale}-{k})"></div>'
+                     f'<div class="cap">{k}</div></div>')
+        L.append('</div>')
+    L.append('<div class="cap">sand / ink</div><div class="swatches">')
+    for k in PRIM["sand"]:
+        L.append(f'  <div class="sw"><div class="chip" style="background: var(--sand-{k})"></div>'
+                 f'<div class="cap">sand.{k}</div></div>')
+    L.append('  <div class="sw"><div class="chip" style="background: var(--ink-900)"></div>'
+             '<div class="cap">ink.900</div></div></div>')
+
+    L.append('<div class="kicker">語意層 semantic — 元件只准用這一層</div><div class="group">')
+    for name, spec in SEM.items():
+        L.append(f'  <div class="row"><span class="chip" style="width:34px;height:34px;'
+                 f'background: var(--{kebab(name)})"></span>'
+                 f'<span class="label"><code>{kebab(name)}</code> — {spec["role"]}</span>'
+                 f'<span class="cap">→ {spec["light"]["ref"]}'
+                 + (f' @ {spec["light"]["alpha"]:g}' if "alpha" in spec["light"] else "")
+                 + '</span></div>')
+    L.append('</div>')
+
+    L.append('<div class="kicker">字級角色（中文值；英文 × %s）</div><div class="group">' % T["languageScale"]["en"])
+    for k, r in T["roles"].items():
+        L.append(f'  <div class="row" style="height:auto;padding-top:var(--space-gap-m);'
+                 f'padding-bottom:var(--space-gap-m)">'
+                 f'<span class="label" style="font-size: var(--font-{kebab(k)});'
+                 f'font-family: var(--font-{kebab(k)}-family)">'
+                 + ("12.5 kg × 8" if r["family"] == "display" else "訓練 Training")
+                 + f'</span><span class="cap"><code>{kebab(k)}</code> {num(r["size"])} · {r["family"]}</span></div>')
+    L.append('</div>')
+
+    L.append('<div class="kicker">間距</div><div class="group">')
+    for k, v in D["space"].items():
+        L.append(f'  <div class="row"><span class="label"><code>{kebab(k)}</code></span>'
+                 f'<span class="bar" style="width: var(--space-{kebab(k)})"></span>'
+                 f'<span class="cap">{num(v)}</span></div>')
+    L.append('</div>')
+
+    L.append('<div class="kicker">圓角</div><p>')
+    for k, v in D["radius"].items():
+        L.append(f'  <span class="box" style="border-radius: var(--radius-{k})"></span>')
+    L.append('</p><p class="cap">' + " · ".join(f"{k} {num(v)}" for k, v in D["radius"].items()) + '</p>')
+
+    L.append('<div class="kicker">陰影</div><p>')
+    for k in D["shadow"]:
+        L.append(f'  <span class="box" style="background: var(--surface-raised);'
+                 f'border-radius: var(--radius-inner); box-shadow: var(--shadow-{k})"></span>')
+    L.append('</p><p class="cap">' + " · ".join(f"{k}（{s['use']}）" for k, s in D["shadow"].items()) + '</p>')
+
+    L.append('<div class="kicker">圖示尺寸與動效</div><p class="note">'
+             + " · ".join(f"<code>icon.{k}</code> {num(D['icon'][k])}" for k in ("s", "m", "l"))
+             + f' · stroke {2.75}<br>'
+             + f'<code>motion.fast</code> {D["motion"]["fast"]}s · '
+             + f'<code>motion.base</code> {D["motion"]["base"]}s · {D["motion"]["curve"]}</p>')
+    return "\n".join(L) + "\n"
+
 if __name__ == "__main__":
     check = "--check" in sys.argv
-    outs = [(SWIFT, gen_swift()), (CSS, gen_css())]
+    outs = [(SWIFT, gen_swift()), (CSS, gen_css()), (PREV, gen_tokens_preview())]
     bad = False
     for path, content in outs:
         if check:

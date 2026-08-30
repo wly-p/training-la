@@ -74,16 +74,29 @@ for layer, cdir in components():
                 if d not in actual:
                     err(3, f"{name}：規格宣告的 prop `{d}` 不在 init 參數裡 {actual}")
 
-    # §4 states ↔ preview 的 data-state
+    # §4 states ↔ preview 的 data-state；themes ↔ data-theme
     ms = re.search(r"<!--\s*states:\s*([^>]+?)\s*-->", spec)
     if not ms:
         err(4, f"{name}.spec.md：第 4 節缺機器可讀的 `<!-- states: … -->` 宣告")
     else:
-        want = [s.strip() for s in ms.group(1).split(",") if s.strip()]
+        want = [x.strip() for x in ms.group(1).split(",") if x.strip()]
         have = set(re.findall(r'data-state="([^"]+)"', prev))
-        for s in want:
-            if s not in have:
-                err(4, f"{name}：規格宣告狀態 `{s}`，preview 沒有對應的 data-state")
+        for x in want:
+            if x in ("light", "dark"):
+                err(4, f"{name}：`{x}` 是主題維度不是狀態，要放進 `<!-- themes: … -->`"
+                       f"——混進 states 會讓這條檢查通過得沒有意義")
+            elif x not in have:
+                err(4, f"{name}：規格宣告狀態 `{x}`，preview 沒有對應的 data-state")
+
+    mt = re.search(r"<!--\s*themes:\s*([^>]+?)\s*-->", spec)
+    if not mt:
+        err(4, f"{name}.spec.md：第 4 節缺 `<!-- themes: … -->` 宣告")
+    else:
+        want = [x.strip() for x in mt.group(1).split(",") if x.strip()]
+        have = set(re.findall(r'data-theme="([^"]+)"', prev))
+        for x in want:
+            if x not in have:
+                err(4, f"{name}：規格宣告主題 `{x}`，preview 沒有對應的 data-theme")
 
     # §6 零字面色值（spec 與 preview）
     for label, txt in ((f"{name}.spec.md", spec), (f"{name}.preview.html", prev)):
@@ -96,6 +109,7 @@ for layer, cdir in components():
 
     # preview 用到的 CSS 變數必須在 tokens.css 裡定義（打錯名字會靜默渲染成空值）
     defined = set(re.findall(r"^\s*(--[a-z0-9-]+):", (DS / "tokens/tokens.css").read_text(), re.M))
+    defined |= set(re.findall(r"^\s*(--[a-z0-9-]+):", (DS / "preview.css").read_text(), re.M))
     for v in sorted(set(re.findall(r"var\((--[a-z0-9-]+)\)", prev))):
         if v not in defined:
             err(9, f"{name}.preview.html：用了未定義的 token `var({v})`")
@@ -132,6 +146,18 @@ for pkg, n in counts.items():
         err(7, f"{pkg}：Presentation 字面樣式從 {b} 增加到 {n}——應用層不得定義樣式（正典 §4 規則一）")
     elif n < b:
         warns.append(f"↓ {pkg}：{b} → {n}，記得跑 scripts/check-design-system.py --update-baseline")
+
+# ── 10：preview 用到的中文字都要在子集字型裡（缺字是靜默失效）──────
+mani = DS / "fonts" / "subset-chars.txt"
+if mani.exists():
+    have = set(mani.read_text())
+    used = set()
+    for f in DS.rglob("*.html"):
+        used |= set(f.read_text())
+    missing = {ch for ch in used - have if ch.isprintable() and not ch.isspace()}
+    if missing:
+        err(10, f"preview 用到 {len(missing)} 個不在子集字型裡的字（{''.join(sorted(missing)[:12])}…）"
+                f"——跑 make preview-font 重生，否則設計端會看到方框")
 
 # ── 8：DesignSystem 不得認識 domain ────────────────────────────────
 for f in (PKG / "DesignSystem").rglob("*.swift"):

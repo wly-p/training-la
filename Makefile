@@ -123,11 +123,17 @@ endif
 lint:
 	@./scripts/check-i18n.sh
 	@python3 scripts/gen-tokens.py --check && echo "✔ token 生成物與 tokens.json 一致"
+	@python3 scripts/gen-design-index.py --check && echo "✔ components.json / index.html 與各元件 spec 一致"
 	@python3 scripts/check-design-system.py
 
 # 從 tokens.json 重生 DesignTokens.swift 與 tokens.css。改完 token 一定要跑這個。
 tokens:
 	@python3 scripts/gen-tokens.py
+	@python3 scripts/gen-design-index.py
+
+# preview 的中文子集字型。只有在 preview 出現新的中文字時才需要重跑（會聯網下載原字型一次）。
+preview-font:
+	@uv run --quiet --with "fonttools[woff]" python3 scripts/gen-preview-font.py
 
 # 榨取階段把 Presentation 的字面樣式往下推之後，重設 lint 的 ratchet 基線。
 baseline:
@@ -137,7 +143,7 @@ baseline:
 # 這包要能直接餵進 Claude Design 組出新畫面——那是元件庫「拆得夠乾淨」的驗收。
 design-zip: lint
 	@rm -f design-system.zip
-	@cd design-system && zip -qr ../design-system.zip . -x '.presentation-baseline.json'
+	@cd design-system && zip -qr ../design-system.zip . -x '.presentation-baseline.json' 'tokens/_legacy-aliases.json'
 	@du -h design-system.zip | awk '{print "✔ design-system.zip " $$1}'
 
 # 解析 test-reports/ 的產物並上傳 Notion。由 test-unit / test-uitest 在 REPORT=true 時呼叫，

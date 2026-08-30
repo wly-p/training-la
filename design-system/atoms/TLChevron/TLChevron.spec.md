@@ -30,7 +30,8 @@
 
 ## 4 狀態 states ★
 
-<!-- states: default, light, dark -->
+<!-- states: default -->
+<!-- themes: light, dark -->
 
 | 類別 | 狀態 | 這個元件 |
 |---|---|---|
@@ -45,8 +46,8 @@
 
 | | |
 |---|---|
-| 字級 | 13pt semibold（SF Symbol 的視覺尺寸，非 token 角色字級） |
-| 尺寸 | 由 SF Symbol 決定，不設 frame |
+| 圖示尺寸 | `icon.s` ＋ `icon.weight` |
+| 外框 | 由 SF Symbol 決定，不設 frame |
 | 內距 | 無 —— 由使用它的列給 |
 
 ## 6 配色 ★
@@ -62,7 +63,7 @@
 **方向性**：SF Symbol 的 `chevron.right` 在 RTL 語系會自動鏡射。App 目前只有中／英（皆 LTR），
 所以不影響，但**不要改用固定方向的自繪箭頭**，那會讓未來加入 RTL 語系時默默壞掉。
 
-**Dynamic Type**：目前固定 13pt，不跟隨。C7a 決定支援範圍時，它應該跟著 `rowTitle` 一起縮放
+**Dynamic Type**：目前固定 `icon.s`，不跟隨。C7a 決定支援範圍時，它應該跟著 `rowTitle` 一起縮放
 （它是列的一部分，單獨縮放會和主標對不齊）。
 
 ## 8 動態
@@ -95,4 +96,5 @@ N/A（L1 原子）。
 |---|---|---|
 | 2026-08-30 | 從 `TLListRow.swift` 抽出成獨立檔 | 原本埋在分子檔裡，沒有地址，無法單獨交付給設計端 |
 | 2026-08-30 | 顏色從 `neutral500` 改成 `textTertiary` | 值相同（兩者都指向色階層的 `neutral.500`），改用語意層才有深色的位置 |
-| 2026-08-30 | **規格字級訂為 13pt，不是 16pt** | 設計文件 `11-component-inventory.md` 與原本的 doc comment 都寫「16pt bold」，但程式碼從來都是 13pt semibold。以**實作為準**——16pt 在 15pt 的列主標旁邊會比主標還大，明顯不對。設計端的清單要更正 |
+| 2026-08-30 | **規格圖示尺寸訂為 `icon.s`（13），不是 16** | 設計文件 `11-component-inventory.md` 與原本的 doc comment 都寫「16pt bold」，但程式碼從來都是 13pt semibold。以**實作為準**——16pt 在 15pt 的列主標旁邊會比主標還大，明顯不對。設計端的清單要更正 |
+| 2026-08-30 | 主題從 states 拆到 themes；尺寸改用 `icon.*` token；外殼樣式移到共用 `preview.css` | 設計端審閱指出：主題是維度不是狀態，把它放進 states 會讓機器檢查通過得沒有意義；而每份 preview 各自重寫外殼會讓交付包自己變成漂移來源 |

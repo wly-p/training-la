@@ -1,0 +1,109 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>Token 參考</title>
+<link rel="stylesheet" href="tokens.css">
+<link rel="stylesheet" href="../preview.css">
+<style>
+  .swatches { display: flex; flex-wrap: wrap; gap: 2px; }
+  .sw { width: 76px; }
+  .chip { height: 46px; border-radius: 6px; border: 1px solid var(--border-subtle); }
+  .cap { font-size: var(--font-kicker); color: var(--text-tertiary); margin-top: 4px; }
+  .bar { background: var(--action-primary); height: 12px; border-radius: 3px; }
+  .box { background: var(--surface-track); width: 92px; height: 60px;
+         display: inline-block; margin-right: var(--space-gap-m); }
+</style>
+<h1>Token 參考</h1>
+<p class="note">全部由 <code>tokens.json</code> 生成。要改值改來源，不要改這頁。<br>色階層是固定色票，元件不該直接用；語意層才是元件該用的東西。</p>
+<div class="kicker">色階層 primitive</div>
+<div class="cap">accent</div><div class="swatches">
+  <div class="sw"><div class="chip" style="background: var(--accent-100)"></div><div class="cap">100</div></div>
+  <div class="sw"><div class="chip" style="background: var(--accent-200)"></div><div class="cap">200</div></div>
+  <div class="sw"><div class="chip" style="background: var(--accent-300)"></div><div class="cap">300</div></div>
+  <div class="sw"><div class="chip" style="background: var(--accent-400)"></div><div class="cap">400</div></div>
+  <div class="sw"><div class="chip" style="background: var(--accent-500)"></div><div class="cap">500</div></div>
+  <div class="sw"><div class="chip" style="background: var(--accent-600)"></div><div class="cap">600</div></div>
+  <div class="sw"><div class="chip" style="background: var(--accent-700)"></div><div class="cap">700</div></div>
+  <div class="sw"><div class="chip" style="background: var(--accent-800)"></div><div class="cap">800</div></div>
+  <div class="sw"><div class="chip" style="background: var(--accent-900)"></div><div class="cap">900</div></div>
+</div>
+<div class="cap">sage</div><div class="swatches">
+  <div class="sw"><div class="chip" style="background: var(--sage-100)"></div><div class="cap">100</div></div>
+  <div class="sw"><div class="chip" style="background: var(--sage-200)"></div><div class="cap">200</div></div>
+  <div class="sw"><div class="chip" style="background: var(--sage-300)"></div><div class="cap">300</div></div>
+  <div class="sw"><div class="chip" style="background: var(--sage-400)"></div><div class="cap">400</div></div>
+  <div class="sw"><div class="chip" style="background: var(--sage-500)"></div><div class="cap">500</div></div>
+  <div class="sw"><div class="chip" style="background: var(--sage-600)"></div><div class="cap">600</div></div>
+  <div class="sw"><div class="chip" style="background: var(--sage-700)"></div><div class="cap">700</div></div>
+  <div class="sw"><div class="chip" style="background: var(--sage-800)"></div><div class="cap">800</div></div>
+  <div class="sw"><div class="chip" style="background: var(--sage-900)"></div><div class="cap">900</div></div>
+</div>
+<div class="cap">neutral</div><div class="swatches">
+  <div class="sw"><div class="chip" style="background: var(--neutral-100)"></div><div class="cap">100</div></div>
+  <div class="sw"><div class="chip" style="background: var(--neutral-200)"></div><div class="cap">200</div></div>
+  <div class="sw"><div class="chip" style="background: var(--neutral-300)"></div><div class="cap">300</div></div>
+  <div class="sw"><div class="chip" style="background: var(--neutral-400)"></div><div class="cap">400</div></div>
+  <div class="sw"><div class="chip" style="background: var(--neutral-500)"></div><div class="cap">500</div></div>
+  <div class="sw"><div class="chip" style="background: var(--neutral-600)"></div><div class="cap">600</div></div>
+  <div class="sw"><div class="chip" style="background: var(--neutral-700)"></div><div class="cap">700</div></div>
+  <div class="sw"><div class="chip" style="background: var(--neutral-800)"></div><div class="cap">800</div></div>
+  <div class="sw"><div class="chip" style="background: var(--neutral-900)"></div><div class="cap">900</div></div>
+</div>
+<div class="cap">danger</div><div class="swatches">
+  <div class="sw"><div class="chip" style="background: var(--danger-100)"></div><div class="cap">100</div></div>
+  <div class="sw"><div class="chip" style="background: var(--danger-200)"></div><div class="cap">200</div></div>
+  <div class="sw"><div class="chip" style="background: var(--danger-300)"></div><div class="cap">300</div></div>
+  <div class="sw"><div class="chip" style="background: var(--danger-400)"></div><div class="cap">400</div></div>
+  <div class="sw"><div class="chip" style="background: var(--danger-500)"></div><div class="cap">500</div></div>
+  <div class="sw"><div class="chip" style="background: var(--danger-600)"></div><div class="cap">600</div></div>
+  <div class="sw"><div class="chip" style="background: var(--danger-700)"></div><div class="cap">700</div></div>
+  <div class="sw"><div class="chip" style="background: var(--danger-800)"></div><div class="cap">800</div></div>
+  <div class="sw"><div class="chip" style="background: var(--danger-900)"></div><div class="cap">900</div></div>
+</div>
+<div class="cap">sand / ink</div><div class="swatches">
+  <div class="sw"><div class="chip" style="background: var(--sand-base)"></div><div class="cap">sand.base</div></div>
+  <div class="sw"><div class="chip" style="background: var(--sand-raised)"></div><div class="cap">sand.raised</div></div>
+  <div class="sw"><div class="chip" style="background: var(--ink-900)"></div><div class="cap">ink.900</div></div></div>
+<div class="kicker">語意層 semantic — 元件只准用這一層</div><div class="group">
+  <div class="row"><span class="chip" style="width:34px;height:34px;background: var(--surface-base)"></span><span class="label"><code>surface-base</code> — 頁面底色</span><span class="cap">→ sand.base</span></div>
+  <div class="row"><span class="chip" style="width:34px;height:34px;background: var(--surface-raised)"></span><span class="label"><code>surface-raised</code> — 卡片／群組容器底</span><span class="cap">→ neutral.100</span></div>
+  <div class="row"><span class="chip" style="width:34px;height:34px;background: var(--surface-track)"></span><span class="label"><code>surface-track</code> — 分段控制軌道</span><span class="cap">→ neutral.200</span></div>
+  <div class="row"><span class="chip" style="width:34px;height:34px;background: var(--surface-input)"></span><span class="label"><code>surface-input</code> — 輸入色帶（訓練頁）</span><span class="cap">→ neutral.300</span></div>
+  <div class="row"><span class="chip" style="width:34px;height:34px;background: var(--text-primary)"></span><span class="label"><code>text-primary</code> — 主文字</span><span class="cap">→ ink.900</span></div>
+  <div class="row"><span class="chip" style="width:34px;height:34px;background: var(--text-secondary)"></span><span class="label"><code>text-secondary</code> — 二級文字</span><span class="cap">→ neutral.600</span></div>
+  <div class="row"><span class="chip" style="width:34px;height:34px;background: var(--text-tertiary)"></span><span class="label"><code>text-tertiary</code> — 三級文字／icon</span><span class="cap">→ neutral.500</span></div>
+  <div class="row"><span class="chip" style="width:34px;height:34px;background: var(--text-numeric)"></span><span class="label"><code>text-numeric</code> — 大數字</span><span class="cap">→ neutral.900</span></div>
+  <div class="row"><span class="chip" style="width:34px;height:34px;background: var(--border-subtle)"></span><span class="label"><code>border-subtle</code> — 列間分隔線</span><span class="cap">→ ink.900 @ 0.08</span></div>
+  <div class="row"><span class="chip" style="width:34px;height:34px;background: var(--action-primary)"></span><span class="label"><code>action-primary</code> — 可操作的東西（赭紅）</span><span class="cap">→ accent.500</span></div>
+  <div class="row"><span class="chip" style="width:34px;height:34px;background: var(--action-pressed)"></span><span class="label"><code>action-pressed</code> — 實心按鈕按下態</span><span class="cap">→ accent.600</span></div>
+  <div class="row"><span class="chip" style="width:34px;height:34px;background: var(--category-tag)"></span><span class="label"><code>category-tag</code> — 分類標示（肌群）</span><span class="cap">→ sage.500</span></div>
+  <div class="row"><span class="chip" style="width:34px;height:34px;background: var(--danger-solid)"></span><span class="label"><code>danger-solid</code> — 破壞性實心底</span><span class="cap">→ danger.600</span></div>
+  <div class="row"><span class="chip" style="width:34px;height:34px;background: var(--accent-on-surface)"></span><span class="label"><code>accent-on-surface</code> — 在容器底上的可讀 accent 文字</span><span class="cap">→ accent.700</span></div>
+  <div class="row"><span class="chip" style="width:34px;height:34px;background: var(--danger-on-surface)"></span><span class="label"><code>danger-on-surface</code> — 在容器底上的破壞性文字／外框</span><span class="cap">→ danger.700</span></div>
+</div>
+<div class="kicker">字級角色（中文值；英文 × 1.08）</div><div class="group">
+  <div class="row" style="height:auto;padding-top:var(--space-gap-m);padding-bottom:var(--space-gap-m)"><span class="label" style="font-size: var(--font-page-title);font-family: var(--font-page-title-family)">訓練 Training</span><span class="cap"><code>page-title</code> 34 · zh</span></div>
+  <div class="row" style="height:auto;padding-top:var(--space-gap-m);padding-bottom:var(--space-gap-m)"><span class="label" style="font-size: var(--font-card-title);font-family: var(--font-card-title-family)">訓練 Training</span><span class="cap"><code>card-title</code> 21 · zh</span></div>
+  <div class="row" style="height:auto;padding-top:var(--space-gap-m);padding-bottom:var(--space-gap-m)"><span class="label" style="font-size: var(--font-row-title);font-family: var(--font-row-title-family)">訓練 Training</span><span class="cap"><code>row-title</code> 15 · zh</span></div>
+  <div class="row" style="height:auto;padding-top:var(--space-gap-m);padding-bottom:var(--space-gap-m)"><span class="label" style="font-size: var(--font-row-sub);font-family: var(--font-row-sub-family)">訓練 Training</span><span class="cap"><code>row-sub</code> 11.5 · zh</span></div>
+  <div class="row" style="height:auto;padding-top:var(--space-gap-m);padding-bottom:var(--space-gap-m)"><span class="label" style="font-size: var(--font-kicker);font-family: var(--font-kicker-family)">訓練 Training</span><span class="cap"><code>kicker</code> 10.5 · zh</span></div>
+  <div class="row" style="height:auto;padding-top:var(--space-gap-m);padding-bottom:var(--space-gap-m)"><span class="label" style="font-size: var(--font-big-number);font-family: var(--font-big-number-family)">12.5 kg × 8</span><span class="cap"><code>big-number</code> 66 · display</span></div>
+</div>
+<div class="kicker">間距</div><div class="group">
+  <div class="row"><span class="label"><code>page</code></span><span class="bar" style="width: var(--space-page)"></span><span class="cap">26</span></div>
+  <div class="row"><span class="label"><code>section</code></span><span class="bar" style="width: var(--space-section)"></span><span class="cap">26</span></div>
+  <div class="row"><span class="label"><code>row-inset</code></span><span class="bar" style="width: var(--space-row-inset)"></span><span class="cap">18</span></div>
+  <div class="row"><span class="label"><code>gap-s</code></span><span class="bar" style="width: var(--space-gap-s)"></span><span class="cap">8</span></div>
+  <div class="row"><span class="label"><code>gap-m</code></span><span class="bar" style="width: var(--space-gap-m)"></span><span class="cap">13</span></div>
+  <div class="row"><span class="label"><code>gap-l</code></span><span class="bar" style="width: var(--space-gap-l)"></span><span class="cap">20</span></div>
+</div>
+<div class="kicker">圓角</div><p>
+  <span class="box" style="border-radius: var(--radius-container)"></span>
+  <span class="box" style="border-radius: var(--radius-inner)"></span>
+  <span class="box" style="border-radius: var(--radius-pill)"></span>
+</p><p class="cap">container 28 · inner 20 · pill 999</p>
+<div class="kicker">陰影</div><p>
+  <span class="box" style="background: var(--surface-raised);border-radius: var(--radius-inner); box-shadow: var(--shadow-sm)"></span>
+  <span class="box" style="background: var(--surface-raised);border-radius: var(--radius-inner); box-shadow: var(--shadow-md)"></span>
+  <span class="box" style="background: var(--surface-raised);border-radius: var(--radius-inner); box-shadow: var(--shadow-lg)"></span>
+</p><p class="cap">sm（卡片） · md（分段控制選中膠囊） · lg（對話框）</p>
+<div class="kicker">圖示尺寸與動效</div><p class="note"><code>icon.s</code> 13 · <code>icon.m</code> 16 · <code>icon.l</code> 20 · stroke 2.75<br><code>motion.fast</code> 0.15s · <code>motion.base</code> 0.2s · easeOut</p>

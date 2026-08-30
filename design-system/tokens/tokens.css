@@ -7,6 +7,13 @@
   font-display: swap;
 }
 
+/* 實作用系統的 PingFang TC；preview 用包內的 Noto Sans TC 子集，與設計稿一致。子集由 scripts/gen-preview-font.py 從 preview 實際用到的字產生。 */
+@font-face {
+  font-family: 'Noto Sans TC';
+  src: url('../fonts/NotoSansTC-subset.woff2') format('woff2');
+  font-display: swap;
+}
+
 :root {
   /* ── 色階層 primitive ── */
   --accent-100: #FFF2EB;
@@ -51,7 +58,6 @@
 
   /* ── 語意層 semantic（淺色）── */
   --surface-base: rgb(245 234 216);  /* 頁面底色 */
-  --surface-sunken: rgb(235 221 197);  /* 頁面上的表面色塊 */
   --surface-raised: rgb(249 244 237);  /* 卡片／群組容器底 */
   --surface-track: rgb(238 231 219);  /* 分段控制軌道 */
   --surface-input: rgb(220 211 196);  /* 輸入色帶（訓練頁） */
@@ -62,10 +68,10 @@
   --border-subtle: rgb(32 30 29 / 8%);  /* 列間分隔線 */
   --action-primary: rgb(198 113 57);  /* 可操作的東西（赭紅） */
   --action-pressed: rgb(178 98 45);  /* 實心按鈕按下態 */
-  --accent-on-light: rgb(140 73 26);  /* 淺底上的可讀 accent 文字 */
   --category-tag: rgb(122 138 94);  /* 分類標示（肌群） */
   --danger-solid: rgb(183 71 54);  /* 破壞性實心底 */
-  --danger-on-light: rgb(126 49 35);  /* 淺底上的破壞性文字／外框 */
+  --accent-on-surface: rgb(140 73 26);  /* 在容器底上的可讀 accent 文字 */
+  --danger-on-surface: rgb(126 49 35);  /* 在容器底上的破壞性文字／外框 */
 
   /* ── 尺寸 ── */
   --space-page: 26px;
@@ -96,8 +102,28 @@
   --font-kicker: 10.5px;
   --font-big-number: 66px;
   --font-kicker-tracking: 0.16em;
+
+  /* 家族。每個角色歸屬哪一支見下面的 --font-<role>-family。 */
   --font-display: 'Caprasimo', serif;
   --font-zh: 'Noto Sans TC', 'PingFang TC', sans-serif;
+  --font-en: system-ui, -apple-system, sans-serif;
+  --font-page-title-family: var(--font-zh);
+  --font-card-title-family: var(--font-zh);
+  --font-row-title-family: var(--font-zh);
+  --font-row-sub-family: var(--font-zh);
+  --font-kicker-family: var(--font-zh);
+  --font-big-number-family: var(--font-display);
+
+  /* 圖示。SF Symbol 的視覺尺寸。設計端對應 Lucide，stroke width 2.75。 */
+  --icon-s: 13px;
+  --icon-m: 16px;
+  --icon-l: 20px;
+  --icon-stroke: 2.75;
+
+  /* 動效 */
+  --motion-fast: 0.15s;
+  --motion-base: 0.2s;
+  --motion-curve: cubic-bezier(0, 0, 0.58, 1);  /* easeOut */
 
   /* ── 陰影 ── */
   --shadow-sm: 0 1px 2px rgb(46 43 37 / 14%);  /* 卡片 */
@@ -106,11 +132,14 @@
 }
 
 /* 深色：目前是淺色的複製——位置先留好，實際色階等 C6a。
-   只有語意層有 theme 分支；色階層是固定色票，不在這裡覆寫。 */
+   只有語意層有 theme 分支；色階層是固定色票，不在這裡覆寫。
+
+   選擇器刻意用 [data-theme="dark"] 而不是 :root[data-theme="dark"]：
+   preview 要能把兩個主題並排在同一頁（各自掛在子元素上對照），
+   綁死 :root 的話只有整頁切換才生效，並排永遠是同一個主題。 */
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
     --surface-base: rgb(245 234 216);
-    --surface-sunken: rgb(235 221 197);
     --surface-raised: rgb(249 244 237);
     --surface-track: rgb(238 231 219);
     --surface-input: rgb(220 211 196);
@@ -121,16 +150,15 @@
     --border-subtle: rgb(32 30 29 / 8%);
     --action-primary: rgb(198 113 57);
     --action-pressed: rgb(178 98 45);
-    --accent-on-light: rgb(140 73 26);
     --category-tag: rgb(122 138 94);
     --danger-solid: rgb(183 71 54);
-    --danger-on-light: rgb(126 49 35);
+    --accent-on-surface: rgb(140 73 26);
+    --danger-on-surface: rgb(126 49 35);
   }
 }
 
-:root[data-theme="dark"] {
+[data-theme="dark"] {
   --surface-base: rgb(245 234 216);
-  --surface-sunken: rgb(235 221 197);
   --surface-raised: rgb(249 244 237);
   --surface-track: rgb(238 231 219);
   --surface-input: rgb(220 211 196);
@@ -141,8 +169,26 @@
   --border-subtle: rgb(32 30 29 / 8%);
   --action-primary: rgb(198 113 57);
   --action-pressed: rgb(178 98 45);
-  --accent-on-light: rgb(140 73 26);
   --category-tag: rgb(122 138 94);
   --danger-solid: rgb(183 71 54);
-  --danger-on-light: rgb(126 49 35);
+  --accent-on-surface: rgb(140 73 26);
+  --danger-on-surface: rgb(126 49 35);
+}
+
+[data-theme="light"] {
+  --surface-base: rgb(245 234 216);
+  --surface-raised: rgb(249 244 237);
+  --surface-track: rgb(238 231 219);
+  --surface-input: rgb(220 211 196);
+  --text-primary: rgb(32 30 29);
+  --text-secondary: rgb(130 121 106);
+  --text-tertiary: rgb(161 151 134);
+  --text-numeric: rgb(46 43 37);
+  --border-subtle: rgb(32 30 29 / 8%);
+  --action-primary: rgb(198 113 57);
+  --action-pressed: rgb(178 98 45);
+  --category-tag: rgb(122 138 94);
+  --danger-solid: rgb(183 71 54);
+  --accent-on-surface: rgb(140 73 26);
+  --danger-on-surface: rgb(126 49 35);
 }

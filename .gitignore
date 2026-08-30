@@ -66,3 +66,6 @@ test-reports/
 
 # make design-zip 的產物（交付用，隨時可重生）
 design-system.zip
+
+# 子集化用的原始字型快取（10MB+，需要時由 scripts/gen-preview-font.py 下載）
+.font-cache/

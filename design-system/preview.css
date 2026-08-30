@@ -1,0 +1,79 @@
+/* preview 的共用外殼。**這支不是生成物，可以手改。**
+ *
+ * 為什麼要有它：每份 preview 各自重寫 .group / .row / .kicker 這些外殼樣式的話，
+ * 第二個元件會 copy-paste，第十個就開始漂移——於是「preview 長得不一樣」變成新的
+ * 漂移來源，而且是在用來防漂移的那包東西裡面。
+ *
+ * 這支只服務 preview，不進 app。元件自己特有的樣式寫在各自的 preview.html 裡。
+ */
+
+body {
+  margin: 0;
+  padding: var(--space-page);
+  background: var(--surface-base);
+  color: var(--text-primary);
+  font-family: var(--font-zh);
+  font-size: var(--font-row-title);
+}
+
+h1 {
+  font-family: var(--font-page-title-family);
+  font-size: var(--font-card-title);
+  font-weight: 700;
+  margin: 0 0 var(--space-gap-l);
+}
+
+.kicker {
+  font-size: var(--font-kicker);
+  letter-spacing: var(--font-kicker-tracking);
+  text-transform: uppercase;
+  color: var(--text-tertiary);
+  margin: var(--space-section) 0 var(--space-gap-s);
+}
+.kicker:first-child { margin-top: 0; }
+
+.note {
+  font-size: var(--font-row-sub);
+  color: var(--text-secondary);
+  line-height: 1.6;
+  margin-top: var(--space-gap-s);
+}
+
+/* 群組容器：圓角 28 ＋ neutral-100 底 ＋ 列間 1px 分隔線左內縮 18，首尾不畫線 */
+.group {
+  background: var(--surface-raised);
+  border-radius: var(--radius-container);
+  overflow: hidden;
+}
+.row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-gap-m);
+  height: var(--size-row);
+  padding: 0 var(--space-row-inset);
+  border-bottom: 1px solid var(--border-subtle);
+}
+.row:last-child { border-bottom: 0; }
+.row .label { flex: 1; min-width: 0; }
+
+/* 主題並排：兩個 pane 各自掛 data-theme，靠 tokens.css 的元素層級選擇器生效。
+   並排比切換好用——不必點擊就能對照。 */
+.themes { display: flex; gap: var(--space-gap-l); flex-wrap: wrap; }
+.pane {
+  flex: 1 1 260px;
+  min-width: 0;
+  padding: var(--space-gap-l);
+  border-radius: var(--radius-inner);
+  background: var(--surface-base);
+}
+
+/* 數字一律 Caprasimo */
+.num { font-family: var(--font-display); }
+
+code {
+  font-family: ui-monospace, monospace;
+  font-size: 0.92em;
+  background: var(--surface-track);
+  padding: 1px 5px;
+  border-radius: 5px;
+}

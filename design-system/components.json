@@ -1,0 +1,26 @@
+{
+  "tokensVersion": 1,
+  "components": [
+    {
+      "name": "TLChevron",
+      "level": "L1",
+      "layer": "atoms",
+      "responsibility": "可進入的列右側的指向記號",
+      "prototypeIds": "出現在所有可進入的列（`4b` `4c` `5b` `5c`）",
+      "props": [],
+      "states": [
+        "default"
+      ],
+      "themes": [
+        "light",
+        "dark"
+      ],
+      "composedOf": null,
+      "paths": {
+        "spec": "atoms/TLChevron/TLChevron.spec.md",
+        "preview": "atoms/TLChevron/TLChevron.preview.html",
+        "impl": "Packages/DesignSystem/Sources/DesignSystem/Atoms/TLChevron.swift"
+      }
+    }
+  ]
+}

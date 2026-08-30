@@ -80,27 +80,25 @@ public enum TLColor {
     // ── 語意層 semantic ───────────────────────────────
     // 元件只准用這一層。名字描述角色，不描述外觀——所以深色接上時不用改名。
     // C6a 會把這些改成隨 colorScheme 解析的 dynamic color；型別仍是 Color，呼叫端不動。
-    public static let surfaceBase   = Color(hex: 0xF5EAD8)  // 頁面底色
-    public static let surfaceSunken = Color(hex: 0xEBDDC5)  // 頁面上的表面色塊
-    public static let surfaceRaised = Color(hex: 0xF9F4ED)  // 卡片／群組容器底
-    public static let surfaceTrack  = Color(hex: 0xEEE7DB)  // 分段控制軌道
-    public static let surfaceInput  = Color(hex: 0xDCD3C4)  // 輸入色帶（訓練頁）
-    public static let textPrimary   = Color(hex: 0x201E1D)  // 主文字
-    public static let textSecondary = Color(hex: 0x82796A)  // 二級文字
-    public static let textTertiary  = Color(hex: 0xA19786)  // 三級文字／icon
-    public static let textNumeric   = Color(hex: 0x2E2B25)  // 大數字
-    public static let borderSubtle  = Color(hex: 0x201E1D).opacity(0.08)  // 列間分隔線
-    public static let actionPrimary = Color(hex: 0xC67139)  // 可操作的東西（赭紅）
-    public static let actionPressed = Color(hex: 0xB2622D)  // 實心按鈕按下態
-    public static let accentOnLight = Color(hex: 0x8C491A)  // 淺底上的可讀 accent 文字
-    public static let categoryTag   = Color(hex: 0x7A8A5E)  // 分類標示（肌群）
-    public static let dangerSolid   = Color(hex: 0xB74736)  // 破壞性實心底
-    public static let dangerOnLight = Color(hex: 0x7E3123)  // 淺底上的破壞性文字／外框
+    public static let surfaceBase     = Color(hex: 0xF5EAD8)  // 頁面底色
+    public static let surfaceRaised   = Color(hex: 0xF9F4ED)  // 卡片／群組容器底
+    public static let surfaceTrack    = Color(hex: 0xEEE7DB)  // 分段控制軌道
+    public static let surfaceInput    = Color(hex: 0xDCD3C4)  // 輸入色帶（訓練頁）
+    public static let textPrimary     = Color(hex: 0x201E1D)  // 主文字
+    public static let textSecondary   = Color(hex: 0x82796A)  // 二級文字
+    public static let textTertiary    = Color(hex: 0xA19786)  // 三級文字／icon
+    public static let textNumeric     = Color(hex: 0x2E2B25)  // 大數字
+    public static let borderSubtle    = Color(hex: 0x201E1D).opacity(0.08)  // 列間分隔線
+    public static let actionPrimary   = Color(hex: 0xC67139)  // 可操作的東西（赭紅）
+    public static let actionPressed   = Color(hex: 0xB2622D)  // 實心按鈕按下態
+    public static let categoryTag     = Color(hex: 0x7A8A5E)  // 分類標示（肌群）
+    public static let dangerSolid     = Color(hex: 0xB74736)  // 破壞性實心底
+    public static let accentOnSurface = Color(hex: 0x8C491A)  // 在容器底上的可讀 accent 文字
+    public static let dangerOnSurface = Color(hex: 0x7E3123)  // 在容器底上的破壞性文字／外框
 
     // ── 遷移中：舊名 ─────────────────────────────────
-    // 遷移中：現行 Swift API 的舊名，55 個檔在用。各階段榨取時逐步換成語意名，全部換完就從這裡刪掉。
+    // 各階段榨取時逐步換成語意名。來源 tokens/_legacy-aliases.json（不進交付包）。
     public static let bg       = surfaceBase
-    public static let surface  = surfaceSunken
     public static let text     = textPrimary
     public static let divider  = borderSubtle
 }
@@ -135,6 +133,22 @@ public enum TLSize {
     public static let switchH:         CGFloat = 28  
 }
 
+public enum TLIcon {
+    // SF Symbol 的視覺尺寸。設計端對應 Lucide，stroke width 2.75。
+    public static let s: CGFloat = 13
+    public static let m: CGFloat = 16
+    public static let l: CGFloat = 20
+    public static let weight: Font.Weight = .semibold
+}
+
+public enum TLMotion {
+    // 來自程式碼現況：easeOut 0.2（4 處）、0.18（1 處）、0.15（1 處）。0.18 是落單值，之後應收斂到 fast 或 base，收斂前不要新增第四個值。
+    public static let fast: Double = 0.15
+    public static let base: Double = 0.2
+    public static var quick: Animation { .easeOut(duration: fast) }
+    public static var standard: Animation { .easeOut(duration: base) }
+}
+
 // MARK: - Typography
 //
 // 兩支字體分工：
@@ -166,12 +180,12 @@ public enum TLFont {
     }
 
     // 角色字級（中文值；英文乘 1.08）
-    public static let pageTitle: CGFloat = 34   // 頁面主標，允許兩行
-    public static let cardTitle: CGFloat = 21   
-    public static let rowTitle:  CGFloat = 15   
-    public static let rowSub:    CGFloat = 11.5 
-    public static let kicker:    CGFloat = 10.5 // 大寫
-    public static let bigNumber: CGFloat = 66   // 訓練頁重量／次數
+    public static let pageTitle: CGFloat = 34   // zh 家族；頁面主標，允許兩行
+    public static let cardTitle: CGFloat = 21   // zh 家族
+    public static let rowTitle:  CGFloat = 15   // zh 家族
+    public static let rowSub:    CGFloat = 11.5 // zh 家族
+    public static let kicker:    CGFloat = 10.5 // zh 家族；大寫
+    public static let bigNumber: CGFloat = 66   // display 家族；訓練頁重量／次數
 
     /// kicker 的字距（em → pt）。SwiftUI 的 tracking 吃點數，不是 em。
     public static let kickerTracking: CGFloat = 10.5 * 0.16

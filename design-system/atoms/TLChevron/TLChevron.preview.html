@@ -3,60 +3,35 @@
 <meta charset="utf-8">
 <title>TLChevron</title>
 <link rel="stylesheet" href="../../tokens/tokens.css">
+<link rel="stylesheet" href="../../preview.css">
 <style>
-  body {
-    margin: 0; padding: var(--space-page);
-    background: var(--surface-base); color: var(--text-primary);
-    font-family: var(--font-zh);
-  }
-  h1 { font-size: var(--font-card-title); margin: 0 0 var(--space-gap-l); font-weight: 700; }
-  .kicker {
-    font-size: var(--font-kicker); letter-spacing: var(--font-kicker-tracking);
-    text-transform: uppercase; color: var(--text-tertiary);
-    margin: var(--space-section) 0 var(--space-gap-s);
-  }
-  .group {
-    background: var(--surface-raised); border-radius: var(--radius-container);
-    overflow: hidden;
-  }
-  .row {
-    display: flex; align-items: center; gap: var(--space-gap-m);
-    height: var(--size-row); padding: 0 var(--space-row-inset);
-    border-bottom: 1px solid var(--border-subtle);
-  }
-  .row:last-child { border-bottom: 0; }
-  .row .label { flex: 1; font-size: var(--font-row-title); }
-  .note { font-size: var(--font-row-sub); color: var(--text-secondary); margin-top: var(--space-gap-s); }
-
-  /* 記號本體。設計端用 Lucide 形狀（stroke 2.75）；實作用 SF Symbol chevron.right 13pt semibold。 */
   .chevron { display: block; color: var(--text-tertiary); }
-
-  /* 切換 */
-  .themes { display: flex; gap: var(--space-gap-l); flex-wrap: wrap; }
-  .pane { flex: 1 1 260px; min-width: 0; padding: var(--space-gap-l);
-          border-radius: var(--radius-inner); background: var(--surface-base); }
-  .pane[data-theme="dark"] { }
 </style>
 
 <h1>TLChevron</h1>
 <p class="note">
   L1 原子。無 props、無變體。尺寸與顏色固定；間距由使用它的列負責。<br>
-  設計端形狀用 Lucide <code>chevron-right</code>（stroke 2.75），實作用 SF Symbol
-  <code>chevron.right</code> 13pt semibold —— 這是全專案既定的圖示對應慣例。
+  設計端形狀用 Lucide <code>chevron-right</code>（<code>--icon-stroke</code>），
+  實作用 SF Symbol <code>chevron.right</code>（<code>--icon-s</code>／semibold）——
+  這是全專案既定的圖示對應慣例。
 </p>
 
 <div class="kicker">狀態</div>
+<div class="group">
+  <div class="row" data-state="default">
+    <span class="label">預設（唯一的狀態）</span>
+    <svg class="chevron" width="14" height="14" viewBox="0 0 24 24" fill="none"
+         stroke="currentColor" stroke-width="2.75" stroke-linecap="round" stroke-linejoin="round"
+         aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg>
+  </div>
+</div>
+
+<div class="kicker">主題</div>
 <div class="themes">
   <div class="pane" data-theme="light">
-    <div class="kicker" style="margin-top:0">light</div>
+    <div class="kicker">light</div>
     <div class="group">
-      <div class="row" data-state="default">
-        <span class="label">預設（唯一的互動狀態）</span>
-        <svg class="chevron" width="14" height="14" viewBox="0 0 24 24" fill="none"
-             stroke="currentColor" stroke-width="2.75" stroke-linecap="round" stroke-linejoin="round"
-             aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg>
-      </div>
-      <div class="row" data-state="light">
+      <div class="row">
         <span class="label">在群組容器裡的實際位置</span>
         <svg class="chevron" width="14" height="14" viewBox="0 0 24 24" fill="none"
              stroke="currentColor" stroke-width="2.75" stroke-linecap="round" stroke-linejoin="round"
@@ -64,12 +39,11 @@
       </div>
     </div>
   </div>
-
   <div class="pane" data-theme="dark">
-    <div class="kicker" style="margin-top:0">dark（目前是 light 的複製）</div>
+    <div class="kicker">dark（目前是 light 的複製）</div>
     <div class="group">
-      <div class="row" data-state="dark">
-        <span class="label">預設</span>
+      <div class="row">
+        <span class="label">在群組容器裡的實際位置</span>
         <svg class="chevron" width="14" height="14" viewBox="0 0 24 24" fill="none"
              stroke="currentColor" stroke-width="2.75" stroke-linecap="round" stroke-linejoin="round"
              aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg>

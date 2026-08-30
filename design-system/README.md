@@ -142,6 +142,21 @@ L4 畫面檔裡不得出現任何樣式定義：沒有 hex、沒有字級數字�
 | **語言** | 字級 | 已存在（英文 ×1.08 補償） | — |
 | **Dynamic Type** | 字級 | 只留 `relativeTo` 的位置 | C7a 決定支援範圍 |
 
+四捨五入只作用在「中文值 × 1.08」的結果，**基準值本身可以是小數**
+（`rowSub` 11.5 × 1.08 = 12.42 → 12）。
+
+### token 還涵蓋兩組容易被漏掉的東西
+
+- **`icon`** —— 圖示尺寸 `s`/`m`/`l` ＋ 字重 ＋ stroke。沒有它，每個有圖示的元件都會在規格
+  第 5 節寫死數字，而機器檢查只擋色值、擋不到尺寸。
+- **`motion`** —— 時長與曲線。規格第 8 節要填轉場與動畫，沒有 token 就會全變成 `0.2s ease-out`
+  這種字面值。值取自程式碼現況（easeOut 0.2／0.18／0.15），**不是憑空定的三階**；
+  `0.18` 是落單值，之後應收斂，收斂前不要新增第四個值。
+
+字級角色另外標明**歸屬家族**（`bigNumber` 是 Caprasimo，其餘是中文家族），
+所以 `--font-big-number-family` 跟著字級一起輸出 —— 否則用的人要自己記得再配一個
+`font-family`，忘了就是靜默用錯字型。
+
 `dark` 的值先複製 `light`，**不填 `null`、不填機械推導的暫時值**：生成物要永遠可編譯、preview 要永遠渲染得出來、切換機制要永遠可測。差別只在「深色目前長得跟淺色一樣」—— 這是誠實的中間狀態。
 
 同樣的原則套用在 Dynamic Type：**位置現在留，值之後填**。否則那張票會逼你回頭改每一份規格。
@@ -246,33 +261,49 @@ L1 原子通常沒有第 2 節的 slots、也沒有第 11 節；其餘各節都�
 
 ```
 design-system/
+  README.md                  這份（規則書，跟著 zip 一起交付）
+  index.html                 ← 生成。元件索引，先看這頁
+  components.json            ← 生成。機器讀的登錄檔，從各 spec 抽出
+  _template.spec.md          規格樣板
+  preview.css                preview 的共用外殼（手改，不是生成物）
   tokens/
-    tokens.json          ← 唯一來源
-    tokens.css           ← 生成（CSS 變數，含 :root 與 :root[data-theme="dark"]）
-    DesignTokens.swift   ← 生成
+    tokens.json              ← 唯一來源
+    tokens.css               ← 生成
+    tokens.preview.html      ← 生成。token 的實際樣子
+    _legacy-aliases.json     遷移中的舊名，**不進交付包**
   fonts/
-    Caprasimo-Regular.ttf
-  atoms/
+    Caprasimo-Regular.ttf    數字與英文
+    NotoSansTC-subset.woff2  ← 生成。preview 的中文，只含實際用到的字
+  atoms/  molecules/  organisms/
     TLChevron/
       TLChevron.spec.md
       TLChevron.preview.html
-  molecules/
-  organisms/
 ```
+
+生成的 `DesignTokens.swift` 落在 `Packages/DesignSystem/` 裡，**不在這個目錄、也不在 zip 裡** ——
+設計端不需要它。
 
 契約條款：
 
 1. **一元件一目錄**，Swift 側一個檔一個 public 元件
 2. **preview 自足** —— 瀏覽器直接開無 404，除字型外無外部請求
 3. **preview 內零字面樣式值** —— 顏色／字級／間距／圓角一律 `var(--…)`
-4. **preview 窮舉規格宣告的每個狀態**，並內建 light／dark 切換
+4. **preview 窮舉規格宣告的每個狀態**，並呈現 light／dark 兩個主題
+   （**並排雙欄或切換皆可**；並排通常好用，不必點擊就能對照）。
+   preview 要主動標注「dark（目前是 light 的複製）」
 5. **L1／L2 的 preview 不出現任何 domain 詞彙**（Exercise／Workout／Set）
 6. `make design-zip` 產出，且**實際餵進 Claude Design 驗證過能組出新畫面**
 
 第 6 條是唯一真正的驗收：文件寫得再好，餵不進去就是沒做到。
 
-**字型的已知差異**：實作中文用 PingFang TC（系統內建），設計稿用 Noto Sans TC 代替；數字與英文兩邊都是 Caprasimo。
-這是刻意的、不是漂移，每份規格的第 7 節要標明。
+**字型**：數字與英文兩邊都是 Caprasimo。中文是刻意的已知差異 —— 實作用系統的 PingFang TC，
+設計稿與 preview 用 Noto Sans TC。為了讓 preview 自足，包裡帶一份**只含 preview 實際用到的字**的
+Noto 子集（`make preview-font` 重生；原始字型 11MB，不進版控，需要時才下載到 gitignore 的快取）。
+每份規格的第 7 節要標明這個差異。
+
+**preview 的共用外殼**：`.group` / `.row` / `.kicker` / `.pane` 這些外殼樣式放 `preview.css`，
+各 preview 只寫自己元件特有的樣式。每份 preview 各自重寫外殼的話，第二個會 copy-paste、
+第十個開始漂移 —— **那會讓防漂移的這包東西自己成為漂移來源**。`preview.css` 不是生成物，可以手改。
 
 ---
 
