@@ -63,3 +63,6 @@ buildServer.json
 
 # 測試報告產物（make test-* REPORT=true 產生，不進版控）
 test-reports/
+
+# make design-zip 的產物（交付用，隨時可重生）
+design-system.zip

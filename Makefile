@@ -123,10 +123,22 @@ endif
 lint:
 	@./scripts/check-i18n.sh
 	@python3 scripts/gen-tokens.py --check && echo "✔ token 生成物與 tokens.json 一致"
+	@python3 scripts/check-design-system.py
 
 # 從 tokens.json 重生 DesignTokens.swift 與 tokens.css。改完 token 一定要跑這個。
 tokens:
 	@python3 scripts/gen-tokens.py
+
+# 榨取階段把 Presentation 的字面樣式往下推之後，重設 lint 的 ratchet 基線。
+baseline:
+	@python3 scripts/check-design-system.py --update-baseline
+
+# 打包交付給設計端：規格書 ＋ token ＋ 字型 ＋ 每個元件的 spec 與 preview。
+# 這包要能直接餵進 Claude Design 組出新畫面——那是元件庫「拆得夠乾淨」的驗收。
+design-zip: lint
+	@rm -f design-system.zip
+	@cd design-system && zip -qr ../design-system.zip . -x '.presentation-baseline.json'
+	@du -h design-system.zip | awk '{print "✔ design-system.zip " $$1}'
 
 # 解析 test-reports/ 的產物並上傳 Notion。由 test-unit / test-uitest 在 REPORT=true 時呼叫，
 # 也可以自己跑。上傳失敗只印警告、不改變結束碼——測試結果才是 exit code 的來源。

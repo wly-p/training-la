@@ -278,21 +278,34 @@ design-system/
 
 ## 8. 機器檢查
 
-`scripts/check-design-system.*`，接進 `make lint`：
+`scripts/check-design-system.py` ＋ `scripts/gen-tokens.py --check`，都接在 `make lint`：
 
 | # | 檢查 | 對應 |
 |---|---|---|
-| 1 | 生成物與 `tokens.json` 一致 | §5 |
+| 1 | 每個元件有 spec ＋ preview，spec 十二節齊全，實作檔存在 | §6 |
 | 2 | Swift 側一個檔一個 public 元件 | §7.1 |
-| 3 | spec 的 props 與 Swift signature 一致 | §6.2 |
-| 4 | spec 宣告的每個狀態，preview 都有 | §6.4 |
-| 5 | spec 與 preview 內零字面色值 | §6.6 |
-| 6 | L2 preview 無不屬於任何 L1 的裸樣式 | §6.11 |
-| 7 | Presentation 層（L4）無字面樣式值 | §4 規則一 |
+| 3 | spec 宣告的 props 與 `init` 參數一致（含「宣告無 props 但 init 有參數」） | §6.2 |
+| 4 | spec 的 `<!-- states: … -->` 每個都有對應的 `data-state` | §6.4 |
+| 5 | spec 與 preview 內零字面色值；preview 無外部請求 | §6.6、§7.2–3 |
+| 6 | preview 用到的 `var(--…)` 都在 `tokens.css` 裡定義 | §5 |
+| 7 | Presentation 層字面樣式**不得增加**（ratchet） | §4 規則一 |
 | 8 | `DesignSystem` 未 import 任何功能 package | §4 規則三 |
+| 9 | 生成物與 `tokens.json` 一致 | §5 |
 
-第 6 條是這批裡最有價值的一條 —— 它讓「原子拆得夠不夠乾淨」變成 lint 能回答的問題，而不是靠人看。
-第 7 條是規則一的執法者。
+第 4 條的 `<!-- states: … -->` 是規格裡唯一機器讀的一行 —— 沒有它，「窮舉狀態」只是一句口號。
+
+第 6 條看起來瑣碎但很重要：CSS 變數打錯名字會**靜默渲染成空值**，沒有這條就要靠肉眼。
+
+**第 7 條是 ratchet 不是硬門檻。** Presentation 現在還有 181 處字面樣式，一次擋掉會讓所有工作停擺。
+所以記錄目前數量、只擋「變多」；每個榨取階段把數字往下推（`make baseline` 重設），
+階段 5 結束時應該歸零，屆時再改成硬門檻。
+
+```
+make lint       # 全部跑一遍
+make tokens     # 從 tokens.json 重生生成物
+make baseline   # 榨取後重設第 7 條的基線
+make design-zip # 打包交付（會先跑 lint）
+```
 
 ---
 

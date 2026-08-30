@@ -85,16 +85,6 @@ public struct TLCheckCircle: View {
     }
 }
 
-/// 右側 chevron（16pt、neutral-500）。
-public struct TLChevron: View {
-    public init() {}
-    public var body: some View {
-        Image(systemName: "chevron.right")
-            .font(.system(size: 13, weight: .semibold))
-            .foregroundStyle(TLColor.neutral500)
-    }
-}
-
 /// 右側數值 meta：數字用 Caprasimo，可選單位（15pt、neutral-700）。
 /// 例：`TLRowValue("62.5", unit: "kg")`、`TLRowValue("3 × 8")`。
 public struct TLRowValue: View {
