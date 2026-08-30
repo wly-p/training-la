@@ -9,7 +9,7 @@
   .lvl { color: var(--text-tertiary); font-size: var(--font-row-sub); }
 </style>
 <h1>Training La 元件庫</h1>
-<p class="note">token 版本 1　·　20 個元件　·　規則見 <a href="README.html">README</a>、規格樣板見 <a href="_template.spec.html">規格樣板</a>　·　token 與契約的改動見 <a href="CHANGELOG.html">CHANGELOG</a><br><b>這輪先讀 <a href="HANDOFF.html">HANDOFF</a></b>（跟上輪的差別、想請你看什麼）。<br>先看 <b>Examples</b> 知道整頁長什麼樣，再讀 <a href="components.json">components.json</a>（機器讀的登錄檔，每個元件的 props／狀態／組成都在裡面），再開個別 preview。<br>token 的實際樣子見 <a href="tokens/tokens.preview.html">tokens.preview.html</a>。</p>
+<p class="note">token 版本 1　·　22 個元件　·　規則見 <a href="README.html">README</a>、規格樣板見 <a href="_template.spec.html">規格樣板</a>　·　token 與契約的改動見 <a href="CHANGELOG.html">CHANGELOG</a><br><b>這輪先讀 <a href="HANDOFF.html">HANDOFF</a></b>（跟上輪的差別、想請你看什麼）。<br>先看 <b>Examples</b> 知道整頁長什麼樣，再讀 <a href="components.json">components.json</a>（機器讀的登錄檔，每個元件的 props／狀態／組成都在裡面），再開個別 preview。<br>token 的實際樣子見 <a href="tokens/tokens.preview.html">tokens.preview.html</a>。</p>
 <div class="kicker">Examples —— 整頁長什麼樣</div>
 <div class="group">
   <div class="row"><span class="label"><a href="examples/settings-selection.example.html">設定選擇頁</a> <span class="lvl">— 主題／語言／App 圖示共用的 drill-in 子頁</span></span></div>
@@ -35,10 +35,11 @@
   <div class="row"><span class="label"><a href="atoms/TLSettingsValue/TLSettingsValue.preview.html">TLSettingsValue</a> <span class="lvl">— 設定列右側顯示「目前的值」　⚑ 需容器 TLSettingsRow</span></span><span class="lvl">1 props · <a href="atoms/TLSettingsValue/TLSettingsValue.spec.html">規格</a></span></div>
   <div class="row"><span class="label"><a href="atoms/TLToggle/TLToggle.preview.html">TLToggle</a> <span class="lvl">— 開關（switch）　⚑ 不可單獨用</span></span><span class="lvl">無 props · 2 狀態 · <a href="atoms/TLToggle/TLToggle.spec.html">規格</a></span></div>
 </div>
-<div class="kicker">L2 分子（10）</div>
+<div class="kicker">L2 分子（11）</div>
 <div class="group">
   <div class="row"><span class="label"><a href="molecules/TLBackBar/TLBackBar.preview.html">TLBackBar</a> <span class="lvl">— drill-in 子頁左上角的返回列</span></span><span class="lvl">1 props · <a href="molecules/TLBackBar/TLBackBar.spec.html">規格</a></span></div>
   <div class="row"><span class="label"><a href="molecules/TLDividedVStack/TLDividedVStack.preview.html">TLDividedVStack</a> <span class="lvl">— 垂直堆疊子項，並在**相鄰兩項之間**插入分隔線</span></span><span class="lvl">無 props · <a href="molecules/TLDividedVStack/TLDividedVStack.spec.html">規格</a></span></div>
+  <div class="row"><span class="label"><a href="molecules/TLEquipmentTag/TLEquipmentTag.preview.html">TLEquipmentTag</a> <span class="lvl">— 列尾欄的分類標籤（器材或肌群）　⚑ 不可單獨用</span></span><span class="lvl">2 props · <a href="molecules/TLEquipmentTag/TLEquipmentTag.spec.html">規格</a></span></div>
   <div class="row"><span class="label"><a href="molecules/TLGroup/TLGroup.preview.html">TLGroup</a> <span class="lvl">— 群組容器 —— 把一組列包成一張卡</span></span><span class="lvl">無 props · <a href="molecules/TLGroup/TLGroup.spec.html">規格</a></span></div>
   <div class="row"><span class="label"><a href="molecules/TLInlineEmptyState/TLInlineEmptyState.preview.html">TLInlineEmptyState</a> <span class="lvl">— 清單裡的空狀態：一句主文 ＋ 一句說明</span></span><span class="lvl">2 props · 2 狀態 · <a href="molecules/TLInlineEmptyState/TLInlineEmptyState.spec.html">規格</a></span></div>
   <div class="row"><span class="label"><a href="molecules/TLListRow/TLListRow.preview.html">TLListRow</a> <span class="lvl">— 資料清單的一列　⚑ 需容器 TLGroup</span></span><span class="lvl">5 props · 4 狀態 · <a href="molecules/TLListRow/TLListRow.spec.html">規格</a></span></div>
@@ -48,5 +49,7 @@
   <div class="row"><span class="label"><a href="molecules/TLSettingsRow/TLSettingsRow.preview.html">TLSettingsRow</a> <span class="lvl">— 設定頁的一列：一個名稱、一個目前的值、可能通往下一層　⚑ 需容器 TLGroup</span></span><span class="lvl">7 props · 4 狀態 · <a href="molecules/TLSettingsRow/TLSettingsRow.spec.html">規格</a></span></div>
   <div class="row"><span class="label"><a href="molecules/TLSettingsToggleRow/TLSettingsToggleRow.preview.html">TLSettingsToggleRow</a> <span class="lvl">— 設定頁裡的開關列　⚑ 需容器 TLGroup</span></span><span class="lvl">4 props · 4 狀態 · <a href="molecules/TLSettingsToggleRow/TLSettingsToggleRow.spec.html">規格</a></span></div>
 </div>
-<div class="kicker">L3 有機體（0）</div>
-<p class="note">（尚無元件）</p>
+<div class="kicker">L3 有機體（1）</div>
+<div class="group">
+  <div class="row"><span class="label"><a href="organisms/ExerciseRow/ExerciseRow.preview.html">ExerciseRow</a> <span class="lvl">— 動作清單的一列　⚑ 需容器 TLGroup</span></span><span class="lvl">7 props · 2 狀態 · <a href="organisms/ExerciseRow/ExerciseRow.spec.html">規格</a></span></div>
+</div>

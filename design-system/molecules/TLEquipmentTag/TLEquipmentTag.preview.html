@@ -1,0 +1,64 @@
+<!-- @dsCard group="Molecules" name="TLEquipmentTag" subtitle="列尾欄的分類標籤" -->
+<!doctype html>
+<meta charset="utf-8">
+<title>TLEquipmentTag</title>
+<link rel="stylesheet" href="../../tokens/tokens.css">
+<link rel="stylesheet" href="../../preview.css">
+<link rel="stylesheet" href="../../components.preview.css">
+
+<h1>TLEquipmentTag</h1>
+<p class="note">
+  L2 分子。列尾欄的分類標籤，唯讀。<br>
+  <b>永不縮小、永不換行</b> —— 空間不足時該被截斷的是列的主標，不是這個標籤。
+</p>
+
+<div class="kicker">狀態</div>
+<div class="group">
+  <div class="row" data-state="default">
+    <span class="label">預設（唯一的狀態）</span>
+    <span class="tl-equipment-tag">標籤</span>
+  </div>
+</div>
+
+<div class="kicker">內容極值</div>
+<div class="group">
+  <div class="row"><span class="label">短</span><span class="tl-equipment-tag">甲</span></div>
+  <div class="row"><span class="label">兩字（常見）</span><span class="tl-equipment-tag">標籤</span></div>
+  <div class="row"><span class="label">主標很長很長很長很長很長很長很長時，被截斷的是主標</span>
+    <span class="tl-equipment-tag">較長的標籤</span></div>
+</div>
+
+<div class="kicker">配色</div>
+<p class="note">
+  分類色是<b>鼠尾草綠不是赭紅</b> —— 赭紅保留給「可操作的東西」，這是標示不是動作。
+</p>
+
+<div class="kicker">主題</div>
+<div class="themes">
+  <div class="pane" data-theme="light">
+    <div class="kicker">light</div>
+    <div class="group"><div class="row"><span class="label">項目</span>
+      <span class="tl-equipment-tag">標籤</span></div></div>
+  </div>
+  <div class="pane" data-theme="dark">
+    <div class="kicker">dark（目前是 light 的複製）</div>
+    <div class="group"><div class="row"><span class="label">項目</span>
+      <span class="tl-equipment-tag">標籤</span></div></div>
+  </div>
+</div>
+
+<div class="kicker">⚠ 膠囊幾何未收斂</div>
+<p class="note">
+  專案裡有 5 種膠囊形狀的東西，內距全不一樣：這個 <code>5/9</code>、
+  <code>TLMuscleTag</code> <code>5/12</code>、進度膠囊 <code>5/10</code>、
+  詳情頁膠囊 <code>7/14</code>、表單按鈕 <code>10/滿寬</code>。<br>
+  設計文件說 <code>TLTag</code> 是「capsule 5×12、11.5pt semibold、<b>6 種 style</b>」——
+  意圖是<b>一個標籤六種顏色</b>，實作卻在幾何上各自漂了。統一是設計決策，已列進待問清單。
+</p>
+
+<div class="kicker">不適用的狀態</div>
+<p class="note">
+  pressed／disabled／focused —— 不可互動。<br>
+  selected —— 那是 <code>TLMuscleTag</code>（可選的 chip）的事。<br>
+  empty／loading／error —— 沒有分類就不要放這個元件。
+</p>

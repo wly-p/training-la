@@ -162,46 +162,38 @@ public struct RotationListView: View {
 
     private func activeRow(_ rotation: Rotation) -> some View {
         // 左滑露出「停用」（8b，neutral-400、非紅）→ accent 確認；drill-in 用 value-based NavigationLink。
-        TLSwipeToRevealRow(
-            actionLabel: localText("rotation.manage.deactivate"),
-            actionSystemImage: "pause",
-            onAction: { pendingDeactivate = rotation.id }
-        ) {
-            NavigationLink(value: rotation.id) {
-                TLListRow(
-                    title: Text(verbatim: rotation.name),
-                    subtitle: Text(PlanFormatting.rotationSummary(rotation, language: AppLanguage(locale: locale))),
-                    showChevron: true,
-                    leading: {
-                        TLBadge(icon: "arrow.triangle.2.circlepath", fill: TLColor.accent, tint: TLColor.bg)
-                    },
-                    trailing: { statusPill(rotation) }
-                )
-            }
-            .buttonStyle(.plain)
-        }
-        .contextMenu { rowMenu(rotation) }
+        RotationRow(
+            mode: .active,
+            id: rotation.id,
+            name: rotation.name,
+            subtitle: Text(PlanFormatting.rotationSummary(rotation, language: AppLanguage(locale: locale))),
+            trailing: AnyView(statusPill(rotation)),
+            deactivateLabel: localText("rotation.manage.deactivate"),
+            onDeactivate: { pendingDeactivate = rotation.id },
+            menu: AnyView(rowMenu(rotation))
+        )
     }
 
     private func inactiveRow(_ rotation: Rotation) -> some View {
         // 未啟用列：設計稿無 chevron、不 drill-in（低頻編輯先啟用再進）；右側 inline「啟用」。
         // 有進度者副標顯示「停在第 N 輪 · 目前範本」（8b）；沒進度就顯示組成摘要。
-        TLListRow(
-            title: Text(verbatim: rotation.name),
+        RotationRow(
+            mode: .inactive,
+            id: rotation.id,
+            name: rotation.name,
             subtitle: inactiveSubtitle(rotation),
-            leading: {
-                TLBadge(icon: "arrow.triangle.2.circlepath", fill: TLColor.neutral300, tint: TLColor.neutral600)
-            },
-            trailing: {
+            trailing: AnyView(
                 Button {
                     Task { await viewModel.setActive(id: rotation.id, true) }
                 } label: {
                     localText("plan.activate")
                 }
                 .buttonStyle(.tlText)
-            }
+            ),
+            deactivateLabel: Text(verbatim: ""),
+            onDeactivate: {},
+            menu: AnyView(rowMenu(rotation))
         )
-        .contextMenu { rowMenu(rotation) }
     }
 
     private func inactiveSubtitle(_ rotation: Rotation) -> Text {

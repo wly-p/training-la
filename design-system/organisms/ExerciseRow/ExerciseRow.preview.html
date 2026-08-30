@@ -1,0 +1,63 @@
+<!-- @dsCard group="Organisms" name="ExerciseRow" subtitle="動作清單的一列" -->
+<!doctype html>
+<meta charset="utf-8">
+<title>ExerciseRow</title>
+<link rel="stylesheet" href="../../tokens/tokens.css">
+<link rel="stylesheet" href="../../preview.css">
+<link rel="stylesheet" href="../../components.preview.css">
+<h1>ExerciseRow</h1>
+<p class="note">
+  L3 有機體。動作清單的一列。<b>純由 L2 組成</b> ——
+  <code>TLListRow</code> ＋ <code>TLEquipmentTag</code>，沒有缺任何分子。
+</p>
+
+<div class="kicker">狀態</div>
+<div class="group">
+  <div class="row" data-state="editable">
+    <span class="label">使用者自建 —— 可編輯</span>
+    <span class="tl-equipment-tag">標籤甲</span>
+    <svg class="tl-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg>
+  </div>
+  <div class="row" data-state="official">
+    <span class="label">內建 —— 唯讀，<b>沒有 chevron</b></span>
+    <span class="tl-equipment-tag">標籤乙</span>
+  </div>
+</div>
+<p class="note">
+  留著箭頭卻點不動比沒有箭頭更難懂。刪除選單也是整個拿掉、不是留一個空的 ——
+  空 menu 長按仍會有抬起動畫卻沒有選項。
+</p>
+
+<div class="kicker">內容極值</div>
+<div class="group">
+  <div class="row"><span class="label">短名</span>
+    <span class="tl-equipment-tag">標籤</span></div>
+  <div class="row"><span class="label">很長很長很長很長很長很長很長很長的名稱會先截斷</span>
+    <span class="tl-equipment-tag">較長的標籤</span></div>
+</div>
+<p class="note">
+  尾欄用 <code>min-width</code> 不是 <code>width</code>：長標往左長、右緣仍對齊；
+  寫死寬度會把長標壓成兩行。
+</p>
+
+<div class="kicker">主題</div>
+<div class="themes">
+  <div class="pane" data-theme="light">
+    <div class="kicker">light</div>
+    <div class="group"><div class="row"><span class="label">項目名稱</span>
+      <span class="tl-equipment-tag">標籤</span></div></div>
+  </div>
+  <div class="pane" data-theme="dark">
+    <div class="kicker">dark（目前是 light 的複製）</div>
+    <div class="group"><div class="row"><span class="label">項目名稱</span>
+      <span class="tl-equipment-tag">標籤</span></div></div>
+  </div>
+</div>
+
+<div class="kicker">不適用的狀態</div>
+<p class="note">
+  disabled —— 內建列是「不可編輯」不是「暫時停用」，用沒有 chevron 表達。<br>
+  selected —— 動作清單不做選取。<br>
+  empty／loading／error —— 沒有資料就不會有這一列。
+</p>

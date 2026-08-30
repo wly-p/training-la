@@ -100,6 +100,9 @@
   --space-switch-knob-inset: 3px;  /* 開關旋鈕與軌道邊緣的距離 */
   --space-empty-state-gap: 8px;  /* 空狀態主句與說明之間 */
   --space-empty-state-pad-v: 40px;  /* 空狀態的上下留白 */
+  --space-number-unit-gap: 4px;  /* 大數字與它的單位之間 */
+  --space-tag-pad-v: 5px;  /* 標籤的上下內距 */
+  --space-tag-pad-h: 9px;  /* 分類標籤的左右內距。⚠ 專案裡有 5 種膠囊各自不同的內距，設計文件的 TLTag 是 5×12——待收斂，見 TLEquipmentTag 規格第 8 節 */
   --radius-container: 28px;  /* 卡片／群組容器 */
   --radius-inner: 20px;  /* 容器內的小方塊 */
   --radius-pill: 999px;  /* 按鈕、輸入、標籤（實作用 .capsule） */
@@ -121,6 +124,7 @@
   --size-hairline-thick: 1.5px;  /* 空心圓／外框的線寬。比 hairline 粗，1px 在圓弧上會斷斷續續 */
   --size-quick-action-row: 44px;  /* 滾輪下方快捷列的高度（＝最小觸控） */
   --size-progress-bar: 6px;  /* 進度條高度 */
+  --size-row-tail-column: 80px;  /* 列右側尾欄的最小寬度。兩字標籤的欄寬；用 minWidth 讓長標往左長、右緣仍對齊——寫死 width 會把長標壓成兩行 */
 
   /* ── 字級（中文值；英文 × 1.08）── */
   --font-page-title: 34px;
@@ -129,6 +133,7 @@
   --font-row-value: 14px;
   --font-row-icon: 17px;
   --font-row-number: 16px;
+  --font-card-number: 26px;
   --font-empty-title: 16px;
   --font-empty-hint: 12.5px;
   --font-badge-text: 12px;
@@ -148,6 +153,7 @@
   --font-row-value-family: var(--font-zh);
   --font-row-icon-family: var(--font-zh);
   --font-row-number-family: var(--font-display);
+  --font-card-number-family: var(--font-display);
   --font-empty-title-family: var(--font-zh);
   --font-empty-hint-family: var(--font-zh);
   --font-badge-text-family: var(--font-zh);

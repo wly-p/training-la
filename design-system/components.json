@@ -656,6 +656,58 @@
       }
     },
     {
+      "name": "TLEquipmentTag",
+      "level": "L2",
+      "layer": "molecules",
+      "responsibility": "列尾欄的分類標籤（器材或肌群）",
+      "prototypeIds": [],
+      "prototypeNote": "18b",
+      "standalone": false,
+      "requiresContainer": null,
+      "containerOwns": "與相鄰元素的間距、尾欄寬度由列負責",
+      "props": [
+        {
+          "name": "label",
+          "type": "`String`",
+          "kind": null,
+          "values": null,
+          "required": "是",
+          "default": "—",
+          "description": "標籤文字"
+        },
+        {
+          "name": "identifier",
+          "type": "`String`",
+          "kind": "enum",
+          "values": [
+            "equipmentTag",
+            "muscleTag"
+          ],
+          "required": "否",
+          "default": "`equipmentTag`",
+          "description": "測試定位鍵。**尾欄放什麼由呼叫端決定**，測試要分得出這一列標的是哪一種"
+        }
+      ],
+      "slots": [],
+      "events": [],
+      "variants": [],
+      "states": [
+        "default"
+      ],
+      "themes": [
+        "light",
+        "dark"
+      ],
+      "confusableWith": [],
+      "dontUseFor": [],
+      "composedOf": null,
+      "paths": {
+        "spec": "molecules/TLEquipmentTag/TLEquipmentTag.spec.md",
+        "preview": "molecules/TLEquipmentTag/TLEquipmentTag.preview.html",
+        "impl": "Packages/DesignSystem/Sources/DesignSystem/Components/TLEquipmentTag.swift"
+      }
+    },
+    {
       "name": "TLGroup",
       "level": "L2",
       "layer": "molecules",
@@ -1243,6 +1295,118 @@
         "spec": "molecules/TLSettingsToggleRow/TLSettingsToggleRow.spec.md",
         "preview": "molecules/TLSettingsToggleRow/TLSettingsToggleRow.preview.html",
         "impl": "Packages/DesignSystem/Sources/DesignSystem/Molecules/TLSettingsToggleRow.swift"
+      }
+    },
+    {
+      "name": "ExerciseRow",
+      "level": "L3",
+      "layer": "organisms",
+      "responsibility": "動作清單的一列",
+      "prototypeIds": [],
+      "prototypeNote": "4c",
+      "standalone": false,
+      "requiresContainer": [
+        "TLGroup"
+      ],
+      "containerOwns": "圓角、底色、分隔線由 `TLGroup` 負責",
+      "props": [
+        {
+          "name": "name",
+          "type": "`String`",
+          "kind": null,
+          "values": null,
+          "required": "是",
+          "default": "—",
+          "description": "動作名"
+        },
+        {
+          "name": "isOfficial",
+          "type": "`Bool`",
+          "kind": null,
+          "values": null,
+          "required": "是",
+          "default": "—",
+          "description": "內建動作唯讀，見第 3 節"
+        },
+        {
+          "name": "tailLabel",
+          "type": "`String`",
+          "kind": null,
+          "values": null,
+          "required": "是",
+          "default": "—",
+          "description": "尾欄文字。**呼叫端決定顯示肌群還是器材**（它才知道目前分組）"
+        },
+        {
+          "name": "tailIdentifier",
+          "type": "`String`",
+          "kind": "enum",
+          "values": [
+            "muscleTag",
+            "equipmentTag"
+          ],
+          "required": "是",
+          "default": "—",
+          "description": "尾欄的測試定位鍵"
+        },
+        {
+          "name": "deleteLabel",
+          "type": "`Text`",
+          "kind": null,
+          "values": null,
+          "required": "是",
+          "default": "—",
+          "description": "刪除選單的文案"
+        },
+        {
+          "name": "onEdit",
+          "type": "`() -> Void`",
+          "kind": null,
+          "values": null,
+          "required": "是",
+          "default": "—",
+          "description": "點列進編輯"
+        },
+        {
+          "name": "onDelete",
+          "type": "`() -> Void`",
+          "kind": null,
+          "values": null,
+          "required": "是",
+          "default": "—",
+          "description": "選單刪除"
+        }
+      ],
+      "slots": [],
+      "events": [
+        "onEdit",
+        "onDelete"
+      ],
+      "variants": [
+        {
+          "name": "使用者自建",
+          "note": "可點進編輯、有 chevron、長按可刪"
+        },
+        {
+          "name": "內建（official）",
+          "note": "**唯讀**：不進編輯、沒有刪除選單、**也沒有 chevron**"
+        }
+      ],
+      "states": [
+        "editable",
+        "official"
+      ],
+      "themes": [
+        "light",
+        "dark"
+      ],
+      "confusableWith": [],
+      "dontUseFor": [],
+      "composedOf": null,
+      "paths": {
+        "spec": "organisms/ExerciseRow/ExerciseRow.spec.md",
+        "preview": "organisms/ExerciseRow/ExerciseRow.preview.html",
+        "impl": "Packages/Spec/Sources/SpecPresentation/Components/ExerciseRow.swift"
       }
     }
   ]

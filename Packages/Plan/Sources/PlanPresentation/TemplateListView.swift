@@ -96,10 +96,13 @@ public struct TemplateListView: View {
 
     private func row(_ template: WorkoutTemplate) -> some View {
         // 左滑露出「複製」（14a，88pt、neutral-400 底）——左滑只有複製，刪除依 8b 原則不放滑動裡。
-        TLSwipeToRevealRow(
-            actionLabel: localText("template.duplicate"),
-            actionSystemImage: "doc.on.doc",
-            onAction: {
+        TemplateRow(
+            name: template.name,
+            summary: Text(PlanFormatting.templateSummary(template, name: viewModel.name(for:), language: AppLanguage(locale: locale))),
+            blockCount: template.blocks.count,
+            duplicateLabel: localText("template.duplicate"),
+            deleteLabel: localText("plan.delete"),
+            onDuplicate: {
                 Task {
                     guard let copy = await viewModel.duplicate(
                         id: template.id,
@@ -108,33 +111,13 @@ public struct TemplateListView: View {
                     duplicatedFromName = template.name
                     editing = .edit(copy)
                 }
+            },
+            onDelete: { Task { await viewModel.delete(id: template.id) } },
+            onTap: {
+                duplicatedFromName = nil
+                editing = .edit(template)
             }
-        ) {
-            TLListRow(
-                title: Text(verbatim: template.name),
-                subtitle: Text(PlanFormatting.templateSummary(template, name: viewModel.name(for:), language: AppLanguage(locale: locale))),
-                showChevron: true,
-                onTap: {
-                    duplicatedFromName = nil
-                    editing = .edit(template)
-                },
-                leading: {
-                    // 數字圓章＝含幾個動作（neutral 底，設計稿 5b）。
-                    TLBadge(fill: TLColor.neutral300) {
-                        Text(verbatim: "\(template.blocks.count)")
-                            .font(TLFont.display(16))
-                            .foregroundStyle(TLColor.neutral800)
-                    }
-                }
-            )
-            .contextMenu {
-                Button(role: .destructive) {
-                    Task { await viewModel.delete(id: template.id) }
-                } label: {
-                    Label { localText("plan.delete") } icon: { Image(systemName: "trash") }
-                }
-            }
-        }
+        )
     }
 
     private var emptyState: some View {

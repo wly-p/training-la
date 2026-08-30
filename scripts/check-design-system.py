@@ -106,9 +106,13 @@ for layer, cdir in components():
             err(1, f"{name}.spec.md：實作檔不存在 → {m.group(1)}")
         else:
             src = swift.read_text()
-            pub = re.findall(r"^public (?:struct|enum|final class|class|protocol) (\w+)", src, re.M)
+            # L3 有機體住在各自 package 的 Presentation/Components/，不需要 public
+            # （沒有跨 package 使用），而且多半用 memberwise init。
+            # 檢查 2／3 原本是為 L1／L2 寫的，這裡放寬成「頂層型別」與「memberwise 也算」。
+            kw = "" if layer == "organisms" else "public "
+            pub = re.findall(rf"^{kw}(?:struct|enum|final class|class|protocol) (\w+)", src, re.M)
             if len(pub) != 1:
-                err(2, f"{m.group(1)}：一個檔應該只有一個 public 元件，找到 {len(pub)} 個 {pub}")
+                err(2, f"{m.group(1)}：一個檔應該只有一個元件，找到 {len(pub)} 個 {pub}")
             # §2 props ↔ init 參數
             #
             # @ViewBuilder 參數是 **Slot 不是 prop**，規格裡也是寫在「Slots」那一行、
@@ -128,7 +132,7 @@ for layer, cdir in components():
             #      所以要**配對括號**而不是抓到第一個 `)` 為止
             #   2. 巢狀型別（`QuickAction`、`Option`）自己的 init 縮排更深，不算這個元件的 prop
             def top_level_inits(text):
-                for m in re.finditer(r"^ {4}(?:public )?init\(", text, re.M):
+                for m in re.finditer(r"^ {4}(?:public )?init\(", text, re.M):  # noqa: B023
                     i, depth = m.end() - 1, 0
                     for j in range(i, len(text)):
                         if text[j] == "(":
@@ -139,6 +143,11 @@ for layer, cdir in components():
                                 yield text[i + 1:j]
                                 break
             raw = " , ".join(top_level_inits(src))
+            if not raw.strip() and layer == "organisms":
+                # memberwise init：用頂層的 let/var 宣告當 props（順序即參數順序）
+                # 只取 stored properties：`var body: some View` 是 computed，不是 prop
+                raw = " , ".join(
+                    f"{n}:" for n in re.findall(r"^ {4}(?:let|var) (\w+): [^\n{]+$", src, re.M))
             all_params = re.findall(r"(?:^|,)\s*(?:@\w+\s+)?(?:\w+\s+)?(\w+)\s*:", raw)
             slots = re.findall(r"@ViewBuilder\s+(?:\w+\s+)?(\w+)\s*:", raw)
             actual = [x for x in all_params if x not in slots]

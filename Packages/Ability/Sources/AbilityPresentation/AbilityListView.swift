@@ -222,7 +222,7 @@ private struct AbilityEditSheet: View {
                 .font(TLFont.zh(15.5, .medium))
                 .foregroundStyle(TLColor.neutral600)
             Spacer()
-            TLExerciseNameWithEquipment(
+            TLTitleWithTag(
                 name: row.exerciseName,
                 equipment: row.equipment.displayName(locale)
             )

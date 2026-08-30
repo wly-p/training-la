@@ -276,7 +276,7 @@ struct WorkoutDetailView: View {
     /// 舊版每列重印動作名，加上器材標會變成 N 個 pill（handoff-15 D 節）。
     private func groupHeader(_ group: LineGroup) -> some View {
         HStack(spacing: 0) {
-            TLExerciseNameWithEquipment(
+            TLTitleWithTag(
                 title: Text(verbatim: group.exerciseName)
                     .font(TLFont.zh(14, .semibold))
                     .foregroundColor(TLColor.text),

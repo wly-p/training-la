@@ -30,12 +30,15 @@ public extension TLBadge where Content == Text {
                 .foregroundStyle(TLColor.sage800)
         }
     }
-    /// 數字圓章（範本含幾個動作）：sage-200 底、sage-800 字（Caprasimo）。
-    init(count: Int) {
-        self.init(fill: TLColor.sage200) {
+    /// 數字圓章（例：這份範本含幾個動作）。數字用 Caprasimo。
+    ///
+    /// 顏色開成 prop 而不是寫死：同一個圓章在「這是什麼分類」與「這裡有幾個」
+    /// 兩種語意下用不同色階，寫死的話第二種只能繞過這個 init 手工重建。
+    init(count: Int, fill: Color = TLColor.sage200, tint: Color = TLColor.sage800) {
+        self.init(fill: fill) {
             Text("\(count)")
                 .font(TLFont.display(TLFont.rowNumber))
-                .foregroundStyle(TLColor.sage800)
+                .foregroundStyle(tint)
         }
     }
 }

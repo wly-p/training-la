@@ -132,6 +132,9 @@ public enum TLSpace {
     public static let switchKnobInset:    CGFloat = 3   // 開關旋鈕與軌道邊緣的距離
     public static let emptyStateGap:      CGFloat = 8   // 空狀態主句與說明之間
     public static let emptyStatePadV:     CGFloat = 40  // 空狀態的上下留白
+    public static let numberUnitGap:      CGFloat = 4   // 大數字與它的單位之間
+    public static let tagPadV:            CGFloat = 5   // 標籤的上下內距
+    public static let tagPadH:            CGFloat = 9   // 分類標籤的左右內距。⚠ 專案裡有 5 種膠囊各自不同的內距，設計文件的 TLTag 是 5×12——待收斂，見 TLEquipmentTag 規格第 8 節
 }
 
 public enum TLRadius {
@@ -159,6 +162,7 @@ public enum TLSize {
     public static let hairlineThick:   CGFloat = 1.5 // 空心圓／外框的線寬。比 hairline 粗，1px 在圓弧上會斷斷續續
     public static let quickActionRow:  CGFloat = 44  // 滾輪下方快捷列的高度（＝最小觸控）
     public static let progressBar:     CGFloat = 6   // 進度條高度
+    public static let rowTailColumn:   CGFloat = 80  // 列右側尾欄的最小寬度。兩字標籤的欄寬；用 minWidth 讓長標往左長、右緣仍對齊——寫死 width 會把長標壓成兩行
 }
 
 public enum TLIcon {
@@ -221,6 +225,7 @@ public enum TLFont {
     public static let rowValue:   CGFloat = 14   // zh 家族；設定列右側的值。比標題小一號、比三級文字深一階——值是列的答案
     public static let rowIcon:    CGFloat = 17   // zh 家族；設定列左側的 SF Symbol
     public static let rowNumber:  CGFloat = 16   // display 家族；列裡的數字（圓章數字、右側數值）。⚠ display 家族目前有 16 種字面字級、只有這一個有角色名，尺度收斂見 CHANGELOG 已知缺口
+    public static let cardNumber: CGFloat = 26   // display 家族；卡片裡的主要數字（進度的天數）。比 rowNumber 大、比 bigNumber 小
     public static let emptyTitle: CGFloat = 16   // zh 家族；空狀態的主句
     public static let emptyHint:  CGFloat = 12.5 // zh 家族；空狀態的說明句
     public static let badgeText:  CGFloat = 12   // zh 家族；圓章裡的文字（肌群縮寫）

@@ -44,7 +44,7 @@ public struct TLRowContent<Leading: View, Detail: View, Trailing: View>: View {
                     .font(TLFont.zh(TLFont.rowTitle))
                     .foregroundColor(TLColor.text)
                 if let equipment {
-                    TLExerciseNameWithEquipment(title: styledTitle, equipment: equipment)
+                    TLTitleWithTag(title: styledTitle, equipment: equipment)
                 } else {
                     styledTitle
                         .lineLimit(1)

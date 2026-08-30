@@ -279,7 +279,7 @@ struct TemplateFormView: View {
     private func expandedBlock(_ block: PlanBlock) -> some View {
         VStack(alignment: .leading, spacing: TLSpace.gapM) {
             HStack {
-                TLExerciseNameWithEquipment(
+                TLTitleWithTag(
                     title: Text(verbatim: name(for: block.exerciseId))
                         .font(TLFont.zh(TLFont.cardTitle, .bold))
                         .foregroundColor(TLColor.text),

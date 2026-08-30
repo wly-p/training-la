@@ -52,6 +52,90 @@
 
 ---
 
+## 2026-08-31 · 階段 2（動作庫）· 四個 L3 抽出，賭注有答案了
+
+### 核心問題：7 個 L3 能不能純由 L2 組成？
+
+**答案：能，但有兩個分子的介面把兩件事綁死了，要先拆開。**
+
+跟階段 1 同型 —— 分子層的**邊界**是對的（沒有一個 L3 需要新的分子概念），
+不夠的是某些分子的**介面**。
+
+| L3 | 結果 |
+|---|---|
+| `ExerciseRow` | ✅ 純由 L2 組成，零缺口 |
+| `TemplateRow` | ⚠️ `TLBadge(count:)` 顏色寫死 sage，需要 neutral 的呼叫端只能繞過它手工建 |
+| `RotationRow` | ✅ 純組合 |
+| `ProgramRow` | ❌ `TLListRow` 把排版與外框綁死，卡片式版面用不了 |
+
+### 失敗點一：`TLListRow` 用不了（最重要的一個）
+
+`ProgramListView` 的「進行中」卡**手工重建了整個 `TLListRow`**（圓章＋主副標＋chevron）。
+查清楚原因不是偷懶，是**用不了**：
+
+`TLListRow` 把兩件事放在同一個型別 ——
+**內容排版**（`HStack` ＋ 主副標 ＋ trailing ＋ chevron）
+與**列的外框**（`rowInset` padding、`minHeight`、整列包成 `Button`）。
+
+那張卡有自己的 padding、只有上半可點、下半是進度條 —— **外框全部不適用**，
+所以只能重畫一份，然後就漂了。
+
+**解法：拆成 `TLRowContent`（只有排版）＋ `TLListRow`（＝ `TLRowContent` ＋ 外框）。**
+兩個呼叫端改用 `TLRowContent` 之後，手工重建消失。
+
+這跟整個重構的原則是同一條：**把綁在一起的兩件事分開**。
+
+### 失敗點二：`TLBadge(count:)` 顏色寫死
+
+同一個檔裡 `init(icon:fill:tint:)` 已經把顏色開成 prop，`init(count:)` 卻寫死 sage200/sage800。
+所以需要 neutral 圓章的 `TemplateRow` 只能繞過便利建構子手工建一份。
+
+**介面不一致本身就是缺口** —— 兩個 init 做同一類事，一個開放一個不開放。已補齊。
+
+### 順帶收掉的三個重複
+
+| | |
+|---|---|
+| `TLProgressBar`（L1） | 兩處各手工重建（`GeometryReader` ＋ 兩個 `Capsule`），只差軌道色。**設計文件的 L1 清單本來就有它，只是實作沒有** |
+| `TLInlineEmptyState`（L2） | 四個清單頁各一份**一字不差**的實作 |
+| `TLTitleWithTag` | 原名 `TLExerciseNameWithEquipment` —— 名字帶 domain 詞彙，階段 0c 就標記了。順便從 `TLEquipmentTag.swift` 拆出來（一檔兩元件） |
+
+### 檢查器要認得 L3
+
+L3 住在各自 package 的 `Presentation/Components/`，**不需要 `public`**（沒有跨 package 使用），
+而且多半用 memberwise init。檢查 2／3 原本是為 L1／L2 寫的，會誤報。
+
+放寬成：`organisms` 層允許非 public 的頂層型別；沒有顯式 init 時用 stored property 當 props
+（`var body: some View` 是 computed，排除）。
+
+### ⚠ 第三次撞到同型問題：膠囊幾何未收斂
+
+專案裡有 **5 種膠囊形狀的東西，內距全不一樣**：
+
+```
+TLEquipmentTag  5/9      TLMuscleTag  5/12     進度膠囊  5/10
+詳情頁膠囊       7/14     表單按鈕     10/滿寬
+```
+
+設計文件說 `TLTag` 是「capsule 5×12、11.5pt semibold、**6 種 style**」——
+**意圖是一個標籤六種顏色，實作卻在幾何上各自漂了**。
+
+這是繼 icon 尺度、字級尺度之後第三次撞到同型問題。統一是設計決策，
+會跟字級尺度一起產使用清單問設計端，**不自己決定**。
+
+### token
+
+`size.progressBar` 6 · `size.rowTailColumn` 80 · `type.emptyTitle` 16 ·
+`type.emptyHint` 12.5 · `type.cardNumber` 26 · `space.emptyStateGap` 8 ·
+`space.emptyStatePadV` 40 · `space.numberUnitGap` 4 · `space.tagPadV` 5 · `space.tagPadH` 9
+
+### 進度
+
+元件 20 → 22（含第一個 L3）。動作庫字面樣式 66 → 53（Spec 5→3、Plan 61→50）。
+剩下的集中在編輯頁（`ProgramEditorView` 11、`TemplateFormView` 8、`RotationDetailView` 8）。
+
+---
+
 ## 2026-08-30 · 元件庫只留純呈現，控制項分出 DesignControls
 
 ### 起因：範圍檢討

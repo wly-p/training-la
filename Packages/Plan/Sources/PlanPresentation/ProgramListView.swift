@@ -61,7 +61,7 @@ public struct ProgramListView: View {
                     VStack(alignment: .leading, spacing: 0) {
                         TLSectionHeader(localText("rotation.active.section") + Text(verbatim: " · \(viewModel.activePrograms.count)"), tint: TLColor.accent600)
                         VStack(spacing: TLSpace.gapM) {
-                            ForEach(viewModel.activePrograms) { activeCard($0) }
+                            ForEach(viewModel.activePrograms) { programRow($0, active: true) }
                         }
                     }
                 }
@@ -69,7 +69,7 @@ public struct ProgramListView: View {
                     VStack(alignment: .leading, spacing: 0) {
                         TLSectionHeader(localText("rotation.inactive.section") + Text(verbatim: " · \(viewModel.inactivePrograms.count)"), tint: TLColor.neutral500)
                         TLGroup {
-                            ForEach(viewModel.inactivePrograms) { inactiveRow($0) }
+                            ForEach(viewModel.inactivePrograms) { programRow($0, active: false) }
                         }
                     }
                 }
@@ -138,81 +138,33 @@ public struct ProgramListView: View {
 
     // MARK: - 進行中卡片（真實進度）
 
-    private func activeCard(_ program: Program) -> some View {
-        let progress = viewModel.progressByProgram[program.id]
-        return VStack(spacing: TLSpace.gapM) {
-            // 上半：點進詳情頁（8a）
-            NavigationLink(value: program.id) {
-                TLRowContent(
-                    title: Text(verbatim: program.name),
-                    subtitle: Text(PlanFormatting.programLibrarySummary(program, language: AppLanguage(locale: locale))),
-                    showChevron: true,
-                    leading: { TLBadge(icon: "chart.bar", fill: TLColor.accent, tint: TLColor.bg) }
-                )
-                .contentShape(Rectangle())
-            }
-            .buttonStyle(.plain)
-
-            // 下半：天數＋今天＋進度條（真實）
-            if let progress {
-                HStack(alignment: .firstTextBaseline) {
-                    HStack(alignment: .firstTextBaseline, spacing: 4) {
-                        Text(verbatim: "\(progress.day)")
-                            .font(TLFont.display(26))
-                            .foregroundStyle(TLColor.text)
-                        (Text(verbatim: "/ \(progress.totalDays) ") + localText("program.dayUnit"))
-                            .font(TLFont.zh(TLFont.rowSub))
-                            .foregroundStyle(TLColor.neutral500)
-                    }
-                    Spacer()
-                    (localText("program.today") + Text(verbatim: "：\(progress.todayWorkoutName ?? "—")"))
-                        .font(TLFont.zh(TLFont.rowSub, .semibold))
-                        .foregroundStyle(TLColor.neutral700)
+    private func programRow(_ program: Program, active: Bool) -> some View {
+        let p = viewModel.progressByProgram[program.id]
+        return ProgramRow(
+            id: program.id,
+            name: program.name,
+            summary: Text(PlanFormatting.programLibrarySummary(program, language: AppLanguage(locale: locale))),
+            progress: active ? p.map {
+                ProgramRow.Progress(day: $0.day, totalDays: $0.totalDays, todayWorkoutName: $0.todayWorkoutName)
+            } : nil,
+            activateButton: active ? nil : AnyView(
+                Button {
+                    Task { await viewModel.activate(id: program.id) }
+                } label: {
+                    localText("plan.activate")
                 }
-                TLProgressBar(ratio: Double(progress.day) / Double(max(1, progress.totalDays)),
-                              track: TLColor.neutral200)
-            }
-        }
-        .padding(TLSpace.rowInset)
-        .background(TLColor.neutral100)
-        .clipShape(RoundedRectangle(cornerRadius: TLRadius.container, style: .continuous))
-        .overlay {
-            RoundedRectangle(cornerRadius: TLRadius.container, style: .continuous)
-                .strokeBorder(TLColor.accent300, lineWidth: 1.5)
-        }
-    }
-
-    // MARK: - 未啟用列
-
-    private func inactiveRow(_ program: Program) -> some View {
-        // 左側可點進詳情頁（8a，可再進編輯）、右側 inline「啟用」——兩個獨立點擊區。
-        HStack(spacing: TLSpace.gapM) {
-            NavigationLink(value: program.id) {
-                TLRowContent(
-                    title: Text(verbatim: program.name),
-                    subtitle: Text(PlanFormatting.programLibrarySummary(program, language: AppLanguage(locale: locale))),
-                    leading: { TLBadge(icon: "chart.bar", fill: TLColor.neutral300, tint: TLColor.neutral600) }
-                )
-                .contentShape(Rectangle())
-            }
-            .buttonStyle(.plain)
-
-            Button {
-                Task { await viewModel.activate(id: program.id) }
-            } label: {
-                localText("plan.activate")
-            }
-            .buttonStyle(.tlText)
-        }
-        .padding(.horizontal, TLSpace.rowInset)
-        .frame(minHeight: TLSize.rowWithSub)
-        .contextMenu {
-            Button(role: .destructive) {
-                Task { await viewModel.delete(id: program.id) }
-            } label: {
-                Label { localText("plan.delete") } icon: { Image(systemName: "trash") }
-            }
-        }
+                .buttonStyle(.tlText)
+            ),
+            dayUnit: localText("program.dayUnit"),
+            todayLabel: localText("program.today"),
+            menu: AnyView(
+                Button(role: .destructive) {
+                    Task { await viewModel.delete(id: program.id) }
+                } label: {
+                    Label { localText("plan.delete") } icon: { Image(systemName: "trash") }
+                }
+            )
+        )
     }
 
     private func explainerCard(_ text: Text) -> some View {

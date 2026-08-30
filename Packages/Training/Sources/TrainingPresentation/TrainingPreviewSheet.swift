@@ -111,7 +111,7 @@ struct TrainingPreviewSheet: View {
     private func exerciseRow(_ row: ExerciseRow) -> some View {
         HStack(alignment: .center, spacing: TLSpace.gapM) {
             VStack(alignment: .leading, spacing: 3) {
-                TLExerciseNameWithEquipment(name: row.name, equipment: row.equipment.displayName(locale))
+                TLTitleWithTag(name: row.name, equipment: row.equipment.displayName(locale))
                 if let algebra = WeightSourceFormatting.algebraText(row.representative?.weightSource, locale: locale, in: weightUnit) {
                     Text(verbatim: algebra)
                         .font(TLFont.zh(11, .regular))

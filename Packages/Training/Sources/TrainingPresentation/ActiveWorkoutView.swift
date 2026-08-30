@@ -499,7 +499,7 @@ public struct ActiveWorkoutView: View {
                     .tracking(TLFont.kickerTracking)
                     .textCase(.uppercase)
                     .foregroundStyle(viewModel.showExerciseComplete ? TLColor.sage700 : TLColor.accent600)
-                TLExerciseNameWithEquipment(
+                TLTitleWithTag(
                     title: Text(verbatim: viewModel.name(for: exerciseId))
                         .font(TLFont.zh(TLFont.pageTitle, .bold))
                         .foregroundColor(TLColor.text),

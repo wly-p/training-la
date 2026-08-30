@@ -201,6 +201,18 @@
 }
 
 
+/* TLEquipmentTag */
+.tl-equipment-tag {
+  flex: none; white-space: nowrap;
+  font-size: var(--font-kicker); font-weight: 600;
+  color: var(--sage-900); background: var(--sage-200);
+  border-radius: var(--radius-pill);
+  padding: var(--space-tag-pad-v) var(--space-tag-pad-h);
+}
+
+/* ExerciseRow（L3）—— 它只是 TLListRow ＋ TLEquipmentTag 的組合，
+   沒有自己的樣式。這一段留空是刻意的，證明「L3 = L2 的組合」在它身上成立。 */
+
 /* TLGroup / TLDivider / TLDividedVStack —— 它們的視覺表述就是骨架的 .group / .row，
    在 preview.css 裡。這是刻意的：那三個元件「是」容器與分隔線本身，
    不是放在容器裡的東西。 */
