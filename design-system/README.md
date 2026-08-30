@@ -155,9 +155,20 @@ design-system/tokens/tokens.json     ← 唯一手寫的來源
     （設計端 / preview）      （app 端）        ← 兩個都是生成物，不可手改
 ```
 
-schema 要能表達 **alias 與 alpha**：`border-subtle = text-primary @ 8%`、`shadow-sm = neutral-900 @ 14%`。
+schema 表達 **alias 與 alpha**：`borderSubtle = ink.900 @ 8%`、`shadow.sm = neutral.900 @ 14%`。
 
-`make lint` 檢查生成物與來源一致。
+```
+make tokens   # 從 tokens.json 重生兩個產物
+make lint     # 生成物與來源不一致就擋（i18n 檢查之後）
+```
+
+**深色接上時要改的只有兩處**：`tokens.json` 的 `dark` 值，以及生成器裡 Swift 語意色的輸出形式
+（改成 `#if canImport(UIKit)` 的 traits 分支）。呼叫端拿到的型別仍然是 `Color`，
+所以**不需要動任何元件或畫面** —— 這就是「留位置」的兌現。
+
+`design-system/fonts/Caprasimo-Regular.ttf` 是 `Packages/DesignSystem/.../Resources/` 那份的副本（41K）。
+刻意重複：SPM 的資源必須在 target 目錄內，而 zip 又必須自足，兩邊都要有一份。
+真實來源是 package 裡那份，這裡是給 preview 與交付用的。
 
 ---
 

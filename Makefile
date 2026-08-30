@@ -117,9 +117,16 @@ ifeq ($(REPORT),true)
 	@$(MAKE) --no-print-directory report KIND=ui LANG_TAG=$(LANG_TAG)
 endif
 
-# i18n 迴歸防護：擋裸 String(localized:) 與寫死的中文字串（見 scripts/check-i18n.sh）。
+# 迴歸防護：
+#   1. i18n——擋裸 String(localized:) 與寫死的中文字串（見 scripts/check-i18n.sh）
+#   2. token——生成物與 design-system/tokens/tokens.json 不一致就擋（見 scripts/gen-tokens.py）
 lint:
 	@./scripts/check-i18n.sh
+	@python3 scripts/gen-tokens.py --check && echo "✔ token 生成物與 tokens.json 一致"
+
+# 從 tokens.json 重生 DesignTokens.swift 與 tokens.css。改完 token 一定要跑這個。
+tokens:
+	@python3 scripts/gen-tokens.py
 
 # 解析 test-reports/ 的產物並上傳 Notion。由 test-unit / test-uitest 在 REPORT=true 時呼叫，
 # 也可以自己跑。上傳失敗只印警告、不改變結束碼——測試結果才是 exit code 的來源。
