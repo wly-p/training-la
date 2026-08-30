@@ -34,14 +34,19 @@ FEATURE_MODULES = ("Spec", "Plan", "Training", "History", "Settings", "Ability",
 CHECKS = {
     1:  ("每個元件有 spec ＋ preview，spec 十二節齊全，實作檔存在", "§6"),
     2:  ("Swift 側一個檔一個 public 元件", "§7.1"),
-    3:  ("spec 宣告的 props 與 `init` 參數一致", "§6.2"),
+    3:  ("spec 宣告的 props 與 `init` 參數一致 —— 兩個方向都擋："
+         "宣告了 init 沒有的 prop、以及**宣告無 props 但 init 其實收參數**", "§6.2"),
     4:  ("`states` 每個都有對應的 `data-state`、`themes` 每個都有對應的 `data-theme`；"
          "主題不得混進 states", "§6.4、§7.4"),
-    6:  ("spec 與 preview 內零字面色值；preview 無外部請求", "§6.6、§7.2–3"),
+    6:  ("spec 與 preview 內零字面色值（**所有檔案，無豁免**）；preview 無外部請求", "§6.6、§7.2"),
+    14: ("**元件** preview 內零字面尺寸。豁免只適用設計系統自身的展示頁"
+         "（`tokens/tokens.preview.html`、未來的 `foundations/*.html`），按路徑判定不靠語意", "§7.3"),
     9:  ("preview 用到的 `var(--…)` 都在 `tokens.css` 或 `preview.css` 裡定義", "§5"),
     10: ("preview 用到的字都在子集字型裡（缺字會靜默掉回系統字型）", "§7"),
     11: ("第 11 節宣告的組成元件真的存在於元件庫", "§6.11"),
     12: ("文件裡提到的 token 名都存在於 `tokens.json`", "§5"),
+    13: ("L1／L2 的 preview 不出現 domain 詞彙（Exercise／Workout／組數…）"
+         "—— 假資料最順手的來源就是真的運動名稱，那一刻就違反了規則三", "§4 規則三、§7.5"),
     7:  ("Presentation 層字面樣式**不得增加**（ratchet，不是硬門檻）", "§4 規則一"),
     8:  ("`DesignSystem` 未 import 任何功能 package", "§4 規則三"),
     5:  ("生成物與來源一致：`tokens.json` → Swift／CSS；各 spec → `components.json`／`index.html`", "§5、§6"),
@@ -189,6 +194,37 @@ if mani.exists():
     if missing:
         err(10, f"preview 用到 {len(missing)} 個不在子集字型裡的字（{''.join(sorted(missing)[:12])}…）"
                 f"——跑 make preview-font 重生，否則設計端會看到方框")
+
+# ── 13：L1／L2 的 preview 不得出現 domain 詞彙 ─────────────────────
+# 為什麼會發生：分子的 preview 需要假資料，而最順手的假資料就是真的運動名稱。
+# 「臥推 60kg × 8」寫起來毫不費力，但那一刻 L2 就認識 domain 了（規則三）。
+# 詞表隨階段成長——撞到新的 domain 名詞就加進來。
+DOMAIN_WORDS = [
+    "Exercise", "Workout", "Template", "Rotation", "Program", "PlanWorkout", "AbilityValue",
+    "臥推", "深蹲", "硬舉", "引體", "划船", "肩推", "二頭", "三頭", "棒式",
+    "動作", "課表", "範本", "循環", "訓練日", "組數", "次數", "熱身組", "能力值", "最大重量",
+]
+for layer in ("atoms", "molecules"):
+    for f in (DS / layer).rglob("*.preview.html"):
+        body = f.read_text()
+        hits = sorted({w for w in DOMAIN_WORDS if w in body})
+        if hits:
+            err(13, f"{f.relative_to(DS)}：L1／L2 的 preview 出現 domain 詞彙 {hits}"
+                    f"——改用與 domain 無關的假資料")
+
+# ── 14：元件 preview 不得有字面尺寸（展示頁按路徑豁免）────────────────
+# 豁免是白名單而不是判斷題：「這段算不算展示骨架」人在趕的時候一定會判成算。
+SCAFFOLD_OK = ("tokens/tokens.preview.html", "index.html")
+LITERAL_SIZE = re.compile(r":\s*-?\d+(?:\.\d+)?(?:px|pt)\b"
+                          r"|\b(?:width|height|stroke-width)=\"-?\d")
+for layer in ("atoms", "molecules", "organisms"):
+    for f in (DS / layer).rglob("*.preview.html"):
+        rel = str(f.relative_to(DS))
+        if rel.startswith(SCAFFOLD_OK):
+            continue
+        for lit in sorted(set(LITERAL_SIZE.findall(f.read_text())))[:5]:
+            err(14, f"{rel}：元件 preview 出現字面尺寸 `{lit.strip()}`，一律用 var(--…)"
+                    f"（豁免只給設計系統自身的展示頁，按路徑判定）")
 
 # ── 12：文件提到的 token 名都要真的存在 ───────────────────────────
 # 抓「token 被刪／改名，但正典或規格還在講它」——README 是正典，

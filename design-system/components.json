@@ -14,6 +14,12 @@
         "5c"
       ],
       "prototypeNote": "出現在所有可進入的列",
+      "standalone": false,
+      "requiresContainer": [
+        "TLListRow",
+        "TLSettingsRow"
+      ],
+      "containerOwns": "間距與位置由列負責；按下態也由整列表現，這個元件本身不含 padding、不變樣子",
       "props": [],
       "slots": [],
       "events": [],
@@ -25,6 +31,7 @@
         "light",
         "dark"
       ],
+      "confusableWith": [],
       "dontUseFor": [
         "表達展開／收合 —— 那要的是會旋轉的記號，不是這個",
         "當作裝飾放在不可進入的列上 —— 那會騙使用者",

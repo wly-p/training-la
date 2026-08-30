@@ -45,6 +45,25 @@ def css_color(spec) -> str:
 def num(v):
     return str(int(v)) if float(v) == int(v) else str(v)
 
+def _rgb(spec):
+    h = resolve(spec["ref"]).lstrip("#")
+    return [int(h[i:i+2], 16) / 255 for i in (0, 2, 4)]
+
+def _lum(rgb):
+    f = lambda c: c / 12.92 if c <= 0.03928 else ((c + 0.055) / 1.055) ** 2.4
+    r, g, b = (f(c) for c in rgb)
+    return 0.2126 * r + 0.7152 * g + 0.0722 * b
+
+def contrast(fg_spec, bg_spec):
+    """WCAG 對比度。文字類 token 的存在理由是可讀性，所以要把比值標出來——
+    下次有人想把 accentOnSurface 改回 accent.500 時會先看到理由。"""
+    a, b = _lum(_rgb(fg_spec)), _lum(_rgb(bg_spec))
+    lo, hi = sorted((a, b))
+    return (hi + 0.05) / (lo + 0.05)
+
+# 文字類 token：它們的存在理由是「壓在某個底上還讀得動」，看色票方塊永遠判斷不出來。
+TEXTISH = ("text", "accentOn", "dangerOn")
+
 # ─────────────────────────────── Swift ───────────────────────────────
 def gen_swift() -> str:
     L = [SWIFT_BANNER, "//", "// Training La — 設計 token。所有 View 只讀這裡，不要在頁面裡寫死顏色或數字。",
@@ -297,8 +316,26 @@ def gen_tokens_preview() -> str:
     L.append('  <div class="sw"><div class="chip" style="background: var(--ink-900)"></div>'
              '<div class="cap">ink.900</div></div></div>')
 
-    L.append('<div class="kicker">語意層 semantic — 元件只准用這一層</div><div class="group">')
-    for name, spec in SEM.items():
+    text_toks = {k: v for k, v in SEM.items() if k.startswith(TEXTISH)}
+    fill_toks = {k: v for k, v in SEM.items() if not k.startswith(TEXTISH)}
+
+    L.append('<div class="kicker">語意層 · 文字類 — 壓在 surface-raised 上的實際樣子</div>')
+    L.append('<p class="note">這幾個 token 的存在理由是<b>可讀性</b>，不是顏色本身。'
+             'accent-on-surface 是 accent.700 而不是 500，'
+             '整個原因就是 500 壓在容器底上讀不動。對比度是對 <code>surface-raised</code> 算的；'
+             'WCAG 正文要 4.5:1，大字與圖示 3:1。</p>')
+    L.append('<div class="group" style="background: var(--surface-raised)">')
+    for name, spec in text_toks.items():
+        ratio = contrast(spec["light"], SEM["surfaceRaised"]["light"])
+        flag = "" if ratio >= 4.5 else ("　⚠ 僅足夠大字／圖示" if ratio >= 3 else "　⚠ 對比不足")
+        L.append(f'  <div class="row"><span class="label" '
+                 f'style="color: var(--{kebab(name)})">主文字範例 訓練 Training 12.5</span>'
+                 f'<span class="cap"><code>{kebab(name)}</code> → {spec["light"]["ref"]}'
+                 f'　{ratio:.1f}:1{flag}</span></div>')
+    L.append('</div>')
+
+    L.append('<div class="kicker">語意層 · 底色與線條</div><div class="group">')
+    for name, spec in fill_toks.items():
         # 半透明的 token（borderSubtle 是 8%）疊在同色底上幾乎看不見。
         # 用分層背景把它合成在 neutral-400 上，才分辨得出實際的濃度。
         L.append(f'  <div class="row"><span class="chip" style="width:34px;height:34px;'

@@ -63,22 +63,26 @@
   <div class="sw"><div class="chip" style="background: var(--sand-base)"></div><div class="cap">sand.base</div></div>
   <div class="sw"><div class="chip" style="background: var(--sand-raised)"></div><div class="cap">sand.raised</div></div>
   <div class="sw"><div class="chip" style="background: var(--ink-900)"></div><div class="cap">ink.900</div></div></div>
-<div class="kicker">語意層 semantic — 元件只准用這一層</div><div class="group">
+<div class="kicker">語意層 · 文字類 — 壓在 surface-raised 上的實際樣子</div>
+<p class="note">這幾個 token 的存在理由是<b>可讀性</b>，不是顏色本身。accent-on-surface 是 accent.700 而不是 500，整個原因就是 500 壓在容器底上讀不動。對比度是對 <code>surface-raised</code> 算的；WCAG 正文要 4.5:1，大字與圖示 3:1。</p>
+<div class="group" style="background: var(--surface-raised)">
+  <div class="row"><span class="label" style="color: var(--text-primary)">主文字範例 訓練 Training 12.5</span><span class="cap"><code>text-primary</code> → ink.900　15.2:1</span></div>
+  <div class="row"><span class="label" style="color: var(--text-secondary)">主文字範例 訓練 Training 12.5</span><span class="cap"><code>text-secondary</code> → neutral.600　3.9:1　⚠ 僅足夠大字／圖示</span></div>
+  <div class="row"><span class="label" style="color: var(--text-tertiary)">主文字範例 訓練 Training 12.5</span><span class="cap"><code>text-tertiary</code> → neutral.500　2.6:1　⚠ 對比不足</span></div>
+  <div class="row"><span class="label" style="color: var(--text-numeric)">主文字範例 訓練 Training 12.5</span><span class="cap"><code>text-numeric</code> → neutral.900　12.9:1</span></div>
+  <div class="row"><span class="label" style="color: var(--accent-on-surface)">主文字範例 訓練 Training 12.5</span><span class="cap"><code>accent-on-surface</code> → accent.700　6.2:1</span></div>
+  <div class="row"><span class="label" style="color: var(--danger-on-surface)">主文字範例 訓練 Training 12.5</span><span class="cap"><code>danger-on-surface</code> → danger.700　8.2:1</span></div>
+</div>
+<div class="kicker">語意層 · 底色與線條</div><div class="group">
   <div class="row"><span class="chip" style="width:34px;height:34px;background: linear-gradient(var(--surface-base), var(--surface-base)), var(--neutral-400)"></span><span class="label"><code>surface-base</code> — 頁面底色</span><span class="cap">→ sand.base</span></div>
   <div class="row"><span class="chip" style="width:34px;height:34px;background: linear-gradient(var(--surface-raised), var(--surface-raised)), var(--neutral-400)"></span><span class="label"><code>surface-raised</code> — 卡片／群組容器底</span><span class="cap">→ neutral.100</span></div>
   <div class="row"><span class="chip" style="width:34px;height:34px;background: linear-gradient(var(--surface-track), var(--surface-track)), var(--neutral-400)"></span><span class="label"><code>surface-track</code> — 分段控制軌道</span><span class="cap">→ neutral.200</span></div>
   <div class="row"><span class="chip" style="width:34px;height:34px;background: linear-gradient(var(--surface-input), var(--surface-input)), var(--neutral-400)"></span><span class="label"><code>surface-input</code> — 輸入色帶（訓練頁）</span><span class="cap">→ neutral.300</span></div>
-  <div class="row"><span class="chip" style="width:34px;height:34px;background: linear-gradient(var(--text-primary), var(--text-primary)), var(--neutral-400)"></span><span class="label"><code>text-primary</code> — 主文字</span><span class="cap">→ ink.900</span></div>
-  <div class="row"><span class="chip" style="width:34px;height:34px;background: linear-gradient(var(--text-secondary), var(--text-secondary)), var(--neutral-400)"></span><span class="label"><code>text-secondary</code> — 二級文字</span><span class="cap">→ neutral.600</span></div>
-  <div class="row"><span class="chip" style="width:34px;height:34px;background: linear-gradient(var(--text-tertiary), var(--text-tertiary)), var(--neutral-400)"></span><span class="label"><code>text-tertiary</code> — 三級文字／icon</span><span class="cap">→ neutral.500</span></div>
-  <div class="row"><span class="chip" style="width:34px;height:34px;background: linear-gradient(var(--text-numeric), var(--text-numeric)), var(--neutral-400)"></span><span class="label"><code>text-numeric</code> — 大數字</span><span class="cap">→ neutral.900</span></div>
   <div class="row"><span class="chip" style="width:34px;height:34px;background: linear-gradient(var(--border-subtle), var(--border-subtle)), var(--neutral-400)"></span><span class="label"><code>border-subtle</code> — 列間分隔線</span><span class="cap">→ ink.900 @ 0.08</span></div>
   <div class="row"><span class="chip" style="width:34px;height:34px;background: linear-gradient(var(--action-primary), var(--action-primary)), var(--neutral-400)"></span><span class="label"><code>action-primary</code> — 可操作的東西（赭紅）</span><span class="cap">→ accent.500</span></div>
   <div class="row"><span class="chip" style="width:34px;height:34px;background: linear-gradient(var(--action-pressed), var(--action-pressed)), var(--neutral-400)"></span><span class="label"><code>action-pressed</code> — 實心按鈕按下態</span><span class="cap">→ accent.600</span></div>
   <div class="row"><span class="chip" style="width:34px;height:34px;background: linear-gradient(var(--category-tag), var(--category-tag)), var(--neutral-400)"></span><span class="label"><code>category-tag</code> — 分類標示（肌群）</span><span class="cap">→ sage.500</span></div>
   <div class="row"><span class="chip" style="width:34px;height:34px;background: linear-gradient(var(--danger-solid), var(--danger-solid)), var(--neutral-400)"></span><span class="label"><code>danger-solid</code> — 破壞性實心底</span><span class="cap">→ danger.600</span></div>
-  <div class="row"><span class="chip" style="width:34px;height:34px;background: linear-gradient(var(--accent-on-surface), var(--accent-on-surface)), var(--neutral-400)"></span><span class="label"><code>accent-on-surface</code> — 在容器底上的可讀 accent 文字</span><span class="cap">→ accent.700</span></div>
-  <div class="row"><span class="chip" style="width:34px;height:34px;background: linear-gradient(var(--danger-on-surface), var(--danger-on-surface)), var(--neutral-400)"></span><span class="label"><code>danger-on-surface</code> — 在容器底上的破壞性文字／外框</span><span class="cap">→ danger.700</span></div>
 </div>
 <div class="kicker">字級角色（中文值；英文 × 1.08）</div><div class="group">
   <div class="row" style="height:auto;padding-top:var(--space-gap-m);padding-bottom:var(--space-gap-m)"><span class="label" style="font-size: var(--font-page-title);font-family: var(--font-page-title-family)">訓練 Training</span><span class="cap"><code>page-title</code> 34 · zh</span></div>
