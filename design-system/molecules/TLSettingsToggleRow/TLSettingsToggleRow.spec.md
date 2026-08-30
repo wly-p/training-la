@@ -13,6 +13,10 @@
 | Preview | `design-system/molecules/TLSettingsToggleRow/TLSettingsToggleRow.preview.html` |
 | Preview CSS | `components.preview.css` §TLSettingsToggleRow |
 
+**組成**：由 `TLToggle`（L1）組成。
+`TLToggle` 的實作形式是 `ToggleStyle` 而不是 View，所以這裡是
+`Toggle(...).toggleStyle(.tlSwitch)` 而不是實例化一個子 View。
+
 ## 2 介面 ★
 
 **Props**
@@ -53,7 +57,7 @@
 | 主題 | light / dark | 兩者都有 |
 | 語言 | 中文 / 英文 | `subtitle` 是整句，英文明顯較長，第二行可能變兩行 |
 
-## 5 度量
+## 5 度量與行為
 
 | | |
 |---|---|
@@ -62,6 +66,18 @@
 | 標題與 subtitle 之間 | `space.titleSubGap` |
 | 標題與 hint 之間 | `space.titleHintGap` |
 | 開關 | `size.switchW` × `size.switchH` |
+
+### 文字與溢出
+
+**溢出**：標題與 subtitle 都可換行，列高跟著長（`minHeight`）。
+
+**多語系寬度**：`subtitle` 是整句，是全設定頁最長的文字。英文常會變成兩行。
+
+**Dynamic Type**：應跟隨。這一列的文字最多，放大後高度增加最明顯。
+
+### 動態
+
+開關的滑動與底色轉換由 `TLSwitchToggleStyle` 提供。
 
 ## 6 配色 ★
 
@@ -74,46 +90,19 @@
 
 **不可以用系統 `Toggle` 的預設樣式** —— 系統綠會讓整頁瞬間變回原生。
 
-## 7 文字行為
-
-**溢出**：標題與 subtitle 都可換行，列高跟著長（`minHeight`）。
-
-**多語系寬度**：`subtitle` 是整句，是全設定頁最長的文字。英文常會變成兩行。
-
-**Dynamic Type**：應跟隨。這一列的文字最多，放大後高度增加最明顯。
-
-## 8 動態
-
-開關的滑動與底色轉換由 `TLSwitchToggleStyle` 提供。
-
-## 9 無障礙
-
-- **底層是 `Toggle`**，所以保留 switch 的無障礙語意（VoiceOver 會念「開關，已開啟」）。
-  這是它跟「`TLSettingsRow` ＋ 自製開關」的關鍵差異。
-- **`hint` 與 `subtitle` 都不計入無障礙標籤** —— 標籤只用標題。
-  說明文字念出來會讓每一列變得很長。
-- `accessibilityIdentifier` 由呼叫端加。
-
-## 10 用法與禁用法
+## 7 用法與禁用法
 
 **用它**：設定頁裡的布林開關。
 
 **易混淆**：`TLSettingsRow` ＋ trailing 放開關 —— **不要那樣做**。
-底層不是 `Toggle` 的話會失去 switch 的無障礙語意。
+底層不是 `Toggle` 的話會失去 `switches` 的測試可定位性。
 
 **不要用它**：
 - 開關以外的東西 —— 右側固定是開關，不是 slot
 - `hint` 與 `subtitle` 同時用 —— 擇一，兩個都放會讓列變得很吵
 - 把說明文字放到群組下方 —— 見第 3 節
 
-## 11 組成 ★
-
-由 `TLToggle`（L1）組成。
-
-`TLToggle` 的實作形式是 `ToggleStyle` 而不是 View，所以這裡是
-`Toggle(...).toggleStyle(.tlSwitch)` 而不是實例化一個子 View。
-
-## 12 變更紀錄
+## 8 變更紀錄
 
 | 日期 | 改動 | 原因 |
 |---|---|---|

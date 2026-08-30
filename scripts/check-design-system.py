@@ -22,8 +22,8 @@ LEGACY  = [k for k in json.loads((DS / "tokens/_legacy-aliases.json").read_text(
 def kebab(x):
     return "".join("-" + c.lower() if c.isupper() else c for c in x)
 
-SECTIONS = ["1 身分", "2 介面", "3 變體", "4 狀態", "5 度量", "6 配色",
-            "7 文字行為", "8 動態", "9 無障礙", "10 用法與禁用法", "11 組成", "12 變更紀錄"]
+SECTIONS = ["1 身分", "2 介面", "3 變體", "4 狀態", "5 度量與行為", "6 配色",
+            "7 用法與禁用法", "8 變更紀錄"]
 # 量的是**字面值**，不是 API 用法：`.font(.system(size: TLIcon.sm))` 已經吃 token 了，
 # 不該被算成違規（第一次把 Settings 推到 0 時抓到的誤判）。所以每一條都要求後面接數字。
 LITERAL_STYLE = re.compile(
@@ -198,7 +198,7 @@ for layer, cdir in components():
 
     # §11 組成宣告的元件要真的存在
     if layer != "atoms":
-        comp = section(spec, "11 組成") or ""
+        comp = section(spec, "1 身分") or ""
         for ref in re.findall(r"`(TL\w+)`", comp):
             if not any(c.name == ref for _, c in components()):
                 err(11, f"{name}：第 11 節宣告的組成元件 `{ref}` 不在元件庫裡")

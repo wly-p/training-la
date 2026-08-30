@@ -11,7 +11,7 @@ public struct TLChevron: View {
 
     public var body: some View {
         Image(systemName: "chevron.right")
-            .font(.system(size: TLIcon.s, weight: TLIcon.weight))
+            .font(.system(size: TLIcon.inline, weight: TLIcon.weight))
             .foregroundStyle(TLColor.textTertiary)
     }
 }

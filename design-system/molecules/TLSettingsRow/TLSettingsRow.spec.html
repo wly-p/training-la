@@ -69,6 +69,7 @@
 </tr>
 </tbody>
 </table>
+<p><strong>組成</strong>：由 <code>TLChevron</code>（L1）組成；trailing 通常放 <code>TLSettingsValue</code>（L1）或 <code>TLSegmentedControl</code>（L2）。</p>
 <h2>2 介面 ★</h2>
 <p><strong>Props</strong></p>
 <table>
@@ -122,14 +123,6 @@
 <td>否</td>
 <td><code>false</code></td>
 <td>是否通往下一層</td>
-</tr>
-<tr>
-<td><code>accessibilityValue</code></td>
-<td><code>Text?</code></td>
-<td></td>
-<td>否</td>
-<td><code>nil</code></td>
-<td>給 VoiceOver 的「目前值」。drill-in 列<strong>應該傳</strong></td>
 </tr>
 <tr>
 <td><code>trailingGap</code></td>
@@ -215,7 +208,7 @@
 </tr>
 </tbody>
 </table>
-<h2>5 度量</h2>
+<h2>5 度量與行為</h2>
 <table>
 <thead>
 <tr>
@@ -260,6 +253,13 @@
 </table>
 <p><strong>列高是 <code>minHeight</code> 不是固定值</strong>：<code>TLSegmentedControl</code> 之類的 trailing 比文字高，
 列會跟著長。<code>handoff-20</code> §B 把分段控制改矮就是為了讓它<strong>不要</strong>撐高這一列。</p>
+<h3>文字與溢出</h3>
+<p><strong>溢出</strong>：標題可換行，不主動截斷。</p>
+<p><strong>多語系寬度</strong>：這是設定頁最容易出問題的地方 —— 英文的標題與值同時變長。
+排版要用「最長英文標題 ＋ 最長英文值」檢查。</p>
+<p><strong>Dynamic Type</strong>：應跟隨。列高是 <code>minHeight</code> 所以放大不會裁切，但左右方向會更擠。</p>
+<h3>動態</h3>
+<p>按下時底色淡入，<code>motion.fast</code>。<strong>沒有縮放</strong> —— 列是大面積元素，縮放會很晃。</p>
 <h2>6 配色 ★</h2>
 <table>
 <thead>
@@ -287,32 +287,15 @@
 </tr>
 </tbody>
 </table>
-<h2>7 文字行為</h2>
-<p><strong>溢出</strong>：標題可換行，不主動截斷。</p>
-<p><strong>多語系寬度</strong>：這是設定頁最容易出問題的地方 —— 英文的標題與值同時變長。
-排版要用「最長英文標題 ＋ 最長英文值」檢查。</p>
-<p><strong>Dynamic Type</strong>：應跟隨。列高是 <code>minHeight</code> 所以放大不會裁切，但左右方向會更擠。</p>
-<h2>8 動態</h2>
-<p>按下時底色淡入，<code>motion.fast</code>。<strong>沒有縮放</strong> —— 列是大面積元素，縮放會很晃。</p>
-<h2>9 無障礙</h2>
-<ul>
-<li><strong>drill-in 列一定要傳 <code>accessibilityValue</code></strong>，讓 VoiceOver 念出「標籤＋目前值」
-  （例：「主題，深色」）。少傳的話使用者要進到下一頁才知道現在選什麼。</li>
-<li><code>onTap</code> 不為 <code>nil</code> 時列有 button trait；為 <code>nil</code> 時是純靜態文字。</li>
-<li><code>hint</code> 不計入無障礙標籤 —— 它是視覺補充，念出來會太囉唆。</li>
-<li><code>accessibilityIdentifier</code> 由呼叫端加（例：<code>settings.row.theme</code>）。</li>
-</ul>
-<h2>10 用法與禁用法</h2>
+<h2>7 用法與禁用法</h2>
 <p><strong>用它</strong>：設定頁的列。</p>
 <p><strong>易混淆</strong>：<code>TLListRow</code>（列表列）—— 那個有圓章、副標、可選取，用在<strong>資料清單</strong>；
 這個沒有圓章、右側是「目前的值」，用在<strong>設定</strong>。看到圓章就是 <code>TLListRow</code>。</p>
 <p><strong>不要用它</strong>：
-- 開關列 —— 用 <code>TLSettingsToggleRow</code>，它底層是 <code>Toggle</code>，保留 switch 的無障礙語意
+- 開關列 —— 用 <code>TLSettingsToggleRow</code>，它底層是 <code>Toggle</code>，保留 <code>switches</code> 的測試可定位性
 - destructive ＋ chevron 並存 —— 破壞性操作就地執行，不通往任何地方
 - 放在 <code>TLGroup</code> 外面 —— 會失去圓角、底色與分隔線</p>
-<h2>11 組成 ★</h2>
-<p>由 <code>TLChevron</code>（L1）組成；trailing 通常放 <code>TLSettingsValue</code>（L1）或 <code>TLSegmentedControl</code>（L2）。</p>
-<h2>12 變更紀錄</h2>
+<h2>8 變更紀錄</h2>
 <table>
 <thead>
 <tr>

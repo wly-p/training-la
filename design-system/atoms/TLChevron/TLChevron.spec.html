@@ -144,7 +144,7 @@
 </tr>
 </tbody>
 </table>
-<h2>5 度量</h2>
+<h2>5 度量與行為</h2>
 <table>
 <thead>
 <tr>
@@ -155,7 +155,7 @@
 <tbody>
 <tr>
 <td>圖示尺寸</td>
-<td><code>icon.s</code> ＋ <code>icon.weight</code></td>
+<td><code>icon.inline</code> ＋ <code>icon.weight</code></td>
 </tr>
 <tr>
 <td>外框</td>
@@ -175,6 +175,14 @@
 </tr>
 </tbody>
 </table>
+<h3>文字與溢出</h3>
+<p>無文字。</p>
+<p><strong>方向性</strong>：SF Symbol 的 <code>chevron.right</code> 在 RTL 語系會自動鏡射。App 目前只有中／英（皆 LTR），
+所以不影響，但<strong>不要改用固定方向的自繪箭頭</strong>，那會讓未來加入 RTL 語系時默默壞掉。</p>
+<p><strong>Dynamic Type</strong>：目前固定 <code>icon.inline</code>，不跟隨。C7a 決定支援範圍時，它應該跟著 <code>rowTitle</code> 一起縮放
+（它是列的一部分，單獨縮放會和主標對不齊）。</p>
+<h3>動態</h3>
+<p>無轉場、無動畫、無觸覺回饋。整列的按下態由列自己處理。</p>
 <h2>6 配色 ★</h2>
 <table>
 <thead>
@@ -190,31 +198,14 @@
 </tr>
 </tbody>
 </table>
-<h2>7 文字行為</h2>
-<p>無文字。</p>
-<p><strong>方向性</strong>：SF Symbol 的 <code>chevron.right</code> 在 RTL 語系會自動鏡射。App 目前只有中／英（皆 LTR），
-所以不影響，但<strong>不要改用固定方向的自繪箭頭</strong>，那會讓未來加入 RTL 語系時默默壞掉。</p>
-<p><strong>Dynamic Type</strong>：目前固定 <code>icon.s</code>，不跟隨。C7a 決定支援範圍時，它應該跟著 <code>rowTitle</code> 一起縮放
-（它是列的一部分，單獨縮放會和主標對不齊）。</p>
-<h2>8 動態</h2>
-<p>無轉場、無動畫、無觸覺回饋。整列的按下態由列自己處理。</p>
-<h2>9 無障礙</h2>
-<ul>
-<li><strong>不需要 accessibility label</strong> —— 它是純裝飾，語意由整列承載。
-  列本身應該有 <code>.accessibilityAddTraits(.isButton)</code>。</li>
-<li>不掛 <code>accessibilityIdentifier</code> —— 測試定位的是列，不是箭頭。</li>
-<li>最小觸控：N/A（不可互動）。</li>
-</ul>
-<h2>10 用法與禁用法</h2>
+<h2>7 用法與禁用法</h2>
 <p><strong>用它</strong>：列可以進入下一層時。</p>
 <p><strong>易混淆</strong>：目前沒有 —— 展開／收合的記號還不存在。等它出現時，<strong>兩邊的規格都要補上這一行</strong>。</p>
 <p><strong>不要用它</strong>：
 - 表達展開／收合 —— 那要的是會旋轉的記號，不是這個
 - 當作裝飾放在不可進入的列上 —— 那會騙使用者
 - 自己加 padding 到元件裡 —— 間距是列的責任</p>
-<h2>11 組成 ★</h2>
-<p>N/A（L1 原子）。</p>
-<h2>12 變更紀錄</h2>
+<h2>8 變更紀錄</h2>
 <table>
 <thead>
 <tr>
@@ -236,8 +227,8 @@
 </tr>
 <tr>
 <td>2026-08-30</td>
-<td><strong>規格圖示尺寸訂為 <code>icon.s</code>（13），不是 16</strong></td>
-<td>設計文件 <code>11-component-inventory.md</code> 與原本的 doc comment 都寫「16pt bold」，但程式碼從來都是 13pt semibold。以<strong>實作為準</strong>——16pt 在 15pt 的列主標旁邊會比主標還大，明顯不對。設計端的清單要更正</td>
+<td><strong>規格圖示尺寸訂為 <code>icon.inline</code>，不是 16</strong></td>
+<td>設計文件 <code>11-component-inventory.md</code> 與原本的 doc comment 都寫「16pt bold」，但程式碼從來都是 13pt semibold。以<strong>實作為準</strong>——16pt 在 15pt 的列主標旁邊會比主標還大，明顯不對。設計端的清單要更正。⚠ 後續：13 已隨 icon 尺度收斂併入 <code>icon.inline</code>(14)，±1px 位移經設計端拍板</td>
 </tr>
 <tr>
 <td>2026-08-30</td>

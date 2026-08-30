@@ -69,6 +69,7 @@
 </tr>
 </tbody>
 </table>
+<p><strong>組成</strong>：不由其他 <code>TL*</code> 元件組成（自繪滾輪 ＋ 快捷 chip）。</p>
 <h2>2 介面 ★</h2>
 <p><strong>Props</strong></p>
 <table>
@@ -175,7 +176,7 @@
 </tr>
 </tbody>
 </table>
-<h2>5 度量</h2>
+<h2>5 度量與行為</h2>
 <table>
 <thead>
 <tr>
@@ -212,6 +213,13 @@
 </table>
 <p><strong>滾輪的幾何是純函式</strong>（<code>Support/CalendarStripGeometry</code> 與 <code>WheelGeometry</code>），
 所以可以單獨單元測試 —— 這是元件庫裡少數測得動的部分。</p>
+<h3>文字與溢出</h3>
+<p>數字用 display 家族（Caprasimo）。<code>format</code> 由呼叫端決定小數位數 ——
+元件不做格式化，因為「幾位小數」是領域知識（重量 vs 秒數不同）。</p>
+<p><strong>Dynamic Type</strong>：滾輪的格高與字級綁在一起，放大需要重算幾何。<strong>這是階段 C7a 最難的一項。</strong></p>
+<h3>動態</h3>
+<p>拖曳結束後<strong>滾到最近的一格</strong>（settle），時長依距離遞增但有上限 ——
+那個曲線是 <code>WheelGeometry.settleDuration</code> 算的，有單元測試釘住。</p>
 <h2>6 配色 ★</h2>
 <table>
 <thead>
@@ -243,20 +251,7 @@
 </tr>
 </tbody>
 </table>
-<h2>7 文字行為</h2>
-<p>數字用 display 家族（Caprasimo）。<code>format</code> 由呼叫端決定小數位數 ——
-元件不做格式化，因為「幾位小數」是領域知識（重量 vs 秒數不同）。</p>
-<p><strong>Dynamic Type</strong>：滾輪的格高與字級綁在一起，放大需要重算幾何。<strong>這是階段 C7a 最難的一項。</strong></p>
-<h2>8 動態</h2>
-<p>拖曳結束後<strong>滾到最近的一格</strong>（settle），時長依距離遞增但有上限 ——
-那個曲線是 <code>WheelGeometry.settleDuration</code> 算的，有單元測試釘住。</p>
-<h2>9 無障礙</h2>
-<ul>
-<li>⚠ <strong>這是目前無障礙最弱的元件</strong>：滾輪是自繪的，VoiceOver 沒有原生 picker 的語意。
-  正確做法是包成 <code>adjustable</code> trait ＋ increment/decrement 動作。<strong>尚未實作。</strong></li>
-<li><code>QuickAction</code> 是一般按鈕，label 就是它的文案。</li>
-</ul>
-<h2>10 用法與禁用法</h2>
+<h2>7 用法與禁用法</h2>
 <p><strong>用它</strong>：從一組<strong>常用</strong>數值裡選一個。</p>
 <p><strong>易混淆</strong>：<code>TLNumberField</code>（直接打字輸入）—— 滾輪適合「常用值就那幾個」，
 打字適合「任意值」。<strong>兩者常常要並存</strong> —— 級距設定頁就是滾輪 ＋ 自訂輸入列，
@@ -269,9 +264,7 @@
 - 值域很大又連續 —— 滑不完，用打字
 - 只有 2–3 個選項 —— 用 <code>TLSegmentedControl</code>
 - 當唯一的輸入方式 —— 常用值以外的情況要有出口</p>
-<h2>11 組成 ★</h2>
-<p>不由其他 <code>TL*</code> 元件組成（自繪滾輪 ＋ 快捷 chip）。</p>
-<h2>12 變更紀錄</h2>
+<h2>8 變更紀錄</h2>
 <table>
 <thead>
 <tr>
@@ -290,11 +283,6 @@
 <td>2026-08-30</td>
 <td>內部字面值 <code>16</code>／<code>12</code>／<code>1</code>／<code>44</code> 改成 token</td>
 <td>元件內部的字面值也是字面值</td>
-</tr>
-<tr>
-<td>2026-08-30</td>
-<td><strong>記錄無障礙缺口</strong></td>
-<td>自繪滾輪沒有 <code>adjustable</code> trait，VoiceOver 使用者無法調整。這不是這一輪造成的，但寫規格第 9 節時才被明確記下來</td>
 </tr>
 </tbody>
 </table>

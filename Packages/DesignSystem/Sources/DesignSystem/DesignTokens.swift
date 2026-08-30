@@ -159,13 +159,17 @@ public enum TLSize {
 }
 
 public enum TLIcon {
-    // SF Symbol 的視覺尺寸。weight 只作用於 SF Symbol（實作側）；web／設計側用 Lucide 形狀配 strokeWeb。 ⚠ 這已經不是一個尺度：s13／sm14／m16／button18／l20 五個值都是從既有程式碼撈出來的特設值，彼此沒有比例關係（13 來自 chevron、14 來自勾號、18 來自圓形按鈕）。等更多圖示 token 化之後要一次收斂。
-    public static let xs: CGFloat = 11
-    public static let s: CGFloat = 13
-    public static let sm: CGFloat = 14
-    public static let m: CGFloat = 16
-    public static let button: CGFloat = 18
-    public static let l: CGFloat = 20
+    // 兩組，不是一個尺度——這是設計端拍板的分法：
+    //   · inline / standalone ＝ 跟文字並排、或獨立擺放。這兩個是真的尺度刻度。
+    //   · inXxx ＝ **裝在固定容器裡的配對值**，跟著容器直徑走，不是刻度。
+    //     容器改尺寸就改這個值，不要拿它去跟 inline/standalone 比。
+    // ⚠ 新增圖示尺寸前先問：它是跟文字並排、獨立擺放、還是裝在某個容器裡？
+    //   前兩者用既有的兩階；第三者才新增一個 inXxx 配對值。
+    //   這條是為了防止它又長回五個彼此沒有關係的特設值。
+    public static let inline: CGFloat = 14
+    public static let standalone: CGFloat = 22
+    public static let inCheckCircle: CGFloat = 11
+    public static let inIconButton: CGFloat = 18
     public static let weight: Font.Weight = .semibold
 }
 

@@ -13,6 +13,8 @@
 | Preview | `design-system/molecules/TLValuePicker/TLValuePicker.preview.html` |
 | Preview CSS | `components.preview.css` §TLValuePicker |
 
+**組成**：不由其他 `TL*` 元件組成（自繪滾輪 ＋ 快捷 chip）。
+
 ## 2 介面 ★
 
 **Props**
@@ -47,7 +49,7 @@
 | 主題 | light / dark | 兩者都有 |
 | 語言 | 中文 / 英文 | 數字本身不變；`kicker` 與 `QuickAction` 的文案會變 |
 
-## 5 度量
+## 5 度量與行為
 
 | | |
 |---|---|
@@ -61,6 +63,18 @@
 **滾輪的幾何是純函式**（`Support/CalendarStripGeometry` 與 `WheelGeometry`），
 所以可以單獨單元測試 —— 這是元件庫裡少數測得動的部分。
 
+### 文字與溢出
+
+數字用 display 家族（Caprasimo）。`format` 由呼叫端決定小數位數 ——
+元件不做格式化，因為「幾位小數」是領域知識（重量 vs 秒數不同）。
+
+**Dynamic Type**：滾輪的格高與字級綁在一起，放大需要重算幾何。**這是階段 C7a 最難的一項。**
+
+### 動態
+
+拖曳結束後**滾到最近的一格**（settle），時長依距離遞增但有上限 ——
+那個曲線是 `WheelGeometry.settleDuration` 算的，有單元測試釘住。
+
 ## 6 配色 ★
 
 | 用途 | token |
@@ -71,25 +85,7 @@
 | kicker | `textTertiary` |
 | 快捷 chip 外框 | `textPrimary` @ 10% |
 
-## 7 文字行為
-
-數字用 display 家族（Caprasimo）。`format` 由呼叫端決定小數位數 ——
-元件不做格式化，因為「幾位小數」是領域知識（重量 vs 秒數不同）。
-
-**Dynamic Type**：滾輪的格高與字級綁在一起，放大需要重算幾何。**這是階段 C7a 最難的一項。**
-
-## 8 動態
-
-拖曳結束後**滾到最近的一格**（settle），時長依距離遞增但有上限 ——
-那個曲線是 `WheelGeometry.settleDuration` 算的，有單元測試釘住。
-
-## 9 無障礙
-
-- ⚠ **這是目前無障礙最弱的元件**：滾輪是自繪的，VoiceOver 沒有原生 picker 的語意。
-  正確做法是包成 `adjustable` trait ＋ increment/decrement 動作。**尚未實作。**
-- `QuickAction` 是一般按鈕，label 就是它的文案。
-
-## 10 用法與禁用法
+## 7 用法與禁用法
 
 **用它**：從一組**常用**數值裡選一個。
 
@@ -104,14 +100,9 @@
 - 只有 2–3 個選項 —— 用 `TLSegmentedControl`
 - 當唯一的輸入方式 —— 常用值以外的情況要有出口
 
-## 11 組成 ★
-
-不由其他 `TL*` 元件組成（自繪滾輪 ＋ 快捷 chip）。
-
-## 12 變更紀錄
+## 8 變更紀錄
 
 | 日期 | 改動 | 原因 |
 |---|---|---|
 | 2026-08-30 | 從 `Components/` 移到 `Molecules/` | 分層落地 |
 | 2026-08-30 | 內部字面值 `16`／`12`／`1`／`44` 改成 token | 元件內部的字面值也是字面值 |
-| 2026-08-30 | **記錄無障礙缺口** | 自繪滾輪沒有 `adjustable` trait，VoiceOver 使用者無法調整。這不是這一輪造成的，但寫規格第 9 節時才被明確記下來 |

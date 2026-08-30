@@ -78,6 +78,59 @@
 <li><strong>12</strong> 文件裡提到的 token 名都要真的存在。抓「token 被刪／改名，文件還在講它」。</li>
 </ul>
 <hr />
+<h2>2026-08-30 · icon 尺度收斂（設計端拍板）</h2>
+<h3>一個真的錯誤：<code>--icon-m</code> 的矛盾</h3>
+<p>審閱交叉比對 <code>components.preview.css</code> 與使用清單，抓到一個<strong>我的 CSS 鏡像畫錯了</strong>：</p>
+<pre><code>Swift  TLBadge 圖示建構子 → TLFont.rowTitle (15)
+CSS    .tl-badge svg      → var(--icon-m)  (16)
+</code></pre>
+<p><code>--icon-m</code> 全專案唯一的使用者就是那一行錯的 CSS。</p>
+<p><strong>這正是檢查 16 擋不到的那種漂移</strong> —— 它擋孤兒與遺漏，但<strong>兩份實作的值不一致擋不了</strong>
+（那要跨語言比對）。契約裡寫過這個限制，這次它真的發生了，而且是被人眼交叉比對抓到的。
+記在這裡當作那條限制的實例。</p>
+<h3>拍板的四項</h3>
+<table>
+<thead>
+<tr>
+<th></th>
+<th>決定</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>icon.l</code>(20)</td>
+<td>刪除（0 處引用）</td>
+</tr>
+<tr>
+<td><code>13</code>／<code>14</code>／<code>15</code></td>
+<td>收成一個值 <strong>14</strong>，改名 <strong><code>icon.inline</code></strong>。±1px 位移可接受</td>
+</tr>
+<tr>
+<td>容器內圖示</td>
+<td>用<strong>固定配對值</strong>不用比例；<code>TLCircleIconButton.iconSize</code> <strong>不開成 prop</strong></td>
+</tr>
+<tr>
+<td><code>22</code> 兩處</td>
+<td>先共用 <strong><code>icon.standalone</code></strong></td>
+</tr>
+</tbody>
+</table>
+<p>收斂後 <code>icon</code> 從五個特設值變成<strong>兩組四個</strong>：</p>
+<pre><code>inline 14      standalone 22       ← 真的尺度刻度
+inCheckCircle 11  inIconButton 18  ← 裝在固定容器裡的配對值，跟著容器直徑走
+</code></pre>
+<p>命名刻意分成 <code>inXxx</code> —— <strong>那些不是刻度</strong>，拿它們去跟 <code>inline</code>／<code>standalone</code> 比較沒有意義。</p>
+<p><code>tokens.json</code> 的 <code>_note</code> 加了一條防再犯的判準（採納審閱建議）：</p>
+<blockquote>
+<p>新增圖示尺寸前先問：它是跟文字並排、獨立擺放、還是裝在某個容器裡？
+前兩者用既有的兩階；第三者才新增一個 <code>inXxx</code> 配對值。</p>
+</blockquote>
+<p>順帶把四個尚未榨取的元件的字面 SF Symbol 字級一起收進來
+（<code>TLEmptyState</code> 22、<code>TLTabBar</code> 22、<code>TLSearchField</code> 15×2、<code>TLSwipeToRevealRow</code> 15）。</p>
+<h3>生成器的一個修正</h3>
+<p>多行的 <code>_note</code> 生成出來的 Swift 註解只有第一行有 <code>//</code>，直接語法錯誤。
+改成每一行都加 —— <strong>token 的說明值得寫成多行，壓成一行會沒人讀</strong>。</p>
+<hr />
 <h2>2026-08-30 · 階段 1 交付審閱後</h2>
 <h3><code>preview.css</code> 分家（審閱 A）</h3>
 <p>審閱指出：<code>preview.css</code> 已經從「展示骨架」變成<strong>元件的第二份實作</strong> ——
@@ -386,9 +439,19 @@
 <td>✅ 階段 1 已抽出</td>
 </tr>
 <tr>
-<td><code>icon</code> 不是一個尺度，<strong>而且其中兩個值(m16／l20)從來沒被用過</strong></td>
-<td>全 app</td>
-<td>清單已給設計端（<code>temp/icon-scale-usage.md</code>），等回覆</td>
+<td>~~<code>icon</code> 不是一個尺度~~</td>
+<td>—</td>
+<td>✅ 已收斂成兩組四個（見上方 icon 尺度收斂）</td>
+</tr>
+<tr>
+<td><strong>空狀態圖示日後若要放大，要開新階、不要動 <code>standalone</code></strong> —— 分頁列與空狀態目前共用 22，那是「先共用」不是「確認同性質」</td>
+<td>2 處</td>
+<td>撞到空狀態設計時</td>
+</tr>
+<tr>
+<td><code>AbilityListView.swift:349</code> 有一個零星的 <code>.font(.system(size: 12))</code> —— 是文字不是圖示，但沒有對應的字級角色</td>
+<td>1 處</td>
+<td>階段 3／4 撞到 Ability 時</td>
 </tr>
 <tr>
 <td><code>RotationDetailView</code> / <code>ProgramDetailView</code> 仍各自寫返回列（字面 <code>12</code>）。改用 <code>TLBackBar</code> 之後會變成 <code>8</code></td>

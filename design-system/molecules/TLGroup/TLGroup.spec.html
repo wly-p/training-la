@@ -69,6 +69,7 @@
 </tr>
 </tbody>
 </table>
+<p><strong>組成</strong>：由 <code>TLDividedVStack</code>（L2）組成，後者再用 <code>TLDivider</code>（L1）。</p>
 <h2>2 介面 ★</h2>
 <p><strong>Props</strong> — 無。</p>
 <table>
@@ -143,7 +144,7 @@
 </tr>
 </tbody>
 </table>
-<h2>5 度量</h2>
+<h2>5 度量與行為</h2>
 <table>
 <thead>
 <tr>
@@ -170,6 +171,11 @@
 </tr>
 </tbody>
 </table>
+<h3>文字與溢出</h3>
+<p>自己無文字。</p>
+<h3>動態</h3>
+<p>無轉場。列的按下態由列自己處理，<strong>不會被容器的圓角裁掉</strong> ——
+按下態畫在列上，而列在容器的 clip 範圍內。</p>
 <h2>6 配色 ★</h2>
 <table>
 <thead>
@@ -186,17 +192,7 @@
 </tbody>
 </table>
 <p><strong>它比頁面底(<code>surfaceBase</code>)亮</strong>：卡片是浮起來的，不是凹進去的。</p>
-<h2>7 文字行為</h2>
-<p>自己無文字。</p>
-<h2>8 動態</h2>
-<p>無轉場。列的按下態由列自己處理，<strong>不會被容器的圓角裁掉</strong> ——
-按下態畫在列上，而列在容器的 clip 範圍內。</p>
-<h2>9 無障礙</h2>
-<ul>
-<li><strong>不是一個 accessibility element</strong>。VoiceOver 應該逐列走過，容器本身不該被念到。</li>
-<li>不掛 label 或 identifier。</li>
-</ul>
-<h2>10 用法與禁用法</h2>
+<h2>7 用法與禁用法</h2>
 <p><strong>用它</strong>：一組相關的列要成為視覺上的一張卡時。</p>
 <p><strong>易混淆</strong>：<code>TLSectionHeader</code>（區塊標題）—— 那個是卡<strong>上方</strong>的標籤，這個是卡本身。
 兩者常一起出現但可以分開用：一張卡不一定要有標題。</p>
@@ -204,9 +200,7 @@
 - 包單一個非列的東西（例如一張圖）—— 那不是「一組列」，會拿到不該有的分隔線邏輯
 - 巢狀 —— 卡中卡沒有設計，而且分隔線會亂
 - 沒有內容時還放著 —— 見第 4 節的 empty</p>
-<h2>11 組成 ★</h2>
-<p>由 <code>TLDividedVStack</code>（L2）組成，後者再用 <code>TLDivider</code>（L1）。</p>
-<h2>12 變更紀錄</h2>
+<h2>8 變更紀錄</h2>
 <table>
 <thead>
 <tr>

@@ -12,8 +12,6 @@ import SwiftUI
 /// 破壞性列：`TLSettingsRow(localText("..."), role: .destructive) { … }`
 /// → `danger-700` 文字＋垃圾桶圖示。
 ///
-/// drill-in（值＋chevron 可點）建議傳 `accessibilityValue:`，讓 VoiceOver / UITest
-/// 能以「標籤＋目前值」辨識（例：主題 = 深色）。
 public struct TLSettingsRow<Trailing: View>: View {
     public enum Role { case normal, destructive }
 
@@ -22,7 +20,6 @@ public struct TLSettingsRow<Trailing: View>: View {
     private let systemImage: String?
     private let role: Role
     private let showChevron: Bool
-    private let accessibilityValue: Text?
     private let trailingGap: CGFloat
     private let onTap: (() -> Void)?
     private let trailing: Trailing
@@ -33,7 +30,6 @@ public struct TLSettingsRow<Trailing: View>: View {
         systemImage: String? = nil,
         role: Role = .normal,
         showChevron: Bool = false,
-        accessibilityValue: Text? = nil,
         trailingGap: CGFloat = TLSpace.gapS,
         onTap: (() -> Void)? = nil,
         @ViewBuilder trailing: () -> Trailing
@@ -43,7 +39,6 @@ public struct TLSettingsRow<Trailing: View>: View {
         self.systemImage = systemImage
         self.role = role
         self.showChevron = showChevron
-        self.accessibilityValue = accessibilityValue
         self.trailingGap = trailingGap
         self.onTap = onTap
         self.trailing = trailing()
@@ -88,23 +83,8 @@ public struct TLSettingsRow<Trailing: View>: View {
     public var body: some View {
         if let onTap {
             // 只覆寫 label/value（Button 本身已是單一 a11y 元素）；
-            // 不要用 accessibilityElement(children:.ignore)——套在 Button 上會多出一個重複元素。
             Button(action: onTap) { content }
                 .buttonStyle(TLRowPressStyle())
-                .accessibilityLabel(title)
-                .modifier(OptionalA11yValue(value: accessibilityValue))
-        } else {
-            content
-        }
-    }
-}
-
-/// 選擇性套 accessibilityValue（Text? → 有才套）。
-private struct OptionalA11yValue: ViewModifier {
-    let value: Text?
-    func body(content: Content) -> some View {
-        if let value {
-            content.accessibilityValue(value)
         } else {
             content
         }
@@ -119,12 +99,11 @@ public extension TLSettingsRow where Trailing == EmptyView {
         systemImage: String? = nil,
         role: Role = .normal,
         showChevron: Bool = false,
-        accessibilityValue: Text? = nil,
         trailingGap: CGFloat = TLSpace.gapS,
         onTap: (() -> Void)? = nil
     ) {
         self.init(title, hint: hint, systemImage: systemImage, role: role,
-                  showChevron: showChevron, accessibilityValue: accessibilityValue,
+                  showChevron: showChevron,
                   trailingGap: trailingGap, onTap: onTap) { EmptyView() }
     }
 }

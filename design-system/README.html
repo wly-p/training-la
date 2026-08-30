@@ -280,42 +280,26 @@ make lint     # 生成物與來源不一致就擋（i18n 檢查之後）
 </code></pre>
 <p>L3 有機體的實作檔留在各 package，但 <code>spec.md</code> 與 <code>preview.html</code>（用假資料）集中在 <code>design-system/organisms/</code>，
 否則設計端拿不到完整的一包。</p>
-<h3>規格十二節</h3>
+<h3>規格八節</h3>
 <p>標 ★ 的可以機器檢查。</p>
-<p><strong>1 · 身分</strong>
-層級（L1/L2/L3）、一句話職責、對應的原型 id（沿用 <code>4c</code>／<code>13a</code> 這套）、三件套的檔案路徑。</p>
-<p><strong>2 · 介面</strong> ★
-Props（名稱／型別／必填／預設值）、Slots（可插入的子內容，SwiftUI 的 <code>@ViewBuilder</code>）、事件（<code>onTap</code>／<code>onChange</code>）。
-<strong>這節決定規則一是否可能</strong> —— props 不夠，應用層就會被迫硬編，「只能排列堆疊」直接破功。
-它也是判斷「元件庫夠不夠用」的唯一依據。
-可驗：規格宣告的 props 與 Swift signature 一致。</p>
-<p><strong>3 · 變體 variants</strong>
-互斥的樣式選擇。例：<code>TLTag</code> 的 6 種 style；按鈕的 primary／secondary／text／header。</p>
-<p><strong>4 · 狀態 states</strong> ★
-照規則二的標準狀態矩陣逐項回答，不適用寫 N/A。
-可驗：規格宣告的每個狀態，preview 都有窮舉呈現。</p>
-<p><strong>5 · 度量</strong>
-尺寸／內距／圖示大小／最小點擊區。全部寫 token 名，<strong>不寫數字</strong>。</p>
-<p><strong>6 · 配色</strong> ★
-只列語意 token，規格本身不出現任何 hex。light／dark 因此自動都成立。
-可驗：spec 與 preview 內零字面色值。</p>
-<p><strong>7 · 文字行為</strong>
-溢出處理（截斷／換行／縮放）、多語系寬度（中英長度差）、Dynamic Type 行為。
-最後一項現在不實作，但<strong>現在就要寫</strong>。</p>
-<p><strong>8 · 動態</strong>
-轉場、動畫時長與曲線、觸覺回饋。</p>
-<p><strong>9 · 無障礙</strong>
-accessibility label／trait、最小觸控 44pt、<code>accessibilityIdentifier</code> 命名（見 <code>ARCHITECTURE.md</code> 的 UI test 定位慣例）。</p>
-<p><strong>10 · 用法與禁用法</strong>
-何時用這個而不是那個。明確禁止項。
-既有的好例子：<code>TLChipRow</code> 是「選一個<strong>值</strong>」、<code>TLSegmentedControl</code> 是「切換<strong>檢視</strong>」；「不可用系統 <code>Toggle</code>」。</p>
-<p><strong>11 · 組成</strong> ★（L2／L3 才有）
-由哪些下層元件組成。
-可驗：L2 的 preview 若出現不屬於任何 L1 的裸樣式，判定為漏了一個原子。</p>
-<p><strong>12 · 變更紀錄</strong>
-偏離設計稿時記這裡，含原因。
-取代目前把偏離寫在各 handoff README 尾巴的做法 —— 那些字散在八個資料夾、沒有一處能一次看完，而且 <code>temp/</code> 不進版控。</p>
-<p>L1 原子通常沒有第 2 節的 slots、也沒有第 11 節；其餘各節都要填。</p>
+<p><strong>1 · 身分</strong> —— 層級、職責、原型 id、獨立使用與容器責任、三件套路徑、<strong>組成</strong>（L2 才有）</p>
+<p><strong>2 · 介面</strong> ★ —— Props（名稱／型別／<strong>值域</strong>／必填／預設）、Slots、事件。
+<strong>這節決定規則一是否可能</strong> —— props 不夠，應用層就會被迫硬編。
+值域比型別重要：<code>style: TLTagStyle</code> 的資訊量是零，要寫出那幾種 case 叫什麼。</p>
+<p><strong>3 · 變體</strong> —— 互斥的樣式選擇，含變體之間哪些狀態不通用。</p>
+<p><strong>4 · 狀態</strong> ★ —— 照標準矩陣逐項回答，不適用寫 <code>N/A</code> ＋ 理由。
+<code>&lt;!-- states: … --&gt;</code> 與 <code>&lt;!-- themes: … --&gt;</code> 兩行是機器讀的。</p>
+<p><strong>5 · 度量與行為</strong> —— 尺寸、內距、最小寬度、壓縮行為，全部寫 token 名。
+含「文字與溢出」與「動態」兩個小節。</p>
+<p><strong>6 · 配色</strong> ★ —— 只列語意 token，不出現任何 hex。</p>
+<p><strong>7 · 用法與禁用法</strong> —— 何時用這個而不是那個（<strong>易混淆</strong>要兩邊都寫），明確禁止項。
+每條禁令都要有「為什麼」，3–4 條是上限 —— 超過代表職責混了，該拆元件。</p>
+<p><strong>8 · 變更紀錄</strong> —— 偏離設計稿時記這裡，含原因。</p>
+<blockquote>
+<p><strong>這個專案不做無障礙。</strong> <code>ARCHITECTURE.md</code> 明寫 <code>accessibilityIdentifier</code>
+是為了測試與工具化、不是無障礙工程。規格裡沒有無障礙那一節，
+identifier 慣例需要記的話寫在第 2 節的事件旁。</p>
+</blockquote>
 <hr />
 <h3>examples —— 整頁長什麼樣</h3>
 <p>元件規格教的是<strong>零件</strong>。但組畫面的人第一個問題往往是「這個畫面長什麼樣」，

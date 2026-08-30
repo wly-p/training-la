@@ -13,6 +13,8 @@
 | Preview | `design-system/molecules/TLListRow/TLListRow.preview.html` |
 | Preview CSS | `components.preview.css` §TLListRow |
 
+**組成**：由 `TLChevron`（L1）組成；slot 常放 `TLBadge`／`TLCheckCircle`／`TLRowValue`（皆 L1）。
+
 ## 2 介面 ★
 
 **Props**
@@ -57,7 +59,7 @@
 | 主題 | light / dark | 兩者都有 |
 | 語言 | 中文 / 英文 | 副標是「組成摘要」，中英長度差最大的就是它 |
 
-## 5 度量
+## 5 度量與行為
 
 | | |
 |---|---|
@@ -68,15 +70,7 @@
 | 最小寬度 | 標題可壓到換行；leading 與 trailing 不縮 |
 | 壓縮行為 | **標題與副標先讓**，兩側固定 |
 
-## 6 配色 ★
-
-| 用途 | token |
-|---|---|
-| 標題 | `textPrimary` |
-| 副標 | `textSecondary` |
-| 按下態底色 | `textPrimary` @ 6% |
-
-## 7 文字行為
+### 文字與溢出
 
 **副標的內容規則**：`subtitle` 永遠是**組成摘要** —— 清單裡的每一項列出它由什麼組成。這是階層關係唯一的傳達管道，
 所以不要拿它放狀態或時間。**狀態一律放右側。**
@@ -87,19 +81,19 @@
 
 **Dynamic Type**：應跟隨。
 
-## 8 動態
+### 動態
 
 按下時底色淡入，`motion.fast`。無縮放。
 
-## 9 無障礙
+## 6 配色 ★
 
-- `onTap` 不為 `nil` 時列有 button trait。
-- ⚠ **可勾選型的 selected trait 要呼叫端自己加**。這個元件不知道 `leading` 裡放的是
-  `TLCheckCircle` 還是 `TLBadge`，所以無法自動判斷。
-  **這是一個介面設計上的缺口** —— 見第 12 節。
-- `accessibilityIdentifier` 由呼叫端加。
+| 用途 | token |
+|---|---|
+| 標題 | `textPrimary` |
+| 副標 | `textSecondary` |
+| 按下態底色 | `textPrimary` @ 6% |
 
-## 10 用法與禁用法
+## 7 用法與禁用法
 
 **用它**：資料清單的列。
 
@@ -111,15 +105,11 @@
 - 把狀態放進副標 —— 狀態一律放右側，副標是組成摘要
 - chevron 與 `TLCheckCircle` 並存 —— 點下去是選還是進去會分不清
 
-## 11 組成 ★
-
-由 `TLChevron`（L1）組成；slot 常放 `TLBadge`／`TLCheckCircle`／`TLRowValue`（皆 L1）。
-
-## 12 變更紀錄
+## 8 變更紀錄
 
 | 日期 | 改動 | 原因 |
 |---|---|---|
 | 2026-08-30 | 從四合一的 `TLListRow.swift` 拆出 | 那個檔有 4 個 public 元件 |
 | 2026-08-30 | 副標間距 `2` 改成 `space.titleSubGap` | 元件內部的字面值也是字面值 |
 | 2026-08-30 | **記錄 `equipment` 的用途已收窄** | 原本是「動作名右側的器材小標」，但動作庫（`18b`）與範本（`19a`）已經不走這條 —— 器材在那兩處是尾欄／細節行。現在只剩訓練中、預覽 sheet、歷史詳情、能力值四個位置在用 |
-| 2026-08-30 | **記錄選取狀態的介面缺口** | 選取由 `leading` 裡放什麼決定，所以列自己不知道自己被選中，無障礙的 selected trait 要呼叫端補。**比較好的介面是加一個 `isSelected: Bool?` prop**，讓元件自己決定要不要放勾號、也能自動加 trait。那是介面改動，會動到所有呼叫端，留給撞到它的階段（階段 2 有四個選取清單） |
+| 2026-08-30 | **記錄選取狀態的介面缺口** | 選取由 `leading` 裡放什麼決定，所以**列自己不知道自己被選中**。**比較好的介面是加一個 `isSelected: Bool?` prop**，讓元件自己決定要不要放勾號。那是介面改動，會動到所有呼叫端，留給撞到它的階段（階段 2 有四個選取清單） |

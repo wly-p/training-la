@@ -101,7 +101,7 @@ struct StepPreferenceView: View {
     private static let customFieldID = "customStepField"
 
     private var backBar: some View {
-        TLBackBar(accessibilityLabel: localText("settings.back"), onBack: onBack)
+        TLBackBar(onBack: onBack)
     }
 
     /// 滾輪清單以外的值（例：一個卡扣 0.17kg）。

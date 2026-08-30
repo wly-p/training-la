@@ -23,7 +23,7 @@ public struct TLSearchField: View {
     public var body: some View {
         HStack(spacing: TLSpace.gapS) {
             Image(systemName: "magnifyingglass")
-                .font(.system(size: 15, weight: .medium))
+                .font(.system(size: TLIcon.inline, weight: .medium))
                 .foregroundStyle(TLColor.neutral500)
             let field = TextField(text: $text, prompt: placeholder.foregroundColor(TLColor.neutral500)) { Text(verbatim: "") }
                 .font(TLFont.zh(TLFont.rowTitle))
@@ -40,7 +40,7 @@ public struct TLSearchField: View {
                     text = ""
                 } label: {
                     Image(systemName: "xmark.circle.fill")
-                        .font(.system(size: 15))
+                        .font(.system(size: TLIcon.inline))
                         .foregroundStyle(TLColor.neutral400)
                 }
                 .buttonStyle(.plain)

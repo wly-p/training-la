@@ -69,6 +69,7 @@
 </tr>
 </tbody>
 </table>
+<p><strong>組成</strong>：由 <code>TLChevron</code>（L1）組成；slot 常放 <code>TLBadge</code>／<code>TLCheckCircle</code>／<code>TLRowValue</code>（皆 L1）。</p>
 <h2>2 介面 ★</h2>
 <p><strong>Props</strong></p>
 <table>
@@ -200,7 +201,7 @@
 </tr>
 </tbody>
 </table>
-<h2>5 度量</h2>
+<h2>5 度量與行為</h2>
 <table>
 <thead>
 <tr>
@@ -235,6 +236,14 @@
 </tr>
 </tbody>
 </table>
+<h3>文字與溢出</h3>
+<p><strong>副標的內容規則</strong>：<code>subtitle</code> 永遠是<strong>組成摘要</strong> —— 清單裡的每一項列出它由什麼組成。這是階層關係唯一的傳達管道，
+所以不要拿它放狀態或時間。<strong>狀態一律放右側。</strong></p>
+<p><strong>溢出</strong>：標題與副標都可換行。</p>
+<p><strong>多語系寬度</strong>：副標是全 app 中英落差最大的文字（一串名稱的連接）。</p>
+<p><strong>Dynamic Type</strong>：應跟隨。</p>
+<h3>動態</h3>
+<p>按下時底色淡入，<code>motion.fast</code>。無縮放。</p>
 <h2>6 配色 ★</h2>
 <table>
 <thead>
@@ -258,23 +267,7 @@
 </tr>
 </tbody>
 </table>
-<h2>7 文字行為</h2>
-<p><strong>副標的內容規則</strong>：<code>subtitle</code> 永遠是<strong>組成摘要</strong> —— 清單裡的每一項列出它由什麼組成。這是階層關係唯一的傳達管道，
-所以不要拿它放狀態或時間。<strong>狀態一律放右側。</strong></p>
-<p><strong>溢出</strong>：標題與副標都可換行。</p>
-<p><strong>多語系寬度</strong>：副標是全 app 中英落差最大的文字（一串名稱的連接）。</p>
-<p><strong>Dynamic Type</strong>：應跟隨。</p>
-<h2>8 動態</h2>
-<p>按下時底色淡入，<code>motion.fast</code>。無縮放。</p>
-<h2>9 無障礙</h2>
-<ul>
-<li><code>onTap</code> 不為 <code>nil</code> 時列有 button trait。</li>
-<li>⚠ <strong>可勾選型的 selected trait 要呼叫端自己加</strong>。這個元件不知道 <code>leading</code> 裡放的是
-  <code>TLCheckCircle</code> 還是 <code>TLBadge</code>，所以無法自動判斷。
-  <strong>這是一個介面設計上的缺口</strong> —— 見第 12 節。</li>
-<li><code>accessibilityIdentifier</code> 由呼叫端加。</li>
-</ul>
-<h2>10 用法與禁用法</h2>
+<h2>7 用法與禁用法</h2>
 <p><strong>用它</strong>：資料清單的列。</p>
 <p><strong>易混淆</strong>：<code>TLSettingsRow</code>（設定列）—— 那個沒有圓章、右側是「目前的值」，用在<strong>設定</strong>；
 這個有圓章與副標、可選取，用在<strong>資料清單</strong>。看到圓章就是這個。</p>
@@ -282,9 +275,7 @@
 - 同時用 <code>subtitle</code> 與 <code>detail</code> —— 兩行第二內容沒有設計
 - 把狀態放進副標 —— 狀態一律放右側，副標是組成摘要
 - chevron 與 <code>TLCheckCircle</code> 並存 —— 點下去是選還是進去會分不清</p>
-<h2>11 組成 ★</h2>
-<p>由 <code>TLChevron</code>（L1）組成；slot 常放 <code>TLBadge</code>／<code>TLCheckCircle</code>／<code>TLRowValue</code>（皆 L1）。</p>
-<h2>12 變更紀錄</h2>
+<h2>8 變更紀錄</h2>
 <table>
 <thead>
 <tr>
@@ -312,7 +303,7 @@
 <tr>
 <td>2026-08-30</td>
 <td><strong>記錄選取狀態的介面缺口</strong></td>
-<td>選取由 <code>leading</code> 裡放什麼決定，所以列自己不知道自己被選中，無障礙的 selected trait 要呼叫端補。<strong>比較好的介面是加一個 <code>isSelected: Bool?</code> prop</strong>，讓元件自己決定要不要放勾號、也能自動加 trait。那是介面改動，會動到所有呼叫端，留給撞到它的階段（階段 2 有四個選取清單）</td>
+<td>選取由 <code>leading</code> 裡放什麼決定，所以<strong>列自己不知道自己被選中</strong>。<strong>比較好的介面是加一個 <code>isSelected: Bool?</code> prop</strong>，讓元件自己決定要不要放勾號。那是介面改動，會動到所有呼叫端，留給撞到它的階段（階段 2 有四個選取清單）</td>
 </tr>
 </tbody>
 </table>

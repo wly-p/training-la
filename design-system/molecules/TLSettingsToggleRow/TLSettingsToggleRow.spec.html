@@ -69,6 +69,9 @@
 </tr>
 </tbody>
 </table>
+<p><strong>組成</strong>：由 <code>TLToggle</code>（L1）組成。
+<code>TLToggle</code> 的實作形式是 <code>ToggleStyle</code> 而不是 View，所以這裡是
+<code>Toggle(...).toggleStyle(.tlSwitch)</code> 而不是實例化一個子 View。</p>
 <h2>2 介面 ★</h2>
 <p><strong>Props</strong></p>
 <table>
@@ -186,7 +189,7 @@
 </tr>
 </tbody>
 </table>
-<h2>5 度量</h2>
+<h2>5 度量與行為</h2>
 <table>
 <thead>
 <tr>
@@ -217,6 +220,12 @@
 </tr>
 </tbody>
 </table>
+<h3>文字與溢出</h3>
+<p><strong>溢出</strong>：標題與 subtitle 都可換行，列高跟著長（<code>minHeight</code>）。</p>
+<p><strong>多語系寬度</strong>：<code>subtitle</code> 是整句，是全設定頁最長的文字。英文常會變成兩行。</p>
+<p><strong>Dynamic Type</strong>：應跟隨。這一列的文字最多，放大後高度增加最明顯。</p>
+<h3>動態</h3>
+<p>開關的滑動與底色轉換由 <code>TLSwitchToggleStyle</code> 提供。</p>
 <h2>6 配色 ★</h2>
 <table>
 <thead>
@@ -245,33 +254,15 @@
 </tbody>
 </table>
 <p><strong>不可以用系統 <code>Toggle</code> 的預設樣式</strong> —— 系統綠會讓整頁瞬間變回原生。</p>
-<h2>7 文字行為</h2>
-<p><strong>溢出</strong>：標題與 subtitle 都可換行，列高跟著長（<code>minHeight</code>）。</p>
-<p><strong>多語系寬度</strong>：<code>subtitle</code> 是整句，是全設定頁最長的文字。英文常會變成兩行。</p>
-<p><strong>Dynamic Type</strong>：應跟隨。這一列的文字最多，放大後高度增加最明顯。</p>
-<h2>8 動態</h2>
-<p>開關的滑動與底色轉換由 <code>TLSwitchToggleStyle</code> 提供。</p>
-<h2>9 無障礙</h2>
-<ul>
-<li><strong>底層是 <code>Toggle</code></strong>，所以保留 switch 的無障礙語意（VoiceOver 會念「開關，已開啟」）。
-  這是它跟「<code>TLSettingsRow</code> ＋ 自製開關」的關鍵差異。</li>
-<li><strong><code>hint</code> 與 <code>subtitle</code> 都不計入無障礙標籤</strong> —— 標籤只用標題。
-  說明文字念出來會讓每一列變得很長。</li>
-<li><code>accessibilityIdentifier</code> 由呼叫端加。</li>
-</ul>
-<h2>10 用法與禁用法</h2>
+<h2>7 用法與禁用法</h2>
 <p><strong>用它</strong>：設定頁裡的布林開關。</p>
 <p><strong>易混淆</strong>：<code>TLSettingsRow</code> ＋ trailing 放開關 —— <strong>不要那樣做</strong>。
-底層不是 <code>Toggle</code> 的話會失去 switch 的無障礙語意。</p>
+底層不是 <code>Toggle</code> 的話會失去 <code>switches</code> 的測試可定位性。</p>
 <p><strong>不要用它</strong>：
 - 開關以外的東西 —— 右側固定是開關，不是 slot
 - <code>hint</code> 與 <code>subtitle</code> 同時用 —— 擇一，兩個都放會讓列變得很吵
 - 把說明文字放到群組下方 —— 見第 3 節</p>
-<h2>11 組成 ★</h2>
-<p>由 <code>TLToggle</code>（L1）組成。</p>
-<p><code>TLToggle</code> 的實作形式是 <code>ToggleStyle</code> 而不是 View，所以這裡是
-<code>Toggle(...).toggleStyle(.tlSwitch)</code> 而不是實例化一個子 View。</p>
-<h2>12 變更紀錄</h2>
+<h2>8 變更紀錄</h2>
 <table>
 <thead>
 <tr>

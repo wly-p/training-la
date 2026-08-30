@@ -69,6 +69,7 @@
 </tr>
 </tbody>
 </table>
+<p><strong>組成</strong>：由 <code>TLCircleIconButton</code>（L1）組成。</p>
 <h2>2 介面 ★</h2>
 <p><strong>Props</strong></p>
 <table>
@@ -83,14 +84,6 @@
 </tr>
 </thead>
 <tbody>
-<tr>
-<td><code>accessibilityLabel</code></td>
-<td><code>Text</code></td>
-<td></td>
-<td>是</td>
-<td>—</td>
-<td>返回鈕的無障礙標籤。文案由呼叫端給，元件庫不做 i18n</td>
-</tr>
 <tr>
 <td><code>onBack</code></td>
 <td><code>() -&gt; Void</code></td>
@@ -150,7 +143,7 @@
 </tr>
 </tbody>
 </table>
-<h2>5 度量</h2>
+<h2>5 度量與行為</h2>
 <table>
 <thead>
 <tr>
@@ -181,20 +174,14 @@
 </tr>
 </tbody>
 </table>
-<h2>6 配色 ★</h2>
-<p>自己沒有顏色。返回鈕用 <code>TLCircleIconButton</code> 的 <code>outline</code> 材質。</p>
-<h2>7 文字行為</h2>
+<h3>文字與溢出</h3>
 <p>自己無文字。trailing 放文字動作時，中英長度差由該動作自己處理。</p>
 <p><strong>Dynamic Type</strong>：返回鈕不跟隨（它是固定觸控目標）；trailing 的文字應該跟隨。</p>
-<h2>8 動態</h2>
+<h3>動態</h3>
 <p>無轉場。返回鈕的按下態動畫由 <code>TLCircleIconButton</code> 提供。</p>
-<h2>9 無障礙</h2>
-<ul>
-<li>返回鈕<strong>必須</strong>有 label，所以它是必填 prop 而不是選填 —— 少寫會是一個沒有名字的按鈕。</li>
-<li>最小觸控 44pt 由 <code>TLCircleIconButton</code> 的預設尺寸保證。</li>
-<li>不掛 <code>accessibilityIdentifier</code> —— 測試定位的是返回鈕本身，那由呼叫端加。</li>
-</ul>
-<h2>10 用法與禁用法</h2>
+<h2>6 配色 ★</h2>
+<p>自己沒有顏色。返回鈕用 <code>TLCircleIconButton</code> 的 <code>outline</code> 材質。</p>
+<h2>7 用法與禁用法</h2>
 <p><strong>用它</strong>：drill-in 子頁需要一個返回入口時。</p>
 <p><strong>易混淆</strong>：<code>TLPageHeader</code>（頁面主標）—— 這個是<strong>主標上方的導航列</strong>，兩者通常上下相鄰但職責不同：
 一個管「怎麼回去」，一個管「這是哪裡」。</p>
@@ -202,9 +189,7 @@
 - 當作 navigation bar 用 —— 它只有返回與一個動作，不是完整的工具列
 - 在根層畫面用 —— 根層沒有「回去」，放了會騙使用者
 - 把標題塞進 trailing —— 標題是 <code>TLPageHeader</code> 的事</p>
-<h2>11 組成 ★</h2>
-<p>由 <code>TLCircleIconButton</code>（L1）組成。</p>
-<h2>12 變更紀錄</h2>
+<h2>8 變更紀錄</h2>
 <table>
 <thead>
 <tr>

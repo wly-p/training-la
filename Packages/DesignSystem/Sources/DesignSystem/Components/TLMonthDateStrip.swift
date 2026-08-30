@@ -154,7 +154,6 @@ public struct TLMonthDateStrip: View {
                 iconSize: 15,
                 iconWeight: .bold
             ) { step(-1) }
-                .accessibilityLabel(labels.previousMonth)
                 .accessibilityIdentifier("\(identifierPrefix).prev")
 
             TLCircleIconButton(
@@ -164,7 +163,6 @@ public struct TLMonthDateStrip: View {
                 iconSize: 15,
                 iconWeight: .bold
             ) { step(1) }
-                .accessibilityLabel(labels.nextMonth)
                 .accessibilityIdentifier("\(identifierPrefix).next")
         }
     }

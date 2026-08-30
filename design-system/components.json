@@ -107,17 +107,8 @@
         "light",
         "dark"
       ],
-      "confusableWith": [
-        {
-          "name": "TLIconThumbnail",
-          "note": "`TLIconThumbnail`（列裡的方形圖片）—— 圓章是**字或數字**（抽象標示），"
-        }
-      ],
-      "dontUseFor": [
-        "放 3 個字以上 —— 會撐出圓形",
-        "當可點的按鈕 —— 它是標示，點擊屬於整列",
-        "用赭紅底 —— 那個顏色保留給可操作的東西"
-      ],
+      "confusableWith": [],
+      "dontUseFor": [],
       "composedOf": null,
       "paths": {
         "spec": "atoms/TLBadge/TLBadge.spec.md",
@@ -161,17 +152,8 @@
         "light",
         "dark"
       ],
-      "confusableWith": [
-        {
-          "name": "TLChevron",
-          "note": "`TLChevron`（可進入的列）—— 這個表示**選取**，那個表示**進入下一層**。"
-        }
-      ],
-      "dontUseFor": [
-        "當可點的按鈕 —— 22pt 不是合法觸控目標，要整列可點",
-        "跟 chevron 並存",
-        "表達「完成」之類的狀態 —— 它表達的是「被選中」，語意不同"
-      ],
+      "confusableWith": [],
+      "dontUseFor": [],
       "composedOf": null,
       "paths": {
         "spec": "atoms/TLCheckCircle/TLCheckCircle.spec.md",
@@ -209,11 +191,7 @@
         "dark"
       ],
       "confusableWith": [],
-      "dontUseFor": [
-        "表達展開／收合 —— 那要的是會旋轉的記號，不是這個",
-        "當作裝飾放在不可進入的列上 —— 那會騙使用者",
-        "自己加 padding 到元件裡 —— 間距是列的責任"
-      ],
+      "dontUseFor": [],
       "composedOf": null,
       "paths": {
         "spec": "atoms/TLChevron/TLChevron.spec.md",
@@ -273,8 +251,8 @@
             "只吃 `icon.*` token"
           ],
           "required": "否",
-          "default": "`icon.button`",
-          "description": "圖示字級"
+          "default": "`icon.inIconButton`",
+          "description": "圖示字級。⚠ 設計端拍板**不開成 prop 的替代品**——容器內圖示是配對值，改容器就改 token"
         },
         {
           "name": "iconWeight",
@@ -330,17 +308,8 @@
         "light",
         "dark"
       ],
-      "confusableWith": [
-        {
-          "name": "TLIconThumbnail",
-          "note": "`TLIconThumbnail`（列裡的方形圖片預覽）—— 這個是**可點的動作**，那個是唯讀的縮圖。"
-        }
-      ],
-      "dontUseFor": [
-        "放文字進去 —— 它是圖示按鈕，文字動作用文字按鈕樣式",
-        "用 `size.iconButtonSmall` 卻不補觸控區 —— 那會做出 34pt 的觸控目標",
-        "用 `accent` 當次要動作 —— 一個畫面最多一個主要動作區"
-      ],
+      "confusableWith": [],
+      "dontUseFor": [],
       "composedOf": null,
       "paths": {
         "spec": "atoms/TLCircleIconButton/TLCircleIconButton.spec.md",
@@ -375,16 +344,8 @@
         "light",
         "dark"
       ],
-      "confusableWith": [
-        {
-          "name": "TLGroup",
-          "note": "容器外框 —— 那是 `TLGroup` 的圓角邊界，這個是**容器內部**的列間線。"
-        }
-      ],
-      "dontUseFor": [
-        "手動放在畫面層 —— 那會繞過「頭尾不畫線」的規則，而那正是這套視覺的辨識點",
-        "當區塊分隔 —— 區塊之間用的是間距（`space.section`），不是線"
-      ],
+      "confusableWith": [],
+      "dontUseFor": [],
       "composedOf": null,
       "paths": {
         "spec": "atoms/TLDivider/TLDivider.spec.md",
@@ -426,17 +387,8 @@
         "light",
         "dark"
       ],
-      "confusableWith": [
-        {
-          "name": "TLBadge",
-          "note": "`TLBadge`（列左側的圓章，表達分類或數量）—— 這個是**圖片預覽**，不表達任何值。"
-        }
-      ],
-      "dontUseFor": [
-        "當主要內容 —— 它是列的附屬，尺寸小到只能當提示",
-        "放非方形、非圖示的圖 —— 圓角比例是為 App 圖示調的",
-        "自己加 padding 到元件裡 —— 間距是列的責任"
-      ],
+      "confusableWith": [],
+      "dontUseFor": [],
       "composedOf": null,
       "paths": {
         "spec": "atoms/TLIconThumbnail/TLIconThumbnail.spec.md",
@@ -488,17 +440,8 @@
         "light",
         "dark"
       ],
-      "confusableWith": [
-        {
-          "name": "TLSettingsValue",
-          "note": "`TLSettingsValue`（設定列右側的值）—— 那個是**文字**（用中文字體），"
-        }
-      ],
-      "dontUseFor": [
-        "放純文字 —— Caprasimo 是為數字設計的，中文字會很奇怪",
-        "自己做格式化 —— 傳進來的應該是格式化好的字串，小數位數是呼叫端的決定",
-        "放兩個以上的數值 —— 一列一個答案"
-      ],
+      "confusableWith": [],
+      "dontUseFor": [],
       "composedOf": null,
       "paths": {
         "spec": "atoms/TLRowValue/TLRowValue.spec.md",
@@ -539,17 +482,8 @@
         "light",
         "dark"
       ],
-      "confusableWith": [
-        {
-          "name": "TLRowValue",
-          "note": "`TLRowValue`（列表列的右側數值）—— 那個是**數字**（用 Caprasimo、可帶單位），"
-        }
-      ],
-      "dontUseFor": [
-        "放數字 —— 數字用 `TLRowValue`，字體不同",
-        "當第二行副標 —— 副標是列的 `subtitle`，位置與字級都不一樣",
-        "沒有值時放一個空的 —— 那會留下一塊看不見的空白，不如不放"
-      ],
+      "confusableWith": [],
+      "dontUseFor": [],
       "composedOf": null,
       "paths": {
         "spec": "atoms/TLSettingsValue/TLSettingsValue.spec.md",
@@ -579,17 +513,8 @@
         "light",
         "dark"
       ],
-      "confusableWith": [
-        {
-          "name": "TLCheckCircle",
-          "note": "`TLCheckCircle`（清單裡的選取記號）—— 開關表達「這個功能開著嗎」，"
-        }
-      ],
-      "dontUseFor": [
-        "自繪一個看起來一樣的按鈕 —— 會失去 switch 的無障礙語意與測試可定位性",
-        "用系統預設樣式 —— 見第 6 節",
-        "拿它表達「選中」—— 那是 `TLCheckCircle`"
-      ],
+      "confusableWith": [],
+      "dontUseFor": [],
       "composedOf": null,
       "paths": {
         "spec": "atoms/TLToggle/TLToggle.spec.md",
@@ -608,15 +533,6 @@
       "requiresContainer": null,
       "containerOwns": "左右邊距與上邊距由這個元件自己負責；下方的間距由畫面給",
       "props": [
-        {
-          "name": "accessibilityLabel",
-          "type": "`Text`",
-          "kind": null,
-          "values": null,
-          "required": "是",
-          "default": "—",
-          "description": "返回鈕的無障礙標籤。文案由呼叫端給，元件庫不做 i18n"
-        },
         {
           "name": "onBack",
           "type": "`() -> Void`",
@@ -641,20 +557,9 @@
         "light",
         "dark"
       ],
-      "confusableWith": [
-        {
-          "name": "TLPageHeader",
-          "note": "`TLPageHeader`（頁面主標）—— 這個是**主標上方的導航列**，兩者通常上下相鄰但職責不同："
-        }
-      ],
-      "dontUseFor": [
-        "當作 navigation bar 用 —— 它只有返回與一個動作，不是完整的工具列",
-        "在根層畫面用 —— 根層沒有「回去」，放了會騙使用者",
-        "把標題塞進 trailing —— 標題是 `TLPageHeader` 的事"
-      ],
-      "composedOf": [
-        "TLCircleIconButton"
-      ],
+      "confusableWith": [],
+      "dontUseFor": [],
+      "composedOf": null,
       "paths": {
         "spec": "molecules/TLBackBar/TLBackBar.spec.md",
         "preview": "molecules/TLBackBar/TLBackBar.preview.html",
@@ -684,19 +589,9 @@
         "light",
         "dark"
       ],
-      "confusableWith": [
-        {
-          "name": "TLGroup",
-          "note": "`TLGroup`（群組容器）—— 那個是這個 ＋ 圓角 ＋ 底色。"
-        }
-      ],
-      "dontUseFor": [
-        "當一般的 `VStack` 用 —— 它會硬加分隔線",
-        "期待它有間距 —— 子項間距是 0，靠分隔線區隔"
-      ],
-      "composedOf": [
-        "TLDivider"
-      ],
+      "confusableWith": [],
+      "dontUseFor": [],
+      "composedOf": null,
       "paths": {
         "spec": "molecules/TLDividedVStack/TLDividedVStack.spec.md",
         "preview": "molecules/TLDividedVStack/TLDividedVStack.preview.html",
@@ -727,21 +622,9 @@
         "light",
         "dark"
       ],
-      "confusableWith": [
-        {
-          "name": "TLSectionHeader",
-          "note": "`TLSectionHeader`（區塊標題）—— 那個是卡**上方**的標籤，這個是卡本身。"
-        }
-      ],
-      "dontUseFor": [
-        "包單一個非列的東西（例如一張圖）—— 那不是「一組列」，會拿到不該有的分隔線邏輯",
-        "巢狀 —— 卡中卡沒有設計，而且分隔線會亂",
-        "沒有內容時還放著 —— 見第 4 節的 empty"
-      ],
-      "composedOf": [
-        "TLDividedVStack",
-        "TLDivider"
-      ],
+      "confusableWith": [],
+      "dontUseFor": [],
+      "composedOf": null,
       "paths": {
         "spec": "molecules/TLGroup/TLGroup.spec.md",
         "preview": "molecules/TLGroup/TLGroup.preview.html",
@@ -830,23 +713,9 @@
         "light",
         "dark"
       ],
-      "confusableWith": [
-        {
-          "name": "TLSettingsRow",
-          "note": "`TLSettingsRow`（設定列）—— 那個沒有圓章、右側是「目前的值」，用在**設定**；"
-        }
-      ],
-      "dontUseFor": [
-        "同時用 `subtitle` 與 `detail` —— 兩行第二內容沒有設計",
-        "把狀態放進副標 —— 狀態一律放右側，副標是組成摘要",
-        "chevron 與 `TLCheckCircle` 並存 —— 點下去是選還是進去會分不清"
-      ],
-      "composedOf": [
-        "TLBadge",
-        "TLCheckCircle",
-        "TLChevron",
-        "TLRowValue"
-      ],
+      "confusableWith": [],
+      "dontUseFor": [],
+      "composedOf": null,
       "paths": {
         "spec": "molecules/TLListRow/TLListRow.spec.md",
         "preview": "molecules/TLListRow/TLListRow.preview.html",
@@ -896,20 +765,9 @@
         "light",
         "dark"
       ],
-      "confusableWith": [
-        {
-          "name": "TLBackBar",
-          "note": "`TLBackBar`（返回列）—— 這個回答「這是哪裡」，那個回答「怎麼回去」。"
-        }
-      ],
-      "dontUseFor": [
-        "一頁放兩個 —— 主標只有一個，第二層用 `TLSectionHeader`",
-        "把返回鈕塞進 accessory —— 返回是 `TLBackBar` 的事，位置也不同",
-        "用它當區塊標題 —— 字級差太多（34 vs 10.5）"
-      ],
-      "composedOf": [
-        "TLCircleIconButton"
-      ],
+      "confusableWith": [],
+      "dontUseFor": [],
+      "composedOf": null,
       "paths": {
         "spec": "molecules/TLPageHeader/TLPageHeader.spec.md",
         "preview": "molecules/TLPageHeader/TLPageHeader.preview.html",
@@ -987,17 +845,8 @@
         "light",
         "dark"
       ],
-      "confusableWith": [
-        {
-          "name": "TLPageHeader",
-          "note": "`TLPageHeader` 的 `kicker`（主標上方的小標）—— 字級與樣式幾乎一樣，"
-        }
-      ],
-      "dontUseFor": [
-        "右側放圖示按鈕 —— 這裡只收文字操作，圖示操作屬於 `TLPageHeader` 的 accessory",
-        "一個區塊只有一列時還加標題 —— 標題與列名容易重複（`handoff-20` A 節就砍掉過一個）",
-        "傳已經大寫的字串 —— 會破壞 VoiceOver"
-      ],
+      "confusableWith": [],
+      "dontUseFor": [],
       "composedOf": null,
       "paths": {
         "spec": "molecules/TLSectionHeader/TLSectionHeader.spec.md",
@@ -1083,17 +932,8 @@
         "light",
         "dark"
       ],
-      "confusableWith": [
-        {
-          "name": "TLChipRow",
-          "note": "`TLChipRow`（選一個值的 chip 列）—— chip 是「選一個**值**」（總長度、強度基準），"
-        }
-      ],
-      "dontUseFor": [
-        "超過 4 段 —— 改用 drill-in 選擇頁",
-        "段落文字長度差很多 —— `regular` 平分寬度會讓短的那段留一大片空白",
-        "在 `TLSettingsRow` 裡用 `regular` —— 會撐高列，`handoff-20` §B 就是為了修這個才加 compact"
-      ],
+      "confusableWith": [],
+      "dontUseFor": [],
       "composedOf": null,
       "paths": {
         "spec": "molecules/TLSegmentedControl/TLSegmentedControl.spec.md",
@@ -1163,15 +1003,6 @@
           "description": "是否通往下一層"
         },
         {
-          "name": "accessibilityValue",
-          "type": "`Text?`",
-          "kind": null,
-          "values": null,
-          "required": "否",
-          "default": "`nil`",
-          "description": "給 VoiceOver 的「目前值」。drill-in 列**應該傳**"
-        },
-        {
           "name": "trailingGap",
           "type": "`CGFloat`",
           "kind": null,
@@ -1220,22 +1051,9 @@
         "light",
         "dark"
       ],
-      "confusableWith": [
-        {
-          "name": "TLListRow",
-          "note": "`TLListRow`（列表列）—— 那個有圓章、副標、可選取，用在**資料清單**；"
-        }
-      ],
-      "dontUseFor": [
-        "開關列 —— 用 `TLSettingsToggleRow`，它底層是 `Toggle`，保留 switch 的無障礙語意",
-        "destructive ＋ chevron 並存 —— 破壞性操作就地執行，不通往任何地方",
-        "放在 `TLGroup` 外面 —— 會失去圓角、底色與分隔線"
-      ],
-      "composedOf": [
-        "TLChevron",
-        "TLSegmentedControl",
-        "TLSettingsValue"
-      ],
+      "confusableWith": [],
+      "dontUseFor": [],
+      "composedOf": null,
       "paths": {
         "spec": "molecules/TLSettingsRow/TLSettingsRow.spec.md",
         "preview": "molecules/TLSettingsRow/TLSettingsRow.preview.html",
@@ -1307,20 +1125,9 @@
         "light",
         "dark"
       ],
-      "confusableWith": [
-        {
-          "name": "TLSettingsRow",
-          "note": "`TLSettingsRow` ＋ trailing 放開關 —— **不要那樣做**。"
-        }
-      ],
-      "dontUseFor": [
-        "開關以外的東西 —— 右側固定是開關，不是 slot",
-        "`hint` 與 `subtitle` 同時用 —— 擇一，兩個都放會讓列變得很吵",
-        "把說明文字放到群組下方 —— 見第 3 節"
-      ],
-      "composedOf": [
-        "TLToggle"
-      ],
+      "confusableWith": [],
+      "dontUseFor": [],
+      "composedOf": null,
       "paths": {
         "spec": "molecules/TLSettingsToggleRow/TLSettingsToggleRow.spec.md",
         "preview": "molecules/TLSettingsToggleRow/TLSettingsToggleRow.preview.html",
@@ -1401,17 +1208,8 @@
         "light",
         "dark"
       ],
-      "confusableWith": [
-        {
-          "name": "TLNumberField",
-          "note": "`TLNumberField`（直接打字輸入）—— 滾輪適合「常用值就那幾個」，"
-        }
-      ],
-      "dontUseFor": [
-        "值域很大又連續 —— 滑不完，用打字",
-        "只有 2–3 個選項 —— 用 `TLSegmentedControl`",
-        "當唯一的輸入方式 —— 常用值以外的情況要有出口"
-      ],
+      "confusableWith": [],
+      "dontUseFor": [],
       "composedOf": null,
       "paths": {
         "spec": "molecules/TLValuePicker/TLValuePicker.spec.md",

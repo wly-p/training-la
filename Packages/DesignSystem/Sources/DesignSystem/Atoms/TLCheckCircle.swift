@@ -11,7 +11,7 @@ public struct TLCheckCircle: View {
                 .overlay(Circle().strokeBorder(isChecked ? Color.clear : TLColor.neutral400, lineWidth: TLSize.hairlineThick))
             if isChecked {
                 Image(systemName: "checkmark")
-                    .font(.system(size: TLIcon.xs, weight: .bold))
+                    .font(.system(size: TLIcon.inCheckCircle, weight: .bold))
                     .foregroundStyle(TLColor.bg)
             }
         }

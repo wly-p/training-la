@@ -13,6 +13,8 @@
 | Preview | `design-system/molecules/TLSegmentedControl/TLSegmentedControl.preview.html` |
 | Preview CSS | `components.preview.css` §TLSegmentedControl |
 
+**組成**：不由其他 `TL*` 元件組成（軌道 ＋ 文字 ＋ 滑動膠囊）。
+
 ## 2 介面 ★
 
 **Props**
@@ -51,7 +53,7 @@
 | 主題 | light / dark | 兩者都有 |
 | 語言 | 中文 / 英文 | `regular` 平分寬度所以最長的那段決定全體；`compact` 依內容寬，英文會整體變寬 |
 
-## 5 度量
+## 5 度量與行為
 
 | | | `regular` | `compact` |
 |---|---|---|---|
@@ -62,6 +64,20 @@
 | 選中項陰影 | | `shadow.sm` | 無 |
 | 圓角 | | `radius.pill` | `radius.pill` |
 
+### 文字與溢出
+
+**溢出**：不截斷。段落太多或文字太長時整個元件變寬，由容器決定怎麼辦。
+
+**多語系寬度**：這是它最脆弱的地方。中文「公斤／磅」是兩字，英文 `kg`/`lb` 反而更短，
+但「依日期／依動作」對 `By date`/`By exercise` 就反過來。**要用最長的語言排版。**
+
+**Dynamic Type**：應跟隨，但 `compact` 已經很緊，放大後可能需要改成換行或退回 drill-in。
+
+### 動態
+
+切換時選中膠囊**滑動**過去（`motion.base` ＋ `motion.curve`），不是淡入淡出。
+滑動讓人看得到「從哪換到哪」。
+
 ## 6 配色 ★
 
 | 用途 | token |
@@ -71,27 +87,7 @@
 | 選中項文字 | `textPrimary`（weight 700） |
 | 未選文字 | `textSecondary`（weight 500） |
 
-## 7 文字行為
-
-**溢出**：不截斷。段落太多或文字太長時整個元件變寬，由容器決定怎麼辦。
-
-**多語系寬度**：這是它最脆弱的地方。中文「公斤／磅」是兩字，英文 `kg`/`lb` 反而更短，
-但「依日期／依動作」對 `By date`/`By exercise` 就反過來。**要用最長的語言排版。**
-
-**Dynamic Type**：應跟隨，但 `compact` 已經很緊，放大後可能需要改成換行或退回 drill-in。
-
-## 8 動態
-
-切換時選中膠囊**滑動**過去（`motion.base` ＋ `motion.curve`），不是淡入淡出。
-滑動讓人看得到「從哪換到哪」。
-
-## 9 無障礙
-
-- 每段是一個按鈕，選中的那段要有 **selected trait**。
-- `identifierPrefix` 是給 UI test 用的：段落文字會隨語言變，**測試必須靠 id 定位**。
-  前綴由呼叫端決定 —— 同一個元件在多個畫面用，寫死在元件裡就撞名了。
-
-## 10 用法與禁用法
+## 7 用法與禁用法
 
 **用它**：切換**檢視**（依日期／依動作），或在 2–3 個值之間就地選一個。
 
@@ -104,11 +100,7 @@ seg 是「切換**檢視**」。視覺也不同：chip 選中是 accent 實心�
 - 段落文字長度差很多 —— `regular` 平分寬度會讓短的那段留一大片空白
 - 在 `TLSettingsRow` 裡用 `regular` —— 會撐高列，`handoff-20` §B 就是為了修這個才加 compact
 
-## 11 組成 ★
-
-不由其他 `TL*` 元件組成（軌道 ＋ 文字 ＋ 滑動膠囊）。
-
-## 12 變更紀錄
+## 8 變更紀錄
 
 | 日期 | 改動 | 原因 |
 |---|---|---|

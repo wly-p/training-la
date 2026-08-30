@@ -149,13 +149,17 @@
   --font-kicker-family: var(--font-zh);
   --font-big-number-family: var(--font-display);
 
-  /* 圖示。SF Symbol 的視覺尺寸。weight 只作用於 SF Symbol（實作側）；web／設計側用 Lucide 形狀配 strokeWeb。 ⚠ 這已經不是一個尺度：s13／sm14／m16／button18／l20 五個值都是從既有程式碼撈出來的特設值，彼此沒有比例關係（13 來自 chevron、14 來自勾號、18 來自圓形按鈕）。等更多圖示 token 化之後要一次收斂。 */
-  --icon-xs: 11px;
-  --icon-s: 13px;
-  --icon-sm: 14px;
-  --icon-m: 16px;
-  --icon-button: 18px;
-  --icon-l: 20px;
+  /* 圖示。兩組，不是一個尺度——這是設計端拍板的分法：
+  · inline / standalone ＝ 跟文字並排、或獨立擺放。這兩個是真的尺度刻度。
+  · inXxx ＝ **裝在固定容器裡的配對值**，跟著容器直徑走，不是刻度。
+    容器改尺寸就改這個值，不要拿它去跟 inline/standalone 比。
+⚠ 新增圖示尺寸前先問：它是跟文字並排、獨立擺放、還是裝在某個容器裡？
+  前兩者用既有的兩階；第三者才新增一個 inXxx 配對值。
+  這條是為了防止它又長回五個彼此沒有關係的特設值。 */
+  --icon-inline: 14px;
+  --icon-standalone: 22px;
+  --icon-inCheckCircle: 11px;
+  --icon-inIconButton: 18px;
   --icon-strokeWeb: 2.75px;
   --icon-stroke: 2.75;
 

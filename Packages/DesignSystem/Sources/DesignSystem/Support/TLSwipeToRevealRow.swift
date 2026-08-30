@@ -42,8 +42,7 @@ public struct TLSwipeToRevealRow<Content: View>: View {
             } label: {
                 VStack(spacing: 3) {
                     Image(systemName: actionSystemImage)
-                        .font(.system(size: 15, weight: .semibold))
-                        .accessibilityHidden(true)   // 裝飾圖示：讓 Button 的 a11y label 只剩文字
+                        .font(.system(size: TLIcon.inline, weight: TLIcon.weight))
                     actionLabel
                         .font(TLFont.zh(TLFont.rowSub, .semibold))
                 }

@@ -39,7 +39,7 @@ struct SettingsSelectionView<Value: Hashable & Identifiable>: View {
     }
 
     private var backBar: some View {
-        TLBackBar(accessibilityLabel: localText("settings.common.back"), onBack: onBack)
+        TLBackBar(onBack: onBack)
     }
 
     /// 選項的 id 由 `Identifiable.id` 推出來（`AppTheme` / `AppLanguage` / `AppIcon` 的
@@ -63,7 +63,7 @@ struct SettingsSelectionView<Value: Hashable & Identifiable>: View {
             trailing: {
                 if option == current {
                     Image(systemName: "checkmark")
-                        .font(.system(size: TLIcon.sm, weight: .bold))
+                        .font(.system(size: TLIcon.inline, weight: .bold))
                         .foregroundStyle(TLColor.accent)
                 }
             }

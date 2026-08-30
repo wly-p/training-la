@@ -69,6 +69,7 @@
 </tr>
 </tbody>
 </table>
+<p><strong>組成</strong>：不由其他 <code>TL*</code> 元件組成（文字 ＋ 按鈕樣式）。</p>
 <h2>2 介面 ★</h2>
 <p><strong>Props</strong></p>
 <table>
@@ -184,7 +185,7 @@
 </tr>
 </tbody>
 </table>
-<h2>5 度量</h2>
+<h2>5 度量與行為</h2>
 <table>
 <thead>
 <tr>
@@ -207,6 +208,13 @@
 </tr>
 </tbody>
 </table>
+<h3>文字與溢出</h3>
+<p><strong>大寫是元件做的</strong>（<code>textCase(.uppercase)</code>），呼叫端傳原文即可。
+中文不受影響，英文會全大寫。</p>
+<p><strong>多語系寬度</strong>：英文大寫後明顯變寬。有右側操作時可用空間更少。</p>
+<p><strong>Dynamic Type</strong>：應跟隨。10.5pt 已經是全 app 最小的字，放大優先度高。</p>
+<h3>動態</h3>
+<p>無轉場。</p>
 <h2>6 配色 ★</h2>
 <table>
 <thead>
@@ -232,31 +240,15 @@
 </table>
 <p><code>textTertiary</code> 對容器底是 <strong>4.0:1</strong> —— 過得了大字與圖示的 3:1，過不了正文的 4.5:1。
 區塊標題是「掃視就過的標示」而不是要讀完的句子，所以用它是對的。</p>
-<h2>7 文字行為</h2>
-<p><strong>大寫是元件做的</strong>（<code>textCase(.uppercase)</code>），呼叫端傳原文即可。
-中文不受影響，英文會全大寫。</p>
-<p><strong>多語系寬度</strong>：英文大寫後明顯變寬。有右側操作時可用空間更少。</p>
-<p><strong>Dynamic Type</strong>：應跟隨。10.5pt 已經是全 app 最小的字，放大優先度高。</p>
-<h2>8 動態</h2>
-<p>無轉場。</p>
-<h2>9 無障礙</h2>
-<ul>
-<li>標題應該是 <strong>heading trait</strong>（第二層），讓 VoiceOver 能跳區塊。</li>
-<li>大寫是視覺處理，VoiceOver 念的是原文 —— 不要用全大寫的字串當 <code>title</code>，
-  那會讓螢幕閱讀器逐字母念。</li>
-<li>文字操作的 label 就是它自己的文案。</li>
-</ul>
-<h2>10 用法與禁用法</h2>
+<h2>7 用法與禁用法</h2>
 <p><strong>用它</strong>：一張卡需要說明它是什麼時。</p>
 <p><strong>易混淆</strong>：<code>TLPageHeader</code> 的 <code>kicker</code>（主標上方的小標）—— 字級與樣式幾乎一樣，
 但那個屬於<strong>頁面</strong>、預設是 accent 色；這個屬於<strong>區塊</strong>、預設是灰的。</p>
 <p><strong>不要用它</strong>：
 - 右側放圖示按鈕 —— 這裡只收文字操作，圖示操作屬於 <code>TLPageHeader</code> 的 accessory
 - 一個區塊只有一列時還加標題 —— 標題與列名容易重複（<code>handoff-20</code> A 節就砍掉過一個）
-- 傳已經大寫的字串 —— 會破壞 VoiceOver</p>
-<h2>11 組成 ★</h2>
-<p>不由其他 <code>TL*</code> 元件組成（文字 ＋ 按鈕樣式）。</p>
-<h2>12 變更紀錄</h2>
+- 傳已經大寫的字串 —— 大寫是元件的視覺處理，來源該是原文</p>
+<h2>8 變更紀錄</h2>
 <table>
 <thead>
 <tr>

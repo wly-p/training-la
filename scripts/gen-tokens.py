@@ -42,6 +42,12 @@ def css_color(spec) -> str:
     a = spec.get("alpha")
     return f"rgb({r} {g} {b} / {a*100:g}%)" if a is not None else f"rgb({r} {g} {b})"
 
+def swift_comment(text, indent="    "):
+    """多行的 _note 要每一行都加 //，否則生成出來的 Swift 直接語法錯誤。
+    （token 的說明值得寫成多行——壓成一行會沒人讀。）"""
+    return "\n".join(f"{indent}// {ln}" if ln.strip() else f"{indent}//"
+                     for ln in text.split("\n"))
+
 def num(v):
     return str(int(v)) if float(v) == int(v) else str(v)
 
@@ -133,7 +139,7 @@ def gen_swift() -> str:
         L += ["}", ""]
 
     I = D["icon"]
-    L += ["public enum TLIcon {", f"    // {I['_note']}"]
+    L += ["public enum TLIcon {", swift_comment(I["_note"])]
     # strokeWeb 只作用於 web／設計側（Lucide 的 stroke），Swift 這邊用不到，不輸出。
     for k in [k for k, v in I.items()
               if not k.startswith("_") and isinstance(v, (int, float)) and k != "strokeWeb"]:
@@ -141,7 +147,7 @@ def gen_swift() -> str:
     L += [f"    public static let weight: Font.Weight = .{I['weight']}", "}", ""]
 
     M = D["motion"]
-    L += ["public enum TLMotion {", f"    // {M['_note']}",
+    L += ["public enum TLMotion {", swift_comment(M["_note"]),
           f"    public static let fast: Double = {M['fast']}",
           f"    public static let base: Double = {M['base']}",
           f"    public static var quick: Animation {{ .{M['curve']}(duration: fast) }}",

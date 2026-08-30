@@ -69,6 +69,7 @@
 </tr>
 </tbody>
 </table>
+<p><strong>組成</strong>：不由其他 <code>TL*</code> 元件組成（軌道 ＋ 文字 ＋ 滑動膠囊）。</p>
 <h2>2 介面 ★</h2>
 <p><strong>Props</strong></p>
 <table>
@@ -185,7 +186,7 @@
 </tr>
 </tbody>
 </table>
-<h2>5 度量</h2>
+<h2>5 度量與行為</h2>
 <table>
 <thead>
 <tr>
@@ -234,6 +235,14 @@
 </tr>
 </tbody>
 </table>
+<h3>文字與溢出</h3>
+<p><strong>溢出</strong>：不截斷。段落太多或文字太長時整個元件變寬，由容器決定怎麼辦。</p>
+<p><strong>多語系寬度</strong>：這是它最脆弱的地方。中文「公斤／磅」是兩字，英文 <code>kg</code>/<code>lb</code> 反而更短，
+但「依日期／依動作」對 <code>By date</code>/<code>By exercise</code> 就反過來。<strong>要用最長的語言排版。</strong></p>
+<p><strong>Dynamic Type</strong>：應跟隨，但 <code>compact</code> 已經很緊，放大後可能需要改成換行或退回 drill-in。</p>
+<h3>動態</h3>
+<p>切換時選中膠囊<strong>滑動</strong>過去（<code>motion.base</code> ＋ <code>motion.curve</code>），不是淡入淡出。
+滑動讓人看得到「從哪換到哪」。</p>
 <h2>6 配色 ★</h2>
 <table>
 <thead>
@@ -261,21 +270,7 @@
 </tr>
 </tbody>
 </table>
-<h2>7 文字行為</h2>
-<p><strong>溢出</strong>：不截斷。段落太多或文字太長時整個元件變寬，由容器決定怎麼辦。</p>
-<p><strong>多語系寬度</strong>：這是它最脆弱的地方。中文「公斤／磅」是兩字，英文 <code>kg</code>/<code>lb</code> 反而更短，
-但「依日期／依動作」對 <code>By date</code>/<code>By exercise</code> 就反過來。<strong>要用最長的語言排版。</strong></p>
-<p><strong>Dynamic Type</strong>：應跟隨，但 <code>compact</code> 已經很緊，放大後可能需要改成換行或退回 drill-in。</p>
-<h2>8 動態</h2>
-<p>切換時選中膠囊<strong>滑動</strong>過去（<code>motion.base</code> ＋ <code>motion.curve</code>），不是淡入淡出。
-滑動讓人看得到「從哪換到哪」。</p>
-<h2>9 無障礙</h2>
-<ul>
-<li>每段是一個按鈕，選中的那段要有 <strong>selected trait</strong>。</li>
-<li><code>identifierPrefix</code> 是給 UI test 用的：段落文字會隨語言變，<strong>測試必須靠 id 定位</strong>。
-  前綴由呼叫端決定 —— 同一個元件在多個畫面用，寫死在元件裡就撞名了。</li>
-</ul>
-<h2>10 用法與禁用法</h2>
+<h2>7 用法與禁用法</h2>
 <p><strong>用它</strong>：切換<strong>檢視</strong>（依日期／依動作），或在 2–3 個值之間就地選一個。</p>
 <p><strong>易混淆</strong>：<code>TLChipRow</code>（選一個值的 chip 列）—— chip 是「選一個<strong>值</strong>」（總長度、強度基準），
 seg 是「切換<strong>檢視</strong>」。視覺也不同：chip 選中是 accent 實心，seg 選中是白底膠囊。</p>
@@ -286,9 +281,7 @@ seg 是「切換<strong>檢視</strong>」。視覺也不同：chip 選中是 ac
 - 超過 4 段 —— 改用 drill-in 選擇頁
 - 段落文字長度差很多 —— <code>regular</code> 平分寬度會讓短的那段留一大片空白
 - 在 <code>TLSettingsRow</code> 裡用 <code>regular</code> —— 會撐高列，<code>handoff-20</code> §B 就是為了修這個才加 compact</p>
-<h2>11 組成 ★</h2>
-<p>不由其他 <code>TL*</code> 元件組成（軌道 ＋ 文字 ＋ 滑動膠囊）。</p>
-<h2>12 變更紀錄</h2>
+<h2>8 變更紀錄</h2>
 <table>
 <thead>
 <tr>

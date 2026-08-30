@@ -142,7 +142,7 @@
 </tr>
 </tbody>
 </table>
-<h2>5 度量</h2>
+<h2>5 度量與行為</h2>
 <table>
 <thead>
 <tr>
@@ -167,6 +167,10 @@
 </table>
 <p><strong>為什麼左內縮右不縮</strong>：分隔線的作用是「分開兩列的內容」，所以它從內容開始的地方起算。
 兩邊都內縮會看起來像一條浮在中間的線；兩邊都不縮則會把群組切成上下兩塊。</p>
+<h3>文字與溢出</h3>
+<p>無文字。<strong>Dynamic Type</strong>：不跟隨。它是結構線，跟著字級變粗沒有意義。</p>
+<h3>動態</h3>
+<p>無。</p>
 <h2>6 配色 ★</h2>
 <table>
 <thead>
@@ -184,24 +188,13 @@
 </table>
 <p><strong>用半透明而不是固定灰</strong>：它會疊在不同的容器底上（<code>surfaceRaised</code>／<code>surfaceBase</code>），
 半透明才能在每一種底上都保持同樣的對比關係。</p>
-<h2>7 文字行為</h2>
-<p>無文字。<strong>Dynamic Type</strong>：不跟隨。它是結構線，跟著字級變粗沒有意義。</p>
-<h2>8 動態</h2>
-<p>無。</p>
-<h2>9 無障礙</h2>
-<ul>
-<li><strong>不應被 VoiceOver 讀到</strong>。它是純視覺分隔，語意由列本身承載。</li>
-<li>不掛任何 label 或 identifier。</li>
-</ul>
-<h2>10 用法與禁用法</h2>
+<h2>7 用法與禁用法</h2>
 <p><strong>用它</strong>：不要直接用。把列放進 <code>TLDividedVStack</code>（或用 <code>TLGroup</code>），分隔線會自動出現在正確的位置。</p>
 <p><strong>易混淆</strong>：容器外框 —— 那是 <code>TLGroup</code> 的圓角邊界，這個是<strong>容器內部</strong>的列間線。</p>
 <p><strong>不要用它</strong>：
 - 手動放在畫面層 —— 那會繞過「頭尾不畫線」的規則，而那正是這套視覺的辨識點
 - 當區塊分隔 —— 區塊之間用的是間距（<code>space.section</code>），不是線</p>
-<h2>11 組成 ★</h2>
-<p>N/A（L1 原子）。</p>
-<h2>12 變更紀錄</h2>
+<h2>8 變更紀錄</h2>
 <table>
 <thead>
 <tr>

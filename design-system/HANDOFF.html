@@ -1,6 +1,6 @@
 <!doctype html>
 <meta charset="utf-8">
-<title>交付說明 · 第四輪（階段 1 · 設定頁榨取）</title>
+<title>交付說明 · 第五輪（階段 1 ＋ 兩輪審閱回應）</title>
 <link rel="stylesheet" href="tokens/tokens.css">
 <link rel="stylesheet" href="preview.css">
 <style>
@@ -25,34 +25,151 @@
   .back { font-size: var(--font-row-sub); margin-bottom: var(--space-gap-l); display: block; }
 </style>
 <a class="back" href="index.html">← 元件庫索引</a>
-<h1>交付說明 · 第四輪（階段 1 · 設定頁榨取）</h1>
+<h1>交付說明 · 第五輪（階段 1 ＋ 兩輪審閱回應）</h1>
 <blockquote>
 <p>給設計端。每輪重寫，只講「這輪跟上輪的差別」與「這輪想請你看什麼」。
-規則書是 <code>README.md</code>（正典），這份不是規則。
+規則書是 <code>README.md</code>（正典），完整決策脈絡在 <code>CHANGELOG.md</code>。
 日期：2026-08-30</p>
 </blockquote>
 <hr />
-<h2>你要的那個答案</h2>
-<p>你在第三輪說：如果「設定頁完全由 L2 組成」不成立，你想看到的不是修好之後的結果，
-而是<strong>不成立的那個點</strong>。</p>
-<p><strong>答案：分層假設成立，但當時的元件庫不夠用。</strong></p>
-<p>分層那半是對的 —— 設定頁的三個畫面<strong>完全不需要任何 L3</strong>。
-但「由 L2 組成」在當時只是一個描述、不是事實：那些 L2 有一半不在元件庫裡
-（兩個內聯在畫面裡、五個埋在大檔裡沒有地址、三個放錯層、分層目錄根本不存在）。</p>
-<p><strong>撞到的兩個邊界都是「介面不夠」而不是「分層錯」</strong>，完整記錄在 <code>CHANGELOG.md</code>：</p>
-<ol>
-<li><strong><code>TLListRow</code> 不知道自己被選中</strong> —— 選取靠 <code>leading</code> 裡放什麼決定，
-   所以無障礙的 selected trait 要呼叫端補，而呼叫端會忘。
-   考慮過三種做法，<strong>選了「維持現狀但記錄」</strong>，因為加 prop 會動所有呼叫端、
-   加新元件會多一個九成像的東西 —— 兩者都該在有更多樣本時決定。
-   階段 2 有四個選取清單，那時才看得出哪個對。</li>
-<li><strong><code>TLSettingsToggleRow</code> 沒有 disabled</strong> —— 通知授權被拒後開關仍顯示開著。
-   這不是榨取能解決的，已有 UI 設計票在排。</li>
-</ol>
-<p>對架構來說這是好消息：分子層的<strong>邊界</strong>畫對了，只是有些分子的<strong>介面</strong>還沒長全。</p>
+<h2>先講一件事：上一包你可能沒拿到最新的</h2>
+<p>你在階段 1 審閱裡說「<code>textBody</code> 併入 <code>textSecondary</code>」與「<code>.kicker</code> 對比度不足」
+<strong>兩件都沒動</strong> —— 那兩件其實已經做了，只是你手上那包比較舊。</p>
+<p><strong>這一包裡兩件都在。</strong> 完整的文字階見下面第 2 節。</p>
 <hr />
-<h2>這輪交付什麼</h2>
-<p><strong>19 個元件</strong>（上一輪 1 個）＋ <strong>2 份 example</strong>。</p>
+<h2>你抓到一個真的錯誤</h2>
+<p><code>--icon-m</code> 的矛盾成立，<strong>而且錯的是我這邊的 CSS 鏡像</strong>：</p>
+<pre><code>Swift  TLBadge 圖示建構子 → TLFont.rowTitle (15)
+CSS    .tl-badge svg      → var(--icon-m)  (16)
+</code></pre>
+<p><code>--icon-m</code> 全專案唯一的使用者就是那一行錯的 CSS。已修正（現在對到 <code>icon.inline</code>）。</p>
+<p><strong>這正好是檢查 16 擋不到的那種漂移。</strong> 它擋孤兒與遺漏，但<strong>兩份實作的值不一致擋不了</strong>
+（那要跨語言比對）。契約裡寫過這個限制，這次它真的發生了，
+而且是被人眼交叉比對抓到的 —— 已記進 <code>CHANGELOG.md</code> 當作那條限制的實例。</p>
+<hr />
+<h2>這一包跟你上次看到的差在哪</h2>
+<h3>1 · <code>preview.css</code> 分家（你的審閱 A）</h3>
+<p>你指出 <code>preview.css</code> 已經從「展示骨架」變成<strong>元件的第二份實作</strong> ——
+<code>.thumb</code> 帶著 <code>linear-gradient</code> 與 <code>--size-icon-thumb</code>，那是元件的樣子不是骨架。</p>
+<p>照你的建議做成<strong>顯性化並可計數</strong>，沒有退回去：</p>
+<ul>
+<li><code>preview.css</code> 只留骨架（110 行）</li>
+<li>元件鏡像進 <strong><code>components.preview.css</code></strong>（200 行），一元件一段、順序同 <code>components.json</code></li>
+<li>選擇器一律 <strong><code>.tl-&lt;kebab-name&gt;</code></strong>。原本的 <code>.btn</code>／<code>.check</code>／<code>.thumb</code> 是通用名，
+  等 <code>TLButton</code>／<code>TLTag</code> 進來一定撞</li>
+<li>規格第 1 節多一列 <strong><code>Preview CSS</code></strong> —— 三件套變四件套，因為事實上已經是了</li>
+<li><strong>新增檢查 16</strong>：孤兒段落、重複段落、preview 用了未定義的 <code>.tl-</code>，三種都反向測過</li>
+</ul>
+<p>加上檢查後<strong>立刻抓到一個真孤兒</strong>：<code>.tl-over</code> 是 <code>TLBadge</code> preview 特有的溢出示意，
+不該有 <code>tl-</code> 前綴，已改成本地 class。</p>
+<h3>2 · 文字階合併下移（你的審閱 B）</h3>
+<table>
+<thead>
+<tr>
+<th>token</th>
+<th>原本</th>
+<th>現在</th>
+<th>對 <code>surfaceRaised</code></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>textPrimary</code></td>
+<td>ink.900</td>
+<td>ink.900</td>
+<td>15.2:1</td>
+</tr>
+<tr>
+<td><code>textSecondary</code></td>
+<td>neutral.600</td>
+<td><strong>neutral.700</strong></td>
+<td><strong>6.0:1</strong>（原 3.9）</td>
+</tr>
+<tr>
+<td><code>textTertiary</code></td>
+<td>neutral.500</td>
+<td><strong>neutral.600</strong></td>
+<td><strong>3.9:1</strong>（原 2.6）</td>
+</tr>
+<tr>
+<td>~~<code>textBody</code>~~</td>
+<td>neutral.700</td>
+<td>刪除</td>
+<td>併入 <code>textSecondary</code></td>
+</tr>
+</tbody>
+</table>
+<p>你給的判準記進 <code>CHANGELOG.md</code> 了：</p>
+<blockquote>
+<p>要讀完的<strong>句子</strong>用 <code>textSecondary</code>，掃視就過的<strong>標示</strong>用 <code>textTertiary</code>。
+不是「重要程度」，是「會不會被逐字讀」。</p>
+</blockquote>
+<p><code>.kicker</code> 也照你說的改成 <code>textSecondary</code>（10.5px 小字配低對比讀不動）。</p>
+<p><strong>視覺影響現在很小</strong>：Swift 端還在直接用 <code>neutral500</code>(91 處)／<code>neutral600</code>(64 處)，
+只有 2 處走語意層。這是改<strong>定義</strong>，效果會在後續階段遷移時逐步落地。
+<code>TLChevron</code> 是唯一立刻變的（2.6 → 3.9，變深，是修正）。</p>
+<h3>3 · icon 尺度收斂（你的四項拍板）</h3>
+<p>五個特設值 → <strong>兩組四個</strong>：</p>
+<pre><code>inline 14         standalone 22        ← 真的尺度刻度
+inCheckCircle 11  inIconButton 18      ← 裝在固定容器裡的配對值
+</code></pre>
+<ul>
+<li><code>icon.l</code>(20) 刪除</li>
+<li><code>13</code>／<code>14</code>／<code>15</code> 收成 <strong>14</strong>，改名 <code>icon.inline</code></li>
+<li>容器內圖示用固定配對值、不用比例；<code>TLCircleIconButton.iconSize</code> <strong>不開成 prop</strong></li>
+<li><code>22</code> 兩處先共用 <code>icon.standalone</code></li>
+</ul>
+<p>命名刻意用 <code>inXxx</code> —— <strong>那些不是刻度</strong>，拿去跟 <code>inline</code>／<code>standalone</code> 比較沒有意義。</p>
+<p><code>_note</code> 加了你建議的防再犯判準：</p>
+<blockquote>
+<p>新增圖示尺寸前先問：它是跟文字並排、獨立擺放、還是裝在某個容器裡？
+前兩者用既有的兩階；第三者才新增一個 <code>inXxx</code> 配對值。</p>
+</blockquote>
+<p>順帶把四個尚未榨取的元件的字面 SF Symbol 字級一起收進來
+（<code>TLEmptyState</code> 22、<code>TLTabBar</code> 22、<code>TLSearchField</code> 15×2、<code>TLSwipeToRevealRow</code> 15）。</p>
+<h3>你的三則建議</h3>
+<table>
+<thead>
+<tr>
+<th>建議</th>
+<th>處理</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>paired 那組加 <code>_note</code> 防再犯</td>
+<td>做了（見上）</td>
+</tr>
+<tr>
+<td>空狀態日後放大要開新階、別動 <code>standalone</code></td>
+<td>記進已知缺口，並註明現在的 22 是「先共用」不是「確認同性質」</td>
+</tr>
+<tr>
+<td>那個 <code>1×12</code> 的零星值在哪</td>
+<td><code>AbilityListView.swift:349</code>。<strong>是文字不是圖示</strong>，但沒有對應的字級角色。記進已知缺口，留給撞到 Ability 的階段</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2>階段 1 的核心答案（如果你還沒看到）</h2>
+<p>你在第三輪要求：如果「設定頁完全由 L2 組成」不成立，你想看到<strong>不成立的那個點</strong>。</p>
+<p><strong>答案：分層假設成立，但當時的元件庫不夠用。</strong></p>
+<p>設定頁三個畫面<strong>完全不需要任何 L3</strong>。但「由 L2 組成」在當時只是描述、不是事實：
+那些 L2 有一半不在元件庫裡（兩個內聯在畫面、五個埋在大檔沒有地址、三個放錯層、
+<code>Atoms/</code>／<code>Molecules/</code> 目錄根本不存在）。</p>
+<p><strong>撞到的兩個邊界都是「介面不夠」而不是「分層錯」</strong>：</p>
+<ol>
+<li><strong><code>TLListRow</code> 不知道自己被選中</strong> —— 選取靠 <code>leading</code> 放什麼決定，
+   無障礙的 selected trait 要呼叫端補而呼叫端會忘。
+   考慮過加 <code>isSelected</code> prop／加 <code>TLSelectableRow</code>／維持現狀三種，
+   <strong>選了維持現狀但記錄</strong> —— 前者動所有呼叫端、後者多一個九成像的元件，
+   都該在有更多樣本時決定。階段 2 有四個選取清單。</li>
+<li><strong><code>TLSettingsToggleRow</code> 沒有 disabled</strong> —— 通知授權被拒後開關仍顯示開著。
+   不是榨取能解決的，已有 UI 設計票在排。</li>
+</ol>
+<p>對架構是好消息：分子層的<strong>邊界</strong>畫對了，只是有些分子的<strong>介面</strong>還沒長全。</p>
+<hr />
+<h2>這一包有什麼</h2>
 <table>
 <thead>
 <tr>
@@ -69,40 +186,34 @@
 <td>Molecules 10</td>
 <td>TLBackBar · TLDividedVStack · TLGroup · TLListRow · TLPageHeader · TLSectionHeader · TLSegmentedControl · TLSettingsRow · TLSettingsToggleRow · TLValuePicker</td>
 </tr>
+<tr>
+<td>Examples 2</td>
+<td>設定選擇頁 · 級距設定頁（皆為沒有設計稿的子頁，<strong>這兩份 example 就是它們的規格</strong>）</td>
+</tr>
+<tr>
+<td>機器檢查</td>
+<td>16 條，每條都反向測過會擋</td>
+</tr>
 </tbody>
 </table>
-<p><strong>設定頁的三個畫面現在是純組合</strong> —— Presentation 的字面樣式從 13 降到 <strong>0</strong>。</p>
-<p><strong>你的三個拍板都套用了</strong>（<code>28×28/r7</code>、返回列 <code>gapS</code>、能力值另開票），
-兩組變體因此都不用做 —— 少一份要維護的差異。</p>
-<p><strong>兩個 example</strong> 是你提的：<code>settings-selection</code> 目前是<strong>零本地樣式</strong>的純組合。</p>
-<hr />
-<h2>寫規格逼出來的東西</h2>
-<p>規格第 5 節要求「全部寫 token 名，不寫數字」，於是<strong>元件內部自己的字面值</strong>全部現形。
-新增 25 個 token，其中三個值得你看：</p>
-<ul>
-<li><strong><code>type.rowValue</code> 14</strong> —— 字級尺度原本缺這一階（<code>rowSub</code> 11.5 與 <code>rowTitle</code> 15 之間空著）</li>
-<li><strong><code>textBody</code>（→ neutral.700）</strong> —— 這個色被用 16 處卻沒有語意角色。
-  ⚠ <strong>它與 <code>textSecondary</code>(neutral600) 的分界不清楚，需要你釐清</strong> ——
-  尤其考慮到 <code>textSecondary</code> 對容器底只有 3.9:1，<code>textBody</code> 反而更讀得到</li>
-<li><strong><code>motion</code> 的落單值收斂了</strong> —— 全專案唯一的 <code>0.18</code>（開關動畫）併進 <code>base</code>(0.2)</li>
-</ul>
-<p><strong><code>icon</code> 仍然不是一個尺度</strong>：<code>s13 / sm14 / m16 / button18 / l20</code> 五個值都是從既有程式碼
-撈出來的特設值，彼此沒有比例關係。這個要收斂需要你決定，記在已知缺口。</p>
+<p>設定頁三個畫面的 Presentation <strong>字面樣式為 0</strong>。</p>
 <hr />
 <h2>這輪想請你看的</h2>
-<p><strong>1 · 19 份規格的第 4 節（狀態），有沒有你需要但我漏掉的狀態？</strong>
-這是規格裡最容易漏的一節。我對每個元件都逐項回答了不適用的理由，
-但「不適用」有時候是「我沒想到」的偽裝。</p>
-<p><strong>2 · 第 10 節的「易混淆」對照，有沒有配錯或漏配？</strong>
-目前配了六組：<code>TLSettingsValue</code>↔<code>TLRowValue</code>、<code>TLChevron</code>↔<code>TLCheckCircle</code>、
+<p><strong>1 · <code>components.preview.css</code> 的分段粒度對嗎？</strong>
+現在是一元件一段。<code>TLGroup</code>／<code>TLDivider</code>／<code>TLDividedVStack</code> 刻意沒有段落 ——
+它們的視覺表述<strong>就是</strong>骨架的 <code>.group</code>／<code>.row</code>，因為那三個元件「是」容器與分隔線本身。
+這個例外合理嗎？</p>
+<p><strong>2 · 19 份規格的第 4 節（狀態），有沒有你需要但我漏掉的？</strong>
+我對每個元件都逐項回答了不適用的理由，但「不適用」有時候是「我沒想到」的偽裝。</p>
+<p><strong>3 · 第 10 節的「易混淆」對照有沒有配錯或漏配？</strong>
+目前六組：<code>TLSettingsValue</code>↔<code>TLRowValue</code>、<code>TLChevron</code>↔<code>TLCheckCircle</code>、
 <code>TLBadge</code>↔<code>TLIconThumbnail</code>、<code>TLSettingsRow</code>↔<code>TLListRow</code>、
 <code>TLPageHeader</code>↔<code>TLBackBar</code>／<code>TLSectionHeader</code>、<code>TLValuePicker</code>↔<code>TLNumberField</code>。</p>
-<p><strong>3 · <code>textBody</code> vs <code>textSecondary</code> 的分界</strong>（見上）。</p>
-<p><strong>4 · 三個記在規格裡的無障礙缺口，優先度怎麼排？</strong>
+<p><strong>4 · 三個無障礙缺口的優先度怎麼排？</strong>
 <code>TLValuePicker</code> 的滾輪沒有 <code>adjustable</code> trait（最嚴重，VoiceOver 使用者無法調整）、
 <code>TLListRow</code> 的 selected trait、<code>TLSettingsToggleRow</code> 的 disabled。</p>
 <hr />
 <h2>接下來：階段 2 · 動作庫</h2>
 <p>那是<strong>整個架構的賭注</strong> —— 7 個 L3 有機體全是列型，如果它們都能純由 L2 組成，
 架構成立；有一個不行就代表分子層設計錯了，要在那裡修正而不是拖到訓練頁。</p>
-<p>階段 1 已經先告訴我們一件事：分子層的<strong>邊界</strong>是對的。階段 2 要驗的是<strong>介面夠不夠</strong>。</p>
+<p>階段 1 已經告訴我們分子層的<strong>邊界</strong>是對的。階段 2 要驗的是<strong>介面夠不夠</strong>。</p>

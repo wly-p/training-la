@@ -52,6 +52,55 @@
 
 ---
 
+## 2026-08-30 · icon 尺度收斂（設計端拍板）
+
+### 一個真的錯誤：`--icon-m` 的矛盾
+
+審閱交叉比對 `components.preview.css` 與使用清單，抓到一個**我的 CSS 鏡像畫錯了**：
+
+```
+Swift  TLBadge 圖示建構子 → TLFont.rowTitle (15)
+CSS    .tl-badge svg      → var(--icon-m)  (16)
+```
+
+`--icon-m` 全專案唯一的使用者就是那一行錯的 CSS。
+
+**這正是檢查 16 擋不到的那種漂移** —— 它擋孤兒與遺漏，但**兩份實作的值不一致擋不了**
+（那要跨語言比對）。契約裡寫過這個限制，這次它真的發生了，而且是被人眼交叉比對抓到的。
+記在這裡當作那條限制的實例。
+
+### 拍板的四項
+
+| | 決定 |
+|---|---|
+| `icon.l`(20) | 刪除（0 處引用） |
+| `13`／`14`／`15` | 收成一個值 **14**，改名 **`icon.inline`**。±1px 位移可接受 |
+| 容器內圖示 | 用**固定配對值**不用比例；`TLCircleIconButton.iconSize` **不開成 prop** |
+| `22` 兩處 | 先共用 **`icon.standalone`** |
+
+收斂後 `icon` 從五個特設值變成**兩組四個**：
+
+```
+inline 14      standalone 22       ← 真的尺度刻度
+inCheckCircle 11  inIconButton 18  ← 裝在固定容器裡的配對值，跟著容器直徑走
+```
+
+命名刻意分成 `inXxx` —— **那些不是刻度**，拿它們去跟 `inline`／`standalone` 比較沒有意義。
+
+`tokens.json` 的 `_note` 加了一條防再犯的判準（採納審閱建議）：
+> 新增圖示尺寸前先問：它是跟文字並排、獨立擺放、還是裝在某個容器裡？
+> 前兩者用既有的兩階；第三者才新增一個 `inXxx` 配對值。
+
+順帶把四個尚未榨取的元件的字面 SF Symbol 字級一起收進來
+（`TLEmptyState` 22、`TLTabBar` 22、`TLSearchField` 15×2、`TLSwipeToRevealRow` 15）。
+
+### 生成器的一個修正
+
+多行的 `_note` 生成出來的 Swift 註解只有第一行有 `//`，直接語法錯誤。
+改成每一行都加 —— **token 的說明值得寫成多行，壓成一行會沒人讀**。
+
+---
+
 ## 2026-08-30 · 階段 1 交付審閱後
 
 ### `preview.css` 分家（審閱 A）
@@ -294,6 +343,8 @@
 | ~~`textSecondary` 3.9:1、`textTertiary` 2.6:1~~ | — | ✅ 已修（整階下移一階，見上方 2026-08-30 交付審閱後） |
 | `TLExerciseNameWithEquipment` 名字帶 domain 詞彙（實際不 import domain，層級沒錯，只是命名有味道） | 1 處 | 階段 2 |
 | ~~`TLCircleIconButton` 是 View 卻住在 `Support/ButtonStyles.swift`~~ | — | ✅ 階段 1 已抽出 |
-| `icon` 不是一個尺度，**而且其中兩個值(m16／l20)從來沒被用過** | 全 app | 清單已給設計端（`temp/icon-scale-usage.md`），等回覆 |
+| ~~`icon` 不是一個尺度~~ | — | ✅ 已收斂成兩組四個（見上方 icon 尺度收斂） |
+| **空狀態圖示日後若要放大，要開新階、不要動 `standalone`** —— 分頁列與空狀態目前共用 22，那是「先共用」不是「確認同性質」 | 2 處 | 撞到空狀態設計時 |
+| `AbilityListView.swift:349` 有一個零星的 `.font(.system(size: 12))` —— 是文字不是圖示，但沒有對應的字級角色 | 1 處 | 階段 3／4 撞到 Ability 時 |
 | `RotationDetailView` / `ProgramDetailView` 仍各自寫返回列（字面 `12`）。改用 `TLBackBar` 之後會變成 `8` | 2 處 | 階段 4（那是 Plan 的視覺改變，不屬於這一輪） |
 | `TLCircleIconButton.init(systemImage:filled:)` 是標了「舊呼叫端相容」的 shim | 3 處呼叫端 | 各階段順手換成 `style:` |

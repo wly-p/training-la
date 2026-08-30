@@ -112,8 +112,8 @@
 <td><code>CGFloat</code></td>
 <td>只吃 <code>icon.*</code> token</td>
 <td>否</td>
-<td><code>icon.button</code></td>
-<td>圖示字級</td>
+<td><code>icon.inIconButton</code></td>
+<td>圖示字級。⚠ 設計端拍板<strong>不開成 prop 的替代品</strong>——容器內圖示是配對值，改容器就改 token</td>
 </tr>
 <tr>
 <td><code>iconWeight</code></td>
@@ -208,11 +208,11 @@
 <tr>
 <td>語言</td>
 <td>中文 / 英文</td>
-<td>N/A —— 無文字。<strong>但無障礙標籤必須由呼叫端給</strong></td>
+<td>N/A —— 無文字</td>
 </tr>
 </tbody>
 </table>
-<h2>5 度量</h2>
+<h2>5 度量與行為</h2>
 <table>
 <thead>
 <tr>
@@ -227,7 +227,7 @@
 </tr>
 <tr>
 <td>圖示</td>
-<td><code>icon.button</code> ＋ <code>semibold</code></td>
+<td><code>icon.inIconButton</code> ＋ <code>semibold</code></td>
 </tr>
 <tr>
 <td>內距</td>
@@ -243,6 +243,11 @@
 </tr>
 </tbody>
 </table>
+<h3>文字與溢出</h3>
+<p>無文字。</p>
+<p><strong>Dynamic Type</strong>：<strong>不跟隨</strong>。它是固定的觸控目標，跟著字級長大會把標題列撐爛。</p>
+<h3>動態</h3>
+<p>按下時整顆縮放，時長 <code>motion.fast</code>、曲線 <code>motion.curve</code>。無觸覺回饋。</p>
 <h2>6 配色 ★</h2>
 <table>
 <thead>
@@ -270,28 +275,14 @@
 </tr>
 </tbody>
 </table>
-<h2>7 文字行為</h2>
-<p>無文字。</p>
-<p><strong>Dynamic Type</strong>：<strong>不跟隨</strong>。它是固定的觸控目標，跟著字級長大會把標題列撐爛。</p>
-<h2>8 動態</h2>
-<p>按下時整顆縮放，時長 <code>motion.fast</code>、曲線 <code>motion.curve</code>。無觸覺回饋。</p>
-<h2>9 無障礙</h2>
-<ul>
-<li><strong>必須由呼叫端給 accessibility label</strong> —— 元件本身只知道 SF Symbol 名稱，那不是可讀的名字。
-  少寫的話 VoiceOver 會念出符號名或什麼都不念。</li>
-<li>直徑預設 <code>size.iconButton</code> ＝ 44，已滿足最小觸控。用 <code>size.iconButtonSmall</code> 時<strong>呼叫端要自己把觸控區補到 44</strong>。</li>
-<li><code>accessibilityIdentifier</code> 由呼叫端加（測試要定位的是「哪一個按鈕」，元件不知道）。</li>
-</ul>
-<h2>10 用法與禁用法</h2>
+<h2>7 用法與禁用法</h2>
 <p><strong>用它</strong>：需要一個只有圖示、沒有文字的圓形動作時。</p>
 <p><strong>易混淆</strong>：<code>TLIconThumbnail</code>（列裡的方形圖片預覽）—— 這個是<strong>可點的動作</strong>，那個是唯讀的縮圖。</p>
 <p><strong>不要用它</strong>：
 - 放文字進去 —— 它是圖示按鈕，文字動作用文字按鈕樣式
 - 用 <code>size.iconButtonSmall</code> 卻不補觸控區 —— 那會做出 34pt 的觸控目標
 - 用 <code>accent</code> 當次要動作 —— 一個畫面最多一個主要動作區</p>
-<h2>11 組成 ★</h2>
-<p>N/A（L1 原子）。</p>
-<h2>12 變更紀錄</h2>
+<h2>8 變更紀錄</h2>
 <table>
 <thead>
 <tr>
@@ -308,7 +299,7 @@
 </tr>
 <tr>
 <td>2026-08-30</td>
-<td><code>iconSize</code> 的預設從字面 <code>18</code> 改成 <code>icon.button</code></td>
+<td><code>iconSize</code> 的預設從字面 <code>18</code> 改成 <code>icon.inIconButton</code></td>
 <td>元件內部的字面值也是字面值。⚠ 順帶發現 icon 尺度有 <strong>13/14/16/18/20 五個特設值</strong>，彼此沒有比例關係——這已經不是尺度，見 <code>CHANGELOG.md</code> 已知缺口</td>
 </tr>
 <tr>

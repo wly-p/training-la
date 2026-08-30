@@ -142,7 +142,7 @@
 </tr>
 </tbody>
 </table>
-<h2>5 度量</h2>
+<h2>5 度量與行為</h2>
 <table>
 <thead>
 <tr>
@@ -173,6 +173,13 @@
 </tr>
 </tbody>
 </table>
+<h3>文字與溢出</h3>
+<p><strong>溢出</strong>：不主動截斷。空間不夠時是列的責任去壓縮標題。</p>
+<p><strong>多語系寬度</strong>：英文值普遍比中文長。設計時要用最長的英文值檢查，
+而不是用中文值決定列的排版。</p>
+<p><strong>Dynamic Type</strong>：應跟隨（它是文字）。目前固定，等 C7a。</p>
+<h3>動態</h3>
+<p>值改變時無轉場 —— 設定列的值多半是換頁選完才回來，沒有原地變化的情境。</p>
 <h2>6 配色 ★</h2>
 <table>
 <thead>
@@ -190,20 +197,7 @@
 </table>
 <p><strong>為什麼是二級不是三級</strong>：值比標題輕（它是答案不是問題），但比 chevron 重
 （chevron 是裝飾，值要讀得到）。判準是<strong>會不會被逐字讀</strong> —— 值會，所以用二級。</p>
-<h2>7 文字行為</h2>
-<p><strong>溢出</strong>：不主動截斷。空間不夠時是列的責任去壓縮標題。</p>
-<p><strong>多語系寬度</strong>：英文值普遍比中文長。設計時要用最長的英文值檢查，
-而不是用中文值決定列的排版。</p>
-<p><strong>Dynamic Type</strong>：應跟隨（它是文字）。目前固定，等 C7a。</p>
-<h2>8 動態</h2>
-<p>值改變時無轉場 —— 設定列的值多半是換頁選完才回來，沒有原地變化的情境。</p>
-<h2>9 無障礙</h2>
-<ul>
-<li><strong>自己不掛 label</strong>。VoiceOver 應該把「標題＋值」當成一個單位念出來
-  （例：「主題，深色」），所以那是列的 <code>accessibilityValue:</code> 的責任，不是這個元件的。</li>
-<li>不掛 <code>accessibilityIdentifier</code>。</li>
-</ul>
-<h2>10 用法與禁用法</h2>
+<h2>7 用法與禁用法</h2>
 <p><strong>用它</strong>：設定列要顯示目前的值時。</p>
 <p><strong>易混淆</strong>：<code>TLRowValue</code>（列表列的右側數值）—— 那個是<strong>數字</strong>（用 Caprasimo、可帶單位），
 這個是<strong>文字</strong>（用中文字體）。看到數字就用 <code>TLRowValue</code>。</p>
@@ -211,9 +205,7 @@
 - 放數字 —— 數字用 <code>TLRowValue</code>，字體不同
 - 當第二行副標 —— 副標是列的 <code>subtitle</code>，位置與字級都不一樣
 - 沒有值時放一個空的 —— 那會留下一塊看不見的空白，不如不放</p>
-<h2>11 組成 ★</h2>
-<p>N/A（L1 原子）。</p>
-<h2>12 變更紀錄</h2>
+<h2>8 變更紀錄</h2>
 <table>
 <thead>
 <tr>

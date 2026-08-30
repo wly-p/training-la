@@ -53,8 +53,6 @@ public struct TLRulerSlider: View {
                     dragOffset = 0
                 }
         )
-        .accessibilityElement()
-        .accessibilityValue(Text(verbatim: TLNumberField.format(liveValue)))
         .accessibilityAdjustableAction { direction in
             switch direction {
             case .increment: value = clamp(value + step)

@@ -42,16 +42,25 @@
 | 主題 | light / dark | 兩者都有 |
 | 語言 | 中文 / 英文 | N/A —— 無文字 |
 
-## 5 度量
+## 5 度量與行為
 
 | | |
 |---|---|
 | 直徑 | `size.checkCircle` |
 | 空心圈線寬 | `size.hairlineThick` —— 比 `hairline` 粗，**1px 在圓弧上會斷斷續續** |
-| 勾號 | `icon.xs` ＋ `bold` |
+| 勾號 | `icon.inCheckCircle` ＋ `bold` |
 | 最小寬度 | 固定，不壓縮 |
 
 **觸控目標是列不是這個圓**：22pt 遠小於 44pt 的最小觸控。列必須整條可點。
+
+### 文字與溢出
+
+無文字。**Dynamic Type**：不跟隨（它是圖示）。
+
+### 動態
+
+目前無轉場。**已知缺口**：selected 與 unselected 之間直接切換沒有動畫，
+在清單裡連點兩項會顯得突兀。要補的話用 `motion.fast`。
 
 ## 6 配色 ★
 
@@ -60,22 +69,7 @@
 | selected | `actionPrimary` | 無 | `surfaceBase` |
 | unselected | 透明 | `neutral-400` | 無 |
 
-## 7 文字行為
-
-無文字。**Dynamic Type**：不跟隨（它是圖示）。
-
-## 8 動態
-
-目前無轉場。**已知缺口**：selected 與 unselected 之間直接切換沒有動畫，
-在清單裡連點兩項會顯得突兀。要補的話用 `motion.fast`。
-
-## 9 無障礙
-
-- **自己不掛 label 也不掛 trait**。選取狀態應該由列表達
-  （`.accessibilityAddTraits(.isSelected)`），否則 VoiceOver 會念出兩個獨立的東西。
-- 不掛 `accessibilityIdentifier` —— 測試定位的是列。
-
-## 10 用法與禁用法
+## 7 用法與禁用法
 
 **用它**：清單裡「選一個／選多個」，而且選完不離開這一頁時。
 
@@ -87,11 +81,7 @@
 - 跟 chevron 並存
 - 表達「完成」之類的狀態 —— 它表達的是「被選中」，語意不同
 
-## 11 組成 ★
-
-N/A（L1 原子）。
-
-## 12 變更紀錄
+## 8 變更紀錄
 
 | 日期 | 改動 | 原因 |
 |---|---|---|

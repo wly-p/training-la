@@ -142,7 +142,7 @@
 </tr>
 </tbody>
 </table>
-<h2>5 度量</h2>
+<h2>5 度量與行為</h2>
 <table>
 <thead>
 <tr>
@@ -161,7 +161,7 @@
 </tr>
 <tr>
 <td>勾號</td>
-<td><code>icon.xs</code> ＋ <code>bold</code></td>
+<td><code>icon.inCheckCircle</code> ＋ <code>bold</code></td>
 </tr>
 <tr>
 <td>最小寬度</td>
@@ -170,6 +170,11 @@
 </tbody>
 </table>
 <p><strong>觸控目標是列不是這個圓</strong>：22pt 遠小於 44pt 的最小觸控。列必須整條可點。</p>
+<h3>文字與溢出</h3>
+<p>無文字。<strong>Dynamic Type</strong>：不跟隨（它是圖示）。</p>
+<h3>動態</h3>
+<p>目前無轉場。<strong>已知缺口</strong>：selected 與 unselected 之間直接切換沒有動畫，
+在清單裡連點兩項會顯得突兀。要補的話用 <code>motion.fast</code>。</p>
 <h2>6 配色 ★</h2>
 <table>
 <thead>
@@ -195,18 +200,7 @@
 </tr>
 </tbody>
 </table>
-<h2>7 文字行為</h2>
-<p>無文字。<strong>Dynamic Type</strong>：不跟隨（它是圖示）。</p>
-<h2>8 動態</h2>
-<p>目前無轉場。<strong>已知缺口</strong>：selected 與 unselected 之間直接切換沒有動畫，
-在清單裡連點兩項會顯得突兀。要補的話用 <code>motion.fast</code>。</p>
-<h2>9 無障礙</h2>
-<ul>
-<li><strong>自己不掛 label 也不掛 trait</strong>。選取狀態應該由列表達
-  （<code>.accessibilityAddTraits(.isSelected)</code>），否則 VoiceOver 會念出兩個獨立的東西。</li>
-<li>不掛 <code>accessibilityIdentifier</code> —— 測試定位的是列。</li>
-</ul>
-<h2>10 用法與禁用法</h2>
+<h2>7 用法與禁用法</h2>
 <p><strong>用它</strong>：清單裡「選一個／選多個」，而且選完不離開這一頁時。</p>
 <p><strong>易混淆</strong>：<code>TLChevron</code>（可進入的列）—— 這個表示<strong>選取</strong>，那個表示<strong>進入下一層</strong>。
 同一列不該同時出現兩者：那會讓人不知道點下去是選還是進去。</p>
@@ -214,9 +208,7 @@
 - 當可點的按鈕 —— 22pt 不是合法觸控目標，要整列可點
 - 跟 chevron 並存
 - 表達「完成」之類的狀態 —— 它表達的是「被選中」，語意不同</p>
-<h2>11 組成 ★</h2>
-<p>N/A（L1 原子）。</p>
-<h2>12 變更紀錄</h2>
+<h2>8 變更紀錄</h2>
 <table>
 <thead>
 <tr>

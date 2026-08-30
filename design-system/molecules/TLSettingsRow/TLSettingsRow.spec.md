@@ -13,6 +13,8 @@
 | Preview | `design-system/molecules/TLSettingsRow/TLSettingsRow.preview.html` |
 | Preview CSS | `components.preview.css` §TLSettingsRow |
 
+**組成**：由 `TLChevron`（L1）組成；trailing 通常放 `TLSettingsValue`（L1）或 `TLSegmentedControl`（L2）。
+
 ## 2 介面 ★
 
 **Props**
@@ -24,7 +26,6 @@
 | `systemImage` | `String?` | | 否 | `nil` | 左側 SF Symbol。破壞性列用它放垃圾桶 |
 | `role` | `Role` | `normal` / `destructive` | 否 | `normal` | 見第 3 節 |
 | `showChevron` | `Bool` | | 否 | `false` | 是否通往下一層 |
-| `accessibilityValue` | `Text?` | | 否 | `nil` | 給 VoiceOver 的「目前值」。drill-in 列**應該傳** |
 | `trailingGap` | `CGFloat` | 只吃 `space.*` token | 否 | `space.gapS` | trailing 與 chevron 的間距 |
 | `onTap` | `(() -> Void)?` | | 否 | `nil` | 點整列。`nil` ＝ 不可點 |
 
@@ -52,7 +53,7 @@
 | 主題 | light / dark | 兩者都有 |
 | 語言 | 中文 / 英文 | 英文標題與值都較長，同時變長時最容易擠 |
 
-## 5 度量
+## 5 度量與行為
 
 | | |
 |---|---|
@@ -68,6 +69,19 @@
 **列高是 `minHeight` 不是固定值**：`TLSegmentedControl` 之類的 trailing 比文字高，
 列會跟著長。`handoff-20` §B 把分段控制改矮就是為了讓它**不要**撐高這一列。
 
+### 文字與溢出
+
+**溢出**：標題可換行，不主動截斷。
+
+**多語系寬度**：這是設定頁最容易出問題的地方 —— 英文的標題與值同時變長。
+排版要用「最長英文標題 ＋ 最長英文值」檢查。
+
+**Dynamic Type**：應跟隨。列高是 `minHeight` 所以放大不會裁切，但左右方向會更擠。
+
+### 動態
+
+按下時底色淡入，`motion.fast`。**沒有縮放** —— 列是大面積元素，縮放會很晃。
+
 ## 6 配色 ★
 
 | 用途 | token |
@@ -77,28 +91,7 @@
 | hint | `textTertiary` |
 | 按下態底色 | `textPrimary` @ 6% |
 
-## 7 文字行為
-
-**溢出**：標題可換行，不主動截斷。
-
-**多語系寬度**：這是設定頁最容易出問題的地方 —— 英文的標題與值同時變長。
-排版要用「最長英文標題 ＋ 最長英文值」檢查。
-
-**Dynamic Type**：應跟隨。列高是 `minHeight` 所以放大不會裁切，但左右方向會更擠。
-
-## 8 動態
-
-按下時底色淡入，`motion.fast`。**沒有縮放** —— 列是大面積元素，縮放會很晃。
-
-## 9 無障礙
-
-- **drill-in 列一定要傳 `accessibilityValue`**，讓 VoiceOver 念出「標籤＋目前值」
-  （例：「主題，深色」）。少傳的話使用者要進到下一頁才知道現在選什麼。
-- `onTap` 不為 `nil` 時列有 button trait；為 `nil` 時是純靜態文字。
-- `hint` 不計入無障礙標籤 —— 它是視覺補充，念出來會太囉唆。
-- `accessibilityIdentifier` 由呼叫端加（例：`settings.row.theme`）。
-
-## 10 用法與禁用法
+## 7 用法與禁用法
 
 **用它**：設定頁的列。
 
@@ -106,15 +99,11 @@
 這個沒有圓章、右側是「目前的值」，用在**設定**。看到圓章就是 `TLListRow`。
 
 **不要用它**：
-- 開關列 —— 用 `TLSettingsToggleRow`，它底層是 `Toggle`，保留 switch 的無障礙語意
+- 開關列 —— 用 `TLSettingsToggleRow`，它底層是 `Toggle`，保留 `switches` 的測試可定位性
 - destructive ＋ chevron 並存 —— 破壞性操作就地執行，不通往任何地方
 - 放在 `TLGroup` 外面 —— 會失去圓角、底色與分隔線
 
-## 11 組成 ★
-
-由 `TLChevron`（L1）組成；trailing 通常放 `TLSettingsValue`（L1）或 `TLSegmentedControl`（L2）。
-
-## 12 變更紀錄
+## 8 變更紀錄
 
 | 日期 | 改動 | 原因 |
 |---|---|---|

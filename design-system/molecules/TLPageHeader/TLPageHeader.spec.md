@@ -13,6 +13,8 @@
 | Preview | `design-system/molecules/TLPageHeader/TLPageHeader.preview.html` |
 | Preview CSS | `components.preview.css` §TLPageHeader |
 
+**組成**：不由其他 `TL*` 元件組成（純文字排版）。`accessory` 通常由呼叫端放 `TLCircleIconButton`。
+
 ## 2 介面 ★
 
 **Props**
@@ -49,7 +51,7 @@
 | 主題 | light / dark | 兩者都有 |
 | 語言 | 中文 / 英文 | 英文主標較長，兩行的情況比中文常見 —— 設計時要用最長的英文標題檢查 |
 
-## 5 度量
+## 5 度量與行為
 
 | | |
 |---|---|
@@ -61,6 +63,20 @@
 | 最小寬度 | 主標可壓到單字換行；accessory 不縮 |
 | 壓縮行為 | **主標先讓**（換行→截斷），accessory 保持原尺寸 |
 
+### 文字與溢出
+
+**溢出**：主標兩行後截斷；`fixedSize(vertical:)` 確保第二行不被壓掉。
+
+**多語系寬度**：英文主標普遍較長。有 accessory 時可用空間更少，
+要用「最長英文標題 ＋ accessory」這個組合檢查。
+
+**Dynamic Type**：應跟隨。目前固定，等 C7a。34pt 的主標是全 app 最大的文字，
+放大後最容易爆版，屆時要優先驗它。
+
+### 動態
+
+無轉場。
+
 ## 6 配色 ★
 
 | 用途 | token |
@@ -71,27 +87,7 @@
 **kicker 用 accent 而不是灰**：它在這裡的作用是「這一頁屬於哪個脈絡」，
 是有意義的資訊而不是裝飾。這也是它跟 `TLSectionHeader` 的差異（那個預設是灰的）。
 
-## 7 文字行為
-
-**溢出**：主標兩行後截斷；`fixedSize(vertical:)` 確保第二行不被壓掉。
-
-**多語系寬度**：英文主標普遍較長。有 accessory 時可用空間更少，
-要用「最長英文標題 ＋ accessory」這個組合檢查。
-
-**Dynamic Type**：應跟隨。目前固定，等 C7a。34pt 的主標是全 app 最大的文字，
-放大後最容易爆版，屆時要優先驗它。
-
-## 8 動態
-
-無轉場。
-
-## 9 無障礙
-
-- 主標應該是 **heading trait**，讓 VoiceOver 使用者能用標題導航跳到這裡。
-- accessory 的 label 由呼叫端給。
-- `accessibilityIdentifier` 由呼叫端加（例：`settings.title`）。
-
-## 10 用法與禁用法
+## 7 用法與禁用法
 
 **用它**：每一頁的開頭。
 
@@ -103,11 +99,7 @@
 - 把返回鈕塞進 accessory —— 返回是 `TLBackBar` 的事，位置也不同
 - 用它當區塊標題 —— 字級差太多（34 vs 10.5）
 
-## 11 組成 ★
-
-不由其他 `TL*` 元件組成（純文字排版）。`accessory` 通常由呼叫端放 `TLCircleIconButton`。
-
-## 12 變更紀錄
+## 8 變更紀錄
 
 | 日期 | 改動 | 原因 |
 |---|---|---|

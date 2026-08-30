@@ -13,13 +13,14 @@
 | Preview | `design-system/molecules/TLBackBar/TLBackBar.preview.html` |
 | Preview CSS | `components.preview.css` §TLBackBar |
 
+**組成**：由 `TLCircleIconButton`（L1）組成。
+
 ## 2 介面 ★
 
 **Props**
 
 | 名稱 | 型別 | 值域 | 必填 | 預設 | 說明 |
 |---|---|---|---|---|---|
-| `accessibilityLabel` | `Text` | | 是 | — | 返回鈕的無障礙標籤。文案由呼叫端給，元件庫不做 i18n |
 | `onBack` | `() -> Void` | | 是 | — | 點返回鈕 |
 
 **Slots** — `trailing`：右側的操作區，預設空。某些子頁在這裡放一個文字操作（例：編輯）。
@@ -43,7 +44,7 @@
 | 主題 | light / dark | 兩者都有。自己沒有底色，顏色都來自 `TLCircleIconButton` |
 | 語言 | 中文 / 英文 | 自己無可見文字；trailing 若放文字動作會受語言長度影響 |
 
-## 5 度量
+## 5 度量與行為
 
 | | |
 |---|---|
@@ -53,27 +54,21 @@
 | 最小寬度 | 返回鈕 ＋ trailing 的寬度和；再窄就由 trailing 讓 |
 | 壓縮行為 | 中間的 Spacer 先被壓掉；返回鈕不縮 |
 
-## 6 配色 ★
-
-自己沒有顏色。返回鈕用 `TLCircleIconButton` 的 `outline` 材質。
-
-## 7 文字行為
+### 文字與溢出
 
 自己無文字。trailing 放文字動作時，中英長度差由該動作自己處理。
 
 **Dynamic Type**：返回鈕不跟隨（它是固定觸控目標）；trailing 的文字應該跟隨。
 
-## 8 動態
+### 動態
 
 無轉場。返回鈕的按下態動畫由 `TLCircleIconButton` 提供。
 
-## 9 無障礙
+## 6 配色 ★
 
-- 返回鈕**必須**有 label，所以它是必填 prop 而不是選填 —— 少寫會是一個沒有名字的按鈕。
-- 最小觸控 44pt 由 `TLCircleIconButton` 的預設尺寸保證。
-- 不掛 `accessibilityIdentifier` —— 測試定位的是返回鈕本身，那由呼叫端加。
+自己沒有顏色。返回鈕用 `TLCircleIconButton` 的 `outline` 材質。
 
-## 10 用法與禁用法
+## 7 用法與禁用法
 
 **用它**：drill-in 子頁需要一個返回入口時。
 
@@ -85,11 +80,7 @@
 - 在根層畫面用 —— 根層沒有「回去」，放了會騙使用者
 - 把標題塞進 trailing —— 標題是 `TLPageHeader` 的事
 
-## 11 組成 ★
-
-由 `TLCircleIconButton`（L1）組成。
-
-## 12 變更紀錄
+## 8 變更紀錄
 
 | 日期 | 改動 | 原因 |
 |---|---|---|

@@ -33,7 +33,7 @@ public struct TLEmptyState: View {
             ZStack {
                 Circle().fill(TLColor.neutral200)
                 Image(systemName: systemImage)
-                    .font(.system(size: 22, weight: .medium))
+                    .font(.system(size: TLIcon.standalone, weight: .medium))
                     .foregroundStyle(TLColor.neutral600)
             }
             .frame(width: 52, height: 52)

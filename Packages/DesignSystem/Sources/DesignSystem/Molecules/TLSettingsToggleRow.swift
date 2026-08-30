@@ -42,7 +42,6 @@ public struct TLSettingsToggleRow: View {
             }
         }
         .toggleStyle(.tlSwitch)
-        .accessibilityLabel(title)   // 讓 switch 標籤只含標題、排除 hint／subtitle（UITest 用 switches["聲音"] 查得到）
         .padding(.horizontal, TLSpace.rowInset)
         .frame(minHeight: subtitle == nil ? TLSize.row : TLSize.rowWithSub)
     }

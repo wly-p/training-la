@@ -22,7 +22,7 @@ public struct TLCircleIconButton: View {
         systemImage: String,
         style: Style = .accent,
         size: CGFloat = TLSize.iconButton,
-        iconSize: CGFloat = TLIcon.button,
+        iconSize: CGFloat = TLIcon.inIconButton,
         iconWeight: Font.Weight = .semibold,
         action: @escaping () -> Void
     ) {

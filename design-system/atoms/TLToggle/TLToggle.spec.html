@@ -145,7 +145,7 @@
 </tr>
 </tbody>
 </table>
-<h2>5 度量</h2>
+<h2>5 度量與行為</h2>
 <table>
 <thead>
 <tr>
@@ -168,6 +168,10 @@
 </tr>
 </tbody>
 </table>
+<h3>文字與溢出</h3>
+<p>無文字。<strong>Dynamic Type</strong>：不跟隨。它是固定的控制項，跟著字級長大會把列撐爛。</p>
+<h3>動態</h3>
+<p>切換時旋鈕滑到另一端，<code>motion.base</code> ＋ <code>motion.curve</code>。軌道底色同時轉換。</p>
 <h2>6 配色 ★</h2>
 <table>
 <thead>
@@ -192,30 +196,16 @@
 </table>
 <p><strong>不可以用系統 <code>Toggle</code> 的預設綠</strong> —— 那會讓整頁瞬間變回原生。
 這是設計原則裡明列的禁令之一。</p>
-<h2>7 文字行為</h2>
-<p>無文字。<strong>Dynamic Type</strong>：不跟隨。它是固定的控制項，跟著字級長大會把列撐爛。</p>
-<h2>8 動態</h2>
-<p>切換時旋鈕滑到另一端，<code>motion.base</code> ＋ <code>motion.curve</code>。軌道底色同時轉換。</p>
-<h2>9 無障礙</h2>
-<p><strong>做成 <code>ToggleStyle</code> 而不是自繪 Button，整個原因就在這裡</strong>：</p>
-<ul>
-<li>底層仍是 <code>Toggle</code>，所以 VoiceOver 會念「開關，已開啟／已關閉」而不是「按鈕」</li>
-<li>XCUITest 認得 <code>.switches</code>，而且 value 是 <code>"1"</code>／<code>"0"</code> —— 自繪的話這些全部要自己補，
-  而且很容易補不完整</li>
-</ul>
-<p><strong>只換外觀、不換語意</strong>，是這個元件唯一的設計目的。</p>
-<h2>10 用法與禁用法</h2>
+<h2>7 用法與禁用法</h2>
 <p><strong>用它</strong>：<code>Toggle(...).toggleStyle(.tlSwitch)</code>。設定頁請直接用 <code>TLSettingsToggleRow</code>，
 它已經包好了。</p>
 <p><strong>易混淆</strong>：<code>TLCheckCircle</code>（清單裡的選取記號）—— 開關表達「這個功能開著嗎」，
 勾號表達「這一項被選了嗎」。前者是設定，後者是選擇。</p>
 <p><strong>不要用它</strong>：
-- 自繪一個看起來一樣的按鈕 —— 會失去 switch 的無障礙語意與測試可定位性
+- 自繪一個看起來一樣的按鈕 —— 會失去 <code>switches</code> 的測試可定位性（XCUITest 認得 <code>.switches</code>、value 是 <code>"1"</code>／<code>"0"</code>）
 - 用系統預設樣式 —— 見第 6 節
 - 拿它表達「選中」—— 那是 <code>TLCheckCircle</code></p>
-<h2>11 組成 ★</h2>
-<p>N/A（L1 原子）。</p>
-<h2>12 變更紀錄</h2>
+<h2>8 變更紀錄</h2>
 <table>
 <thead>
 <tr>

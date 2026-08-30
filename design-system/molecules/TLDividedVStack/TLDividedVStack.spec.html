@@ -69,6 +69,7 @@
 </tr>
 </tbody>
 </table>
+<p><strong>組成</strong>：由 <code>TLDivider</code>（L1）組成。</p>
 <h2>2 介面 ★</h2>
 <p><strong>Props</strong> — 無。</p>
 <table>
@@ -142,7 +143,7 @@
 </tr>
 </tbody>
 </table>
-<h2>5 度量</h2>
+<h2>5 度量與行為</h2>
 <table>
 <thead>
 <tr>
@@ -161,27 +162,20 @@
 </tr>
 </tbody>
 </table>
+<h3>文字與溢出</h3>
+<p>自己無文字。</p>
+<h3>動態</h3>
+<p>無轉場。<strong>已知限制</strong>：子項動態增減時分隔線沒有動畫，會直接跳。</p>
 <h2>6 配色 ★</h2>
 <p>自己沒有顏色。</p>
-<h2>7 文字行為</h2>
-<p>自己無文字。</p>
-<h2>8 動態</h2>
-<p>無轉場。<strong>已知限制</strong>：子項動態增減時分隔線沒有動畫，會直接跳。</p>
-<h2>9 無障礙</h2>
-<ul>
-<li>不是 accessibility element，VoiceOver 逐子項走過。</li>
-<li>分隔線不會被念到（<code>TLDivider</code> 沒有語意）。</li>
-</ul>
-<h2>10 用法與禁用法</h2>
+<h2>7 用法與禁用法</h2>
 <p><strong>用它</strong>：需要「頭尾不畫線」的堆疊，但<strong>不需要</strong>卡片的圓角與底色時。</p>
 <p><strong>易混淆</strong>：<code>TLGroup</code>（群組容器）—— 那個是這個 ＋ 圓角 ＋ 底色。
 <strong>多數情況要的是 <code>TLGroup</code></strong>；直接用這個是少數情形（例如已經有自己的容器）。</p>
 <p><strong>不要用它</strong>：
 - 當一般的 <code>VStack</code> 用 —— 它會硬加分隔線
 - 期待它有間距 —— 子項間距是 0，靠分隔線區隔</p>
-<h2>11 組成 ★</h2>
-<p>由 <code>TLDivider</code>（L1）組成。</p>
-<h2>12 變更紀錄</h2>
+<h2>8 變更紀錄</h2>
 <table>
 <thead>
 <tr>

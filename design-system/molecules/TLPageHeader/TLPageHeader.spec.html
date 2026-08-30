@@ -69,6 +69,7 @@
 </tr>
 </tbody>
 </table>
+<p><strong>組成</strong>：不由其他 <code>TL*</code> 元件組成（純文字排版）。<code>accessory</code> 通常由呼叫端放 <code>TLCircleIconButton</code>。</p>
 <h2>2 介面 ★</h2>
 <p><strong>Props</strong></p>
 <table>
@@ -172,7 +173,7 @@
 </tr>
 </tbody>
 </table>
-<h2>5 度量</h2>
+<h2>5 度量與行為</h2>
 <table>
 <thead>
 <tr>
@@ -211,6 +212,14 @@
 </tr>
 </tbody>
 </table>
+<h3>文字與溢出</h3>
+<p><strong>溢出</strong>：主標兩行後截斷；<code>fixedSize(vertical:)</code> 確保第二行不被壓掉。</p>
+<p><strong>多語系寬度</strong>：英文主標普遍較長。有 accessory 時可用空間更少，
+要用「最長英文標題 ＋ accessory」這個組合檢查。</p>
+<p><strong>Dynamic Type</strong>：應跟隨。目前固定，等 C7a。34pt 的主標是全 app 最大的文字，
+放大後最容易爆版，屆時要優先驗它。</p>
+<h3>動態</h3>
+<p>無轉場。</p>
 <h2>6 配色 ★</h2>
 <table>
 <thead>
@@ -232,21 +241,7 @@
 </table>
 <p><strong>kicker 用 accent 而不是灰</strong>：它在這裡的作用是「這一頁屬於哪個脈絡」，
 是有意義的資訊而不是裝飾。這也是它跟 <code>TLSectionHeader</code> 的差異（那個預設是灰的）。</p>
-<h2>7 文字行為</h2>
-<p><strong>溢出</strong>：主標兩行後截斷；<code>fixedSize(vertical:)</code> 確保第二行不被壓掉。</p>
-<p><strong>多語系寬度</strong>：英文主標普遍較長。有 accessory 時可用空間更少，
-要用「最長英文標題 ＋ accessory」這個組合檢查。</p>
-<p><strong>Dynamic Type</strong>：應跟隨。目前固定，等 C7a。34pt 的主標是全 app 最大的文字，
-放大後最容易爆版，屆時要優先驗它。</p>
-<h2>8 動態</h2>
-<p>無轉場。</p>
-<h2>9 無障礙</h2>
-<ul>
-<li>主標應該是 <strong>heading trait</strong>，讓 VoiceOver 使用者能用標題導航跳到這裡。</li>
-<li>accessory 的 label 由呼叫端給。</li>
-<li><code>accessibilityIdentifier</code> 由呼叫端加（例：<code>settings.title</code>）。</li>
-</ul>
-<h2>10 用法與禁用法</h2>
+<h2>7 用法與禁用法</h2>
 <p><strong>用它</strong>：每一頁的開頭。</p>
 <p><strong>易混淆</strong>：<code>TLBackBar</code>（返回列）—— 這個回答「這是哪裡」，那個回答「怎麼回去」。
 兩者常上下相鄰，drill-in 子頁通常兩個都有。</p>
@@ -254,9 +249,7 @@
 - 一頁放兩個 —— 主標只有一個，第二層用 <code>TLSectionHeader</code>
 - 把返回鈕塞進 accessory —— 返回是 <code>TLBackBar</code> 的事，位置也不同
 - 用它當區塊標題 —— 字級差太多（34 vs 10.5）</p>
-<h2>11 組成 ★</h2>
-<p>不由其他 <code>TL*</code> 元件組成（純文字排版）。<code>accessory</code> 通常由呼叫端放 <code>TLCircleIconButton</code>。</p>
-<h2>12 變更紀錄</h2>
+<h2>8 變更紀錄</h2>
 <table>
 <thead>
 <tr>

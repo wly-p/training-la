@@ -25,7 +25,7 @@
 }
 .tl-badge--text { font-size: var(--font-badge-text); }
 .tl-badge--number { font-size: var(--font-row-number); font-family: var(--font-row-number-family); }
-.tl-badge svg { width: var(--icon-m); height: var(--icon-m); stroke-width: var(--icon-stroke); }
+.tl-badge svg { width: var(--icon-inline); height: var(--icon-inline); stroke-width: var(--icon-stroke); }
 
 /* TLCheckCircle */
 .tl-check-circle {
@@ -37,12 +37,12 @@
 .tl-check-circle--on {
   background: var(--action-primary); border-color: transparent; color: var(--surface-base);
 }
-.tl-check-circle svg { width: var(--icon-xs); height: var(--icon-xs); stroke-width: var(--icon-stroke); }
+.tl-check-circle svg { width: var(--icon-in-check-circle); height: var(--icon-in-check-circle); stroke-width: var(--icon-stroke); }
 
 /* TLChevron */
 .tl-chevron {
   display: block; color: var(--text-tertiary);
-  width: var(--icon-s); height: var(--icon-s); stroke-width: var(--icon-stroke);
+  width: var(--icon-inline); height: var(--icon-inline); stroke-width: var(--icon-stroke);
 }
 
 /* TLCircleIconButton */
@@ -53,7 +53,7 @@
   transition: transform var(--motion-fast) var(--motion-curve);
 }
 .tl-circle-icon-button svg {
-  width: var(--icon-button); height: var(--icon-button); stroke-width: var(--icon-stroke);
+  width: var(--icon-in-icon-button); height: var(--icon-in-icon-button); stroke-width: var(--icon-stroke);
 }
 .tl-circle-icon-button--accent { background: var(--action-primary); color: var(--surface-base); }
 .tl-circle-icon-button--outline {

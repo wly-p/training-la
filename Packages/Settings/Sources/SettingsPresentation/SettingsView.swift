@@ -96,7 +96,6 @@ public struct SettingsView: View {
                 TLSettingsRow(
                     localText("settings.theme.title"),
                     showChevron: true,
-                    accessibilityValue: localText(viewModel.theme.displayName),
                     onTap: { route = .theme }
                 ) {
                     TLSettingsValue(localText(viewModel.theme.displayName))
@@ -105,7 +104,6 @@ public struct SettingsView: View {
                 TLSettingsRow(
                     localText("settings.language.title"),
                     showChevron: true,
-                    accessibilityValue: Text(verbatim: viewModel.language.nativeName),
                     onTap: { route = .language }
                 ) {
                     TLSettingsValue(Text(verbatim: viewModel.language.nativeName))
@@ -114,7 +112,6 @@ public struct SettingsView: View {
                 TLSettingsRow(
                     localText("settings.appIcon.title"),
                     showChevron: true,
-                    accessibilityValue: localText(viewModel.icon.displayName),
                     trailingGap: 10,   // 預覽方塊比一行值文字重，離 chevron 遠一點
                     onTap: { route = .icon }
                 ) {
@@ -149,7 +146,6 @@ public struct SettingsView: View {
                 TLSettingsRow(
                     localText("settings.weightStep.title"),
                     showChevron: true,
-                    accessibilityValue: Text(verbatim: Weight.formatted(viewModel.weightStep)),
                     onTap: { route = .weightStep }
                 ) {
                     TLSettingsValue(
@@ -160,7 +156,6 @@ public struct SettingsView: View {
                 TLSettingsRow(
                     localText("settings.restStep.title"),
                     showChevron: true,
-                    accessibilityValue: Text(verbatim: "\(viewModel.restStep)"),
                     onTap: { route = .restStep }
                 ) {
                     TLSettingsValue(localText("settings.restStep.value \(viewModel.restStep)"))
