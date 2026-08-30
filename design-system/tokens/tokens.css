@@ -63,6 +63,7 @@
   --surface-input: rgb(220 211 196);  /* 輸入色帶（訓練頁） */
   --text-primary: rgb(32 30 29);  /* 主文字 */
   --text-secondary: rgb(130 121 106);  /* 二級文字 */
+  --text-body: rgb(100 92 80);  /* 需要比 textSecondary 更讀得到的次要文字（單位、對話框內文、未選 chip） */
   --text-tertiary: rgb(161 151 134);  /* 三級文字／icon */
   --text-numeric: rgb(46 43 37);  /* 大數字 */
   --border-subtle: rgb(32 30 29 / 8%);  /* 列間分隔線 */
@@ -84,6 +85,7 @@
   --space-group-gap: 22px;  /* 設定頁的群組之間。比 section(26) 緊——這一頁群組多，26 會把最後幾張卡推出畫面 */
   --space-card-gap: 12px;  /* 同一個群組標題底下、兩張卡之間 */
   --space-label-gap: 6px;  /* 元件與它下方的說明文字之間 */
+  --space-value-unit-gap: 4px;  /* 數字與它的單位之間 */
   --radius-container: 28px;  /* 卡片／群組容器 */
   --radius-inner: 20px;  /* 容器內的小方塊 */
   --radius-pill: 999px;  /* 按鈕、輸入、標籤（實作用 .capsule） */
@@ -101,11 +103,16 @@
   --size-step-field: 88px;  /* 級距頁自訂輸入框寬度 */
   --size-hairline: 1px;  /* 1px 分隔線與外框 */
   --size-icon-thumb: 28px;  /* App 圖示縮圖，兩處統一 */
+  --size-check-circle: 22px;  /* 可勾選列的圓形勾 */
+  --size-hairline-thick: 1.5px;  /* 空心圓／外框的線寬。比 hairline 粗，1px 在圓弧上會斷斷續續 */
 
   /* ── 字級（中文值；英文 × 1.08）── */
   --font-page-title: 34px;
   --font-card-title: 21px;
   --font-row-title: 15px;
+  --font-row-value: 14px;
+  --font-row-number: 16px;
+  --font-badge-text: 12px;
   --font-row-sub: 11.5px;
   --font-kicker: 10.5px;
   --font-big-number: 66px;
@@ -118,11 +125,15 @@
   --font-page-title-family: var(--font-zh);
   --font-card-title-family: var(--font-zh);
   --font-row-title-family: var(--font-zh);
+  --font-row-value-family: var(--font-zh);
+  --font-row-number-family: var(--font-display);
+  --font-badge-text-family: var(--font-zh);
   --font-row-sub-family: var(--font-zh);
   --font-kicker-family: var(--font-zh);
   --font-big-number-family: var(--font-display);
 
   /* 圖示。SF Symbol 的視覺尺寸。weight 只作用於 SF Symbol（實作側）；web／設計側用 Lucide 形狀配 strokeWeb。 ⚠ 這已經不是一個尺度：s13／sm14／m16／button18／l20 五個值都是從既有程式碼撈出來的特設值，彼此沒有比例關係（13 來自 chevron、14 來自勾號、18 來自圓形按鈕）。等更多圖示 token 化之後要一次收斂。 */
+  --icon-xs: 11px;
   --icon-s: 13px;
   --icon-sm: 14px;
   --icon-m: 16px;
@@ -156,6 +167,7 @@
     --surface-input: rgb(220 211 196);
     --text-primary: rgb(32 30 29);
     --text-secondary: rgb(130 121 106);
+    --text-body: rgb(100 92 80);
     --text-tertiary: rgb(161 151 134);
     --text-numeric: rgb(46 43 37);
     --border-subtle: rgb(32 30 29 / 8%);
@@ -175,6 +187,7 @@
   --surface-input: rgb(220 211 196);
   --text-primary: rgb(32 30 29);
   --text-secondary: rgb(130 121 106);
+  --text-body: rgb(100 92 80);
   --text-tertiary: rgb(161 151 134);
   --text-numeric: rgb(46 43 37);
   --border-subtle: rgb(32 30 29 / 8%);
@@ -193,6 +206,7 @@
   --surface-input: rgb(220 211 196);
   --text-primary: rgb(32 30 29);
   --text-secondary: rgb(130 121 106);
+  --text-body: rgb(100 92 80);
   --text-tertiary: rgb(161 151 134);
   --text-numeric: rgb(46 43 37);
   --border-subtle: rgb(32 30 29 / 8%);

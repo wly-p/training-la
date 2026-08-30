@@ -9,7 +9,7 @@
   .lvl { color: var(--text-tertiary); font-size: var(--font-row-sub); }
 </style>
 <h1>Training La 元件庫</h1>
-<p class="note">token 版本 1　·　4 個元件　·　規則見 <a href="README.html">README</a>、規格樣板見 <a href="_template.spec.html">規格樣板</a>　·　token 與契約的改動見 <a href="CHANGELOG.html">CHANGELOG</a><br><b>這輪先讀 <a href="HANDOFF.html">HANDOFF</a></b>（跟上輪的差別、想請你看什麼）。<br>先看 <b>Examples</b> 知道整頁長什麼樣，再讀 <a href="components.json">components.json</a>（機器讀的登錄檔，每個元件的 props／狀態／組成都在裡面），再開個別 preview。<br>token 的實際樣子見 <a href="tokens/tokens.preview.html">tokens.preview.html</a>。</p>
+<p class="note">token 版本 1　·　8 個元件　·　規則見 <a href="README.html">README</a>、規格樣板見 <a href="_template.spec.html">規格樣板</a>　·　token 與契約的改動見 <a href="CHANGELOG.html">CHANGELOG</a><br><b>這輪先讀 <a href="HANDOFF.html">HANDOFF</a></b>（跟上輪的差別、想請你看什麼）。<br>先看 <b>Examples</b> 知道整頁長什麼樣，再讀 <a href="components.json">components.json</a>（機器讀的登錄檔，每個元件的 props／狀態／組成都在裡面），再開個別 preview。<br>token 的實際樣子見 <a href="tokens/tokens.preview.html">tokens.preview.html</a>。</p>
 <div class="kicker">Examples —— 整頁長什麼樣</div>
 <div class="group">
   <div class="row"><span class="label"><a href="examples/settings-selection.example.html">設定選擇頁</a> <span class="lvl">— 主題／語言／App 圖示共用的 drill-in 子頁</span></span></div>
@@ -17,14 +17,18 @@
 </div>
 <div class="kicker">按畫面找</div>
 <div class="group">
-  <div class="row"><span class="label">動作庫 <span class="lvl">4c 5b 5c 5d</span></span><span class="lvl"><a href="atoms/TLChevron/TLChevron.preview.html">TLChevron</a></span></div>
-  <div class="row"><span class="label">設定 <span class="lvl">4b</span></span><span class="lvl"><a href="atoms/TLChevron/TLChevron.preview.html">TLChevron</a></span></div>
+  <div class="row"><span class="label">動作庫 <span class="lvl">4c 5b 5c 5d</span></span><span class="lvl"><a href="atoms/TLChevron/TLChevron.preview.html">TLChevron</a> · <a href="atoms/TLDivider/TLDivider.preview.html">TLDivider</a> · <a href="atoms/TLRowValue/TLRowValue.preview.html">TLRowValue</a></span></div>
+  <div class="row"><span class="label">設定 <span class="lvl">4b</span></span><span class="lvl"><a href="atoms/TLChevron/TLChevron.preview.html">TLChevron</a> · <a href="atoms/TLDivider/TLDivider.preview.html">TLDivider</a></span></div>
 </div>
-<div class="kicker">L1 原子（3）</div>
+<div class="kicker">L1 原子（7）</div>
 <div class="group">
+  <div class="row"><span class="label"><a href="atoms/TLCheckCircle/TLCheckCircle.preview.html">TLCheckCircle</a> <span class="lvl">— 可勾選的列右側，表達「這一項被選了」　⚑ 需容器 TLListRow</span></span><span class="lvl">1 props · 2 狀態 · <a href="atoms/TLCheckCircle/TLCheckCircle.spec.html">規格</a></span></div>
   <div class="row"><span class="label"><a href="atoms/TLChevron/TLChevron.preview.html">TLChevron</a> <span class="lvl">— 可進入的列右側的指向記號　⚑ 需容器 TLListRow／TLSettingsRow</span></span><span class="lvl">無 props · <a href="atoms/TLChevron/TLChevron.spec.html">規格</a></span></div>
   <div class="row"><span class="label"><a href="atoms/TLCircleIconButton/TLCircleIconButton.preview.html">TLCircleIconButton</a> <span class="lvl">— 圓形的圖示按鈕</span></span><span class="lvl">6 props · 2 狀態 · <a href="atoms/TLCircleIconButton/TLCircleIconButton.spec.html">規格</a></span></div>
+  <div class="row"><span class="label"><a href="atoms/TLDivider/TLDivider.preview.html">TLDivider</a> <span class="lvl">— 群組容器裡的列間分隔線　⚑ 需容器 TLDividedVStack</span></span><span class="lvl">無 props · <a href="atoms/TLDivider/TLDivider.spec.html">規格</a></span></div>
   <div class="row"><span class="label"><a href="atoms/TLIconThumbnail/TLIconThumbnail.preview.html">TLIconThumbnail</a> <span class="lvl">— App 圖示的方形預覽縮圖　⚑ 需容器 TLSettingsRow／TLListRow</span></span><span class="lvl">1 props · <a href="atoms/TLIconThumbnail/TLIconThumbnail.spec.html">規格</a></span></div>
+  <div class="row"><span class="label"><a href="atoms/TLRowValue/TLRowValue.preview.html">TLRowValue</a> <span class="lvl">— 列表列右側的數值（可帶單位）　⚑ 需容器 TLListRow</span></span><span class="lvl">2 props · <a href="atoms/TLRowValue/TLRowValue.spec.html">規格</a></span></div>
+  <div class="row"><span class="label"><a href="atoms/TLSettingsValue/TLSettingsValue.preview.html">TLSettingsValue</a> <span class="lvl">— 設定列右側顯示「目前的值」　⚑ 需容器 TLSettingsRow</span></span><span class="lvl">1 props · <a href="atoms/TLSettingsValue/TLSettingsValue.spec.html">規格</a></span></div>
 </div>
 <div class="kicker">L2 分子（1）</div>
 <div class="group">

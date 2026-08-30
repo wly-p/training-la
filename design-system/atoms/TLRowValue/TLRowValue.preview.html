@@ -1,0 +1,62 @@
+<!-- @dsCard group="Atoms" name="TLRowValue" subtitle="列右側的數值與單位" -->
+<!doctype html>
+<meta charset="utf-8">
+<title>TLRowValue</title>
+<link rel="stylesheet" href="../../tokens/tokens.css">
+<link rel="stylesheet" href="../../preview.css">
+<style>
+  .rv { display: flex; align-items: baseline; gap: var(--space-value-unit-gap); }
+  .num { font-family: var(--font-row-number-family); font-size: var(--font-row-number);
+         color: var(--text-primary); }
+  .unit { font-size: var(--font-row-title); color: var(--text-body); }
+</style>
+<h1>TLRowValue</h1>
+<p class="note">
+  L1 原子。列表列右側的數值。數字用 Caprasimo，單位用中文字體。<br>
+  兩者<b>基線對齊</b>而不是置中 —— 兩支字體的字身框高度不同，置中會讓單位看起來浮起來。
+</p>
+
+<div class="kicker">狀態</div>
+<div class="group">
+  <div class="row" data-state="default">
+    <span class="label">預設（唯一的狀態）</span>
+    <span class="rv"><span class="num">62.5</span><span class="unit">kg</span></span>
+  </div>
+</div>
+
+<div class="kicker">有沒有單位</div>
+<div class="group">
+  <div class="row"><span class="label">帶單位</span>
+    <span class="rv"><span class="num">62.5</span><span class="unit">kg</span></span></div>
+  <div class="row"><span class="label">不帶單位</span>
+    <span class="rv"><span class="num">3 × 8</span></span></div>
+</div>
+<p class="note">有沒有單位是<b>有沒有傳 prop</b>，不是變體。</p>
+
+<div class="kicker">數字最大位數</div>
+<div class="group">
+  <div class="row"><span class="label">一位</span><span class="rv"><span class="num">5</span><span class="unit">kg</span></span></div>
+  <div class="row"><span class="label">實務上最長</span><span class="rv"><span class="num">999.5</span><span class="unit">kg</span></span></div>
+</div>
+<p class="note"><b>不截斷</b> —— 空間不夠時是列的責任去壓縮標題。</p>
+
+<div class="kicker">主題</div>
+<div class="themes">
+  <div class="pane" data-theme="light">
+    <div class="kicker">light</div>
+    <div class="group"><div class="row"><span class="label">重量</span>
+      <span class="rv"><span class="num">62.5</span><span class="unit">kg</span></span></div></div>
+  </div>
+  <div class="pane" data-theme="dark">
+    <div class="kicker">dark（目前是 light 的複製）</div>
+    <div class="group"><div class="row"><span class="label">重量</span>
+      <span class="rv"><span class="num">62.5</span><span class="unit">kg</span></span></div></div>
+  </div>
+</div>
+
+<div class="kicker">不適用的狀態</div>
+<p class="note">
+  pressed／disabled／focused —— 按下態由整列表現。<br>
+  selected —— 它顯示值，不表達選取。<br>
+  empty／loading／error —— 沒有值就不要放這個元件。
+</p>

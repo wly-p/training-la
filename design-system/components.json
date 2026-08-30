@@ -3,6 +3,60 @@
   "tokensVersion": 1,
   "components": [
     {
+      "name": "TLCheckCircle",
+      "level": "L1",
+      "layer": "atoms",
+      "responsibility": "可勾選的列右側，表達「這一項被選了」",
+      "prototypeIds": [
+        "12d"
+      ],
+      "prototypeNote": "12c",
+      "standalone": false,
+      "requiresContainer": [
+        "TLListRow"
+      ],
+      "containerOwns": "位置與間距由列負責",
+      "props": [
+        {
+          "name": "isChecked",
+          "type": "`Bool`",
+          "kind": null,
+          "values": null,
+          "required": "是",
+          "default": "—",
+          "description": "選中與否"
+        }
+      ],
+      "slots": [],
+      "events": [],
+      "variants": [],
+      "states": [
+        "unselected",
+        "selected"
+      ],
+      "themes": [
+        "light",
+        "dark"
+      ],
+      "confusableWith": [
+        {
+          "name": "TLChevron",
+          "note": "`TLChevron`（可進入的列）—— 這個表示**選取**，那個表示**進入下一層**。"
+        }
+      ],
+      "dontUseFor": [
+        "當可點的按鈕 —— 22pt 不是合法觸控目標，要整列可點",
+        "跟 chevron 並存",
+        "表達「完成」之類的狀態 —— 它表達的是「被選中」，語意不同"
+      ],
+      "composedOf": null,
+      "paths": {
+        "spec": "atoms/TLCheckCircle/TLCheckCircle.spec.md",
+        "preview": "atoms/TLCheckCircle/TLCheckCircle.preview.html",
+        "impl": "Packages/DesignSystem/Sources/DesignSystem/Atoms/TLCheckCircle.swift"
+      }
+    },
+    {
       "name": "TLChevron",
       "level": "L1",
       "layer": "atoms",
@@ -163,6 +217,50 @@
       }
     },
     {
+      "name": "TLDivider",
+      "level": "L1",
+      "layer": "atoms",
+      "responsibility": "群組容器裡的列間分隔線",
+      "prototypeIds": [
+        "4b",
+        "4c",
+        "5b"
+      ],
+      "prototypeNote": "所有群組",
+      "standalone": false,
+      "requiresContainer": [
+        "TLDividedVStack"
+      ],
+      "containerOwns": "左內縮由這個元件自己負責；頭尾不畫線是 `TLDividedVStack` 的責任",
+      "props": [],
+      "slots": [],
+      "events": [],
+      "variants": [],
+      "states": [
+        "default"
+      ],
+      "themes": [
+        "light",
+        "dark"
+      ],
+      "confusableWith": [
+        {
+          "name": "TLGroup",
+          "note": "容器外框 —— 那是 `TLGroup` 的圓角邊界，這個是**容器內部**的列間線。"
+        }
+      ],
+      "dontUseFor": [
+        "手動放在畫面層 —— 那會繞過「頭尾不畫線」的規則，而那正是這套視覺的辨識點",
+        "當區塊分隔 —— 區塊之間用的是間距（`space.section`），不是線"
+      ],
+      "composedOf": null,
+      "paths": {
+        "spec": "atoms/TLDivider/TLDivider.spec.md",
+        "preview": "atoms/TLDivider/TLDivider.preview.html",
+        "impl": "Packages/DesignSystem/Sources/DesignSystem/Atoms/TLDivider.swift"
+      }
+    },
+    {
       "name": "TLIconThumbnail",
       "level": "L1",
       "layer": "atoms",
@@ -212,6 +310,119 @@
         "spec": "atoms/TLIconThumbnail/TLIconThumbnail.spec.md",
         "preview": "atoms/TLIconThumbnail/TLIconThumbnail.preview.html",
         "impl": "Packages/DesignSystem/Sources/DesignSystem/Atoms/TLIconThumbnail.swift"
+      }
+    },
+    {
+      "name": "TLRowValue",
+      "level": "L1",
+      "layer": "atoms",
+      "responsibility": "列表列右側的數值（可帶單位）",
+      "prototypeIds": [
+        "5b"
+      ],
+      "prototypeNote": "4c",
+      "standalone": false,
+      "requiresContainer": [
+        "TLListRow"
+      ],
+      "containerOwns": "與 chevron 的間距由列負責",
+      "props": [
+        {
+          "name": "value",
+          "type": "`String`",
+          "kind": null,
+          "values": null,
+          "required": "是",
+          "default": "—",
+          "description": "數值本身。已格式化好的字串，元件不做格式化"
+        },
+        {
+          "name": "unit",
+          "type": "`String?`",
+          "kind": null,
+          "values": null,
+          "required": "否",
+          "default": "`nil`",
+          "description": "單位。`nil` ＝ 不顯示"
+        }
+      ],
+      "slots": [],
+      "events": [],
+      "variants": [],
+      "states": [
+        "default"
+      ],
+      "themes": [
+        "light",
+        "dark"
+      ],
+      "confusableWith": [
+        {
+          "name": "TLSettingsValue",
+          "note": "`TLSettingsValue`（設定列右側的值）—— 那個是**文字**（用中文字體），"
+        }
+      ],
+      "dontUseFor": [
+        "放純文字 —— Caprasimo 是為數字設計的，中文字會很奇怪",
+        "自己做格式化 —— 傳進來的應該是格式化好的字串，小數位數是呼叫端的決定",
+        "放兩個以上的數值 —— 一列一個答案"
+      ],
+      "composedOf": null,
+      "paths": {
+        "spec": "atoms/TLRowValue/TLRowValue.spec.md",
+        "preview": "atoms/TLRowValue/TLRowValue.preview.html",
+        "impl": "Packages/DesignSystem/Sources/DesignSystem/Atoms/TLRowValue.swift"
+      }
+    },
+    {
+      "name": "TLSettingsValue",
+      "level": "L1",
+      "layer": "atoms",
+      "responsibility": "設定列右側顯示「目前的值」",
+      "prototypeIds": [],
+      "prototypeNote": "4b",
+      "standalone": false,
+      "requiresContainer": [
+        "TLSettingsRow"
+      ],
+      "containerOwns": "與 chevron 的間距由列的 `trailingGap` 決定",
+      "props": [
+        {
+          "name": "text",
+          "type": "`Text`",
+          "kind": null,
+          "values": null,
+          "required": "是",
+          "default": "—",
+          "description": "值本身。吃 `Text` 不是 `String`，呼叫端用 `localText` 建好再傳"
+        }
+      ],
+      "slots": [],
+      "events": [],
+      "variants": [],
+      "states": [
+        "default"
+      ],
+      "themes": [
+        "light",
+        "dark"
+      ],
+      "confusableWith": [
+        {
+          "name": "TLRowValue",
+          "note": "`TLRowValue`（列表列的右側數值）—— 那個是**數字**（用 Caprasimo、可帶單位），"
+        }
+      ],
+      "dontUseFor": [
+        "放數字 —— 數字用 `TLRowValue`，字體不同",
+        "當第二行副標 —— 副標是列的 `subtitle`，位置與字級都不一樣",
+        "沒有值時放一個空的 —— 那會留下一塊看不見的空白，不如不放"
+      ],
+      "composedOf": null,
+      "paths": {
+        "spec": "atoms/TLSettingsValue/TLSettingsValue.spec.md",
+        "preview": "atoms/TLSettingsValue/TLSettingsValue.preview.html",
+        "impl": "Packages/DesignSystem/Sources/DesignSystem/Atoms/TLSettingsValue.swift"
       }
     },
     {

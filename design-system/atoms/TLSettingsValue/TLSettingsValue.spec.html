@@ -1,0 +1,238 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>TLSettingsValue</title>
+<link rel="stylesheet" href="../../tokens/tokens.css">
+<link rel="stylesheet" href="../../preview.css">
+<style>
+  body { max-width: 62rem; line-height: 1.7; }
+  h1, h2, h3 { font-family: var(--font-page-title-family); line-height: 1.35; }
+  h1 { font-size: var(--font-page-title); margin: 0 0 var(--space-gap-l); }
+  h2 { font-size: var(--font-card-title); margin: var(--space-section) 0 var(--space-gap-m);
+       padding-top: var(--space-gap-m); border-top: 1px solid var(--border-subtle); }
+  h3 { font-size: var(--font-row-title); margin: var(--space-gap-l) 0 var(--space-gap-s); }
+  a { color: var(--accent-on-surface); }
+  table { border-collapse: collapse; width: 100%; margin: var(--space-gap-m) 0;
+          display: block; overflow-x: auto; }
+  th, td { text-align: left; padding: var(--space-gap-s) var(--space-gap-m);
+           border-bottom: 1px solid var(--border-subtle); vertical-align: top; }
+  th { font-size: var(--font-kicker); letter-spacing: var(--font-kicker-tracking);
+       text-transform: uppercase; color: var(--text-tertiary); }
+  pre { background: var(--surface-raised); border-radius: var(--radius-inner);
+        padding: var(--space-gap-m); overflow-x: auto; }
+  pre code { background: none; padding: 0; }
+  blockquote { margin: var(--space-gap-m) 0; padding-left: var(--space-gap-m);
+               border-left: 3px solid var(--border-subtle); color: var(--text-secondary); }
+  .back { font-size: var(--font-row-sub); margin-bottom: var(--space-gap-l); display: block; }
+</style>
+<a class="back" href="../../index.html">← 元件庫索引</a>
+<h1>TLSettingsValue</h1>
+<h2>1 身分</h2>
+<table>
+<thead>
+<tr>
+<th></th>
+<th></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>層級</td>
+<td>L1 原子</td>
+</tr>
+<tr>
+<td>職責</td>
+<td>設定列右側顯示「目前的值」</td>
+</tr>
+<tr>
+<td>原型 id</td>
+<td><code>4b</code></td>
+</tr>
+<tr>
+<td>獨立使用</td>
+<td><strong>否 —— 必須置於 <code>TLSettingsRow</code> 的 trailing</strong></td>
+</tr>
+<tr>
+<td>容器責任</td>
+<td>與 chevron 的間距由列的 <code>trailingGap</code> 決定</td>
+</tr>
+<tr>
+<td>實作</td>
+<td><code>Packages/DesignSystem/Sources/DesignSystem/Atoms/TLSettingsValue.swift</code></td>
+</tr>
+<tr>
+<td>Preview</td>
+<td><code>design-system/atoms/TLSettingsValue/TLSettingsValue.preview.html</code></td>
+</tr>
+</tbody>
+</table>
+<h2>2 介面 ★</h2>
+<p><strong>Props</strong></p>
+<table>
+<thead>
+<tr>
+<th>名稱</th>
+<th>型別</th>
+<th>值域</th>
+<th>必填</th>
+<th>預設</th>
+<th>說明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>text</code></td>
+<td><code>Text</code></td>
+<td></td>
+<td>是</td>
+<td>—</td>
+<td>值本身。吃 <code>Text</code> 不是 <code>String</code>，呼叫端用 <code>localText</code> 建好再傳</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Slots</strong> — N/A
+<strong>事件</strong> — N/A（不可互動；點擊由整列承接）</p>
+<h2>3 變體 variants</h2>
+<p>無。</p>
+<h2>4 狀態 states ★</h2>
+<!-- states: default -->
+<!-- themes: light, dark -->
+
+<table>
+<thead>
+<tr>
+<th>類別</th>
+<th>狀態</th>
+<th>這個元件</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>互動</td>
+<td>default / pressed / disabled / focused</td>
+<td><strong>只有 default。</strong> 按下態由整列表現</td>
+</tr>
+<tr>
+<td>選取</td>
+<td>selected / unselected / indeterminate</td>
+<td>N/A —— 它顯示值，不表達選取</td>
+</tr>
+<tr>
+<td>資料</td>
+<td>empty / loading / error</td>
+<td>N/A —— 呼叫端保證有值；沒有值就不要放這個元件</td>
+</tr>
+<tr>
+<td>內容極值</td>
+<td>最短 / 最長 / 溢出</td>
+<td>最短是一個字（「開」）；長值會擠壓標題，見第 7 節</td>
+</tr>
+<tr>
+<td>主題</td>
+<td>light / dark</td>
+<td>兩者都有</td>
+</tr>
+<tr>
+<td>語言</td>
+<td>中文 / 英文</td>
+<td>英文值通常較長（「跟隨系統」vs「Follow System」），是主要的溢出來源</td>
+</tr>
+</tbody>
+</table>
+<h2>5 度量</h2>
+<table>
+<thead>
+<tr>
+<th></th>
+<th></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>字級</td>
+<td><code>type.rowValue</code></td>
+</tr>
+<tr>
+<td>顏色</td>
+<td>見第 6 節</td>
+</tr>
+<tr>
+<td>內距</td>
+<td>無 —— 由列給</td>
+</tr>
+<tr>
+<td>最小寬度</td>
+<td>無下限，內容多短就多短</td>
+</tr>
+<tr>
+<td>壓縮行為</td>
+<td><strong>標題先讓</strong> —— 值是列的答案，截斷它等於讓這一列失去意義</td>
+</tr>
+</tbody>
+</table>
+<h2>6 配色 ★</h2>
+<table>
+<thead>
+<tr>
+<th>用途</th>
+<th>token</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>值文字</td>
+<td><code>textSecondary</code></td>
+</tr>
+</tbody>
+</table>
+<p><strong>為什麼是二級不是三級</strong>：值比標題輕（它是答案不是問題），但比 chevron 重
+（chevron 是裝飾，值要讀得到）。三級文字對容器底只有 2.6:1，用在這裡會讀不動。</p>
+<h2>7 文字行為</h2>
+<p><strong>溢出</strong>：不主動截斷。空間不夠時是列的責任去壓縮標題。</p>
+<p><strong>多語系寬度</strong>：英文值普遍比中文長。設計時要用最長的英文值檢查，
+而不是用中文值決定列的排版。</p>
+<p><strong>Dynamic Type</strong>：應跟隨（它是文字）。目前固定，等 C7a。</p>
+<h2>8 動態</h2>
+<p>值改變時無轉場 —— 設定列的值多半是換頁選完才回來，沒有原地變化的情境。</p>
+<h2>9 無障礙</h2>
+<ul>
+<li><strong>自己不掛 label</strong>。VoiceOver 應該把「標題＋值」當成一個單位念出來
+  （例：「主題，深色」），所以那是列的 <code>accessibilityValue:</code> 的責任，不是這個元件的。</li>
+<li>不掛 <code>accessibilityIdentifier</code>。</li>
+</ul>
+<h2>10 用法與禁用法</h2>
+<p><strong>用它</strong>：設定列要顯示目前的值時。</p>
+<p><strong>易混淆</strong>：<code>TLRowValue</code>（列表列的右側數值）—— 那個是<strong>數字</strong>（用 Caprasimo、可帶單位），
+這個是<strong>文字</strong>（用中文字體）。看到數字就用 <code>TLRowValue</code>。</p>
+<p><strong>不要用它</strong>：
+- 放數字 —— 數字用 <code>TLRowValue</code>，字體不同
+- 當第二行副標 —— 副標是列的 <code>subtitle</code>，位置與字級都不一樣
+- 沒有值時放一個空的 —— 那會留下一塊看不見的空白，不如不放</p>
+<h2>11 組成 ★</h2>
+<p>N/A（L1 原子）。</p>
+<h2>12 變更紀錄</h2>
+<table>
+<thead>
+<tr>
+<th>日期</th>
+<th>改動</th>
+<th>原因</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>2026-08-30</td>
+<td>從 <code>TLSettingsRow.swift</code> 拆成獨立檔</td>
+<td>那個檔有 3 個 public 元件，違反契約第 1 條</td>
+</tr>
+<tr>
+<td>2026-08-30</td>
+<td>字級從字面 <code>14</code> 改成 <code>type.rowValue</code></td>
+<td>14 原本是 <code>TLFont.zh(14)</code> 的字面值。順帶發現字級尺度缺這一階：<code>rowSub 11.5</code> 與 <code>rowTitle 15</code> 之間沒有東西</td>
+</tr>
+<tr>
+<td>2026-08-30</td>
+<td>顏色從 <code>neutral600</code> 改成 <code>textSecondary</code></td>
+<td>值相同，改用語意層才有深色的位置</td>
+</tr>
+</tbody>
+</table>

@@ -86,6 +86,7 @@ public enum TLColor {
     public static let surfaceInput    = Color(hex: 0xDCD3C4)  // 輸入色帶（訓練頁）
     public static let textPrimary     = Color(hex: 0x201E1D)  // 主文字
     public static let textSecondary   = Color(hex: 0x82796A)  // 二級文字
+    public static let textBody        = Color(hex: 0x645C50)  // 需要比 textSecondary 更讀得到的次要文字（單位、對話框內文、未選 chip）
     public static let textTertiary    = Color(hex: 0xA19786)  // 三級文字／icon
     public static let textNumeric     = Color(hex: 0x2E2B25)  // 大數字
     public static let borderSubtle    = Color(hex: 0x201E1D).opacity(0.08)  // 列間分隔線
@@ -106,16 +107,17 @@ public enum TLColor {
 // MARK: - Spacing / Radius / Size
 
 public enum TLSpace {
-    public static let page:       CGFloat = 26  // 頁面左右邊距
-    public static let section:    CGFloat = 26  // 區塊之間
-    public static let rowInset:   CGFloat = 18  // 列內左右 padding、分隔線左內縮
-    public static let gapS:       CGFloat = 8
-    public static let gapM:       CGFloat = 13
-    public static let gapL:       CGFloat = 20
-    public static let pageBottom: CGFloat = 40  // 捲動內容的頁尾留白
-    public static let groupGap:   CGFloat = 22  // 設定頁的群組之間。比 section(26) 緊——這一頁群組多，26 會把最後幾張卡推出畫面
-    public static let cardGap:    CGFloat = 12  // 同一個群組標題底下、兩張卡之間
-    public static let labelGap:   CGFloat = 6   // 元件與它下方的說明文字之間
+    public static let page:         CGFloat = 26  // 頁面左右邊距
+    public static let section:      CGFloat = 26  // 區塊之間
+    public static let rowInset:     CGFloat = 18  // 列內左右 padding、分隔線左內縮
+    public static let gapS:         CGFloat = 8
+    public static let gapM:         CGFloat = 13
+    public static let gapL:         CGFloat = 20
+    public static let pageBottom:   CGFloat = 40  // 捲動內容的頁尾留白
+    public static let groupGap:     CGFloat = 22  // 設定頁的群組之間。比 section(26) 緊——這一頁群組多，26 會把最後幾張卡推出畫面
+    public static let cardGap:      CGFloat = 12  // 同一個群組標題底下、兩張卡之間
+    public static let labelGap:     CGFloat = 6   // 元件與它下方的說明文字之間
+    public static let valueUnitGap: CGFloat = 4   // 數字與它的單位之間
 }
 
 public enum TLRadius {
@@ -139,10 +141,13 @@ public enum TLSize {
     public static let stepField:       CGFloat = 88  // 級距頁自訂輸入框寬度
     public static let hairline:        CGFloat = 1   // 1px 分隔線與外框
     public static let iconThumb:       CGFloat = 28  // App 圖示縮圖，兩處統一
+    public static let checkCircle:     CGFloat = 22  // 可勾選列的圓形勾
+    public static let hairlineThick:   CGFloat = 1.5 // 空心圓／外框的線寬。比 hairline 粗，1px 在圓弧上會斷斷續續
 }
 
 public enum TLIcon {
     // SF Symbol 的視覺尺寸。weight 只作用於 SF Symbol（實作側）；web／設計側用 Lucide 形狀配 strokeWeb。 ⚠ 這已經不是一個尺度：s13／sm14／m16／button18／l20 五個值都是從既有程式碼撈出來的特設值，彼此沒有比例關係（13 來自 chevron、14 來自勾號、18 來自圓形按鈕）。等更多圖示 token 化之後要一次收斂。
+    public static let xs: CGFloat = 11
     public static let s: CGFloat = 13
     public static let sm: CGFloat = 14
     public static let m: CGFloat = 16
@@ -193,6 +198,9 @@ public enum TLFont {
     public static let pageTitle: CGFloat = 34   // zh 家族；頁面主標，允許兩行
     public static let cardTitle: CGFloat = 21   // zh 家族
     public static let rowTitle:  CGFloat = 15   // zh 家族
+    public static let rowValue:  CGFloat = 14   // zh 家族；設定列右側的值。比標題小一號、比三級文字深一階——值是列的答案
+    public static let rowNumber: CGFloat = 16   // display 家族；列裡的數字（圓章數字、右側數值）。⚠ display 家族目前有 16 種字面字級、只有這一個有角色名，尺度收斂見 CHANGELOG 已知缺口
+    public static let badgeText: CGFloat = 12   // zh 家族；圓章裡的文字（肌群縮寫）
     public static let rowSub:    CGFloat = 11.5 // zh 家族
     public static let kicker:    CGFloat = 10.5 // zh 家族；大寫
     public static let bigNumber: CGFloat = 66   // display 家族；訓練頁重量／次數

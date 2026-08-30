@@ -1,0 +1,49 @@
+<!-- @dsCard group="Atoms" name="TLDivider" subtitle="群組裡的列間分隔線" -->
+<!doctype html>
+<meta charset="utf-8">
+<title>TLDivider</title>
+<link rel="stylesheet" href="../../tokens/tokens.css">
+<link rel="stylesheet" href="../../preview.css">
+<h1>TLDivider</h1>
+<p class="note">
+  L1 原子。群組容器裡的列間分隔線。<br>
+  <b>不要直接用</b> —— 把列放進 <code>TLDividedVStack</code>（或 <code>TLGroup</code>），
+  它會自動出現在正確的位置，而且頭尾不畫線。
+</p>
+
+<div class="kicker">狀態</div>
+<div class="group" data-state="default">
+  <div class="row"><span class="label">第一列 —— 上方不畫線</span></div>
+  <div class="row"><span class="label">中間 —— 列與列之間才有</span></div>
+  <div class="row"><span class="label">最後一列 —— 下方不畫線</span></div>
+</div>
+
+<div class="kicker">左內縮</div>
+<p class="note">
+  線從<b>內容開始的地方</b>起算（<code>space.row-inset</code>），右側畫到容器邊緣。<br>
+  兩邊都內縮會看起來像一條浮在中間的線；兩邊都不縮則會把群組切成上下兩塊。
+</p>
+
+<div class="kicker">主題</div>
+<div class="themes">
+  <div class="pane" data-theme="light">
+    <div class="kicker">light</div>
+    <div class="group">
+      <div class="row"><span class="label">上</span></div>
+      <div class="row"><span class="label">下</span></div>
+    </div>
+  </div>
+  <div class="pane" data-theme="dark">
+    <div class="kicker">dark（目前是 light 的複製）</div>
+    <div class="group">
+      <div class="row"><span class="label">上</span></div>
+      <div class="row"><span class="label">下</span></div>
+    </div>
+  </div>
+</div>
+
+<div class="kicker">不適用的狀態</div>
+<p class="note">
+  pressed／disabled／focused —— 不可互動。<br>
+  selected、empty／loading／error、內容極值、語言 —— 它沒有內容，寬度由容器決定。
+</p>
