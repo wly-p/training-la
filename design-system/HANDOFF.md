@@ -1,4 +1,4 @@
-# 交付說明 · 第六輪（階段 2 動作庫 ＋ 中文字級第一批）
+# 交付說明 · 第七輪（TLCard 全面遷移 ＋ 階段 3、4）
 
 > 給設計端。每輪重寫，只講「這輪跟上輪的差別」與「這輪想請你看什麼」。
 > 規則書是 `README.md`（正典），完整決策脈絡在 `CHANGELOG.md`。
@@ -10,151 +10,106 @@
 
 | | |
 |---|---|
-| Atoms 10 | TLBadge · TLCheckCircle · TLChevron · TLCircleIconButton · TLDivider · TLIconThumbnail · **TLProgressBar** · TLRowValue · TLSettingsValue · TLToggle |
-| Molecules 12 | TLBackBar · TLDividedVStack · TLEquipmentTag · TLGroup · **TLInlineEmptyState** · TLListRow · TLPageHeader · **TLRowContent** · TLSectionHeader · TLSegmentedControl · TLSettingsRow · TLSettingsToggleRow · **TLTitleWithTag** |
-| **Organisms 4（新的一層）** | **ExerciseRow · TemplateRow · RotationRow · ProgramRow** |
+| Atoms 11 | TLBadge · TLCheckCircle · TLChevron · **TLCircleIcon** · TLCircleIconButton · TLDivider · TLIconThumbnail · TLProgressBar · TLRowValue · TLSettingsValue · TLToggle |
+| Molecules 14 | TLBackBar · **TLCard** · TLDividedVStack · TLEquipmentTag · TLGroup · TLInlineEmptyState · TLListRow · TLPageHeader · TLRowContent · TLSectionHeader · TLSegmentedControl · TLSettingsRow · TLSettingsToggleRow · TLTitleWithTag |
+| Organisms 7 | ExerciseRow · **PlanWorkoutRow** · ProgramRow · **ProjectedWorkoutRow** · RotationRow · TemplateRow · **WorkoutHistoryRow** |
 | Examples 2 | 設定選擇頁 · 級距設定頁 |
-| 機器檢查 | **17 條**（新增字級尺度的最小間距） |
+| 機器檢查 | 17 條 |
 
-元件 19 → **27**。粗體是這一輪新增或改名的。
-
----
-
-## 一 · 階段 2 的核心問題有答案了
-
-上一輪說階段 2 是**架構的賭注**：動作庫的 L3 全是列型，如果它們都能純由 L2 組成，
-分層成立；有一個不行，就代表分子層設計錯了。
-
-**答案：分層是對的，錯的是其中一個分子的介面。**
-
-| L3 | 結果 |
-|---|---|
-| `ExerciseRow` | ✅ 純由 L2 組成，零缺口 |
-| `RotationRow` | ✅ 純組合，兩種形態只是換填法 |
-| `TemplateRow` | ⚠ `TLBadge(count:)` 顏色寫死，需要 neutral 圓章的呼叫端只能繞過它手工建 |
-| `ProgramRow` | ❌ **用不了 `TLListRow`** |
-
-### 那個「用不了」是這一輪最重要的發現
-
-長期課表的「進行中」卡，原本**手工重建了整個 `TLListRow`**（圓章＋主副標＋chevron）。
-查清楚不是偷懶，是真的用不了：
-
-`TLListRow` 把兩件事放在同一個型別 —— **內容排版**與**列的外框**
-（左右內距、最小高度、整列包成 Button）。那張卡有自己的內距、只有上半可點，
-**外框全部不適用**，所以只能重畫一份，然後就漂了。
-
-拆成 `TLRowContent`（只有排版）＋ `TLListRow`（＝ `TLRowContent` ＋ 外框）之後，
-兩個呼叫端的手工重建都消失。
-
-**這跟整輪重構的原則是同一條：把綁在一起的兩件事分開。**
+元件 27 → **32**。Presentation 的字面樣式 208 → **128**。
 
 ---
 
-## 二 · 你的第一批拍板已經落地
+## 一 · 我寫錯了一條規則，被 26 處實測推翻
 
-17 個字面值 → **13 個角色，52 處遷移**。你立的判準（「未來會不會分開走」而不是「差幾 px」）
-記進 `CHANGELOG.md` 了。
+上一輪抽 `TLCard` 時，我在規格裡寫了「**不要卡中卡**」。
+
+全面遷移時發現 app 裡有 **9 處卡中卡**，而且它們**早就在用小一階的圓角**（20 而不是 28）。
+
+**實際的規則不是「不要巢狀」，是「巢狀要換小圓角」。** 我那條禁令是只看了 17 處外層卡
+就下的結論 —— 量到 26 處才看見全貌。
+
+`TLCard` 因此多一個維度：
 
 ```
-34 pageTitle · 30 sheetTitle · 26 detailTitle · 21 cardTitle · 16 emptyTitle
-15 rowTitle · 15 buttonLabel · 14 rowValue · 13 buttonLabelSmall(paired)
-12.5 caption · 12 badgeText · 12 segCompact · 11.5 rowSub · 10.5 kicker
+container 28   外層卡：直接坐在頁面底上的         15 處
+inner     20   卡中的區塊：坐在另一張卡或群組裡的    9 處
 ```
 
-剩 7 處字面值，全是你指定留的：單位 4 處、膠囊裡的文字 1 處（都等第二批）、
-`10` 與 `9.5` 2 處（低於可讀下限，等你排設計改動）。
+這條規則現在是**元件強制**的，不是靠人記得。
 
 ---
 
-## 三 · 三個檢查漏洞，都是這一輪被真東西抓出來的
+## 二 · 三個同型的介面缺口，都是這一輪撞出來的
 
-### 1 · `TLFont.zh(15.5)` 從來沒被 ratchet 算過
+| 元件 | 缺什麼 | 呼叫端做了什麼 |
+|---|---|---|
+| `TLBadge(count:)` | 顏色寫死 sage | 需要 neutral 的自己手工建一份 |
+| `TLSectionHeader` | 右側只收按鈕，不收唯讀文字 | 自己重畫一次 kicker |
+| `TLGroup` | 不收描邊 | 自己疊一個 `strokeBorder` overlay |
 
-ratchet 只認 `.font(.system(size: N))`。`TLFont.zh(15.5)` **長得像吃了 token**，
-其實是字面字級 —— 59 處字級字面值一路躲過。
-
-**所以我上一輪說「設定頁字面樣式 0」是錯的**：那一刻 `SettingsView` 裡就有一個 13。
-基線重算 167 → 208。
-
-### 2 · CSS 鏡像有兩個壞掉的 var，你這幾輪看到的圖示是錯的尺寸
-
-```
-components.preview.css   var(--icon-in-check-circle)   ← 正確是 --icon-inCheckCircle
-components.preview.css   var(--icon-in-icon-button)    ← 正確是 --icon-inIconButton
-```
-
-**勾號與圓鈕裡的圖示一直是自動尺寸，不是 token 尺寸。**
-根因：檢查 9 只掃 preview.html 不掃 CSS 檔，而且兩邊的比對都只認小寫，
-偏偏 icon 的 token 是 camelCase —— 定義端與使用端**同時**被跳過，兩個錯誤互相掩護。
-已改成大小寫都認，檢查 9 延伸到 CSS 檔。
-
-### 3 · 交付給你的 `components.json` 少了三個欄位
-
-規格從十二節收成八節時，生成器沒跟上（還在找 `## 10` 與 `## 11`）。
-找不到就回空字串，於是 `composedOf`／`confusableWith`／`dontUseFor` **靜默變成空的**。
-
-**你手上前幾包的 `components.json` 裡，每個元件都是 `composedOf: null`。**
-「元件由什麼組成」是那份 JSON 最有用的欄位之一。已修好。
+**同一句話：介面少開一個口，呼叫端就會繞過整個元件、複製一份。**
+三個都補好了。
 
 ---
 
-## 四 · 你的新規則一寫成檢查，就擋到你自己批准的表
+## 三 · 第二個「視覺與互動綁在一起」的錯誤
 
-你給的規則：「同一家族內兩個不同的值差距不得小於 1」。寫成檢查 17 之後立刻撞上：
+上一輪是 `TLListRow` 把**內容排版**與**列的外框**綁死，卡片式版面用不了它。
 
-```
-rowSub 11.5 · badgeText 12 · segCompact 12 · caption 12.5
-```
+這一輪是 `TLCircleIconButton` 把**圓形圖示的視覺**與 `Button` 綁死 ——
+課表頁的 `+` 是 **`Menu` 的 label 不是 Button**，用不了它，只好手工重畫一份圓。
+（訓練中的「更多」也有一份，那個更冤：它本來就是 Button，只是沒人知道有元件。）
 
-**四個角色擠在 1px 內。**
+拆出 L1 `TLCircleIcon`（純視覺）之後，`TLCircleIconButton` ＝ `Button` ＋ 它。
 
-原因在我這邊：上一份使用清單把「已命名角色」與「還是字面值的」分成兩張表，
-所以這件事沒有顯示出來。**清單的排版方式決定了你看不看得見問題。**
-
-沒有靜默放行 —— 兩筆例外登記在 `tokens.json` 的 `_scaleExceptions`，
-每跑一次檢查就印一次，未登記的違規是硬錯。要不要收，你決定。
+**兩次是同一個病**：把「長什麼樣」跟「按下去做什麼」放進同一個型別，
+於是任何「要這個樣子但不是按鈕」的場合都只能複製。
 
 ---
 
-## 五 · `rowIcon: 17` 查完了，結論跟你的兩個選項都不同
+## 四 · 兩個新階段
 
-你說「要嘛是 paired 的一員、要嘛就該是 `icon.inline`(14)」。查下去發現前提不完整 ——
-**`TLSettingsRow` 裡有兩個圖示尺寸不是一個**：
+**階段 3（歷史）**：`TLCard` 就是在這裡量出來的（17 處，後來變 26）。
+抽出 `WorkoutHistoryRow`，左件是日期柱（日數＋星期、固定寬 40）。
 
-```
-破壞性圖示（垃圾桶）  17  semibold  右間距 10
-一般圖示              15  medium    右間距 13   ← 這個用的是 TLFont.rowTitle
-```
+**階段 4（課表）**：`PlanWorkoutRow`（已排定）與 `ProjectedWorkoutRow`（投影未落地）。
+**兩個都是純組合、零缺口** —— 分子層在這一頁完全夠用。
 
-那個 15 是**用字級 token 去量 SF Symbol**。全 app 只有這一處這樣做。
-所以它跟 `rowIcon` 是同一類錯誤的兩個實例：圖示尺寸借住在字級體系裡。
+---
 
-而且 `inline`(14) 自己也不乾淨，四個使用處有一半不符合「跟文字並排」：
+## 五 · 這一輪有三處視覺位移（使用者拍板，不是漂移）
 
-| 用處 | 旁邊是什麼 |
-|---|---|
-| `TLChevron` | 列尾的指示記號，不是跟文字並排 |
-| `TLBadge` 裡的圖示 | **裝在 36pt 圓章裡** —— 照判準該是 `inXxx` 配對值 |
-| `TLSearchField` | 配 15pt 輸入文字 |
-| `TLSwipeToRevealRow` | 配 11.5pt 動作文字 |
+| 位置 | 現值 | 併成 | 位移 |
+|---|---|---|---|
+| 休息日回顧卡 | 26/22 | 26/26 | +4px |
+| 範本編輯的值方塊 | 18/12 | 18/18 | +6px |
+| 訓練中的組表列 | 18/14 或 11 | 18/18 | +4／+7px |
 
-**先搬不改值**：`type.rowIcon` → `icon.inRow`(17)，讓它不再躲在字級群組裡。
-值怎麼收是設計判斷，見下面的問題三。
+⚠ 第三項請你看一眼：`current` 那一列原本比其他列**高 3px**，那是第三個狀態訊號
+（另兩個是深底與未做列的淡出）。併掉之後只剩顏色，而且整張組表每列都變高。
 
 ---
 
 ## 這輪想請你看的
 
-**1 · 字級尺度小的那一端要不要收？**
-`11.5 / 12 / 12 / 12.5` 四個角色在 1px 內。你的規則說不行，但那是你批准的表 ——
-所以這題是「規則對還是表對」。
+**1 · 卡底有三階，只有一階有語意名字。**
 
-**2 · `detailTitle`(26) 與統計數字 `display 28` 差 2px**，兩種東西在爭同一張卡的最大字。
-你說留第二批，這裡只是提醒它跟 display 尺度綁在一起。
+```
+neutral-100 ＝ surfaceRaised      淺卡    9 處
+neutral-300 （沒有名字）           深卡    5 處
+accent-200  （沒有名字）           強調卡  2 處
+```
 
-**3 · 設定列的兩個圖示（破壞性 17 / 一般 15）要收成一個嗎？收在哪？**
-另外 `TLBadge` 裡那個 14 是不是該變成 `icon.inBadge` 配對值？
+`neutral-300` 在語意層叫 `surfaceInput`（輸入色帶），拿它當卡底是**借用**。
+要命名嗎？還是這三階本身該收斂？
 
-**4 · L4 畫面層目前幾乎是空的。**
-`screens.json` 列了 18 個畫面，`examples/` 只有 2 份（都是設定的子頁）。
-五層模型裡 L4 沒有落點 —— 這是要補的，還是 L3 到畫面之間本來就不需要中間文件？
+**2 · 訓練中組表列的高度**（見上面第五節）—— 那 3px 的狀態訊號要不要救回來？
+
+**3 · 「列首固定欄」有三種寬度**：`40`（歷史的日期柱）、`44`（訓練詳情的組序）、
+`48`（範本編輯的組序）。**後兩者是同一個角色的兩個值。** 跟膠囊幾何同型。
+
+**4 · 字級小的那一端還沒收**（上一輪的問題，這輪沒動）：
+`11.5 / 12 / 12 / 12.5` 四個角色在 1px 內，你的規則說不行。
+
+**5 · L4 畫面層還是空的**（上一輪的問題）：`screens.json` 18 個畫面、`examples/` 只有 2 份。

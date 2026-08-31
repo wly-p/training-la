@@ -65,10 +65,9 @@ struct FinishWorkoutSheet: View {
                     exerciseList
                     feelingSection
                     if showsNoteField {
-                        TextField(text: $note, prompt: localText("training.notes.placeholder"), axis: .vertical) { Text(verbatim: "") }
-                            .padding(TLSpace.rowInset)
-                            .background(TLColor.neutral100)
-                            .clipShape(RoundedRectangle(cornerRadius: TLRadius.inner, style: .continuous))
+                        TLCard(radius: .inner) {
+                            TextField(text: $note, prompt: localText("training.notes.placeholder"), axis: .vertical) { Text(verbatim: "") }
+                        }
                     }
                     Button {
                         // 不自己 dismiss()：外層 ActiveWorkoutView 監聽 viewModel.isDismissed
@@ -155,41 +154,40 @@ struct FinishWorkoutSheet: View {
     // MARK: - 數字卡
 
     private var statsCard: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            HStack(alignment: .firstTextBaseline) {
-                statNumber(String(durationMinutes), label: "training.finish.minutes", alignment: .leading)
-                Spacer()
-                statNumber(WeightDisplay.volume(totalVolume, in: weightUnit), label: "training.finish.totalVolume", alignment: .center)
-                Spacer()
-                achievedStat
-            }
-            if let otherWorkText {
-                Text(verbatim: String(format: localString("training.finish.otherWork %@", locale), otherWorkText))
-                    .font(TLFont.zh(TLFont.caption, .regular))
-                    .foregroundStyle(TLColor.neutral600)
-            }
-            if targetVolume > 0 {
-                // 6pt 圓角進度條（neutral-200 軌 ＋ 赭紅填），取代偏細的原生 ProgressView。
-                GeometryReader { geo in
-                    ZStack(alignment: .leading) {
-                        Capsule().fill(TLColor.neutral200)
-                        Capsule().fill(TLColor.accent)
-                            .frame(width: geo.size.width * min(totalVolume / targetVolume, 1))
-                    }
+        TLCard(fill: TLColor.neutral300) {
+            VStack(alignment: .leading, spacing: 12) {
+                HStack(alignment: .firstTextBaseline) {
+                    statNumber(String(durationMinutes), label: "training.finish.minutes", alignment: .leading)
+                    Spacer()
+                    statNumber(WeightDisplay.volume(totalVolume, in: weightUnit), label: "training.finish.totalVolume", alignment: .center)
+                    Spacer()
+                    achievedStat
                 }
-                .frame(height: 6)
-                Text(verbatim: String(
-                    format: localString("training.finish.volumeGoal %@ %@", locale),
-                    WeightDisplay.volume(targetVolume, in: weightUnit), String(format: "%.0f%%", totalVolume / targetVolume * 100)
-                ))
-                .font(.footnote)
-                .foregroundStyle(TLColor.neutral600)
+                if let otherWorkText {
+                    Text(verbatim: String(format: localString("training.finish.otherWork %@", locale), otherWorkText))
+                        .font(TLFont.zh(TLFont.caption, .regular))
+                        .foregroundStyle(TLColor.neutral600)
+                }
+                if targetVolume > 0 {
+                    // 6pt 圓角進度條（neutral-200 軌 ＋ 赭紅填），取代偏細的原生 ProgressView。
+                    GeometryReader { geo in
+                        ZStack(alignment: .leading) {
+                            Capsule().fill(TLColor.neutral200)
+                            Capsule().fill(TLColor.accent)
+                                .frame(width: geo.size.width * min(totalVolume / targetVolume, 1))
+                        }
+                    }
+                    .frame(height: 6)
+                    Text(verbatim: String(
+                        format: localString("training.finish.volumeGoal %@ %@", locale),
+                        WeightDisplay.volume(targetVolume, in: weightUnit), String(format: "%.0f%%", totalVolume / targetVolume * 100)
+                    ))
+                    .font(.footnote)
+                    .foregroundStyle(TLColor.neutral600)
+                }
             }
+            .frame(maxWidth: .infinity, alignment: .leading)
         }
-        .padding(TLSpace.rowInset)
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .background(TLColor.neutral300)
-        .clipShape(RoundedRectangle(cornerRadius: TLRadius.container, style: .continuous))
     }
 
     private func statNumber(
@@ -240,17 +238,16 @@ struct FinishWorkoutSheet: View {
             // 第一次練這個動作：說「創新高」很怪（沒有舊紀錄可破），改寫成「第一筆紀錄」。
             text = String(format: localString("training.finish.pr.firstEver %@ %@ %lld", locale), name, weightText, reps)
         }
-        return Label {
-            Text(verbatim: text)
-        } icon: {
-            Image(systemName: "trophy.fill")
+        return TLCard(radius: .inner, fill: TLColor.sage200) {
+            Label {
+                Text(verbatim: text)
+            } icon: {
+                Image(systemName: "trophy.fill")
+            }
+            .font(.subheadline.weight(.semibold))
+            .foregroundStyle(TLColor.sage800)
+            .frame(maxWidth: .infinity, alignment: .leading)
         }
-        .font(.subheadline.weight(.semibold))
-        .foregroundStyle(TLColor.sage800)
-        .padding(TLSpace.rowInset)
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .background(TLColor.sage200)
-        .clipShape(RoundedRectangle(cornerRadius: TLRadius.inner, style: .continuous))
     }
 
     // MARK: - 這場做了什麼

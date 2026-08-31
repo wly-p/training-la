@@ -148,13 +148,7 @@ public struct RotationListView: View {
     ) -> some View {
         VStack(alignment: .leading, spacing: 0) {
             TLSectionHeader(header, tint: tint)
-            TLGroup(content: content)
-                .overlay {
-                    if bordered {
-                        RoundedRectangle(cornerRadius: TLRadius.container, style: .continuous)
-                            .strokeBorder(TLColor.accent300, lineWidth: 1.5)
-                    }
-                }
+            TLGroup(border: bordered ? TLColor.accent300 : nil, content: content)
         }
     }
 

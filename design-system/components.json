@@ -222,6 +222,122 @@
       }
     },
     {
+      "name": "TLCircleIcon",
+      "level": "L1",
+      "layer": "atoms",
+      "responsibility": "圓形圖示的**視覺**：固定直徑 ＋ 底色 ＋ 置中的 SF Symbol",
+      "prototypeIds": [
+        "6b"
+      ],
+      "prototypeNote": "4a",
+      "standalone": true,
+      "requiresContainer": null,
+      "containerOwns": "觸控區補到 `size.minTap` 是它自己做的",
+      "props": [
+        {
+          "name": "systemImage",
+          "type": "`String`",
+          "kind": null,
+          "values": null,
+          "required": "是",
+          "default": "—",
+          "description": "SF Symbol 名稱"
+        },
+        {
+          "name": "style",
+          "type": "`Style`",
+          "kind": "enum",
+          "values": [
+            "accent",
+            "outline",
+            "neutral"
+          ],
+          "required": "否",
+          "default": "`accent`",
+          "description": "見第 3 節"
+        },
+        {
+          "name": "size",
+          "type": "`CGFloat`",
+          "kind": null,
+          "values": null,
+          "required": "否",
+          "default": "`size.iconButton`",
+          "description": "直徑。月曆導航用 `size.iconButtonSmall`"
+        },
+        {
+          "name": "iconSize",
+          "type": "`CGFloat`",
+          "kind": null,
+          "values": null,
+          "required": "否",
+          "default": "`icon.inIconButton`",
+          "description": "圖示點數。跟著容器直徑走的**配對值**，不是尺度階"
+        },
+        {
+          "name": "iconWeight",
+          "type": "`Font.Weight`",
+          "kind": null,
+          "values": null,
+          "required": "否",
+          "default": "`.semibold`",
+          "description": "圖示字重"
+        }
+      ],
+      "slots": [],
+      "events": [
+        "**無。它不可點。**"
+      ],
+      "variants": [
+        {
+          "name": "style",
+          "note": "底"
+        },
+        {
+          "name": "accent",
+          "note": "`actionPrimary`"
+        },
+        {
+          "name": "outline",
+          "note": "透明 ＋ 細線框"
+        },
+        {
+          "name": "neutral",
+          "note": "`neutral-200`"
+        }
+      ],
+      "states": [
+        "accent",
+        "outline",
+        "neutral",
+        "small"
+      ],
+      "themes": [
+        "light",
+        "dark"
+      ],
+      "confusableWith": [
+        {
+          "name": "TLCircleIconButton",
+          "note": "`TLCircleIconButton` —— 那個是 `Button` ＋ 這個。"
+        },
+        {
+          "name": "Button",
+          "note": "`TLCircleIconButton` —— 那個是 `Button` ＋ 這個。"
+        }
+      ],
+      "dontUseFor": [
+        "自己包一層 `Button` —— 那正是 `TLCircleIconButton`，別重做一份",
+        "當狀態指示 —— 這個形狀在整套視覺裡代表「可以按」"
+      ],
+      "composedOf": null,
+      "paths": {
+        "spec": "atoms/TLCircleIcon/TLCircleIcon.spec.md",
+        "preview": "atoms/TLCircleIcon/TLCircleIcon.preview.html",
+        "impl": "Packages/DesignSystem/Sources/DesignSystem/Atoms/TLCircleIcon.swift"
+      }
+    },
+    {
       "name": "TLCircleIconButton",
       "level": "L1",
       "layer": "atoms",
@@ -732,6 +848,18 @@
       "containerOwns": "自己就是容器",
       "props": [
         {
+          "name": "radius",
+          "type": "`Radius`",
+          "kind": "enum",
+          "values": [
+            "container",
+            "inner"
+          ],
+          "required": "否",
+          "default": "`container`",
+          "description": "圓角。**卡中的區塊要換小圓角**，見第 3 節"
+        },
+        {
           "name": "fill",
           "type": "`Color`",
           "kind": null,
@@ -770,18 +898,39 @@
       "events": [],
       "variants": [
         {
+          "name": "radius",
+          "note": "值"
+        },
+        {
+          "name": "container",
+          "note": "`radius.container` 28"
+        },
+        {
+          "name": "inner",
+          "note": "`radius.inner` 20"
+        },
+        {
+          "name": "padding",
+          "note": "值"
+        },
+        {
           "name": "standard",
           "note": "`space.rowInset` 四邊"
         },
         {
           "name": "roomy",
           "note": "左右 `space.page`、上下 `space.section`"
+        },
+        {
+          "name": "page",
+          "note": "`space.page` 四邊"
         }
       ],
       "states": [
         "plain",
         "bordered",
-        "roomy"
+        "roomy",
+        "inner"
       ],
       "themes": [
         "light",
@@ -796,7 +945,7 @@
       "dontUseFor": [
         "包一串列 —— 那是 `TLGroup`，而且它會少掉分隔線",
         "把整張卡做成可點 —— 可點的常常只是卡的一部分，包 `Button` 的位置由呼叫端決定",
-        "卡中卡 —— 兩層 `radius.container` 疊在一起，內圈的圓角會看起來是壞的"
+        "卡中卡**用同一個圓角** —— 巢狀的那一層要 `radius: .inner`"
       ],
       "composedOf": null,
       "paths": {
@@ -918,7 +1067,17 @@
       "standalone": true,
       "requiresContainer": null,
       "containerOwns": "自己負責圓角、底色、列間分隔線；**左右邊距由畫面給**（`space.page`）",
-      "props": [],
+      "props": [
+        {
+          "name": "border",
+          "type": "`Color?`",
+          "kind": null,
+          "values": null,
+          "required": "否",
+          "default": "`nil`",
+          "description": "描邊色。用來標「這一區是進行中的」。`nil` ＝ 無描邊"
+        }
+      ],
       "slots": [
         "content",
         "ForEach"
@@ -926,7 +1085,8 @@
       "events": [],
       "variants": [],
       "states": [
-        "default"
+        "default",
+        "bordered"
       ],
       "themes": [
         "light",
@@ -1892,6 +2052,98 @@
       }
     },
     {
+      "name": "PlanWorkoutRow",
+      "level": "L3",
+      "layer": "organisms",
+      "responsibility": "課表某一天的一列 —— **已經排定**的訓練",
+      "prototypeIds": [],
+      "prototypeNote": "12c",
+      "standalone": false,
+      "requiresContainer": [
+        "TLGroup"
+      ],
+      "containerOwns": "圓角、底色、分隔線由 `TLGroup` 負責",
+      "props": [
+        {
+          "name": "title",
+          "type": "`Text`",
+          "kind": null,
+          "values": null,
+          "required": "是",
+          "default": "—",
+          "description": "名稱（沒取名時由呼叫端給 fallback）"
+        },
+        {
+          "name": "summary",
+          "type": "`Text`",
+          "kind": null,
+          "values": null,
+          "required": "是",
+          "default": "—",
+          "description": "副標＝組成摘要"
+        },
+        {
+          "name": "orderIndex",
+          "type": "`Int`",
+          "kind": null,
+          "values": null,
+          "required": "是",
+          "default": "—",
+          "description": "第幾項（從 0 起算，顯示時 +1）"
+        },
+        {
+          "name": "isDone",
+          "type": "`Bool`",
+          "kind": null,
+          "values": null,
+          "required": "是",
+          "default": "—",
+          "description": "完成後圓章換成勾"
+        },
+        {
+          "name": "onTap",
+          "type": "`() -> Void`",
+          "kind": null,
+          "values": null,
+          "required": "是",
+          "default": "—",
+          "description": "點整列開表單"
+        }
+      ],
+      "slots": [],
+      "events": [
+        "onTap"
+      ],
+      "variants": [],
+      "states": [
+        "pending",
+        "done"
+      ],
+      "themes": [
+        "light",
+        "dark"
+      ],
+      "confusableWith": [
+        {
+          "name": "ProjectedWorkoutRow",
+          "note": "`ProjectedWorkoutRow` —— 那個是**還沒落地**的投影建議：圓章是行事曆圖示、"
+        }
+      ],
+      "dontUseFor": [
+        "顯示投影建議 —— 那會讓「還沒落地」看起來像已經排好了",
+        "用圓章表達別的東西 —— 它只回答進度"
+      ],
+      "composedOf": [
+        "TLBadge",
+        "TLListRow"
+      ],
+      "paths": {
+        "spec": "organisms/PlanWorkoutRow/PlanWorkoutRow.spec.md",
+        "preview": "organisms/PlanWorkoutRow/PlanWorkoutRow.preview.html",
+        "impl": "Packages/Plan/Sources/PlanPresentation/Components/PlanWorkoutRow.swift"
+      }
+    },
+    {
       "name": "ProgramRow",
       "level": "L3",
       "layer": "organisms",
@@ -2016,6 +2268,88 @@
         "spec": "organisms/ProgramRow/ProgramRow.spec.md",
         "preview": "organisms/ProgramRow/ProgramRow.preview.html",
         "impl": "Packages/Plan/Sources/PlanPresentation/Components/ProgramRow.swift"
+      }
+    },
+    {
+      "name": "ProjectedWorkoutRow",
+      "level": "L3",
+      "layer": "organisms",
+      "responsibility": "課表某一天的一列 —— **長期課表投影出來、還沒落地**的訓練",
+      "prototypeIds": [],
+      "prototypeNote": "12d",
+      "standalone": false,
+      "requiresContainer": [
+        "TLGroup"
+      ],
+      "containerOwns": "圓角、底色、分隔線由 `TLGroup` 負責",
+      "props": [
+        {
+          "name": "title",
+          "type": "`Text`",
+          "kind": null,
+          "values": null,
+          "required": "是",
+          "default": "—",
+          "description": "名稱"
+        },
+        {
+          "name": "summary",
+          "type": "`Text`",
+          "kind": null,
+          "values": null,
+          "required": "是",
+          "default": "—",
+          "description": "副標＝組成摘要"
+        },
+        {
+          "name": "addLabel",
+          "type": "`Text`",
+          "kind": null,
+          "values": null,
+          "required": "是",
+          "default": "—",
+          "description": "「加入這天」的文案"
+        },
+        {
+          "name": "onAdd",
+          "type": "`() -> Void`",
+          "kind": null,
+          "values": null,
+          "required": "是",
+          "default": "—",
+          "description": "把投影變成真實排課"
+        }
+      ],
+      "slots": [],
+      "events": [
+        "onAdd"
+      ],
+      "variants": [],
+      "states": [
+        "default"
+      ],
+      "themes": [
+        "light",
+        "dark"
+      ],
+      "confusableWith": [
+        {
+          "name": "PlanWorkoutRow",
+          "note": "`PlanWorkoutRow` —— 那個是**已經存在**的排課：圓章是序號或勾、整列可點。"
+        }
+      ],
+      "dontUseFor": [
+        "讓整列可點 —— 這一列還不是真的排課，不該點哪裡都觸發落地",
+        "用序號圓章 —— 它還沒有序，落地之後才有"
+      ],
+      "composedOf": [
+        "TLBadge",
+        "TLListRow"
+      ],
+      "paths": {
+        "spec": "organisms/ProjectedWorkoutRow/ProjectedWorkoutRow.spec.md",
+        "preview": "organisms/ProjectedWorkoutRow/ProjectedWorkoutRow.preview.html",
+        "impl": "Packages/Plan/Sources/PlanPresentation/Components/ProjectedWorkoutRow.swift"
       }
     },
     {

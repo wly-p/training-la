@@ -177,6 +177,8 @@ public enum TLSize {
     public static let legendDot:       CGFloat = 8   // 圖例的色點
     public static let setIndexColumn:  CGFloat = 44  // 逐組列的序號欄，固定寬讓各組數字對齊
     public static let dateColumn:      CGFloat = 40  // 列首的日期柱寬。⚠ 全 app 的『列首固定欄』有三種寬度：40（日期柱）、44（逐組列的組序）、48（範本編輯的組序）——後兩者是**同一個角色的兩個值**，待設計端收斂
+    public static let cardW:           CGFloat = 242 // 訓練首頁橫向卡的寬度。固定寬讓下一張露出一角，暗示可以滑
+    public static let cardMinH:        CGFloat = 190 // 訓練首頁橫向卡的最小高度。內容長短不一時卡要一樣高
 }
 
 public enum TLIcon {

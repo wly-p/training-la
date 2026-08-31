@@ -1,0 +1,62 @@
+<!-- @dsCard group="Organisms" name="ProjectedWorkoutRow" subtitle="課表某一天的一列（投影、未落地）" -->
+<!doctype html>
+<meta charset="utf-8">
+<title>ProjectedWorkoutRow</title>
+<link rel="stylesheet" href="../../tokens/tokens.css">
+<link rel="stylesheet" href="../../preview.css">
+<link rel="stylesheet" href="../../components.preview.css">
+<h1>ProjectedWorkoutRow</h1>
+<p class="note">
+  L3 有機體。課表某一天的一列 —— <b>還沒落地</b>的投影建議。
+</p>
+
+<div class="kicker">狀態</div>
+<div class="group">
+  <div class="row tl-list-row--with-sub" data-state="default">
+    <span class="tl-badge">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round"
+        stroke-linejoin="round"><path d="M5 4h14a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z"/>
+        <path d="M16 2v4M8 2v4M3 10h18"/></svg>
+    </span>
+    <span class="tl-row-content__text">
+      <span class="tl-row-content__title">投影出來的項目</span>
+      <span class="tl-row-content__sub">內容一、內容二</span>
+    </span>
+    <span class="tl-list-row__pill">加入這天</span>
+  </div>
+</div>
+<p class="note">
+  <b>整列不可點</b>，只有右側那顆可按 —— 這一列還不是真的排課，
+  不該點哪裡都觸發落地。<br>
+  <b>圓章刻意是灰的</b>：用赭紅會讓它看起來已經排好了。
+</p>
+
+<div class="kicker">主題</div>
+<div class="themes">
+  <div class="pane" data-theme="light">
+    <div class="kicker">light</div>
+    <div class="group"><div class="row tl-list-row--with-sub">
+      <span class="tl-badge"></span>
+      <span class="tl-row-content__text">
+        <span class="tl-row-content__title">投影出來的項目</span>
+        <span class="tl-row-content__sub">內容一、內容二</span>
+      </span>
+      <span class="tl-list-row__pill">加入這天</span></div></div>
+  </div>
+  <div class="pane" data-theme="dark">
+    <div class="kicker">dark（目前是 light 的複製）</div>
+    <div class="group"><div class="row tl-list-row--with-sub">
+      <span class="tl-badge"></span>
+      <span class="tl-row-content__text">
+        <span class="tl-row-content__title">投影出來的項目</span>
+        <span class="tl-row-content__sub">內容一、內容二</span>
+      </span>
+      <span class="tl-list-row__pill">加入這天</span></div></div>
+  </div>
+</div>
+
+<div class="kicker">不適用的狀態</div>
+<p class="note">
+  整列 pressed —— 整列不可點。<br>
+  disabled／selected／empty —— 都不適用。
+</p>

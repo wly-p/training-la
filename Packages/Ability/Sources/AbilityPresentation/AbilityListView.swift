@@ -238,37 +238,36 @@ private struct AbilityEditSheet: View {
     }
 
     private var valueCard: some View {
-        VStack(spacing: TLSpace.gapM) {
-            HStack {
-                localText("ability.kicker")
-                    .font(TLFont.zh(TLFont.kicker, .semibold))
-                    .tracking(TLFont.kickerTracking)
-                    .textCase(.uppercase)
+        TLCard {
+            VStack(spacing: TLSpace.gapM) {
+                HStack {
+                    localText("ability.kicker")
+                        .font(TLFont.zh(TLFont.kicker, .semibold))
+                        .tracking(TLFont.kickerTracking)
+                        .textCase(.uppercase)
+                        .foregroundStyle(TLColor.neutral500)
+                    Spacer()
+                }
+                TLNumberField(
+                    value: $value,
+                    unitLabel: unit.rawValue,
+                    doneLabel: Text("ability.done", bundle: .module)
+                )
+                localText("ability.tapToType")
+                    .font(TLFont.zh(TLFont.rowSub))
                     .foregroundStyle(TLColor.neutral500)
-                Spacer()
+                TLRulerSlider(
+                    value: $value,
+                    step: weightStep,
+                    range: 0...WeightRange.upperBound(for: unit)
+                )
+                stepButtons
+                localText("ability.stepHint")
+                    .font(TLFont.zh(TLFont.rowSub))
+                    .foregroundStyle(TLColor.neutral500)
+                    .multilineTextAlignment(.center)
             }
-            TLNumberField(
-                value: $value,
-                unitLabel: unit.rawValue,
-                doneLabel: Text("ability.done", bundle: .module)
-            )
-            localText("ability.tapToType")
-                .font(TLFont.zh(TLFont.rowSub))
-                .foregroundStyle(TLColor.neutral500)
-            TLRulerSlider(
-                value: $value,
-                step: weightStep,
-                range: 0...WeightRange.upperBound(for: unit)
-            )
-            stepButtons
-            localText("ability.stepHint")
-                .font(TLFont.zh(TLFont.rowSub))
-                .foregroundStyle(TLColor.neutral500)
-                .multilineTextAlignment(.center)
         }
-        .padding(TLSpace.rowInset)
-        .background(TLColor.neutral100)
-        .clipShape(RoundedRectangle(cornerRadius: TLRadius.container, style: .continuous))
     }
 
     private var stepButtons: some View {
@@ -318,30 +317,29 @@ private struct AbilityEditSheet: View {
 
     /// 建議值改成可以直接按的套用鍵，不再是一段要自己照著滾的文字。
     private func applyRow(_ suggestion: Weight) -> some View {
-        HStack {
-            (localText("ability.lastPerformed")
-                + Text(verbatim: " \(TLNumberField.format(row.lastWeight.value)) \(row.lastWeight.unit.rawValue) × \(row.lastReps)"))
-                .font(TLFont.zh(TLFont.rowSub))
-                .foregroundStyle(TLColor.text)
-            Spacer(minLength: TLSpace.gapS)
-            Button {
-                value = suggestion.value
-            } label: {
-                Text(verbatim: String(
-                    format: localString("ability.apply %@", locale),
-                    TLNumberField.format(suggestion.value)
-                ))
-                .font(TLFont.zh(TLFont.rowSub, .semibold))
-                .foregroundStyle(TLColor.bg)
-                .padding(.vertical, 8)
-                .padding(.horizontal, 14)
-                .background(Capsule().fill(TLColor.accent))
+        TLCard(fill: TLColor.accent200) {
+            HStack {
+                (localText("ability.lastPerformed")
+                    + Text(verbatim: " \(TLNumberField.format(row.lastWeight.value)) \(row.lastWeight.unit.rawValue) × \(row.lastReps)"))
+                    .font(TLFont.zh(TLFont.rowSub))
+                    .foregroundStyle(TLColor.text)
+                Spacer(minLength: TLSpace.gapS)
+                Button {
+                    value = suggestion.value
+                } label: {
+                    Text(verbatim: String(
+                        format: localString("ability.apply %@", locale),
+                        TLNumberField.format(suggestion.value)
+                    ))
+                    .font(TLFont.zh(TLFont.rowSub, .semibold))
+                    .foregroundStyle(TLColor.bg)
+                    .padding(.vertical, 8)
+                    .padding(.horizontal, 14)
+                    .background(Capsule().fill(TLColor.accent))
+                }
+                .buttonStyle(.plain)
             }
-            .buttonStyle(.plain)
         }
-        .padding(TLSpace.rowInset)
-        .background(TLColor.accent200)
-        .clipShape(RoundedRectangle(cornerRadius: TLRadius.container, style: .continuous))
     }
 
     private var lockNotice: some View {

@@ -332,16 +332,15 @@ public struct ProgramEditorView: View {
 
     private var previewSection: some View {
         TLEditSection(localText("program.preview.section")) {
-            VStack(alignment: .leading, spacing: TLSpace.gapM) {
-                previewGrid
-                previewSummary
-                    .font(TLFont.zh(TLFont.rowSub, .semibold))
-                    .foregroundStyle(TLColor.neutral700)
+            TLCard(fill: TLColor.neutral300) {
+                VStack(alignment: .leading, spacing: TLSpace.gapM) {
+                    previewGrid
+                    previewSummary
+                        .font(TLFont.zh(TLFont.rowSub, .semibold))
+                        .foregroundStyle(TLColor.neutral700)
+                }
+                .frame(maxWidth: .infinity, alignment: .leading)
             }
-            .padding(TLSpace.rowInset)
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .background(TLColor.neutral300)
-            .clipShape(RoundedRectangle(cornerRadius: TLRadius.container, style: .continuous))
         }
     }
 

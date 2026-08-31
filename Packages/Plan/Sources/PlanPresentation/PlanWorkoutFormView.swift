@@ -204,12 +204,12 @@ struct PlanWorkoutFormView: View {
                 Spacer()
             }
             .padding(.horizontal, TLSpace.page)
-            .padding(.top, 14)
-            .padding(.bottom, 6)
+            .padding(.top, TLSpace.sheetBarTop)
+            .padding(.bottom, TLSpace.labelGap)
 
             ScrollView {
                 VStack(alignment: .leading, spacing: TLSpace.section) {
-                    VStack(alignment: .leading, spacing: 6) {
+                    VStack(alignment: .leading, spacing: TLSpace.labelGap) {
                         Text(verbatim: name.isEmpty ? localString("plan.view", locale) : name)
                             .font(TLFont.zh(TLFont.pageTitle, .bold))
                             .foregroundStyle(TLColor.text)
@@ -239,7 +239,7 @@ struct PlanWorkoutFormView: View {
                 }
                 .padding(.horizontal, TLSpace.page)
                 .padding(.top, TLSpace.gapL)
-                .padding(.bottom, 40)
+                .padding(.bottom, TLSpace.pageBottom)
             }
         }
         .background(TLColor.bg.ignoresSafeArea())
@@ -291,7 +291,7 @@ struct PlanWorkoutFormView: View {
     /// 重量走 `Weight.displayString` 而不是自己拼——那份格式化會把浮點雜訊去掉。
     @ViewBuilder
     private func detailLine(for draft: ExerciseTargetDraft) -> some View {
-        HStack(spacing: 6) {
+        HStack(spacing: TLSpace.labelGap) {
             TLEquipmentTag(equipmentName(for: draft.exerciseId))
             let parts = [
                 draft.targetWeight?.displayString(in: displayUnit),

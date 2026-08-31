@@ -29,24 +29,23 @@ public struct ProgramListView: View {
     /// 在重做完成前先把話講明白——留著入口讓已經建好課表的人還進得去，
     /// 但不要讓任何人以為這是完成品。
     private var experimentalNotice: some View {
-        HStack(alignment: .top, spacing: TLSpace.gapS) {
-            Image(systemName: "flask")
-                .font(.system(size: TLIcon.inline, weight: .semibold))
-                .foregroundStyle(TLColor.accent700)
-            VStack(alignment: .leading, spacing: TLSpace.titleSubGap) {
-                localText("program.experimental.title")
-                    .font(TLFont.zh(TLFont.rowTitle, .semibold))
-                    .foregroundStyle(TLColor.accent800)
-                localText("program.experimental.message")
-                    .font(TLFont.zh(TLFont.rowSub, .regular))
+        TLCard(radius: .inner, fill: TLColor.accent200) {
+            HStack(alignment: .top, spacing: TLSpace.gapS) {
+                Image(systemName: "flask")
+                    .font(.system(size: TLIcon.inline, weight: .semibold))
                     .foregroundStyle(TLColor.accent700)
-                    .fixedSize(horizontal: false, vertical: true)
+                VStack(alignment: .leading, spacing: TLSpace.titleSubGap) {
+                    localText("program.experimental.title")
+                        .font(TLFont.zh(TLFont.rowTitle, .semibold))
+                        .foregroundStyle(TLColor.accent800)
+                    localText("program.experimental.message")
+                        .font(TLFont.zh(TLFont.rowSub, .regular))
+                        .foregroundStyle(TLColor.accent700)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
             }
+            .frame(maxWidth: .infinity, alignment: .leading)
         }
-        .padding(TLSpace.rowInset)
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .background(TLColor.accent200)
-        .clipShape(RoundedRectangle(cornerRadius: TLRadius.inner, style: .continuous))
         .accessibilityIdentifier("program.experimentalNotice")
     }
 
@@ -168,15 +167,13 @@ public struct ProgramListView: View {
     }
 
     private func explainerCard(_ text: Text) -> some View {
-        text
-            .font(TLFont.zh(TLFont.rowTitle, .regular))
-            .foregroundStyle(TLColor.neutral600)
-            .multilineTextAlignment(.center)
-            .frame(maxWidth: .infinity)
-            .padding(.horizontal, TLSpace.page)
-            .padding(.vertical, TLSpace.section)
-            .background(TLColor.neutral100)
-            .clipShape(RoundedRectangle(cornerRadius: TLRadius.container, style: .continuous))
+        TLCard(padding: .roomy) {
+            text
+                .font(TLFont.zh(TLFont.rowTitle, .regular))
+                .foregroundStyle(TLColor.neutral600)
+                .multilineTextAlignment(.center)
+                .frame(maxWidth: .infinity)
+        }
     }
 
     private var emptyState: some View {

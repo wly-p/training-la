@@ -93,27 +93,26 @@ public struct ProgramDetailView: View {
     }
 
     private func progressCard(_ progress: ProgramProgress) -> some View {
-        VStack(spacing: TLSpace.gapM) {
-            HStack(alignment: .firstTextBaseline) {
-                HStack(alignment: .firstTextBaseline, spacing: TLSpace.numberUnitGap) {
-                    Text(verbatim: "\(progress.day)")
-                        .font(TLFont.display(30))
-                        .foregroundStyle(TLColor.text)
-                    (Text(verbatim: "/ \(progress.totalDays) ") + localText("program.dayUnit"))
-                        .font(TLFont.zh(TLFont.rowSub))
-                        .foregroundStyle(TLColor.neutral500)
+        TLCard(fill: TLColor.neutral300) {
+            VStack(spacing: TLSpace.gapM) {
+                HStack(alignment: .firstTextBaseline) {
+                    HStack(alignment: .firstTextBaseline, spacing: TLSpace.numberUnitGap) {
+                        Text(verbatim: "\(progress.day)")
+                            .font(TLFont.display(30))
+                            .foregroundStyle(TLColor.text)
+                        (Text(verbatim: "/ \(progress.totalDays) ") + localText("program.dayUnit"))
+                            .font(TLFont.zh(TLFont.rowSub))
+                            .foregroundStyle(TLColor.neutral500)
+                    }
+                    Spacer()
+                    (localText("program.today") + Text(verbatim: "：\(progress.todayWorkoutName ?? "—")"))
+                        .font(TLFont.zh(TLFont.rowSub, .semibold))
+                        .foregroundStyle(TLColor.neutral700)
                 }
-                Spacer()
-                (localText("program.today") + Text(verbatim: "：\(progress.todayWorkoutName ?? "—")"))
-                    .font(TLFont.zh(TLFont.rowSub, .semibold))
-                    .foregroundStyle(TLColor.neutral700)
+                TLProgressBar(ratio: Double(progress.day) / Double(max(1, progress.totalDays)),
+                              track: TLColor.neutral100)
             }
-            TLProgressBar(ratio: Double(progress.day) / Double(max(1, progress.totalDays)),
-                          track: TLColor.neutral100)
         }
-        .padding(TLSpace.rowInset)
-        .background(TLColor.neutral300)
-        .clipShape(RoundedRectangle(cornerRadius: TLRadius.container, style: .continuous))
     }
 
     private func schedule(_ program: Program) -> some View {

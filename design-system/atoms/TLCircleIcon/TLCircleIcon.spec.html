@@ -1,0 +1,263 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>TLCircleIcon</title>
+<link rel="stylesheet" href="../../tokens/tokens.css">
+<link rel="stylesheet" href="../../preview.css">
+<style>
+  body { max-width: 62rem; line-height: 1.7; }
+  h1, h2, h3 { font-family: var(--font-page-title-family); line-height: 1.35; }
+  h1 { font-size: var(--font-page-title); margin: 0 0 var(--space-gap-l); }
+  h2 { font-size: var(--font-card-title); margin: var(--space-section) 0 var(--space-gap-m);
+       padding-top: var(--space-gap-m); border-top: 1px solid var(--border-subtle); }
+  h3 { font-size: var(--font-row-title); margin: var(--space-gap-l) 0 var(--space-gap-s); }
+  a { color: var(--accent-on-surface); }
+  table { border-collapse: collapse; width: 100%; margin: var(--space-gap-m) 0;
+          display: block; overflow-x: auto; }
+  th, td { text-align: left; padding: var(--space-gap-s) var(--space-gap-m);
+           border-bottom: 1px solid var(--border-subtle); vertical-align: top; }
+  th { font-size: var(--font-kicker); letter-spacing: var(--font-kicker-tracking);
+       text-transform: uppercase; color: var(--text-tertiary); }
+  pre { background: var(--surface-raised); border-radius: var(--radius-inner);
+        padding: var(--space-gap-m); overflow-x: auto; }
+  pre code { background: none; padding: 0; }
+  blockquote { margin: var(--space-gap-m) 0; padding-left: var(--space-gap-m);
+               border-left: 3px solid var(--border-subtle); color: var(--text-secondary); }
+  .back { font-size: var(--font-row-sub); margin-bottom: var(--space-gap-l); display: block; }
+</style>
+<a class="back" href="../../index.html">← 元件庫索引</a>
+<h1>TLCircleIcon</h1>
+<h2>1 身分</h2>
+<table>
+<thead>
+<tr>
+<th></th>
+<th></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>層級</td>
+<td>L1 原子</td>
+</tr>
+<tr>
+<td>職責</td>
+<td>圓形圖示的<strong>視覺</strong>：固定直徑 ＋ 底色 ＋ 置中的 SF Symbol</td>
+</tr>
+<tr>
+<td>原型 id</td>
+<td><code>4a</code> <code>6b</code> <code>11c</code></td>
+</tr>
+<tr>
+<td>獨立使用</td>
+<td>是</td>
+</tr>
+<tr>
+<td>容器責任</td>
+<td>觸控區補到 <code>size.minTap</code> 是它自己做的</td>
+</tr>
+<tr>
+<td>實作</td>
+<td><code>Packages/DesignSystem/Sources/DesignSystem/Atoms/TLCircleIcon.swift</code></td>
+</tr>
+<tr>
+<td>Preview</td>
+<td><code>design-system/atoms/TLCircleIcon/TLCircleIcon.preview.html</code></td>
+</tr>
+<tr>
+<td>Preview CSS</td>
+<td><code>components.preview.css</code> §TLCircleIcon</td>
+</tr>
+</tbody>
+</table>
+<p><strong>組成</strong>：不由其他 <code>TL*</code> 元件組成。</p>
+<h2>2 介面 ★</h2>
+<p><strong>Props</strong></p>
+<table>
+<thead>
+<tr>
+<th>名稱</th>
+<th>型別</th>
+<th>值域</th>
+<th>必填</th>
+<th>預設</th>
+<th>說明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>systemImage</code></td>
+<td><code>String</code></td>
+<td></td>
+<td>是</td>
+<td>—</td>
+<td>SF Symbol 名稱</td>
+</tr>
+<tr>
+<td><code>style</code></td>
+<td><code>Style</code></td>
+<td><code>accent</code> / <code>outline</code> / <code>neutral</code></td>
+<td>否</td>
+<td><code>accent</code></td>
+<td>見第 3 節</td>
+</tr>
+<tr>
+<td><code>size</code></td>
+<td><code>CGFloat</code></td>
+<td></td>
+<td>否</td>
+<td><code>size.iconButton</code></td>
+<td>直徑。月曆導航用 <code>size.iconButtonSmall</code></td>
+</tr>
+<tr>
+<td><code>iconSize</code></td>
+<td><code>CGFloat</code></td>
+<td></td>
+<td>否</td>
+<td><code>icon.inIconButton</code></td>
+<td>圖示點數。跟著容器直徑走的<strong>配對值</strong>，不是尺度階</td>
+</tr>
+<tr>
+<td><code>iconWeight</code></td>
+<td><code>Font.Weight</code></td>
+<td></td>
+<td>否</td>
+<td><code>.semibold</code></td>
+<td>圖示字重</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Slots</strong> — N/A
+<strong>事件</strong> — <strong>無。它不可點。</strong></p>
+<h2>3 變體 variants</h2>
+<table>
+<thead>
+<tr>
+<th><code>style</code></th>
+<th>底</th>
+<th>圖示</th>
+<th>用在哪</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>accent</code></td>
+<td><code>actionPrimary</code></td>
+<td><code>surfaceBase</code></td>
+<td>頁首的主要動作（<code>+</code>）</td>
+</tr>
+<tr>
+<td><code>outline</code></td>
+<td>透明 ＋ 細線框</td>
+<td><code>accent-700</code></td>
+<td>次要動作（返回）</td>
+</tr>
+<tr>
+<td><code>neutral</code></td>
+<td><code>neutral-200</code></td>
+<td><code>textPrimary</code></td>
+<td>導航與「更多」。<strong>赭色留給狀態</strong>，導航不跟狀態搶顏色</td>
+</tr>
+</tbody>
+</table>
+<h2>4 狀態 states ★</h2>
+<!-- states: accent, outline, neutral, small -->
+<!-- themes: light, dark -->
+
+<table>
+<thead>
+<tr>
+<th>類別</th>
+<th>狀態</th>
+<th>這個元件</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>互動</td>
+<td>default / pressed / disabled / focused</td>
+<td><strong>一個都沒有</strong> —— 它是視覺，互動歸 <code>TLCircleIconButton</code></td>
+</tr>
+<tr>
+<td>選取</td>
+<td>selected / unselected / indeterminate</td>
+<td>N/A</td>
+</tr>
+<tr>
+<td>資料</td>
+<td>empty / loading / error</td>
+<td>N/A</td>
+</tr>
+<tr>
+<td>內容極值</td>
+<td>最短 / 最長 / 溢出</td>
+<td>圖示置中，尺寸固定，不受內容影響</td>
+</tr>
+<tr>
+<td>主題</td>
+<td>light / dark</td>
+<td>兩者都有</td>
+</tr>
+<tr>
+<td>語言</td>
+<td>中文 / 英文</td>
+<td>無關（沒有文字）</td>
+</tr>
+</tbody>
+</table>
+<h2>5 度量與行為</h2>
+<table>
+<thead>
+<tr>
+<th></th>
+<th></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>直徑</td>
+<td><code>size.iconButton</code>（月曆導航 <code>size.iconButtonSmall</code>）</td>
+</tr>
+<tr>
+<td>圖示</td>
+<td><code>icon.inIconButton</code></td>
+</tr>
+<tr>
+<td>形狀</td>
+<td><code>radius.pill</code>（膠囊，正圓）</td>
+</tr>
+<tr>
+<td>觸控區</td>
+<td>外圈補到 <code>size.minTap</code></td>
+</tr>
+</tbody>
+</table>
+<p><strong>小尺寸（34pt）本身低於最小觸控</strong>，所以外圈補到 44 才點得到；
+<code>contentShape</code> 掛在補完的方框上，不是視覺的膠囊。</p>
+<h3>動態</h3>
+<p>無。按下回饋歸 <code>TLCircleIconButton</code>。</p>
+<h2>6 配色 ★</h2>
+<p>見第 3 節。線框的顏色是 <code>textPrimary</code> @ 18%。</p>
+<h2>7 用法與禁用法</h2>
+<p><strong>用它</strong>：需要這個圓但<strong>不是按鈕</strong>的地方 —— 最典型的是 <code>Menu</code> 的 label。</p>
+<p><strong>易混淆</strong>：<code>TLCircleIconButton</code> —— 那個是 <code>Button</code> ＋ 這個。
+判準：它自己要不要處理點擊？要就用那個。</p>
+<p><strong>不要用它</strong>：
+- 自己包一層 <code>Button</code> —— 那正是 <code>TLCircleIconButton</code>，別重做一份
+- 當狀態指示 —— 這個形狀在整套視覺裡代表「可以按」</p>
+<h2>8 變更紀錄</h2>
+<table>
+<thead>
+<tr>
+<th>日期</th>
+<th>改動</th>
+<th>原因</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>2026-08-31</td>
+<td>從 <code>TLCircleIconButton</code> 拆出</td>
+<td>課表頁的 <code>+</code> 是 <strong><code>Menu</code> 的 label 不是 <code>Button</code></strong>，而元件自己擁有 <code>Button</code>，所以那裡用不了它 —— 只能手工重畫一份圓（<code>ActiveWorkoutView</code> 也有一份）。<strong>跟 <code>TLRowContent</code> 之於 <code>TLListRow</code> 是同一個錯誤</strong>：把視覺與互動綁在同一個型別，不是按鈕的場合就得複製</td>
+</tr>
+</tbody>
+</table>

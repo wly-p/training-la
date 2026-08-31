@@ -277,30 +277,29 @@ struct TemplateFormView: View {
     // MARK: - 展開的動作區塊
 
     private func expandedBlock(_ block: PlanBlock) -> some View {
-        VStack(alignment: .leading, spacing: TLSpace.gapM) {
-            HStack {
-                TLTitleWithTag(
-                    title: Text(verbatim: name(for: block.exerciseId))
-                        .font(TLFont.zh(TLFont.cardTitle, .bold))
-                        .foregroundColor(TLColor.text),
-                    equipment: equipmentName(for: block.exerciseId)
-                )
-                Spacer()
-                Button {
-                    expandedExerciseIndex = nil
-                } label: {
-                    localText("template.collapse")
+        TLCard(radius: .inner, fill: TLColor.neutral200) {
+            VStack(alignment: .leading, spacing: TLSpace.gapM) {
+                HStack {
+                    TLTitleWithTag(
+                        title: Text(verbatim: name(for: block.exerciseId))
+                            .font(TLFont.zh(TLFont.cardTitle, .bold))
+                            .foregroundColor(TLColor.text),
+                        equipment: equipmentName(for: block.exerciseId)
+                    )
+                    Spacer()
+                    Button {
+                        expandedExerciseIndex = nil
+                    } label: {
+                        localText("template.collapse")
+                    }
+                    .buttonStyle(.tlText)
                 }
-                .buttonStyle(.tlText)
+                ForEach(block.sets) { set in
+                    setRow(set, exerciseId: block.exerciseId)
+                }
+                shortcutRow(block)
             }
-            ForEach(block.sets) { set in
-                setRow(set, exerciseId: block.exerciseId)
-            }
-            shortcutRow(block)
         }
-        .padding(TLSpace.rowInset)
-        .background(TLColor.neutral200)
-        .clipShape(RoundedRectangle(cornerRadius: TLRadius.inner, style: .continuous))
         .contextMenu { blockMenu(block) }
     }
 
@@ -313,19 +312,17 @@ struct TemplateFormView: View {
             Button {
                 editingSet = EditingSet(exerciseId: exerciseId, setId: set.id, setNumber: set.setIndex + 1)
             } label: {
-                HStack(spacing: TLSpace.valueUnitGap) {
-                    Text(verbatim: weightLabel(for: set.targetWeight))
-                        .font(TLFont.display(16))
-                        .foregroundStyle(TLColor.text)
-                    Spacer()
-                    Text(verbatim: "× \(set.targetReps ?? 0)")
-                        .font(TLFont.zh(TLFont.rowTitle, .semibold))
-                        .foregroundStyle(TLColor.neutral700)
+                TLCard(radius: .inner, fill: TLColor.bg) {
+                    HStack(spacing: TLSpace.valueUnitGap) {
+                        Text(verbatim: weightLabel(for: set.targetWeight))
+                            .font(TLFont.display(16))
+                            .foregroundStyle(TLColor.text)
+                        Spacer()
+                        Text(verbatim: "× \(set.targetReps ?? 0)")
+                            .font(TLFont.zh(TLFont.rowTitle, .semibold))
+                            .foregroundStyle(TLColor.neutral700)
+                    }
                 }
-                .padding(.horizontal, TLSpace.rowInset)
-                .padding(.vertical, TLSpace.fieldPadV)
-                .background(TLColor.bg)
-                .clipShape(RoundedRectangle(cornerRadius: TLRadius.inner, style: .continuous))
             }
             .buttonStyle(.plain)
         }

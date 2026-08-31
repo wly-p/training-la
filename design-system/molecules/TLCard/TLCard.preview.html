@@ -15,7 +15,15 @@
 <div class="kicker">狀態</div>
 <div class="tl-card" data-state="plain">預設：surfaceRaised 底、rowInset 內距</div>
 <div class="tl-card tl-card--bordered" data-state="bordered">描邊：標「進行中」用</div>
-<div class="tl-card tl-card--roomy" data-state="roomy">roomy：空狀態那種一大塊留白</div>
+<div class="tl-card tl-card--roomy" data-state="roomy">roomy：一大塊留白的說明卡</div>
+<div class="tl-card">
+  外層卡（container 28）
+  <div class="tl-card tl-card--inner tl-card--deep" data-state="inner">卡中的區塊（inner 20）</div>
+</div>
+<p class="note">
+  <b>巢狀要換小圓角</b> —— 兩層 28 疊在一起，內圈看起來會是壞的。
+  全 app 有 9 處這種區塊，它們早就在用 inner，只是沒有地方強制。
+</p>
 
 <div class="kicker">兩階卡底，只有一階有語意名字</div>
 <div class="tl-card">淺卡 · surfaceRaised（9 處）</div>
@@ -26,10 +34,7 @@
   不是那個角色的意思。命名是設計決策。
 </p>
 
-<div class="kicker">不要卡中卡</div>
-<p class="note">
-  兩層 <code>radius.container</code> 疊在一起，內圈的圓角會看起來是壞的。
-</p>
+
 
 <div class="kicker">主題</div>
 <div class="themes">

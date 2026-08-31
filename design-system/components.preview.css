@@ -31,6 +31,28 @@
 .tl-badge--accent { background: var(--action-primary); color: var(--surface-base); }
 .tl-badge svg { width: var(--icon-inline); height: var(--icon-inline); stroke-width: var(--icon-stroke); }
 
+/* TLCircleIcon */
+/* 圓形圖示的視覺。互動歸 TLCircleIconButton——這一段只有樣子。 */
+.tl-circle-icon {
+  flex: none; width: var(--size-icon-button); height: var(--size-icon-button);
+  border-radius: var(--radius-pill);
+  display: flex; align-items: center; justify-content: center;
+}
+.tl-circle-icon svg {
+  width: var(--icon-inIconButton); height: var(--icon-inIconButton);
+  stroke-width: var(--icon-stroke);
+}
+.tl-circle-icon--accent { background: var(--action-primary); color: var(--surface-base); }
+.tl-circle-icon--outline {
+  background: transparent; color: var(--accent-700);
+  border: var(--size-hairline) solid var(--border-subtle);
+}
+.tl-circle-icon--neutral { background: var(--neutral-200); color: var(--text-primary); }
+/* 月曆導航的小尺寸；觸控區另外補到 minTap，那個在 Swift 端 */
+.tl-circle-icon--small { width: var(--size-icon-button-small); height: var(--size-icon-button-small); }
+
+/* PlanWorkoutRow / ProjectedWorkoutRow（L3）—— 純由 L2／L1 組成，沒有自己的樣式。 */
+
 /* TLCheckCircle */
 .tl-check-circle {
   width: var(--size-check-circle); height: var(--size-check-circle); flex: none;
@@ -195,6 +217,11 @@
                                 color: var(--text-primary); }
 .tl-inline-empty-state__hint { font-size: var(--font-caption); color: var(--text-secondary); }
 
+/* TLGroup */
+/* 容器本體的樣式在 preview.css 的 .group（它「是」容器本身）；
+   這一段只放 border 這個標記。 */
+.tl-group--bordered { border: var(--size-hairline-thick) solid var(--accent-300); }
+
 /* TLCard */
 /* 內容卡。跟 .group（TLGroup）的差別：那個是列的容器、會切掉溢出並畫分隔線，
    這個是內容的容器，裡面放什麼都可以。 */
@@ -205,6 +232,9 @@
   margin-bottom: var(--space-gap-s);
 }
 .tl-card--roomy { padding: var(--space-section) var(--space-page); }
+.tl-card--page { padding: var(--space-page); }
+/* 巢狀的那一層換小圓角——兩層 28 疊在一起內圈看起來是壞的 */
+.tl-card--inner { border-radius: var(--radius-inner); margin-bottom: 0; }
 .tl-card--bordered { border: var(--size-hairline-thick) solid var(--accent-300); }
 /* ⚠ 這兩階目前沒有語意名字，直接用原始色階——命名是設計決策 */
 .tl-card--deep { background: var(--neutral-300); }

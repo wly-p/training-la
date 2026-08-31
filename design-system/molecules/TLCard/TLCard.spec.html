@@ -85,6 +85,14 @@
 </thead>
 <tbody>
 <tr>
+<td><code>radius</code></td>
+<td><code>Radius</code></td>
+<td><code>container</code> / <code>inner</code></td>
+<td>否</td>
+<td><code>container</code></td>
+<td>圓角。<strong>卡中的區塊要換小圓角</strong>，見第 3 節</td>
+</tr>
+<tr>
 <td><code>fill</code></td>
 <td><code>Color</code></td>
 <td>只吃語意 token 或卡底色階</td>
@@ -114,11 +122,38 @@
 <strong>事件</strong> — 無。<strong>卡本身不可點</strong> —— 要可點的話由呼叫端包 <code>Button</code> 或 <code>NavigationLink</code>，
 因為可點的常常只是卡的一部分（長期課表那張卡只有上半可點）。</p>
 <h2>3 變體 variants</h2>
+<h3>圓角：兩階，規則是「巢狀就換小的」</h3>
 <table>
 <thead>
 <tr>
-<th>變體</th>
-<th>內距</th>
+<th><code>radius</code></th>
+<th>值</th>
+<th>用在哪</th>
+<th>處數</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>container</code></td>
+<td><code>radius.container</code> 28</td>
+<td><strong>外層卡</strong>：直接坐在頁面底上的</td>
+<td>15</td>
+</tr>
+<tr>
+<td><code>inner</code></td>
+<td><code>radius.inner</code> 20</td>
+<td><strong>卡中的區塊</strong>：坐在另一張卡或群組裡的</td>
+<td>9</td>
+</tr>
+</tbody>
+</table>
+<p>兩層 28 疊在一起，內圈的圓角看起來會是壞的 —— 這不是偏好，是視覺上的必然。</p>
+<h3>內距：三種</h3>
+<table>
+<thead>
+<tr>
+<th><code>padding</code></th>
+<th>值</th>
 <th>用在哪</th>
 </tr>
 </thead>
@@ -126,17 +161,22 @@
 <tr>
 <td><code>standard</code></td>
 <td><code>space.rowInset</code> 四邊</td>
-<td>常態。資訊卡、圖表卡、摘要卡</td>
+<td>常態。資訊卡、圖表卡、摘要卡、卡中的區塊</td>
 </tr>
 <tr>
 <td><code>roomy</code></td>
 <td>左右 <code>space.page</code>、上下 <code>space.section</code></td>
-<td>空狀態那種「一大塊留白」的卡</td>
+<td>「一大塊留白」的說明卡、休息日回顧</td>
+</tr>
+<tr>
+<td><code>page</code></td>
+<td><code>space.page</code> 四邊</td>
+<td>整頁級的大卡（訓練首頁的續練卡）</td>
 </tr>
 </tbody>
 </table>
 <h2>4 狀態 states ★</h2>
-<!-- states: plain, bordered, roomy -->
+<!-- states: plain, bordered, roomy, inner -->
 <!-- themes: light, dark -->
 
 <table>
@@ -238,7 +278,7 @@ accent-200   ＝（沒有語意名字）  強調卡：訓練中的當前組、�
 <p><strong>不要用它</strong>：
 - 包一串列 —— 那是 <code>TLGroup</code>，而且它會少掉分隔線
 - 把整張卡做成可點 —— 可點的常常只是卡的一部分，包 <code>Button</code> 的位置由呼叫端決定
-- 卡中卡 —— 兩層 <code>radius.container</code> 疊在一起，內圈的圓角會看起來是壞的</p>
+- 卡中卡<strong>用同一個圓角</strong> —— 巢狀的那一層要 <code>radius: .inner</code></p>
 <h2>8 變更紀錄</h2>
 <table>
 <thead>
@@ -258,6 +298,21 @@ accent-200   ＝（沒有語意名字）  強調卡：訓練中的當前組、�
 <td>2026-08-31</td>
 <td>底色開成 prop 而不是變體</td>
 <td>三種底色（<code>neutral-100</code>／<code>neutral-300</code>／<code>accent-200</code>）裡有兩種還沒有語意名字。做成 <code>enum</code> 等於現在就替設計端命名，那不是我的決定</td>
+</tr>
+<tr>
+<td>2026-08-31</td>
+<td>新增 <code>radius</code>（<code>container</code> / <code>inner</code>），並<strong>推翻上一版寫的「不要卡中卡」</strong></td>
+<td>全面遷移時實測到 <strong>9 處卡中卡</strong>，它們早就在用 <code>radius.inner</code>。app 的實際規則不是「不要巢狀」而是「<strong>巢狀要換小圓角</strong>」。上一版的禁令是我只看了 17 處外層卡就下的結論 —— 量到 26 處才看見全貌</td>
+</tr>
+<tr>
+<td>2026-08-31</td>
+<td>新增 <code>padding: .page</code></td>
+<td>訓練首頁的續練卡是整頁級的大卡，四邊 <code>space.page</code></td>
+</tr>
+<tr>
+<td>2026-08-31</td>
+<td><strong>26 處全部遷移完成</strong></td>
+<td>三處內距就近併到既有變體（使用者拍板）：休息日回顧 26/22→26/26、範本值方塊 18/12→18/18、訓練組表列 18/14 或 11→18/18</td>
 </tr>
 </tbody>
 </table>

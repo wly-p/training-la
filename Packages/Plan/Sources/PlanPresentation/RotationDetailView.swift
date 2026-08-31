@@ -97,32 +97,31 @@ public struct RotationDetailView: View {
     // MARK: - 狀態卡
 
     private func statusCard(_ rotation: Rotation) -> some View {
-        VStack(alignment: .leading, spacing: TLSpace.gapM) {
-            HStack(alignment: .firstTextBaseline, spacing: TLSpace.gapS) {
-                Text(verbatim: "\(rotation.roundsCompleted)")
-                    .font(TLFont.display(30))
-                    .foregroundStyle(TLColor.text)
-                localText("rotation.rounds \(rotation.roundsCompleted)")
-                    .font(TLFont.zh(TLFont.rowTitle))
-                    .foregroundStyle(TLColor.neutral700)
-                Text(verbatim: "·")
-                    .foregroundStyle(TLColor.neutral500)
-                localText("rotation.detail.completed \(rotation.completedCount)")
-                    .font(TLFont.zh(TLFont.rowSub))
-                    .foregroundStyle(TLColor.neutral600)
-            }
-            if !rotation.workouts.isEmpty {
-                TLFlowLayout(spacing: TLSpace.gapS, lineSpacing: TLSpace.gapS) {
-                    ForEach(Array(rotation.workouts.enumerated()), id: \.offset) { index, spec in
-                        templateCapsule(spec.name, isCurrent: index == rotation.cursor)
+        TLCard(fill: TLColor.neutral300) {
+            VStack(alignment: .leading, spacing: TLSpace.gapM) {
+                HStack(alignment: .firstTextBaseline, spacing: TLSpace.gapS) {
+                    Text(verbatim: "\(rotation.roundsCompleted)")
+                        .font(TLFont.display(30))
+                        .foregroundStyle(TLColor.text)
+                    localText("rotation.rounds \(rotation.roundsCompleted)")
+                        .font(TLFont.zh(TLFont.rowTitle))
+                        .foregroundStyle(TLColor.neutral700)
+                    Text(verbatim: "·")
+                        .foregroundStyle(TLColor.neutral500)
+                    localText("rotation.detail.completed \(rotation.completedCount)")
+                        .font(TLFont.zh(TLFont.rowSub))
+                        .foregroundStyle(TLColor.neutral600)
+                }
+                if !rotation.workouts.isEmpty {
+                    TLFlowLayout(spacing: TLSpace.gapS, lineSpacing: TLSpace.gapS) {
+                        ForEach(Array(rotation.workouts.enumerated()), id: \.offset) { index, spec in
+                            templateCapsule(spec.name, isCurrent: index == rotation.cursor)
+                        }
                     }
                 }
             }
+            .frame(maxWidth: .infinity, alignment: .leading)
         }
-        .padding(TLSpace.rowInset)
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .background(TLColor.neutral300)
-        .clipShape(RoundedRectangle(cornerRadius: TLRadius.container, style: .continuous))
     }
 
     private func templateCapsule(_ name: String, isCurrent: Bool) -> some View {

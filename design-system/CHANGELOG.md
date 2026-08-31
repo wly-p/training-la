@@ -52,6 +52,67 @@
 
 ---
 
+## 2026-08-31 · TLCard 全面遷移（26 處）＋ 階段 4（課表）
+
+### 「不要卡中卡」是錯的 —— 被 26 處實測推翻
+
+抽 `TLCard` 時我在規格第 7 節寫了「不要卡中卡：兩層 `radius.container` 疊在一起，
+內圈的圓角會看起來是壞的」。全面遷移時才發現 app 裡有 **9 處卡中卡**，
+而且它們**早就在用 `radius.inner`(20)**。
+
+**app 的實際規則不是「不要巢狀」而是「巢狀要換小圓角」。**
+上一版的禁令是我只看了 17 處外層卡就下的結論 —— 量到 26 處才看見全貌。
+
+`TLCard` 因此多一個 `radius` 維度：
+
+```
+container 28  外層卡：直接坐在頁面底上的        15 處
+inner     20  卡中的區塊：坐在另一張卡或群組裡的   9 處
+```
+
+規則從「人要記得」變成「元件強制」。
+
+### 三處內距就近併（使用者拍板的視覺位移）
+
+| 位置 | 現值 | 併成 | 位移 |
+|---|---|---|---|
+| 休息日回顧卡 | 26/22 | `.roomy` 26/26 | +4px |
+| 範本編輯的值方塊 | 18/12 | `.standard` 18/18 | +6px |
+| 訓練中的組表列 | 18/14 或 11 | `.standard` 18/18 | +4／+7px |
+
+⚠ 第三項要留意：`current` 列原本比其他列高 3px，那是**第三個狀態訊號**
+（另兩個是 `neutral-300` 底與 `upcoming` 的 0.6 透明度）。併掉之後只剩顏色，
+而且整張組表每列都變高。這是使用者拍板的取捨，記在這裡免得日後被當成 bug。
+
+### `TLGroup` 的描邊
+
+`RotationListView` 要標「這一區是進行中的」，但 `TLGroup` 不收描邊，
+於是呼叫端自己在外面疊了一個 `strokeBorder` overlay —— 同一件事的第二份實作。
+補上 `border: Color?`。**這是這一輪第三個同型的介面缺口**
+（前兩個是 `TLBadge(count:)` 的顏色、`TLSectionHeader` 的右側）。
+
+### `TLCircleIcon` —— 又一個「視覺與互動綁在一起」
+
+課表頁的 `+` 是 **`Menu` 的 label 不是 `Button`**，而 `TLCircleIconButton` 自己擁有
+`Button`，所以那裡用不了它 —— 只能手工重畫一份圓。`ActiveWorkoutView` 也有一份
+（那個更冤：它本來就是 Button，只是沒人知道有元件）。
+
+**跟 `TLRowContent` 之於 `TLListRow` 是同一個錯誤。** 拆出 L1 `TLCircleIcon`
+（純視覺）之後，`TLCircleIconButton` ＝ `Button` ＋ 它，兩處手工重建都消失。
+
+### 階段 4（課表）
+
+`PlanScheduleView` ＋ `PlanWorkoutFormView`，字面樣式 12 → **3**（剩下全是 display 尺度）。
+
+兩個 L3：`PlanWorkoutRow`（已排定，圓章同時是序號與狀態）、
+`ProjectedWorkoutRow`（投影未落地，整列不可點）。**兩個都是純組合，零缺口。**
+
+### 進度
+
+元件 29 → **32**。基線 140 → **128**。手工重建的卡 **26 → 0**。
+
+---
+
 ## 2026-08-31 · 階段 3（歷史）· 找到全 app 最大的一筆重複
 
 ### `TLCard` 缺席 —— 17 處手工重建，跨 6 個 package
@@ -761,6 +822,7 @@ inCheckCircle 11  inIconButton 18  ← 裝在固定容器裡的配對值，跟�
 | **膠囊裡的文字 `11`** —— 屬於膠囊幾何那組，不是獨立字級 | `TrainingHomeView:352` | 第二批（膠囊三分法） |
 | **`detailTitle`(26) 與統計數字 `display 28` 差 2px** —— 兩種東西在爭同一張卡的最大字 | `WorkoutDetailView` | 第二批（28 有可能會動） |
 | **副標的顏色鏡像落差** —— Swift 用 `neutral-500`、語意層意圖是 `textSecondary`(neutral-700)，全 app 九十幾處未遷移。CSS 鏡像目前跟著實作走 | 90+ 處 | 視覺改動，要單獨一輪 |
+| **設定列的「目前值」讀不到** —— `717fb1d 移除無障礙` 拿掉了 `TLSettingsRow.accessibilityValue`，而 UITest 是靠它讀值。文字型的列還能從 Button 合併後的 label 讀（「Language, English」），但 **App 圖示列的右件是一張圖**（`TLIconThumbnail`），沒有文字可折進 label —— 那一題只剩流程驗證 | 1 個測試的 1 條斷言 | 等它有測試用的讀取管道（identifier 之類）再補 |
 | **`icon.inRow`(17) 的值本身** —— 已從字級群組搬進 icon 群組，但若嚴格照「跟文字並排 → `icon.inline`」的判準它該是 14（−3px，動到每一列設定） | 1 處（`TLSettingsRow`） | 等設計端拍板 |
 | ~~`TLCircleIconButton` 是 View 卻住在 `Support/ButtonStyles.swift`~~ | — | ✅ 階段 1 已抽出 |
 | ~~`icon` 不是一個尺度~~ | — | ✅ 已收斂成兩組四個（見上方 icon 尺度收斂） |

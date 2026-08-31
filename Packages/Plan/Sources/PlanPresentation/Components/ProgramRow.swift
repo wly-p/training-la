@@ -58,36 +58,31 @@ struct ProgramRow: View {
     }
 
     private func activeCard(_ progress: Progress) -> some View {
-        VStack(spacing: TLSpace.gapM) {
-            // 上半：點進詳情頁（8a）
-            NavigationLink(value: id) { rowContent }
-                .buttonStyle(.plain)
+        TLCard(border: TLColor.accent300) {
+            VStack(spacing: TLSpace.gapM) {
+                // 上半：點進詳情頁（8a）
+                NavigationLink(value: id) { rowContent }
+                    .buttonStyle(.plain)
 
-            // 下半：天數＋今天＋進度條
-            HStack(alignment: .firstTextBaseline) {
-                HStack(alignment: .firstTextBaseline, spacing: TLSpace.numberUnitGap) {
-                    Text(verbatim: "\(progress.day)")
-                        .font(TLFont.display(TLFont.cardNumber))
-                        .foregroundStyle(TLColor.text)
-                    (Text(verbatim: "/ \(progress.totalDays) ") + dayUnit)
-                        .font(TLFont.zh(TLFont.rowSub))
-                        .foregroundStyle(TLColor.neutral500)
+                // 下半：天數＋今天＋進度條
+                HStack(alignment: .firstTextBaseline) {
+                    HStack(alignment: .firstTextBaseline, spacing: TLSpace.numberUnitGap) {
+                        Text(verbatim: "\(progress.day)")
+                            .font(TLFont.display(TLFont.cardNumber))
+                            .foregroundStyle(TLColor.text)
+                        (Text(verbatim: "/ \(progress.totalDays) ") + dayUnit)
+                            .font(TLFont.zh(TLFont.rowSub))
+                            .foregroundStyle(TLColor.neutral500)
+                    }
+                    Spacer()
+                    (todayLabel + Text(verbatim: "：\(progress.todayWorkoutName ?? "—")"))
+                        .font(TLFont.zh(TLFont.rowSub, .semibold))
+                        .foregroundStyle(TLColor.neutral700)
                 }
-                Spacer()
-                (todayLabel + Text(verbatim: "：\(progress.todayWorkoutName ?? "—")"))
-                    .font(TLFont.zh(TLFont.rowSub, .semibold))
-                    .foregroundStyle(TLColor.neutral700)
+                // 軌道用預設的 surfaceTrack——這張卡是 neutral-100 的淺底。
+                // （深底的那一張在 ProgramDetailView，它才需要傳更淺的軌道。）
+                TLProgressBar(ratio: Double(progress.day) / Double(max(1, progress.totalDays)))
             }
-            // 軌道用預設的 surfaceTrack——這張卡是 neutral-100 的淺底。
-            // （深底的那一張在 ProgramDetailView，它才需要傳更淺的軌道。）
-            TLProgressBar(ratio: Double(progress.day) / Double(max(1, progress.totalDays)))
-        }
-        .padding(TLSpace.rowInset)
-        .background(TLColor.neutral100)
-        .clipShape(RoundedRectangle(cornerRadius: TLRadius.container, style: .continuous))
-        .overlay {
-            RoundedRectangle(cornerRadius: TLRadius.container, style: .continuous)
-                .strokeBorder(TLColor.accent300, lineWidth: TLSize.hairlineThick)
         }
     }
 

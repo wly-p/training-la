@@ -144,13 +144,12 @@ struct ExerciseFormView: View {
 
     private var notesSection: some View {
         TLEditSection(localText("spec.notes.section")) {
-            TextField(text: $descriptionText, prompt: localText("spec.notes.optional"), axis: .vertical) { Text(verbatim: "") }
-                .font(TLFont.zh(TLFont.rowTitle))
-                .foregroundStyle(TLColor.text)
-                .lineLimit(3, reservesSpace: true)
-                .padding(TLSpace.rowInset)
-                .background(TLColor.neutral100)
-                .clipShape(RoundedRectangle(cornerRadius: TLRadius.container, style: .continuous))
+            TLCard {
+                TextField(text: $descriptionText, prompt: localText("spec.notes.optional"), axis: .vertical) { Text(verbatim: "") }
+                    .font(TLFont.zh(TLFont.rowTitle))
+                    .foregroundStyle(TLColor.text)
+                    .lineLimit(3, reservesSpace: true)
+            }
         }
     }
 

@@ -17,11 +17,11 @@
 
 ## 2 介面 ★
 
-**Props** — 無。
+**Props**
 
 | 名稱 | 型別 | 值域 | 必填 | 預設 | 說明 |
 |---|---|---|---|---|---|
-| （無） | | | | | |
+| `border` | `Color?` | | 否 | `nil` | 描邊色。用來標「這一區是進行中的」。`nil` ＝ 無描邊 |
 
 **Slots** — `content`：一組列。**異質靜態列也可以**（不必是 `ForEach`）——
 分隔線靠 `_VariadicView` 解析子 View 自動插入。
@@ -31,9 +31,11 @@
 
 無。**這是刻意的** —— 一種容器樣式是這套視覺的辨識點，開變體會讓它散掉。
 
+`border` 不算變體：它是「這一區進行中」的**標記**，不是另一種容器樣式。
+
 ## 4 狀態 states ★
 
-<!-- states: default -->
+<!-- states: default, bordered -->
 <!-- themes: light, dark -->
 
 | 類別 | 狀態 | 這個元件 |
@@ -89,3 +91,4 @@
 |---|---|---|
 | 2026-08-30 | 從 `Support/` 移到 `Molecules/` | 它是元件不是支援工具；分層原本只存在於文件裡 |
 | 2026-08-30 | 底色 `neutral100` → `surfaceRaised`、圓角維持 `radius.container` | 改用語意層才有深色的位置 |
+| 2026-08-31 | 新增 `border` | 循環清單要標「進行中」的區塊，但這個元件不收描邊，於是呼叫端自己在外面疊了一個 `strokeBorder` 的 overlay —— 同一件事的第二份實作。跟 `TLSectionHeader` 的右側、`TLBadge(count:)` 的顏色同一型 |

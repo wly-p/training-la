@@ -78,6 +78,70 @@
 <li><strong>12</strong> 文件裡提到的 token 名都要真的存在。抓「token 被刪／改名，文件還在講它」。</li>
 </ul>
 <hr />
+<h2>2026-08-31 · TLCard 全面遷移（26 處）＋ 階段 4（課表）</h2>
+<h3>「不要卡中卡」是錯的 —— 被 26 處實測推翻</h3>
+<p>抽 <code>TLCard</code> 時我在規格第 7 節寫了「不要卡中卡：兩層 <code>radius.container</code> 疊在一起，
+內圈的圓角會看起來是壞的」。全面遷移時才發現 app 裡有 <strong>9 處卡中卡</strong>，
+而且它們<strong>早就在用 <code>radius.inner</code>(20)</strong>。</p>
+<p><strong>app 的實際規則不是「不要巢狀」而是「巢狀要換小圓角」。</strong>
+上一版的禁令是我只看了 17 處外層卡就下的結論 —— 量到 26 處才看見全貌。</p>
+<p><code>TLCard</code> 因此多一個 <code>radius</code> 維度：</p>
+<pre><code>container 28  外層卡：直接坐在頁面底上的        15 處
+inner     20  卡中的區塊：坐在另一張卡或群組裡的   9 處
+</code></pre>
+<p>規則從「人要記得」變成「元件強制」。</p>
+<h3>三處內距就近併（使用者拍板的視覺位移）</h3>
+<table>
+<thead>
+<tr>
+<th>位置</th>
+<th>現值</th>
+<th>併成</th>
+<th>位移</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>休息日回顧卡</td>
+<td>26/22</td>
+<td><code>.roomy</code> 26/26</td>
+<td>+4px</td>
+</tr>
+<tr>
+<td>範本編輯的值方塊</td>
+<td>18/12</td>
+<td><code>.standard</code> 18/18</td>
+<td>+6px</td>
+</tr>
+<tr>
+<td>訓練中的組表列</td>
+<td>18/14 或 11</td>
+<td><code>.standard</code> 18/18</td>
+<td>+4／+7px</td>
+</tr>
+</tbody>
+</table>
+<p>⚠ 第三項要留意：<code>current</code> 列原本比其他列高 3px，那是<strong>第三個狀態訊號</strong>
+（另兩個是 <code>neutral-300</code> 底與 <code>upcoming</code> 的 0.6 透明度）。併掉之後只剩顏色，
+而且整張組表每列都變高。這是使用者拍板的取捨，記在這裡免得日後被當成 bug。</p>
+<h3><code>TLGroup</code> 的描邊</h3>
+<p><code>RotationListView</code> 要標「這一區是進行中的」，但 <code>TLGroup</code> 不收描邊，
+於是呼叫端自己在外面疊了一個 <code>strokeBorder</code> overlay —— 同一件事的第二份實作。
+補上 <code>border: Color?</code>。<strong>這是這一輪第三個同型的介面缺口</strong>
+（前兩個是 <code>TLBadge(count:)</code> 的顏色、<code>TLSectionHeader</code> 的右側）。</p>
+<h3><code>TLCircleIcon</code> —— 又一個「視覺與互動綁在一起」</h3>
+<p>課表頁的 <code>+</code> 是 <strong><code>Menu</code> 的 label 不是 <code>Button</code></strong>，而 <code>TLCircleIconButton</code> 自己擁有
+<code>Button</code>，所以那裡用不了它 —— 只能手工重畫一份圓。<code>ActiveWorkoutView</code> 也有一份
+（那個更冤：它本來就是 Button，只是沒人知道有元件）。</p>
+<p><strong>跟 <code>TLRowContent</code> 之於 <code>TLListRow</code> 是同一個錯誤。</strong> 拆出 L1 <code>TLCircleIcon</code>
+（純視覺）之後，<code>TLCircleIconButton</code> ＝ <code>Button</code> ＋ 它，兩處手工重建都消失。</p>
+<h3>階段 4（課表）</h3>
+<p><code>PlanScheduleView</code> ＋ <code>PlanWorkoutFormView</code>，字面樣式 12 → <strong>3</strong>（剩下全是 display 尺度）。</p>
+<p>兩個 L3：<code>PlanWorkoutRow</code>（已排定，圓章同時是序號與狀態）、
+<code>ProjectedWorkoutRow</code>（投影未落地，整列不可點）。<strong>兩個都是純組合，零缺口。</strong></p>
+<h3>進度</h3>
+<p>元件 29 → <strong>32</strong>。基線 140 → <strong>128</strong>。手工重建的卡 <strong>26 → 0</strong>。</p>
+<hr />
 <h2>2026-08-31 · 階段 3（歷史）· 找到全 app 最大的一筆重複</h2>
 <h3><code>TLCard</code> 缺席 —— 17 處手工重建，跨 6 個 package</h3>
 <p>下行拆解時量的，不是猜的：</p>
@@ -938,6 +1002,11 @@ inCheckCircle 11  inIconButton 18  ← 裝在固定容器裡的配對值，跟�
 <td><strong>副標的顏色鏡像落差</strong> —— Swift 用 <code>neutral-500</code>、語意層意圖是 <code>textSecondary</code>(neutral-700)，全 app 九十幾處未遷移。CSS 鏡像目前跟著實作走</td>
 <td>90+ 處</td>
 <td>視覺改動，要單獨一輪</td>
+</tr>
+<tr>
+<td><strong>設定列的「目前值」讀不到</strong> —— <code>717fb1d 移除無障礙</code> 拿掉了 <code>TLSettingsRow.accessibilityValue</code>，而 UITest 是靠它讀值。文字型的列還能從 Button 合併後的 label 讀（「Language, English」），但 <strong>App 圖示列的右件是一張圖</strong>（<code>TLIconThumbnail</code>），沒有文字可折進 label —— 那一題只剩流程驗證</td>
+<td>1 個測試的 1 條斷言</td>
+<td>等它有測試用的讀取管道（identifier 之類）再補</td>
 </tr>
 <tr>
 <td><strong><code>icon.inRow</code>(17) 的值本身</strong> —— 已從字級群組搬進 icon 群組，但若嚴格照「跟文字並排 → <code>icon.inline</code>」的判準它該是 14（−3px，動到每一列設定）</td>

@@ -347,45 +347,44 @@ public struct ActiveWorkoutView: View {
 
     private var restTimerBlock: some View {
         let remaining = viewModel.restRemaining ?? 0
-        return VStack(spacing: 16) {
-            localText("training.resting")
-                .accessibilityIdentifier("activeWorkout.resting")
-                .font(TLFont.zh(TLFont.kicker, .semibold))
-                .tracking(TLFont.kickerTracking)
-                .textCase(.uppercase)
-                .foregroundStyle(TLColor.accent800)
-            Text(verbatim: restClock(remaining))
-                .font(TLFont.display(56))
-                .foregroundStyle(TLColor.accent900)
-            ProgressView(value: restProgress)
-                .tint(TLColor.accent700)
-            localText("training.restTimer")
-                .font(.caption)
-                .foregroundStyle(TLColor.accent700)
-            HStack(spacing: 10) {
-                // 標籤要跟著偏好走。寫死 30 的話按鈕上寫「+30 秒」、實際卻調別的值。
-                restPill(String(format: localString("training.rest.adjust %lld", locale),
-                                viewModel.restStep)) {
-                    viewModel.adjustRest(viewModel.restStep)
+        return TLCard(fill: TLColor.accent200) {
+            VStack(spacing: 16) {
+                localText("training.resting")
+                    .accessibilityIdentifier("activeWorkout.resting")
+                    .font(TLFont.zh(TLFont.kicker, .semibold))
+                    .tracking(TLFont.kickerTracking)
+                    .textCase(.uppercase)
+                    .foregroundStyle(TLColor.accent800)
+                Text(verbatim: restClock(remaining))
+                    .font(TLFont.display(56))
+                    .foregroundStyle(TLColor.accent900)
+                ProgressView(value: restProgress)
+                    .tint(TLColor.accent700)
+                localText("training.restTimer")
+                    .font(.caption)
+                    .foregroundStyle(TLColor.accent700)
+                HStack(spacing: 10) {
+                    // 標籤要跟著偏好走。寫死 30 的話按鈕上寫「+30 秒」、實際卻調別的值。
+                    restPill(String(format: localString("training.rest.adjust %lld", locale),
+                                    viewModel.restStep)) {
+                        viewModel.adjustRest(viewModel.restStep)
+                    }
+                    restPill(String(format: localString("training.rest.adjust %lld", locale),
+                                    -viewModel.restStep)) {
+                        viewModel.adjustRest(-viewModel.restStep)
+                    }
+                    Button {
+                        viewModel.dismissRest()
+                    } label: {
+                        localText("training.skipRest")
+                            .frame(maxWidth: .infinity)
+                    }
+                    .buttonStyle(.tlPrimary)
+                    .frame(maxWidth: .infinity)
                 }
-                restPill(String(format: localString("training.rest.adjust %lld", locale),
-                                -viewModel.restStep)) {
-                    viewModel.adjustRest(-viewModel.restStep)
-                }
-                Button {
-                    viewModel.dismissRest()
-                } label: {
-                    localText("training.skipRest")
-                        .frame(maxWidth: .infinity)
-                }
-                .buttonStyle(.tlPrimary)
-                .frame(maxWidth: .infinity)
             }
+            .frame(maxWidth: .infinity)
         }
-        .padding(TLSpace.rowInset)
-        .frame(maxWidth: .infinity)
-        .background(TLColor.accent200)
-        .clipShape(RoundedRectangle(cornerRadius: TLRadius.container, style: .continuous))
     }
 
     /// 進度條：剩餘 / 這段休息的起始總長，隨時間往 1 走（1＝快結束）。
@@ -411,48 +410,47 @@ public struct ActiveWorkoutView: View {
     /// 「接下來·第N組」卡：休息中提早看到、也能先調——目標次數/上一組實際次數/重量，
     /// 重量沿用 draftWeightValue（appendSet 後 prefillDraft 已經預填好下一組的值）。
     private var nextSetCard: some View {
-        VStack(alignment: .leading, spacing: 10) {
-            Text(verbatim: String(
-                format: localString("training.rest.next %lld", locale),
-                viewModel.currentBlockSets.count + 1
-            ))
-            .font(.caption)
-            .foregroundStyle(TLColor.neutral500)
-
-            HStack(alignment: .top) {
-                VStack(alignment: .leading, spacing: 4) {
-                    if let exerciseId = viewModel.currentExerciseId {
-                        Text(verbatim: viewModel.name(for: exerciseId))
-                            .font(.headline)
-                    }
-                    HStack(spacing: 6) {
-                        if let targetReps = viewModel.currentTarget?.targetReps {
-                            Text(verbatim: String(format: localString("training.rest.targetReps %lld", locale), targetReps))
-                        }
-                        if let lastReps = viewModel.currentBlockSets.last?.measurement.displayReps {
-                            Text(verbatim: String(format: localString("training.rest.lastReps %lld", locale), lastReps))
-                        }
-                    }
-                    .font(.footnote)
-                    .foregroundStyle(TLColor.neutral600)
-                }
-                Spacer()
-                Text(verbatim: "\(WeightDisplay.value(viewModel.draftWeightValue)) \(viewModel.draftWeightUnit.rawValue)")
-                    .font(TLFont.display(28))
-                    .foregroundStyle(TLColor.text)
-            }
-            HStack(spacing: 8) {
-                restPill("−\(WeightDisplay.value(viewModel.weightStep))") { viewModel.bumpWeight(-1) }
-                restPill("+\(WeightDisplay.value(viewModel.weightStep))") { viewModel.bumpWeight(1) }
-            }
-            localText("training.rest.tapHint")
-                .font(.caption2)
+        TLCard {
+            VStack(alignment: .leading, spacing: 10) {
+                Text(verbatim: String(
+                    format: localString("training.rest.next %lld", locale),
+                    viewModel.currentBlockSets.count + 1
+                ))
+                .font(.caption)
                 .foregroundStyle(TLColor.neutral500)
+
+                HStack(alignment: .top) {
+                    VStack(alignment: .leading, spacing: 4) {
+                        if let exerciseId = viewModel.currentExerciseId {
+                            Text(verbatim: viewModel.name(for: exerciseId))
+                                .font(.headline)
+                        }
+                        HStack(spacing: 6) {
+                            if let targetReps = viewModel.currentTarget?.targetReps {
+                                Text(verbatim: String(format: localString("training.rest.targetReps %lld", locale), targetReps))
+                            }
+                            if let lastReps = viewModel.currentBlockSets.last?.measurement.displayReps {
+                                Text(verbatim: String(format: localString("training.rest.lastReps %lld", locale), lastReps))
+                            }
+                        }
+                        .font(.footnote)
+                        .foregroundStyle(TLColor.neutral600)
+                    }
+                    Spacer()
+                    Text(verbatim: "\(WeightDisplay.value(viewModel.draftWeightValue)) \(viewModel.draftWeightUnit.rawValue)")
+                        .font(TLFont.display(28))
+                        .foregroundStyle(TLColor.text)
+                }
+                HStack(spacing: 8) {
+                    restPill("−\(WeightDisplay.value(viewModel.weightStep))") { viewModel.bumpWeight(-1) }
+                    restPill("+\(WeightDisplay.value(viewModel.weightStep))") { viewModel.bumpWeight(1) }
+                }
+                localText("training.rest.tapHint")
+                    .font(.caption2)
+                    .foregroundStyle(TLColor.neutral500)
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
         }
-        .padding(TLSpace.rowInset)
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .background(TLColor.neutral100)
-        .clipShape(RoundedRectangle(cornerRadius: TLRadius.container, style: .continuous))
     }
 
     private func restClock(_ seconds: Int) -> String {
@@ -517,17 +515,9 @@ public struct ActiveWorkoutView: View {
                 }
             }
             Spacer(minLength: 0)
-            Button {
+            TLCircleIconButton(systemImage: "ellipsis", style: .neutral) {
                 midWorkoutEditTarget = viewModel.sessionSequence.first { $0.id == exerciseId }
-            } label: {
-                Image(systemName: "ellipsis")
-                    .font(.system(size: 18, weight: .semibold))
-                    .foregroundStyle(TLColor.neutral700)
-                    .frame(width: TLSize.iconButton, height: TLSize.iconButton)
-                    .background(TLColor.neutral200)
-                    .clipShape(Circle())
             }
-            .buttonStyle(.plain)
             .accessibilityLabel(localText("training.edit.menu"))
             .accessibilityIdentifier("activeWorkout.midWorkoutEdit")
         }
@@ -717,17 +707,16 @@ public struct ActiveWorkoutView: View {
     /// 未做的整列淡出。取代原本靠 List row background 的做法（已移出 List）。
     @ViewBuilder
     private func setTableRow(_ row: ActiveWorkoutViewModel.SetTableRow) -> some View {
-        setTableColumns {
-            setRowBadge(row)
-        } target: {
-            setRowTarget(row)
-        } actual: {
-            setRowActual(row)
+        TLCard(radius: .inner,
+                fill: row.status == .current ? TLColor.neutral300 : TLColor.neutral100) {
+            setTableColumns {
+                setRowBadge(row)
+            } target: {
+                setRowTarget(row)
+            } actual: {
+                setRowActual(row)
+            }
         }
-        .padding(.horizontal, TLSpace.rowInset)
-        .padding(.vertical, row.status == .current ? 14 : 11)
-        .background(row.status == .current ? TLColor.neutral300 : TLColor.neutral100)
-        .clipShape(RoundedRectangle(cornerRadius: TLRadius.inner, style: .continuous))
         .opacity(row.status == .upcoming ? 0.6 : 1)
     }
 

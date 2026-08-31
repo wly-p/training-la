@@ -157,31 +157,30 @@ struct TrainingPreviewSheet: View {
 
     /// 「和上次比」灰卡（14c）：不是鼓勵語，是讓「開始」有依據——上次日期／達標組數／主項增減。
     private func vsLastCard(_ c: LastWorkoutComparison) -> some View {
-        VStack(alignment: .leading, spacing: TLSpace.gapS) {
-            localText("training.preview.vsLast")
-                .font(TLFont.zh(TLFont.kicker, .semibold))
-                .tracking(TLFont.kickerTracking)
-                .textCase(.uppercase)
-                .foregroundStyle(TLColor.neutral500)
-            Text(verbatim: String(
-                format: localString("training.preview.vsLast.summary %@ %lld %lld", locale),
-                "\(c.date.month)/\(c.date.day)", c.achievedSets, c.totalSets
-            ))
-            .font(TLFont.zh(TLFont.rowTitle, .medium))
-            .foregroundStyle(TLColor.text)
-            if let delta = c.mainLiftDeltaKg {
+        TLCard(radius: .inner, fill: TLColor.neutral300) {
+            VStack(alignment: .leading, spacing: TLSpace.gapS) {
+                localText("training.preview.vsLast")
+                    .font(TLFont.zh(TLFont.kicker, .semibold))
+                    .tracking(TLFont.kickerTracking)
+                    .textCase(.uppercase)
+                    .foregroundStyle(TLColor.neutral500)
                 Text(verbatim: String(
-                    format: localString("training.preview.vsLast.mainLift %@", locale),
-                    mainLiftDeltaText(delta)
+                    format: localString("training.preview.vsLast.summary %@ %lld %lld", locale),
+                    "\(c.date.month)/\(c.date.day)", c.achievedSets, c.totalSets
                 ))
-                .font(TLFont.zh(TLFont.rowSub, .semibold))
-                .foregroundStyle(delta > 0 ? TLColor.accent700 : TLColor.neutral600)
+                .font(TLFont.zh(TLFont.rowTitle, .medium))
+                .foregroundStyle(TLColor.text)
+                if let delta = c.mainLiftDeltaKg {
+                    Text(verbatim: String(
+                        format: localString("training.preview.vsLast.mainLift %@", locale),
+                        mainLiftDeltaText(delta)
+                    ))
+                    .font(TLFont.zh(TLFont.rowSub, .semibold))
+                    .foregroundStyle(delta > 0 ? TLColor.accent700 : TLColor.neutral600)
+                }
             }
+            .frame(maxWidth: .infinity, alignment: .leading)
         }
-        .padding(TLSpace.rowInset)
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .background(TLColor.neutral300)
-        .clipShape(RoundedRectangle(cornerRadius: TLRadius.inner, style: .continuous))
     }
 
     /// 主項增減文字：`+2.5 kg` / `−2.5 kg` / `持平`。

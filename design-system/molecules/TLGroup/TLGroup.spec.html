@@ -71,7 +71,7 @@
 </table>
 <p><strong>組成</strong>：由 <code>TLDividedVStack</code>（L2）組成，後者再用 <code>TLDivider</code>（L1）。</p>
 <h2>2 介面 ★</h2>
-<p><strong>Props</strong> — 無。</p>
+<p><strong>Props</strong></p>
 <table>
 <thead>
 <tr>
@@ -85,12 +85,12 @@
 </thead>
 <tbody>
 <tr>
-<td>（無）</td>
+<td><code>border</code></td>
+<td><code>Color?</code></td>
 <td></td>
-<td></td>
-<td></td>
-<td></td>
-<td></td>
+<td>否</td>
+<td><code>nil</code></td>
+<td>描邊色。用來標「這一區是進行中的」。<code>nil</code> ＝ 無描邊</td>
 </tr>
 </tbody>
 </table>
@@ -99,8 +99,9 @@
 <strong>事件</strong> — N/A（互動歸各列）</p>
 <h2>3 變體 variants</h2>
 <p>無。<strong>這是刻意的</strong> —— 一種容器樣式是這套視覺的辨識點，開變體會讓它散掉。</p>
+<p><code>border</code> 不算變體：它是「這一區進行中」的<strong>標記</strong>，不是另一種容器樣式。</p>
 <h2>4 狀態 states ★</h2>
-<!-- states: default -->
+<!-- states: default, bordered -->
 <!-- themes: light, dark -->
 
 <table>
@@ -219,6 +220,11 @@
 <td>2026-08-30</td>
 <td>底色 <code>neutral100</code> → <code>surfaceRaised</code>、圓角維持 <code>radius.container</code></td>
 <td>改用語意層才有深色的位置</td>
+</tr>
+<tr>
+<td>2026-08-31</td>
+<td>新增 <code>border</code></td>
+<td>循環清單要標「進行中」的區塊，但這個元件不收描邊，於是呼叫端自己在外面疊了一個 <code>strokeBorder</code> 的 overlay —— 同一件事的第二份實作。跟 <code>TLSectionHeader</code> 的右側、<code>TLBadge(count:)</code> 的顏色同一型</td>
 </tr>
 </tbody>
 </table>

@@ -171,42 +171,40 @@ public struct TrainingHomeView: View {
     private func resumeDialog(_ summary: ResumeSummary) -> some View {
         ZStack {
             Color.black.opacity(0.35).ignoresSafeArea()
-            VStack(alignment: .leading, spacing: 16) {
-                Text(summary.isOvernight
-                    ? localString("training.resume.overnightTitle", locale)
-                    : localString("training.resume.sameDayTitle", locale))
-                    .font(TLFont.zh(TLFont.cardTitle, .bold))
-                    .foregroundStyle(TLColor.text)
-                Text(verbatim: resumeDescription(summary))
-                    .font(.footnote)
-                    .foregroundStyle(TLColor.neutral600)
+            TLCard(padding: .page) {
+                VStack(alignment: .leading, spacing: 16) {
+                    Text(summary.isOvernight
+                        ? localString("training.resume.overnightTitle", locale)
+                        : localString("training.resume.sameDayTitle", locale))
+                        .font(TLFont.zh(TLFont.cardTitle, .bold))
+                        .foregroundStyle(TLColor.text)
+                    Text(verbatim: resumeDescription(summary))
+                        .font(.footnote)
+                        .foregroundStyle(TLColor.neutral600)
 
-                VStack(spacing: 10) {
-                    HStack {
-                        statNumber("\(summary.recordedSetCount)", label: "training.resume.recordedSets")
-                        Spacer()
-                        if let remaining = summary.remainingSetCount {
-                            statNumber("\(remaining)", label: "training.resume.remainingSets")
-                            Spacer()
+                    TLCard(radius: .inner, fill: TLColor.neutral300) {
+                        VStack(spacing: 10) {
+                            HStack {
+                                statNumber("\(summary.recordedSetCount)", label: "training.resume.recordedSets")
+                                Spacer()
+                                if let remaining = summary.remainingSetCount {
+                                    statNumber("\(remaining)", label: "training.resume.remainingSets")
+                                    Spacer()
+                                }
+                                statNumber("\(summary.elapsedMinutes)", label: "training.finish.minutes")
+                            }
+                            Text(verbatim: String(
+                                format: localString("training.resume.dataStaysPut %lld", locale),
+                                summary.recordedSetCount
+                            ))
+                            .font(.caption2)
+                            .foregroundStyle(TLColor.neutral600)
                         }
-                        statNumber("\(summary.elapsedMinutes)", label: "training.finish.minutes")
                     }
-                    Text(verbatim: String(
-                        format: localString("training.resume.dataStaysPut %lld", locale),
-                        summary.recordedSetCount
-                    ))
-                    .font(.caption2)
-                    .foregroundStyle(TLColor.neutral600)
-                }
-                .padding(TLSpace.rowInset)
-                .background(TLColor.neutral300)
-                .clipShape(RoundedRectangle(cornerRadius: TLRadius.inner, style: .continuous))
 
-                resumeActions(summary)
+                    resumeActions(summary)
+                }
             }
-            .padding(TLSpace.page)
-            .background(TLColor.neutral100)
-            .clipShape(RoundedRectangle(cornerRadius: TLRadius.container, style: .continuous))
             .tlShadow(TLShadow.lg)
             .padding(.horizontal, TLSpace.page)
         }
@@ -346,45 +344,45 @@ public struct TrainingHomeView: View {
 
     private func cardView(_ card: Card) -> some View {
         let isToday = card.kind == .todaySpecified
-        return VStack(alignment: .leading, spacing: TLSpace.gapS) {
-            Text(isToday ? localString("training.home.todaySpecified", locale)
-                         : localString("training.home.anytime", locale))
-                .font(TLFont.zh(11, .semibold))
-                .foregroundStyle(isToday ? TLColor.accent800 : TLColor.neutral800)
-                .padding(.horizontal, 10)
-                .padding(.vertical, 4)
-                .background(isToday ? TLColor.accent200 : TLColor.neutral300)
-                .clipShape(Capsule())
+        return TLCard(
+            fill: isToday ? TLColor.neutral100 : TLColor.neutral100.opacity(0.6),
+            border: isToday ? TLColor.accent300 : nil
+        ) {
+            VStack(alignment: .leading, spacing: TLSpace.gapS) {
+                Text(isToday ? localString("training.home.todaySpecified", locale)
+                             : localString("training.home.anytime", locale))
+                    .font(TLFont.zh(11, .semibold))
+                    .foregroundStyle(isToday ? TLColor.accent800 : TLColor.neutral800)
+                    .padding(.horizontal, 10)
+                    .padding(.vertical, 4)
+                    .background(isToday ? TLColor.accent200 : TLColor.neutral300)
+                    .clipShape(Capsule())
 
-            Text(verbatim: card.title)
-                .font(TLFont.zh(TLFont.cardTitle, .bold))
-                .foregroundStyle(TLColor.text)
-                .lineLimit(2)
+                Text(verbatim: card.title)
+                    .font(TLFont.zh(TLFont.cardTitle, .bold))
+                    .foregroundStyle(TLColor.text)
+                    .lineLimit(2)
 
-            if let subtitle = card.subtitle {
-                Text(verbatim: subtitle)
-                    .font(TLFont.zh(TLFont.rowSub, .regular))
-                    .foregroundStyle(TLColor.neutral500)
+                if let subtitle = card.subtitle {
+                    Text(verbatim: subtitle)
+                        .font(TLFont.zh(TLFont.rowSub, .regular))
+                        .foregroundStyle(TLColor.neutral500)
+                }
+                if let meta = card.meta {
+                    Text(verbatim: meta)
+                        .font(TLFont.zh(TLFont.rowSub, .regular))
+                        .foregroundStyle(TLColor.neutral600)
+                }
+
+                Spacer(minLength: TLSpace.gapM)
+
+                cardButton(card)
             }
-            if let meta = card.meta {
-                Text(verbatim: meta)
-                    .font(TLFont.zh(TLFont.rowSub, .regular))
-                    .foregroundStyle(TLColor.neutral600)
-            }
-
-            Spacer(minLength: TLSpace.gapM)
-
-            cardButton(card)
+            // 卡的底色要鋪滿固定尺寸，所以撐開由**內容**做、外面的 frame 只負責提出尺寸。
+            .frame(maxWidth: .infinity, alignment: .leading)
         }
-        .padding(TLSpace.rowInset)
-        .frame(width: 242, alignment: .leading)
-        .frame(minHeight: 190)
-        .background(isToday ? TLColor.neutral100 : TLColor.neutral100.opacity(0.6))
-        .overlay {
-            RoundedRectangle(cornerRadius: TLRadius.container, style: .continuous)
-                .strokeBorder(isToday ? TLColor.accent300 : Color.clear, lineWidth: 1.5)
-        }
-        .clipShape(RoundedRectangle(cornerRadius: TLRadius.container, style: .continuous))
+        .frame(width: TLSize.cardW)
+        .frame(minHeight: TLSize.cardMinH)
         .id(card.id)
     }
 
@@ -496,32 +494,30 @@ public struct TrainingHomeView: View {
 
     private func restDaySection(_ restDay: RestDayInfo) -> some View {
         VStack(alignment: .leading, spacing: TLSpace.section) {
-            VStack(alignment: .leading, spacing: TLSpace.gapM) {
-                ZStack {
-                    Circle().fill(Color.white)
-                    Image(systemName: "moon.stars.fill")
-                        .font(.system(size: 22, weight: .medium))
-                        .foregroundStyle(TLColor.sage700)
+            TLCard(fill: TLColor.sage200, padding: .roomy) {
+                VStack(alignment: .leading, spacing: TLSpace.gapM) {
+                    ZStack {
+                        Circle().fill(Color.white)
+                        Image(systemName: "moon.stars.fill")
+                            .font(.system(size: 22, weight: .medium))
+                            .foregroundStyle(TLColor.sage700)
+                    }
+                    .frame(width: 52, height: 52)
+
+                    // 課表名是使用者資料（verbatim），套進本地化模板組成整句。
+                    Text(verbatim: String(
+                        format: localString("training.home.restDay.headline %@ %@", locale),
+                        restDay.programName, cyclePositionText(restDay)
+                    ))
+                    .font(TLFont.zh(TLFont.emptyTitle, .bold))
+                    .foregroundStyle(TLColor.text)
+
+                    Text(verbatim: restDayRecapText(restDay))
+                        .font(TLFont.zh(TLFont.caption, .regular))
+                        .foregroundStyle(TLColor.sage800)
                 }
-                .frame(width: 52, height: 52)
-
-                // 課表名是使用者資料（verbatim），套進本地化模板組成整句。
-                Text(verbatim: String(
-                    format: localString("training.home.restDay.headline %@ %@", locale),
-                    restDay.programName, cyclePositionText(restDay)
-                ))
-                .font(TLFont.zh(TLFont.emptyTitle, .bold))
-                .foregroundStyle(TLColor.text)
-
-                Text(verbatim: restDayRecapText(restDay))
-                    .font(TLFont.zh(TLFont.caption, .regular))
-                    .foregroundStyle(TLColor.sage800)
+                .frame(maxWidth: .infinity, alignment: .leading)
             }
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .padding(.horizontal, TLSpace.page)
-            .padding(.vertical, 22)
-            .background(TLColor.sage200)
-            .clipShape(RoundedRectangle(cornerRadius: TLRadius.container, style: .continuous))
 
             VStack(alignment: .leading, spacing: TLSpace.gapS) {
                 TLGroup {

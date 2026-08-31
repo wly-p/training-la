@@ -1,0 +1,69 @@
+<!-- @dsCard group="Organisms" name="PlanWorkoutRow" subtitle="課表某一天的一列（已排定）" -->
+<!doctype html>
+<meta charset="utf-8">
+<title>PlanWorkoutRow</title>
+<link rel="stylesheet" href="../../tokens/tokens.css">
+<link rel="stylesheet" href="../../preview.css">
+<link rel="stylesheet" href="../../components.preview.css">
+<h1>PlanWorkoutRow</h1>
+<p class="note">
+  L3 有機體。課表某一天的一列 —— <b>已經排定</b>的訓練。純由 L2／L1 組成。
+</p>
+
+<div class="kicker">狀態</div>
+<div class="group">
+  <div class="row tl-list-row--with-sub" data-state="pending">
+    <span class="tl-badge tl-badge--neutral num">1</span>
+    <span class="tl-row-content__text">
+      <span class="tl-row-content__title">項目甲</span>
+      <span class="tl-row-content__sub">內容一、內容二、內容三</span>
+    </span>
+    <svg class="tl-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg>
+  </div>
+  <div class="row tl-list-row--with-sub" data-state="done">
+    <span class="tl-badge tl-badge--accent">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round"
+        stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
+    </span>
+    <span class="tl-row-content__text">
+      <span class="tl-row-content__title">項目乙（已完成）</span>
+      <span class="tl-row-content__sub">內容一、內容二</span>
+    </span>
+    <svg class="tl-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg>
+  </div>
+</div>
+<p class="note">
+  <b>兩種狀態共用同一顆圓章是刻意的</b> —— 那一格回答的永遠是「這一項的進度」，
+  不是有時候回答順序、有時候回答狀態。<br>
+  完成的那一列<b>仍然可點</b>，進去是唯讀檢視。
+</p>
+
+<div class="kicker">主題</div>
+<div class="themes">
+  <div class="pane" data-theme="light">
+    <div class="kicker">light</div>
+    <div class="group"><div class="row tl-list-row--with-sub">
+      <span class="tl-badge tl-badge--neutral num">1</span>
+      <span class="tl-row-content__text">
+        <span class="tl-row-content__title">項目甲</span>
+        <span class="tl-row-content__sub">內容一、內容二</span>
+      </span></div></div>
+  </div>
+  <div class="pane" data-theme="dark">
+    <div class="kicker">dark（目前是 light 的複製）</div>
+    <div class="group"><div class="row tl-list-row--with-sub">
+      <span class="tl-badge tl-badge--neutral num">1</span>
+      <span class="tl-row-content__text">
+        <span class="tl-row-content__title">項目甲</span>
+        <span class="tl-row-content__sub">內容一、內容二</span>
+      </span></div></div>
+  </div>
+</div>
+
+<div class="kicker">不適用的狀態</div>
+<p class="note">
+  disabled／selected —— 這份清單不做選取，完成的也不是停用。<br>
+  empty —— 空的那一天是另一段（<code>emptyDay</code>）的事。
+</p>

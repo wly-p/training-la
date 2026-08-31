@@ -51,12 +51,8 @@ public struct PlanScheduleView: View {
                             }
                             .accessibilityIdentifier("plan.applyProgram")
                         } label: {
-                            Image(systemName: "plus")
-                                .font(.system(size: 18, weight: .semibold))
-                                .foregroundStyle(TLColor.bg)
-                                .frame(width: TLSize.iconButton, height: TLSize.iconButton)
-                                .background(TLColor.accent)
-                                .clipShape(Capsule())
+                            // Menu 的 label 不是 Button，所以用視覺元件而不是 TLCircleIconButton
+                            TLCircleIcon(systemImage: "plus")
                         }
                         .accessibilityLabel(localText("plan.new"))
                         .accessibilityIdentifier("plan.new")
@@ -77,7 +73,7 @@ public struct PlanScheduleView: View {
                         .padding(.horizontal, TLSpace.page)
                         .padding(.top, TLSpace.section)
                 }
-                .padding(.bottom, 40)
+                .padding(.bottom, TLSpace.pageBottom)
             }
             .background(TLColor.bg.ignoresSafeArea())
             #if os(iOS)
@@ -242,28 +238,17 @@ public struct PlanScheduleView: View {
         localText("plan.day.empty")
             .font(TLFont.zh(TLFont.rowSub, .regular))
             .foregroundStyle(TLColor.neutral500)
-            .padding(.vertical, 18)
+            .padding(.vertical, TLSpace.rowInset)
     }
 
     private func row(_ plan: PlanWorkout) -> some View {
-        TLListRow(
+        PlanWorkoutRow(
             title: plan.name.map { Text(verbatim: $0) } ?? localText("plan.untitled"),
-            subtitle: Text(PlanFormatting.summary(plan, name: viewModel.name(for:), language: AppLanguage(locale: locale))),
-            showChevron: true,
-            onTap: { editing = .edit(plan) },
-            leading: {
-                TLBadge(fill: plan.status == .done ? TLColor.accent : TLColor.neutral300) {
-                    if plan.status == .done {
-                        Image(systemName: "checkmark")
-                            .font(.system(size: 13, weight: .bold))
-                            .foregroundStyle(TLColor.bg)
-                    } else {
-                        Text(verbatim: "\(plan.orderIndex + 1)")
-                            .font(TLFont.display(15))
-                            .foregroundStyle(TLColor.neutral700)
-                    }
-                }
-            }
+            summary: Text(PlanFormatting.summary(plan, name: viewModel.name(for:),
+                                                 language: AppLanguage(locale: locale))),
+            orderIndex: plan.orderIndex,
+            isDone: plan.status == .done,
+            onTap: { editing = .edit(plan) }
         )
         .contextMenu {
             Button(role: .destructive) {
@@ -275,25 +260,13 @@ public struct PlanScheduleView: View {
     }
 
     /// 長期課表投影建議（尚未落地）：顯示「排定：X」＋「加入這天」把它變成真實排課。
-    /// 「加入這天」是獨立按鈕（不是整列 tap）——這一列本身還不是真的排課，不該點哪裡都觸發落地。
     private func projectedRow(_ projected: ProjectedWorkout) -> some View {
-        TLListRow(
+        ProjectedWorkoutRow(
             title: Text(verbatim: projected.spec.name),
-            subtitle: Text(PlanFormatting.summary(projected.spec, name: viewModel.name(for:), language: AppLanguage(locale: locale))),
-            leading: {
-                TLBadge(icon: "calendar.badge.clock", fill: TLColor.neutral200, tint: TLColor.neutral600)
-            },
-            trailing: {
-                Button {
-                    Task { await viewModel.materialize(projected) }
-                } label: {
-                    Text("plan.addThisDay", bundle: .module)
-                        .font(TLFont.zh(TLFont.rowSub, .semibold))
-                        .foregroundStyle(TLColor.accent700)
-                }
-                .buttonStyle(.plain)
-                .accessibilityIdentifier("plan.addThisDay")
-            }
+            summary: Text(PlanFormatting.summary(projected.spec, name: viewModel.name(for:),
+                                                 language: AppLanguage(locale: locale))),
+            addLabel: Text("plan.addThisDay", bundle: .module),
+            onAdd: { Task { await viewModel.materialize(projected) } }
         )
     }
 

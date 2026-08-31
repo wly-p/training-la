@@ -128,15 +128,13 @@ public struct TemplateListView: View {
     }
 
     private func explainerCard(_ text: Text) -> some View {
-        text
-            .font(TLFont.zh(TLFont.rowTitle, .regular))
-            .foregroundStyle(TLColor.neutral600)
-            .multilineTextAlignment(.center)
-            .frame(maxWidth: .infinity)
-            .padding(.horizontal, TLSpace.page)
-            .padding(.vertical, TLSpace.section)
-            .background(TLColor.neutral100)
-            .clipShape(RoundedRectangle(cornerRadius: TLRadius.container, style: .continuous))
+        TLCard(padding: .roomy) {
+            text
+                .font(TLFont.zh(TLFont.rowTitle, .regular))
+                .foregroundStyle(TLColor.neutral600)
+                .multilineTextAlignment(.center)
+                .frame(maxWidth: .infinity)
+        }
     }
 }
 
