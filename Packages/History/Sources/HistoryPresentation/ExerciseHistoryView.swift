@@ -34,7 +34,7 @@ public struct ExerciseHistoryView: View {
                 TLPageHeader(Text(verbatim: option.name))
 
                 if !hasLoaded {
-                    ProgressView().padding(.top, 40).frame(maxWidth: .infinity)
+                    ProgressView().padding(.top, TLSpace.pageBottom).frame(maxWidth: .infinity)
                 } else if points.isEmpty {
                     TLEmptyState(
                         systemImage: "chart.line.uptrend.xyaxis",
@@ -52,7 +52,7 @@ public struct ExerciseHistoryView: View {
                     .padding(.top, TLSpace.section)
                 }
             }
-            .padding(.bottom, 40)
+            .padding(.bottom, TLSpace.pageBottom)
         }
         .background(TLColor.bg.ignoresSafeArea())
         .task {
@@ -77,29 +77,28 @@ public struct ExerciseHistoryView: View {
     }
 
     private var trendChart: some View {
-        VStack(alignment: .leading, spacing: 8) {
+        VStack(alignment: .leading, spacing: TLSpace.gapS) {
             TLSectionHeader(localText("history.exerciseTrend.section"))
-            Chart(points) { point in
-                LineMark(
-                    x: .value(AxisID.day, point.day.chartDate),
-                    // 換算成偏好單位再畫，否則混單位時同一張圖會出現兩種尺度。
-                    y: .value(AxisID.weight, point.weight.converted(to: weightUnit).value)
-                )
-                .foregroundStyle(TLColor.accent700)
-                .interpolationMethod(.monotone)
-                PointMark(
-                    x: .value(AxisID.day, point.day.chartDate),
-                    y: .value(AxisID.weight, point.weight.converted(to: weightUnit).value)
-                )
-                .foregroundStyle(point.isPersonalRecord ? TLColor.sage : TLColor.accent700)
-                .symbolSize(point.isPersonalRecord ? 90 : 32)
+            TLCard {
+                Chart(points) { point in
+                    LineMark(
+                        x: .value(AxisID.day, point.day.chartDate),
+                        // 換算成偏好單位再畫，否則混單位時同一張圖會出現兩種尺度。
+                        y: .value(AxisID.weight, point.weight.converted(to: weightUnit).value)
+                    )
+                    .foregroundStyle(TLColor.accent700)
+                    .interpolationMethod(.monotone)
+                    PointMark(
+                        x: .value(AxisID.day, point.day.chartDate),
+                        y: .value(AxisID.weight, point.weight.converted(to: weightUnit).value)
+                    )
+                    .foregroundStyle(point.isPersonalRecord ? TLColor.sage : TLColor.accent700)
+                    .symbolSize(point.isPersonalRecord ? 90 : 32)
+                }
+                .frame(height: TLSize.chart)
             }
-            .frame(height: 200)
-            .padding(TLSpace.rowInset)
-            .background(TLColor.neutral100)
-            .clipShape(RoundedRectangle(cornerRadius: TLRadius.container, style: .continuous))
-            HStack(spacing: 6) {
-                Circle().fill(TLColor.sage).frame(width: 8, height: 8)
+            HStack(spacing: TLSpace.labelGap) {
+                Circle().fill(TLColor.sage).frame(width: TLSize.legendDot, height: TLSize.legendDot)
                 localText("history.exerciseTrend.prLegend")
                     .font(TLFont.zh(TLFont.rowSub, .regular))
                     .foregroundStyle(TLColor.neutral500)

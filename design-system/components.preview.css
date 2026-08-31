@@ -195,6 +195,31 @@
                                 color: var(--text-primary); }
 .tl-inline-empty-state__hint { font-size: var(--font-caption); color: var(--text-secondary); }
 
+/* TLCard */
+/* 內容卡。跟 .group（TLGroup）的差別：那個是列的容器、會切掉溢出並畫分隔線，
+   這個是內容的容器，裡面放什麼都可以。 */
+.tl-card {
+  background: var(--surface-raised);
+  border-radius: var(--radius-container);
+  padding: var(--space-row-inset);
+  margin-bottom: var(--space-gap-s);
+}
+.tl-card--roomy { padding: var(--space-section) var(--space-page); }
+.tl-card--bordered { border: var(--size-hairline-thick) solid var(--accent-300); }
+/* ⚠ 這兩階目前沒有語意名字，直接用原始色階——命名是設計決策 */
+.tl-card--deep { background: var(--neutral-300); }
+.tl-card--accent { background: var(--accent-200); }
+
+/* WorkoutHistoryRow */
+/* 唯一有自己樣式的 History L3：左件的日期柱。 */
+.tl-date-column {
+  flex: none; width: var(--size-date-column);
+  display: flex; flex-direction: column; align-items: center;
+  gap: var(--space-date-stack-gap);
+}
+.tl-date-column__day { font-size: var(--font-row-number); color: var(--text-primary); }
+.tl-date-column__weekday { font-size: var(--font-kicker); color: var(--neutral-500); }
+
 /* TLRowContent */
 /* 列的內容排版。**沒有左右內距、沒有高度** —— 骨架的 .row 才是「內容 ＋ 外框」，
    也就是 TLListRow。兩者的差別在這裡看得見：這一段沒有 padding 也沒有 height。 */

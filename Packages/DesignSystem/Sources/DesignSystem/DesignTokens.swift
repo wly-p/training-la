@@ -138,6 +138,9 @@ public enum TLSpace {
     public static let gridGap:            CGFloat = 4   // 格狀預覽的格子之間
     public static let fieldPadV:          CGFloat = 12  // 可點的值方塊（重量／次數）上下內距
     public static let sheetBarTop:        CGFloat = 14  // 整頁 sheet 頂端關閉列的上緣留白（不是 TLCompactSheet，那個用 gapL）
+    public static let statGap:            CGFloat = 28  // 並排的統計數字之間。比 gapL 20 更開——兩組數字要看得出是兩組
+    public static let cardSectionGap:     CGFloat = 16  // 卡片內各段之間
+    public static let dateStackGap:       CGFloat = 1   // 日期柱裡日數與星期之間。刻意極窄——兩行要讀成一個東西
 }
 
 public enum TLRadius {
@@ -170,6 +173,10 @@ public enum TLSize {
     public static let swipeAction:     CGFloat = 88  // 左滑露出的動作區寬度。固定，不隨文案長度變
     public static let gridCell:        CGFloat = 18  // 格狀預覽的一格
     public static let rowLeadColumn:   CGFloat = 48  // 列首的固定欄（序號）。與 rowTailColumn 80 對稱
+    public static let chart:           CGFloat = 200 // 趨勢圖的高度
+    public static let legendDot:       CGFloat = 8   // 圖例的色點
+    public static let setIndexColumn:  CGFloat = 44  // 逐組列的序號欄，固定寬讓各組數字對齊
+    public static let dateColumn:      CGFloat = 40  // 列首的日期柱寬。⚠ 全 app 的『列首固定欄』有三種寬度：40（日期柱）、44（逐組列的組序）、48（範本編輯的組序）——後兩者是**同一個角色的兩個值**，待設計端收斂
 }
 
 public enum TLIcon {

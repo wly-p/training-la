@@ -106,6 +106,9 @@
   --space-grid-gap: 4px;  /* 格狀預覽的格子之間 */
   --space-field-pad-v: 12px;  /* 可點的值方塊（重量／次數）上下內距 */
   --space-sheet-bar-top: 14px;  /* 整頁 sheet 頂端關閉列的上緣留白（不是 TLCompactSheet，那個用 gapL） */
+  --space-stat-gap: 28px;  /* 並排的統計數字之間。比 gapL 20 更開——兩組數字要看得出是兩組 */
+  --space-card-section-gap: 16px;  /* 卡片內各段之間 */
+  --space-date-stack-gap: 1px;  /* 日期柱裡日數與星期之間。刻意極窄——兩行要讀成一個東西 */
   --radius-container: 28px;  /* 卡片／群組容器 */
   --radius-inner: 20px;  /* 容器內的小方塊 */
   --radius-pill: 999px;  /* 按鈕、輸入、標籤（實作用 .capsule） */
@@ -132,6 +135,10 @@
   --size-swipe-action: 88px;  /* 左滑露出的動作區寬度。固定，不隨文案長度變 */
   --size-grid-cell: 18px;  /* 格狀預覽的一格 */
   --size-row-lead-column: 48px;  /* 列首的固定欄（序號）。與 rowTailColumn 80 對稱 */
+  --size-chart: 200px;  /* 趨勢圖的高度 */
+  --size-legend-dot: 8px;  /* 圖例的色點 */
+  --size-set-index-column: 44px;  /* 逐組列的序號欄，固定寬讓各組數字對齊 */
+  --size-date-column: 40px;  /* 列首的日期柱寬。⚠ 全 app 的『列首固定欄』有三種寬度：40（日期柱）、44（逐組列的組序）、48（範本編輯的組序）——後兩者是**同一個角色的兩個值**，待設計端收斂 */
 
   /* ── 字級（中文值；英文 × 1.08）── */
   --font-page-title: 34px;

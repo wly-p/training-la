@@ -23,6 +23,7 @@
 |---|---|---|---|---|---|
 | `title` | `Text` | | 是 | — | 區塊名。會自動轉大寫 |
 | `tint` | `Color` | 只吃語意 token | 否 | `textTertiary` | 標題色。進行中的區塊用 `actionPressed` |
+| `trailing` | `Text?` | | 否 | `nil` | 右側的**唯讀文字**（例如「共 12 小時」）。與 `actionLabel` 互斥 |
 | `actionLabel` | `Text` | | 否 | — | 右側文字操作的文案。與 `action` 成對 |
 | `action` | `() -> Void` | | 否 | — | 右側文字操作。與 `actionLabel` 成對 |
 
@@ -34,6 +35,7 @@
 | 變體 | 說明 |
 |---|---|
 | 純標題 | 只傳 `title` |
+| 標題 ＋ 右側文字 | 傳 `trailing` |
 | 標題 ＋ 文字操作 | 傳 `actionLabel` ＋ `action` |
 
 `tint` 不算變體，它是同一個東西的著色。
@@ -103,3 +105,4 @@
 | 2026-08-30 | 從 `Components/` 移到 `Molecules/` | 分層落地 |
 | 2026-08-30 | 下方間距 `10` 改成 `space.sectionHeaderGap` | 元件內部的字面值也是字面值 |
 | 2026-08-30 | 預設色 `neutral500` → `textTertiary` | 值相同，改用語意層。⚠ 順帶量到它對容器底只有 2.6:1 |
+| 2026-08-31 | 新增 `trailing` | 右側原本**只開放給按鈕**，於是需要放唯讀文字的地方（歷史的月份區塊「共 N 小時」）只能自己重畫一次 kicker —— 同一個區塊標題長出第二份實作，那正是漂移的來源。跟 `TLBadge(count:)` 顏色寫死是同一型：**介面少開一個口，呼叫端就會繞過整個元件** |

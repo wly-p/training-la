@@ -78,6 +78,62 @@
 <li><strong>12</strong> 文件裡提到的 token 名都要真的存在。抓「token 被刪／改名，文件還在講它」。</li>
 </ul>
 <hr />
+<h2>2026-08-31 · 階段 3（歷史）· 找到全 app 最大的一筆重複</h2>
+<h3><code>TLCard</code> 缺席 —— 17 處手工重建，跨 6 個 package</h3>
+<p>下行拆解時量的，不是猜的：</p>
+<pre><code>padding(rowInset) ＋ background(...) ＋ clipShape(RoundedRectangle(container))
+</code></pre>
+<table>
+<thead>
+<tr>
+<th>底色</th>
+<th>處數</th>
+<th>例子</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>neutral-100</code>（＝ <code>surfaceRaised</code>）</td>
+<td>9</td>
+<td>趨勢圖卡、能力值卡、動作表單卡、長期「進行中」卡</td>
+</tr>
+<tr>
+<td><code>neutral-300</code>（<strong>沒有語意名字</strong>）</td>
+<td>5</td>
+<td>達成摘要、長期詳情、循環詳情、完成摘要</td>
+</tr>
+<tr>
+<td><code>accent-200</code>（<strong>沒有語意名字</strong>）</td>
+<td>2</td>
+<td>訓練中的當前組、能力值的當前值</td>
+</tr>
+<tr>
+<td>只有描邊</td>
+<td>1</td>
+<td>循環清單的進行中框</td>
+</tr>
+</tbody>
+</table>
+<p><strong>比 <code>TLInlineEmptyState</code>（4 處）大四倍</strong>，是目前為止最大的一筆。</p>
+<p>底色做成 <strong>prop 而不是 enum</strong>：三階裡有兩階還沒有語意名字，做成 <code>enum</code> 等於
+現在就替設計端命名 —— 那不是我的決定。<code>neutral-300</code> 在語意層叫 <code>surfaceInput</code>
+（輸入色帶），拿它當卡底是<strong>借用</strong>。命名已列進待問清單。</p>
+<h3><code>TLSectionHeader</code> 的右側只開放給按鈕</h3>
+<p>歷史的月份區塊要「共 N 小時」這種<strong>唯讀文字</strong>，但那個元件的右側只收 <code>actionLabel</code>＋<code>action</code>。
+於是 <code>HistoryView</code> 自己重畫了一次 kicker（字級、字距、顏色、下方間距全部重寫一遍）。</p>
+<p><strong>跟 <code>TLBadge(count:)</code> 顏色寫死是同一型：介面少開一個口，呼叫端就會繞過整個元件。</strong>
+補上 <code>trailing: Text?</code> 之後那段手寫消失。</p>
+<h3>抽出 <code>WorkoutHistoryRow</code>（L3）</h3>
+<p>歷史清單的一列。左件是<strong>日期柱</strong>：日數 ＋ 星期兩行堆疊、固定寬 40。
+固定寬是為了讓整個月的日期左緣對齊 —— 跟著內容走的話 10 號與 9 號會差一個字寬。</p>
+<p>⚠ 順帶量到：<strong>「列首固定欄」有三種寬度</strong> —— <code>40</code>（日期柱）、<code>44</code>（逐組列的組序）、
+<code>48</code>（範本編輯的組序）。<strong>後兩者是同一個角色的兩個值</strong>，跟膠囊幾何同型。已列進待問清單。</p>
+<h3>進度</h3>
+<p>History 38 → 15。剩下的全部有記錄：display 尺度 8、單位字級 3、膠囊幾何 4。
+基線 163 → 140。</p>
+<p>新 token：<code>space.statGap</code> 28 · <code>space.cardSectionGap</code> 16 · <code>space.dateStackGap</code> 1 ·
+<code>size.chart</code> 200 · <code>size.legendDot</code> 8 · <code>size.dateColumn</code> 40 · <code>size.setIndexColumn</code> 44。</p>
+<hr />
 <h2>2026-08-31 · 動作庫的字面樣式清到剩「有理由的 17 處」</h2>
 <p>45 處遷移。<strong><code>Spec</code> 歸零</strong>，<code>Plan</code> 71 → 29（其中 12 處屬於課表分頁，不是這一階段的）。</p>
 <h3>新 token 6 個</h3>

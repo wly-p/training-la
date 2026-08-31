@@ -1,0 +1,246 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>WorkoutHistoryRow</title>
+<link rel="stylesheet" href="../../tokens/tokens.css">
+<link rel="stylesheet" href="../../preview.css">
+<style>
+  body { max-width: 62rem; line-height: 1.7; }
+  h1, h2, h3 { font-family: var(--font-page-title-family); line-height: 1.35; }
+  h1 { font-size: var(--font-page-title); margin: 0 0 var(--space-gap-l); }
+  h2 { font-size: var(--font-card-title); margin: var(--space-section) 0 var(--space-gap-m);
+       padding-top: var(--space-gap-m); border-top: 1px solid var(--border-subtle); }
+  h3 { font-size: var(--font-row-title); margin: var(--space-gap-l) 0 var(--space-gap-s); }
+  a { color: var(--accent-on-surface); }
+  table { border-collapse: collapse; width: 100%; margin: var(--space-gap-m) 0;
+          display: block; overflow-x: auto; }
+  th, td { text-align: left; padding: var(--space-gap-s) var(--space-gap-m);
+           border-bottom: 1px solid var(--border-subtle); vertical-align: top; }
+  th { font-size: var(--font-kicker); letter-spacing: var(--font-kicker-tracking);
+       text-transform: uppercase; color: var(--text-tertiary); }
+  pre { background: var(--surface-raised); border-radius: var(--radius-inner);
+        padding: var(--space-gap-m); overflow-x: auto; }
+  pre code { background: none; padding: 0; }
+  blockquote { margin: var(--space-gap-m) 0; padding-left: var(--space-gap-m);
+               border-left: 3px solid var(--border-subtle); color: var(--text-secondary); }
+  .back { font-size: var(--font-row-sub); margin-bottom: var(--space-gap-l); display: block; }
+</style>
+<a class="back" href="../../index.html">← 元件庫索引</a>
+<h1>WorkoutHistoryRow</h1>
+<h2>1 身分</h2>
+<table>
+<thead>
+<tr>
+<th></th>
+<th></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>層級</td>
+<td>L3 有機體</td>
+</tr>
+<tr>
+<td>職責</td>
+<td>歷史清單（依日期）的一列</td>
+</tr>
+<tr>
+<td>原型 id</td>
+<td><code>7b</code></td>
+</tr>
+<tr>
+<td>獨立使用</td>
+<td><strong>否 —— 必須置於 <code>TLGroup</code> 之內</strong></td>
+</tr>
+<tr>
+<td>容器責任</td>
+<td>圓角、底色、分隔線由 <code>TLGroup</code> 負責</td>
+</tr>
+<tr>
+<td>實作</td>
+<td><code>Packages/History/Sources/HistoryPresentation/Components/WorkoutHistoryRow.swift</code></td>
+</tr>
+<tr>
+<td>Preview</td>
+<td><code>design-system/organisms/WorkoutHistoryRow/WorkoutHistoryRow.preview.html</code></td>
+</tr>
+<tr>
+<td>Preview CSS</td>
+<td><code>components.preview.css</code> §WorkoutHistoryRow</td>
+</tr>
+</tbody>
+</table>
+<p><strong>組成</strong>：<code>TLListRow</code>（L2）。左件的日期柱是這個 L3 自己的排法。</p>
+<h2>2 介面 ★</h2>
+<p><strong>Props</strong></p>
+<table>
+<thead>
+<tr>
+<th>名稱</th>
+<th>型別</th>
+<th>值域</th>
+<th>必填</th>
+<th>預設</th>
+<th>說明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>day</code></td>
+<td><code>String</code></td>
+<td></td>
+<td>是</td>
+<td>—</td>
+<td>日數</td>
+</tr>
+<tr>
+<td><code>weekday</code></td>
+<td><code>String</code></td>
+<td></td>
+<td>是</td>
+<td>—</td>
+<td>星期縮寫</td>
+</tr>
+<tr>
+<td><code>title</code></td>
+<td><code>Text</code></td>
+<td></td>
+<td>是</td>
+<td>—</td>
+<td>名稱（沒取名時由呼叫端給 fallback）</td>
+</tr>
+<tr>
+<td><code>summary</code></td>
+<td><code>Text</code></td>
+<td></td>
+<td>是</td>
+<td>—</td>
+<td>副標＝組成摘要</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Slots</strong> — N/A
+<strong>事件</strong> — 無（drill-in 由呼叫端包 <code>NavigationLink</code>）</p>
+<h2>3 變體 variants</h2>
+<p>無。</p>
+<h2>4 狀態 states ★</h2>
+<!-- states: default -->
+<!-- themes: light, dark -->
+
+<table>
+<thead>
+<tr>
+<th>類別</th>
+<th>狀態</th>
+<th>這個元件</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>互動</td>
+<td>default / pressed / disabled / focused</td>
+<td>按下態由外層的 <code>NavigationLink</code> 給</td>
+</tr>
+<tr>
+<td>選取</td>
+<td>selected / unselected / indeterminate</td>
+<td>N/A</td>
+</tr>
+<tr>
+<td>資料</td>
+<td>empty / loading / error</td>
+<td>N/A</td>
+</tr>
+<tr>
+<td>內容極值</td>
+<td>最短 / 最長 / 溢出</td>
+<td>名稱與摘要一行截斷；<strong>日期柱固定寬不縮</strong></td>
+</tr>
+<tr>
+<td>主題</td>
+<td>light / dark</td>
+<td>兩者都有</td>
+</tr>
+<tr>
+<td>語言</td>
+<td>中文 / 英文</td>
+<td>星期縮寫在英文是三個字母，比中文寬 —— 日期柱的寬度由它決定</td>
+</tr>
+</tbody>
+</table>
+<h2>5 度量與行為</h2>
+<table>
+<thead>
+<tr>
+<th></th>
+<th></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>日期柱寬</td>
+<td><code>size.dateColumn</code></td>
+</tr>
+<tr>
+<td>日數與星期之間</td>
+<td><code>space.dateStackGap</code>（刻意極窄，兩行要讀成一個東西）</td>
+</tr>
+<tr>
+<td>其餘</td>
+<td>由 <code>TLListRow</code> 決定</td>
+</tr>
+</tbody>
+</table>
+<p><strong>固定寬是為了讓整個月的日期左緣對齊</strong> —— 寬度跟著內容走的話，
+10 號與 9 號那兩列就會差一個字寬。</p>
+<p>⚠ 全 app 的「列首固定欄」有<strong>三種寬度</strong>：<code>40</code>（這個）、<code>44</code>（逐組列的組序）、
+<code>48</code>（範本編輯的組序）。後兩者是<strong>同一個角色的兩個值</strong>，待設計端收斂。</p>
+<h3>動態</h3>
+<p>無自己的轉場。</p>
+<h2>6 配色 ★</h2>
+<table>
+<thead>
+<tr>
+<th>用途</th>
+<th>token</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>日數</td>
+<td><code>textPrimary</code></td>
+</tr>
+<tr>
+<td>星期</td>
+<td><code>neutral-500</code></td>
+</tr>
+</tbody>
+</table>
+<h2>7 用法與禁用法</h2>
+<p><strong>用它</strong>：歷史清單的「依日期」模式。</p>
+<p><strong>易混淆</strong>：<code>ExerciseRow</code> —— 那個右側是分類標籤、左側沒有東西；
+這個左側是日期柱。</p>
+<p><strong>不要用它</strong>：
+- 「依動作」模式 —— 那一列左側是肌群圓章，用 <code>TLListRow</code> ＋ <code>TLBadge</code> 直接組
+- 把時長放進日期柱 —— 那一柱只承載「哪一天」</p>
+<h2>8 變更紀錄</h2>
+<table>
+<thead>
+<tr>
+<th>日期</th>
+<th>改動</th>
+<th>原因</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>2026-08-31</td>
+<td>從 <code>HistoryView</code> 抽出成 L3</td>
+<td>階段 3 的分層落地</td>
+</tr>
+<tr>
+<td>2026-08-31</td>
+<td><strong>日期柱的 <code>9.5</code> 與 <code>display(19)</code> 原樣搬進來</strong></td>
+<td>前者低於可讀下限（設計端已判定要連同 <code>kicker</code> 一起檢視）、後者屬於 display 尺度第二批。<strong>搬進元件不等於解決</strong>，但它們現在有地址了</td>
+</tr>
+</tbody>
+</table>

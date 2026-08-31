@@ -1,0 +1,50 @@
+<!-- @dsCard group="Molecules" name="TLCard" subtitle="內容卡：圓角容器 ＋ 底色 ＋ 內距" -->
+<!doctype html>
+<meta charset="utf-8">
+<title>TLCard</title>
+<link rel="stylesheet" href="../../tokens/tokens.css">
+<link rel="stylesheet" href="../../preview.css">
+<link rel="stylesheet" href="../../components.preview.css">
+<h1>TLCard</h1>
+<p class="note">
+  L2 分子。內容卡：圓角容器 ＋ 底色 ＋ 內距。<br>
+  跟 <code>TLGroup</code> 的差別：那個是<b>列的容器</b>（負責分隔線），這個是<b>內容的容器</b>。<br>
+  判準：<b>裡面是一串列就用 TLGroup，是一塊內容就用這個。</b>
+</p>
+
+<div class="kicker">狀態</div>
+<div class="tl-card" data-state="plain">預設：surfaceRaised 底、rowInset 內距</div>
+<div class="tl-card tl-card--bordered" data-state="bordered">描邊：標「進行中」用</div>
+<div class="tl-card tl-card--roomy" data-state="roomy">roomy：空狀態那種一大塊留白</div>
+
+<div class="kicker">兩階卡底，只有一階有語意名字</div>
+<div class="tl-card">淺卡 · surfaceRaised（9 處）</div>
+<div class="tl-card tl-card--deep">深卡 · 目前直接用原始色階（5 處）</div>
+<div class="tl-card tl-card--accent">強調卡 · 目前直接用原始色階（2 處）</div>
+<p class="note">
+  深卡那一階在語意層叫 <code>surfaceInput</code>（輸入色帶）—— 拿它當卡底是<b>借用</b>，
+  不是那個角色的意思。命名是設計決策。
+</p>
+
+<div class="kicker">不要卡中卡</div>
+<p class="note">
+  兩層 <code>radius.container</code> 疊在一起，內圈的圓角會看起來是壞的。
+</p>
+
+<div class="kicker">主題</div>
+<div class="themes">
+  <div class="pane" data-theme="light">
+    <div class="kicker">light</div>
+    <div class="tl-card">內容</div>
+  </div>
+  <div class="pane" data-theme="dark">
+    <div class="kicker">dark（目前是 light 的複製）</div>
+    <div class="tl-card">內容</div>
+  </div>
+</div>
+
+<div class="kicker">不適用的狀態</div>
+<p class="note">
+  pressed／disabled／focused —— 卡不可點。可點的常常只是卡的一部分，
+  包 <code>Button</code> 的位置由呼叫端決定。
+</p>

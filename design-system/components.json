@@ -719,6 +719,93 @@
       }
     },
     {
+      "name": "TLCard",
+      "level": "L2",
+      "layer": "molecules",
+      "responsibility": "內容卡：圓角容器 ＋ 底色 ＋ 內距",
+      "prototypeIds": [
+        "8a"
+      ],
+      "prototypeNote": "7c",
+      "standalone": true,
+      "requiresContainer": null,
+      "containerOwns": "自己就是容器",
+      "props": [
+        {
+          "name": "fill",
+          "type": "`Color`",
+          "kind": null,
+          "values": [
+            "只吃語意 token 或卡底色階"
+          ],
+          "required": "否",
+          "default": "`surfaceRaised`",
+          "description": "卡底。見第 6 節：全 app 有兩階卡底"
+        },
+        {
+          "name": "border",
+          "type": "`Color?`",
+          "kind": null,
+          "values": null,
+          "required": "否",
+          "default": "`nil`",
+          "description": "描邊色。`nil` ＝ 無描邊。用來標「進行中」"
+        },
+        {
+          "name": "padding",
+          "type": "`Padding`",
+          "kind": "enum",
+          "values": [
+            "standard",
+            "roomy"
+          ],
+          "required": "否",
+          "default": "`standard`",
+          "description": "見第 3 節"
+        }
+      ],
+      "slots": [
+        "content"
+      ],
+      "events": [],
+      "variants": [
+        {
+          "name": "standard",
+          "note": "`space.rowInset` 四邊"
+        },
+        {
+          "name": "roomy",
+          "note": "左右 `space.page`、上下 `space.section`"
+        }
+      ],
+      "states": [
+        "plain",
+        "bordered",
+        "roomy"
+      ],
+      "themes": [
+        "light",
+        "dark"
+      ],
+      "confusableWith": [
+        {
+          "name": "TLGroup",
+          "note": "`TLGroup` —— 那個是**列的容器**，負責列與列之間的分隔線並切掉溢出。"
+        }
+      ],
+      "dontUseFor": [
+        "包一串列 —— 那是 `TLGroup`，而且它會少掉分隔線",
+        "把整張卡做成可點 —— 可點的常常只是卡的一部分，包 `Button` 的位置由呼叫端決定",
+        "卡中卡 —— 兩層 `radius.container` 疊在一起，內圈的圓角會看起來是壞的"
+      ],
+      "composedOf": null,
+      "paths": {
+        "spec": "molecules/TLCard/TLCard.spec.md",
+        "preview": "molecules/TLCard/TLCard.preview.html",
+        "impl": "Packages/DesignSystem/Sources/DesignSystem/Molecules/TLCard.swift"
+      }
+    },
+    {
       "name": "TLDividedVStack",
       "level": "L2",
       "layer": "molecules",
@@ -1221,6 +1308,15 @@
           "description": "標題色。進行中的區塊用 `actionPressed`"
         },
         {
+          "name": "trailing",
+          "type": "`Text?`",
+          "kind": null,
+          "values": null,
+          "required": "否",
+          "default": "`nil`",
+          "description": "右側的**唯讀文字**（例如「共 12 小時」）。與 `actionLabel` 互斥"
+        },
+        {
           "name": "actionLabel",
           "type": "`Text`",
           "kind": null,
@@ -1247,6 +1343,10 @@
         {
           "name": "純標題",
           "note": "只傳 `title`"
+        },
+        {
+          "name": "標題 ＋ 右側文字",
+          "note": "傳 `trailing`"
         },
         {
           "name": "標題 ＋ 文字操作",
@@ -2171,6 +2271,85 @@
         "spec": "organisms/TemplateRow/TemplateRow.spec.md",
         "preview": "organisms/TemplateRow/TemplateRow.preview.html",
         "impl": "Packages/Plan/Sources/PlanPresentation/Components/TemplateRow.swift"
+      }
+    },
+    {
+      "name": "WorkoutHistoryRow",
+      "level": "L3",
+      "layer": "organisms",
+      "responsibility": "歷史清單（依日期）的一列",
+      "prototypeIds": [],
+      "prototypeNote": "7b",
+      "standalone": false,
+      "requiresContainer": [
+        "TLGroup"
+      ],
+      "containerOwns": "圓角、底色、分隔線由 `TLGroup` 負責",
+      "props": [
+        {
+          "name": "day",
+          "type": "`String`",
+          "kind": null,
+          "values": null,
+          "required": "是",
+          "default": "—",
+          "description": "日數"
+        },
+        {
+          "name": "weekday",
+          "type": "`String`",
+          "kind": null,
+          "values": null,
+          "required": "是",
+          "default": "—",
+          "description": "星期縮寫"
+        },
+        {
+          "name": "title",
+          "type": "`Text`",
+          "kind": null,
+          "values": null,
+          "required": "是",
+          "default": "—",
+          "description": "名稱（沒取名時由呼叫端給 fallback）"
+        },
+        {
+          "name": "summary",
+          "type": "`Text`",
+          "kind": null,
+          "values": null,
+          "required": "是",
+          "default": "—",
+          "description": "副標＝組成摘要"
+        }
+      ],
+      "slots": [],
+      "events": [],
+      "variants": [],
+      "states": [
+        "default"
+      ],
+      "themes": [
+        "light",
+        "dark"
+      ],
+      "confusableWith": [
+        {
+          "name": "ExerciseRow",
+          "note": "`ExerciseRow` —— 那個右側是分類標籤、左側沒有東西；"
+        }
+      ],
+      "dontUseFor": [
+        "「依動作」模式 —— 那一列左側是肌群圓章，用 `TLListRow` ＋ `TLBadge` 直接組",
+        "把時長放進日期柱 —— 那一柱只承載「哪一天」"
+      ],
+      "composedOf": [
+        "TLListRow"
+      ],
+      "paths": {
+        "spec": "organisms/WorkoutHistoryRow/WorkoutHistoryRow.spec.md",
+        "preview": "organisms/WorkoutHistoryRow/WorkoutHistoryRow.preview.html",
+        "impl": "Packages/History/Sources/HistoryPresentation/Components/WorkoutHistoryRow.swift"
       }
     }
   ]

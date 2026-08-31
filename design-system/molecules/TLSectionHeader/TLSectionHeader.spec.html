@@ -101,6 +101,14 @@
 <td>標題色。進行中的區塊用 <code>actionPressed</code></td>
 </tr>
 <tr>
+<td><code>trailing</code></td>
+<td><code>Text?</code></td>
+<td></td>
+<td>否</td>
+<td><code>nil</code></td>
+<td>右側的<strong>唯讀文字</strong>（例如「共 12 小時」）。與 <code>actionLabel</code> 互斥</td>
+</tr>
+<tr>
 <td><code>actionLabel</code></td>
 <td><code>Text</code></td>
 <td></td>
@@ -132,6 +140,10 @@
 <tr>
 <td>純標題</td>
 <td>只傳 <code>title</code></td>
+</tr>
+<tr>
+<td>標題 ＋ 右側文字</td>
+<td>傳 <code>trailing</code></td>
 </tr>
 <tr>
 <td>標題 ＋ 文字操作</td>
@@ -272,6 +284,11 @@
 <td>2026-08-30</td>
 <td>預設色 <code>neutral500</code> → <code>textTertiary</code></td>
 <td>值相同，改用語意層。⚠ 順帶量到它對容器底只有 2.6:1</td>
+</tr>
+<tr>
+<td>2026-08-31</td>
+<td>新增 <code>trailing</code></td>
+<td>右側原本<strong>只開放給按鈕</strong>，於是需要放唯讀文字的地方（歷史的月份區塊「共 N 小時」）只能自己重畫一次 kicker —— 同一個區塊標題長出第二份實作，那正是漂移的來源。跟 <code>TLBadge(count:)</code> 顏色寫死是同一型：<strong>介面少開一個口，呼叫端就會繞過整個元件</strong></td>
 </tr>
 </tbody>
 </table>

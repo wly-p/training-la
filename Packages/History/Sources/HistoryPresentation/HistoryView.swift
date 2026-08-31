@@ -37,7 +37,7 @@ public struct HistoryView: View {
                     .padding(.top, TLSpace.section)
                 }
                 .padding(.horizontal, TLSpace.page)
-                .padding(.bottom, 40)
+                .padding(.bottom, TLSpace.pageBottom)
             }
             .background(TLColor.bg.ignoresSafeArea())
             #if os(iOS)
@@ -105,16 +105,11 @@ public struct HistoryView: View {
     private func monthSection(_ key: MonthKey, _ workouts: [HistoryWorkoutSummary]) -> some View {
         let totalMinutes = workouts.compactMap(\.durationMinutes).reduce(0, +)
         return VStack(alignment: .leading, spacing: 0) {
-            HStack(alignment: .firstTextBaseline) {
+            TLSectionHeader(
                 Text(HistoryFormatting.monthLabel(month: key.month, locale: locale) + " · ")
-                    + localText("history.monthCount \(workouts.count)")
-                Spacer()
-                localText("history.monthDuration \(totalMinutes / 60) \(totalMinutes % 60)")
-            }
-            .font(TLFont.zh(TLFont.kicker, .semibold))
-            .tracking(TLFont.kickerTracking)
-            .foregroundStyle(TLColor.neutral500)
-            .padding(.bottom, 8)
+                    + localText("history.monthCount \(workouts.count)"),
+                trailing: localText("history.monthDuration \(totalMinutes / 60) \(totalMinutes % 60)")
+            )
             TLGroup {
                 ForEach(workouts) { summary in
                     workoutRow(summary)
@@ -128,21 +123,11 @@ public struct HistoryView: View {
         NavigationLink {
             WorkoutDetailView(summary: summary, makeViewModel: viewModel.makeDetailViewModel(for: summary.id))
         } label: {
-            TLListRow(
+            WorkoutHistoryRow(
+                day: "\(summary.day.day)",
+                weekday: HistoryFormatting.weekdayAbbrev(summary.day, locale: locale),
                 title: summary.name.map { Text(verbatim: $0) } ?? Text(verbatim: freeTrainingLabel),
-                subtitle: Text(daySummaryLine(summary)),
-                showChevron: true,
-                leading: {
-                    VStack(spacing: 1) {
-                        Text(verbatim: "\(summary.day.day)")
-                            .font(TLFont.display(19))
-                            .foregroundStyle(TLColor.text)
-                        Text(verbatim: HistoryFormatting.weekdayAbbrev(summary.day, locale: locale))
-                            .font(TLFont.zh(9.5, .medium))
-                            .foregroundStyle(TLColor.neutral500)
-                    }
-                    .frame(width: 40)
-                }
+                summary: Text(daySummaryLine(summary))
             )
         }
         .buttonStyle(.plain)
