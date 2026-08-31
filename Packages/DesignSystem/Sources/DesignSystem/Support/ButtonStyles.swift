@@ -13,7 +13,7 @@ public struct TLPrimaryButtonStyle: ButtonStyle {
     public init() {}
     public func makeBody(configuration: Configuration) -> some View {
         configuration.label
-            .font(TLFont.zh(15.5, .bold))
+            .font(TLFont.zh(TLFont.buttonLabel, .bold))
             .foregroundStyle(TLColor.bg)
             .padding(.horizontal, 24)
             .frame(maxWidth: .infinity)
@@ -29,7 +29,7 @@ public struct TLSecondaryButtonStyle: ButtonStyle {
     public init() {}
     public func makeBody(configuration: Configuration) -> some View {
         configuration.label
-            .font(TLFont.zh(15.5, .bold))
+            .font(TLFont.zh(TLFont.buttonLabel, .bold))
             .foregroundStyle(TLColor.text)
             .padding(.horizontal, 24)
             .frame(maxWidth: .infinity)
@@ -50,7 +50,7 @@ public struct TLSecondarySmallButtonStyle: ButtonStyle {
     public init() {}
     public func makeBody(configuration: Configuration) -> some View {
         configuration.label
-            .font(TLFont.zh(13, .semibold))
+            .font(TLFont.zh(TLFont.buttonLabelSmall, .semibold))
             .foregroundStyle(TLColor.text)
             .padding(.horizontal, 14)
             .padding(.vertical, 5.5)
@@ -66,7 +66,7 @@ public struct TLTextButtonStyle: ButtonStyle {
     public init() {}
     public func makeBody(configuration: Configuration) -> some View {
         configuration.label
-            .font(TLFont.zh(14, .semibold))
+            .font(TLFont.zh(TLFont.buttonLabel, .semibold))
             .foregroundStyle(TLColor.accent700)
             .opacity(configuration.isPressed ? 0.5 : 1)
     }
@@ -84,7 +84,7 @@ public struct TLDialogDestructiveButtonStyle: ButtonStyle {
     public init() {}
     public func makeBody(configuration: Configuration) -> some View {
         configuration.label
-            .font(TLFont.zh(15, .semibold))
+            .font(TLFont.zh(TLFont.buttonLabel, .semibold))
             .foregroundStyle(TLColor.danger700)
             .padding(.horizontal, 24)
             .frame(maxWidth: .infinity, minHeight: 50)
@@ -100,7 +100,7 @@ public struct TLDialogPrimaryButtonStyle: ButtonStyle {
     public init() {}
     public func makeBody(configuration: Configuration) -> some View {
         configuration.label
-            .font(TLFont.zh(15, .bold))
+            .font(TLFont.zh(TLFont.buttonLabel, .bold))
             .foregroundStyle(TLColor.bg)
             .padding(.horizontal, 24)
             .frame(maxWidth: .infinity, minHeight: 50)
@@ -117,7 +117,7 @@ public struct TLDestructiveButtonStyle: ButtonStyle {
     public init() {}
     public func makeBody(configuration: Configuration) -> some View {
         configuration.label
-            .font(TLFont.zh(15.5, .bold))
+            .font(TLFont.zh(TLFont.buttonLabel, .bold))
             .foregroundStyle(TLColor.bg)
             .padding(.horizontal, 24)
             .frame(maxWidth: .infinity)
@@ -133,7 +133,7 @@ public struct TLDestructiveTextButtonStyle: ButtonStyle {
     public init() {}
     public func makeBody(configuration: Configuration) -> some View {
         configuration.label
-            .font(TLFont.zh(14, .semibold))
+            .font(TLFont.zh(TLFont.buttonLabel, .semibold))
             .foregroundStyle(TLColor.danger700)
             .opacity(configuration.isPressed ? 0.5 : 1)
     }

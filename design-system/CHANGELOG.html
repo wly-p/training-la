@@ -78,6 +78,237 @@
 <li><strong>12</strong> 文件裡提到的 token 名都要真的存在。抓「token 被刪／改名，文件還在講它」。</li>
 </ul>
 <hr />
+<h2>2026-08-31 · 動作庫的字面樣式清到剩「有理由的 17 處」</h2>
+<p>45 處遷移。<strong><code>Spec</code> 歸零</strong>，<code>Plan</code> 71 → 29（其中 12 處屬於課表分頁，不是這一階段的）。</p>
+<h3>新 token 6 個</h3>
+<table>
+<thead>
+<tr>
+<th>token</th>
+<th>值</th>
+<th>用在哪</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>size.gridCell</code> · <code>radius.gridCell</code> · <code>space.gridGap</code></td>
+<td>18 · 5 · 4</td>
+<td>長期課表編輯頁的格狀預覽。格子小，圓角要跟著小（比 <code>iconThumb</code> 7 更方）</td>
+</tr>
+<tr>
+<td><code>size.rowLeadColumn</code></td>
+<td>48</td>
+<td>列首的固定欄（序號）。<strong>與既有的 <code>rowTailColumn</code> 80 對稱</strong></td>
+</tr>
+<tr>
+<td><code>space.fieldPadV</code></td>
+<td>12</td>
+<td>可點的值方塊（重量／次數）上下內距</td>
+</tr>
+<tr>
+<td><code>space.sheetBarTop</code></td>
+<td>14</td>
+<td>整頁 sheet 頂端關閉列的上緣。不是 <code>TLCompactSheet</code>（那個用 <code>gapL</code>）</td>
+</tr>
+</tbody>
+</table>
+<h3>兩處刻意的 −1px</h3>
+<p><code>ProgramListView</code> 的提示卡標題／說明間距 <code>3</code> → <code>space.titleSubGap</code>(2)。
+理由與字級同一條：<strong>同一個關係只該有一個值</strong>，3 與 2 表達的是同一件事（標題與其下的說明）。</p>
+<p><code>ProgramListView</code> 的燒瓶圖示 <code>13</code> → <code>icon.inline</code>(14)，+1px。同理。</p>
+<h3>剩下的 17 處，每一處都有記錄</h3>
+<table>
+<thead>
+<tr>
+<th>剩下</th>
+<th>數量</th>
+<th>為什麼</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>TLFont.display(N)</code></td>
+<td>8</td>
+<td>第二批（display 尺度）</td>
+</tr>
+<tr>
+<td>膠囊幾何（<code>7/14</code>、<code>10/5</code>、<code>10/滿寬</code>）</td>
+<td>5</td>
+<td>第二批（膠囊三分法）</td>
+</tr>
+<tr>
+<td>詳情頁自寫返回列的 <code>.padding(.top, 12)</code></td>
+<td>2</td>
+<td>已知缺口：改用 <code>TLBackBar</code> 之後會變成 8，那是階段 4 的視覺改動</td>
+</tr>
+</tbody>
+</table>
+<p><strong>不是「清不完」，是「清到剩下的都在等別人拍板」。</strong></p>
+<hr />
+<h2>2026-08-31 · 中文字級收斂（設計端第一批拍板）＋ 三個檢查漏洞</h2>
+<h3>17 個字面值 → 13 個角色，52 處遷移</h3>
+<p>設計端立了一條判準，它決定了四題裡的三題：</p>
+<blockquote>
+<p><strong>併不併看「未來會不會分開走」，不是「現在差幾 px」。</strong>
+兩個角色同值、但各自有獨立的未來 → 兩個 token，值可以一樣。
+<strong>同值的兩個 token 不會製造漂移，字面值才會。</strong></p>
+</blockquote>
+<p>這也解釋了為什麼結論跟上一輪的 <code>textBody</code> 不同：<code>textBody</code> 與 <code>textSecondary</code>
+是同一件事的兩個名字，按鈕與列標題不是。</p>
+<table>
+<thead>
+<tr>
+<th>角色</th>
+<th>值</th>
+<th>來源</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>sheetTitle</code></td>
+<td>30</td>
+<td>新。sheet 的大標比 page 小一階是刻意的——sheet 是次級表面</td>
+</tr>
+<tr>
+<td><code>buttonLabel</code></td>
+<td>15</td>
+<td>新。取代 15 處的 <code>15.5</code>（−0.5px）。與 <code>rowTitle</code> 同值但各有各的未來：按鈕受 44pt 觸控區約束、列標題受 56pt 列高約束</td>
+</tr>
+<tr>
+<td><code>buttonLabelSmall</code></td>
+<td>13</td>
+<td>新。<code>buttonLabel</code> 的<strong>配對值</strong>，照 icon <code>inXxx</code> 的模式，不算尺度階</td>
+</tr>
+<tr>
+<td><code>caption</code></td>
+<td>12.5</td>
+<td>原 <code>emptyHint</code>。名字綁死在空狀態會讓人不敢拿它放編輯頁說明文字，然後又寫一個 13</td>
+</tr>
+<tr>
+<td><code>cardTitle</code></td>
+<td>21</td>
+<td>併入 <code>20</code>（對話框、區塊標題）與 <code>19</code>（月曆標題）</td>
+</tr>
+<tr>
+<td><code>detailTitle</code></td>
+<td>26</td>
+<td>新。歷史詳情那個 <code>26</code> <strong>不是漂移，是頁標題住在卡裡</strong></td>
+</tr>
+</tbody>
+</table>
+<p><code>0.5px</code> 沒有立場留下：尺寸差 0.5 在螢幕上不存在，「按鈕要比列標題重一點」該由<strong>字重</strong>做。</p>
+<h3><code>26</code> 那一題：先查位置，結論才翻過來</h3>
+<p>設計端的反問是「歷史詳情是 sheet 還是頁」，兩條路都是併掉。<strong>但兩條路都不對</strong> ——
+查到的位置是 <code>WorkoutDetailView.swift:132</code>，那不是頁標題也不是 sheet 標題：</p>
+<pre><code>歷史詳情頁
+├ 導覽列          系統畫的 inline 日期        ← 頁面沒有 pageTitle(34)
+├ kicker         10.5
+└ 達成摘要卡
+   ├ 訓練名稱     26  ← 問題中的值。整頁最大的中文字
+   ├ 副行／備註   rowSub 11.5
+   └ 統計數字     display 28                 ← 卡裡沒有 cardTitle 可作對照
+</code></pre>
+<p>所以它是<strong>頁標題住在卡裡</strong>：導覽列只承載日期，真正的標題在內容區第一張卡。
+設計端據此改判 —— 保留 26 並命名 <code>detailTitle</code>，理由是它<strong>描述得出一個職責</strong>
+（任何「導覽列不承載標題」的詳情頁都是它），這也是它跟 <code>icon.l</code>(20) 的差別：
+那個是找不到職責的剩餘值。<strong>一處使用撐不起一個階，一個說得出來的職責撐得起。</strong></p>
+<p>若照原本的兩條路併進 <code>cardTitle</code>(21)，那一頁最大的中文字會比它下面的統計數字小 7px ——
+現在層級沒有反，併了才反。</p>
+<p><strong>教訓與 icon 那次同型</strong>：我上一份清單只寫了畫面名（「26 → 歷史詳情」），
+沒寫它在畫面裡的<strong>哪個位置</strong>，所以對方只能猜它是標題，兩個選項都建立在錯的前提上。
+使用清單要給位置，不是給畫面。</p>
+<h3><code>rowIcon: 17</code> 根本不是字級</h3>
+<p>它住在 <code>type.roles</code> 裡，但它是 <code>TLSettingsRow</code> 左側 SF Symbol 的點數。
+<strong>因為住在字級群組，它躲過了上一輪的 icon 收斂</strong>（那次把五個特設值收成兩組四個）。</p>
+<p>已搬到 <code>icon.inRow</code>（值不變）。⚠ 若嚴格照設計端自己的判準「跟文字並排 → <code>icon.inline</code>」，
+它該是 14 —— 那是 −3px、動到每一列設定的視覺改動，留給設計端拍板。</p>
+<h3>檢查 7 有個大洞：<code>TLFont.zh(15.5)</code> 從來沒被算過</h3>
+<p>ratchet 只認 <code>.font(.system(size: N))</code> 與 <code>.font(.custom(…, size: N))</code>。
+<code>TLFont.zh(15.5)</code> 長得像吃了 token，其實是<strong>字面字級</strong> —— 於是 59 處字面字級
+一路躲過了 ratchet。</p>
+<p><strong>「設定頁字面樣式 0」被宣告的那一刻，<code>SettingsView</code> 裡就有一個 13。</strong>
+那句話是錯的，錯在量的東西漏了一整類。</p>
+<p>已補進 <code>LITERAL_STYLE</code>，基線跟著重設：167 → <strong>209</strong>（多出來的 42 就是原本看不見的字級字面值，
+其中 36 個是 display 家族，等第二批）。</p>
+<h3>檢查 9 也有洞：CSS 檔裡打錯的 var 名字沒人管</h3>
+<p>檢查 9 只掃 <code>preview.html</code>，不掃 CSS 檔本身。而 CSS 裡 <code>var(--icon-in-check-circle)</code>
+打錯名字是<strong>靜默失效</strong>（渲染成無效值）。</p>
+<p>實際抓到兩個壞掉的：</p>
+<pre><code>components.preview.css   var(--icon-in-check-circle)   ← 正確是 --icon-inCheckCircle
+components.preview.css   var(--icon-in-icon-button)    ← 正確是 --icon-inIconButton
+</code></pre>
+<p><strong>設計端這幾輪看到的勾號與圓鈕圖示一直是自動尺寸，不是 token 尺寸。</strong>
+根因是兩邊的比對規則都只認小寫，而 icon 的 token 是 camelCase（<code>--icon-inCheckCircle</code>）——
+所以定義端與使用端<strong>同時</strong>被跳過，兩個錯誤互相掩護。已改成大小寫都認，並把檢查 9 延伸到 CSS 檔。</p>
+<h3>新增檢查 17：字級尺度的最小間距</h3>
+<p>設計端拍板的規則：</p>
+<blockquote>
+<p>同一個家族內，兩個<strong>不同</strong>的值差距不得小於 1。同值的兩個角色是允許的。</p>
+</blockquote>
+<p><strong>這條規則一寫出來就擋到設計端自己批准的表</strong>：<code>rowSub</code> 11.5 / <code>badgeText</code>·<code>segCompact</code> 12 /
+<code>caption</code> 12.5 —— 三個角色擠在 1px 內。</p>
+<p>原因是我上一份使用清單把「已命名角色」與「還是字面值的」分成兩張表，
+所以四個角色擠在一起這件事沒有顯示出來。<strong>清單的排版方式決定了對方看不看得見問題。</strong></p>
+<p>沒有靜默放行：兩筆例外登記在 <code>tokens.json</code> 的 <code>_scaleExceptions</code>，每跑一次檢查就印一次，
+未登記的違規是硬錯。<code>paired</code> 的角色（<code>buttonLabelSmall</code>）不算尺度階。</p>
+<h3>不做 token 化的三處</h3>
+<p><code>10</code>（週進度列）、<code>9.5</code>（歷史清單）——設計端判定<strong>低於可讀下限</strong>，
+不併進 <code>kicker</code>(10.5)，要連同 kicker 的對比度一起檢視。三處都留著字面值，
+已進已知缺口。這是設計改動不是收斂。</p>
+<h3>留給第二批</h3>
+<p><code>26</code>（歷史詳情）、display 家族 13 個值 36 處、單位字級（<code>13</code>×3、<code>15</code>×1）、
+膠囊幾何 11 種。單位跟著旁邊的 display 數字走，不由中文字級決定。</p>
+<hr />
+<h2>2026-08-31 · 階段 2 續：L3 規格補齊、生成器修好</h2>
+<h3>交付給設計端的 <code>components.json</code> 少了三個欄位而沒有人報錯</h3>
+<p>規格從十二節收成八節時，<code>gen-design-index.py</code> 沒跟上：它還在找
+<code>## 10 用法與禁用法</code> 與 <code>## 11 組成 ★</code>。兩個標題都不存在了，
+<code>sect()</code> 找不到就回空字串 —— 於是 <code>composedOf</code>／<code>confusableWith</code>／<code>dontUseFor</code>
+<strong>靜默變成空的</strong>。</p>
+<p>設計端拿到的 <code>components.json</code> 裡，22 個元件全部 <code>composedOf: null</code>。
+<strong>「元件由什麼組成」是這份 JSON 最有價值的欄位之一，而它空了不知道幾輪。</strong></p>
+<p>修好之後：組成從第 1 節讀、易混淆的比對也認 L3（原本只抓 <code>TL\w+</code>，
+<code>TemplateRow</code> 這種不以 TL 開頭的名字整組漏掉）。</p>
+<h3>補上五份規格</h3>
+<table>
+<thead>
+<tr>
+<th></th>
+<th></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>TLRowContent</code>（L2）</td>
+<td><strong>階段 2 最重要的那個修正</strong>，之前只有程式碼沒有規格</td>
+</tr>
+<tr>
+<td><code>TLTitleWithTag</code>（L2）</td>
+<td>從 <code>TLEquipmentTag.swift</code> 拆出、去掉名字裡的 domain 詞彙</td>
+</tr>
+<tr>
+<td><code>TemplateRow</code>／<code>RotationRow</code>／<code>ProgramRow</code>（L3）</td>
+<td>只有 <code>ExerciseRow</code> 有規格，另外三個沒有</td>
+</tr>
+<tr>
+<td><code>TLSwipeToRevealRow</code>（控制項）</td>
+<td>L3 的組成宣告指得到它才有意義</td>
+</tr>
+</tbody>
+</table>
+<p>檢查 11 現在也認 <code>_controls/</code> 的元件 —— 否則 L3 的組成只能寫得含糊，
+而那正是這條檢查要擋的東西。檢查 16 的段落比對也認 L3（原本只認 <code>TL</code> 開頭）。</p>
+<h3>順手抓到的兩個實作／鏡像不一致</h3>
+<p><strong>副標的顏色</strong>：<code>TLRowContent</code> 用 <code>neutral-500</code>，CSS 鏡像寫 <code>text-secondary</code>(neutral-700)。
+文字階合併後 Swift 端還有九十幾處沒遷移。<strong>鏡像改成跟著實作走</strong> ——
+鏡像的用途是讓設計端看到 app 現在長什麼樣，不是長什麼樣才對。遷移列進已知缺口。</p>
+<p><strong>進度條軌道的方向</strong>：規格寫「軌道要比所在的底稍深」，但實際上長期課表詳情那張卡是
+<code>neutral-300</code> 的深底，軌道傳的是<strong>更淺</strong>的 <code>neutral-100</code>。方向不是固定的 ——
+那才是 <code>track</code> 不能寫死的真正理由。規格、元件註解、CSS 註解三處都改了。</p>
+<p>順帶：<code>ProgramRow</code> 傳的 <code>neutral-200</code> 就是預設值 <code>surfaceTrack</code> 本身，拿掉了。</p>
+<h3>token</h3>
+<p><code>size.swipeAction</code> 88（左滑動作區寬，原本是控制項裡的字面值）。</p>
+<hr />
 <h2>2026-08-31 · 階段 2（動作庫）· 四個 L3 抽出，賭注有答案了</h2>
 <h3>核心問題：7 個 L3 能不能純由 L2 組成？</h3>
 <p><strong>答案：能，但有兩個分子的介面把兩件事綁死了，要先拆開。</strong></p>
@@ -608,12 +839,12 @@ inCheckCircle 11  inIconButton 18  ← 裝在固定容器裡的配對值，跟�
 <td>撞到它的第一個階段順手命名</td>
 </tr>
 <tr>
-<td><code>TLFont.display(N)</code> 用了 <strong>16 種字面字級</strong>（15／20／16／34／30／28／26／13.5／60／56／19／17／14…），只有 2 處走 token</td>
+<td><code>TLFont.display(N)</code> 用了 <strong>13 種字面字級、36 處</strong>（15×14／20×4／34·30·28 各 3／60·56 各 1…），只有 3 個有角色名。<code>15</code> 比已命名的 <code>rowNumber</code>(16) 還常用</td>
 <td>全 app</td>
-<td>數字的字級尺度需要一次性收斂，建議在階段 5（訓練）之前決定</td>
+<td>第二批已送出使用清單，等設計端</td>
 </tr>
 <tr>
-<td>Presentation 層 <strong>181 處</strong>字面樣式</td>
+<td>Presentation 層 <strong>209 處</strong>字面樣式（2026-08-31 起 ratchet 也算 <code>TLFont.zh/display</code> 的字面字級，所以數字比上一輪大——多出來的 42 是原本看不見的）</td>
 <td>見 <code>.presentation-baseline.json</code></td>
 <td>每階段往下推，階段 5 結束歸零</td>
 </tr>
@@ -623,9 +854,39 @@ inCheckCircle 11  inIconButton 18  ← 裝在固定容器裡的配對值，跟�
 <td>✅ 已修（整階下移一階，見上方 2026-08-30 交付審閱後）</td>
 </tr>
 <tr>
-<td><code>TLExerciseNameWithEquipment</code> 名字帶 domain 詞彙（實際不 import domain，層級沒錯，只是命名有味道）</td>
-<td>1 處</td>
-<td>階段 2</td>
+<td>~~<code>TLExerciseNameWithEquipment</code> 名字帶 domain 詞彙~~</td>
+<td>—</td>
+<td>✅ 階段 2 已改名 <code>TLTitleWithTag</code> 並拆成獨立檔</td>
+</tr>
+<tr>
+<td><strong><code>10</code> 與 <code>9.5</code> 低於可讀下限</strong> —— 設計端判定不該 token 化，要連同 <code>kicker</code>(10.5) 的字級與對比度一起檢視（×1.08 之後是 10.8／10.26，仍然太小）</td>
+<td><code>WeekProgressRow:20</code>、<code>HistoryView:141</code></td>
+<td>設計改動，不是收斂。等設計端排</td>
+</tr>
+<tr>
+<td><strong>字級單位（<code>13</code>×3、<code>15</code>×1）</strong> —— 單位跟著旁邊的 display 數字走，尺寸不由中文字級決定</td>
+<td><code>WorkoutDetailView:187/191/205</code>、<code>ActiveWorkoutView:939</code></td>
+<td>第二批（display 尺度）</td>
+</tr>
+<tr>
+<td><strong>膠囊裡的文字 <code>11</code></strong> —— 屬於膠囊幾何那組，不是獨立字級</td>
+<td><code>TrainingHomeView:352</code></td>
+<td>第二批（膠囊三分法）</td>
+</tr>
+<tr>
+<td><strong><code>detailTitle</code>(26) 與統計數字 <code>display 28</code> 差 2px</strong> —— 兩種東西在爭同一張卡的最大字</td>
+<td><code>WorkoutDetailView</code></td>
+<td>第二批（28 有可能會動）</td>
+</tr>
+<tr>
+<td><strong>副標的顏色鏡像落差</strong> —— Swift 用 <code>neutral-500</code>、語意層意圖是 <code>textSecondary</code>(neutral-700)，全 app 九十幾處未遷移。CSS 鏡像目前跟著實作走</td>
+<td>90+ 處</td>
+<td>視覺改動，要單獨一輪</td>
+</tr>
+<tr>
+<td><strong><code>icon.inRow</code>(17) 的值本身</strong> —— 已從字級群組搬進 icon 群組，但若嚴格照「跟文字並排 → <code>icon.inline</code>」的判準它該是 14（−3px，動到每一列設定）</td>
+<td>1 處（<code>TLSettingsRow</code>）</td>
+<td>等設計端拍板</td>
 </tr>
 <tr>
 <td>~~<code>TLCircleIconButton</code> 是 View 卻住在 <code>Support/ButtonStyles.swift</code>~~</td>

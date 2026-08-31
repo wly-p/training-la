@@ -115,17 +115,17 @@
 </thead>
 <tbody>
 <tr>
-<td>群組容器（<code>surfaceRaised</code> 底）</td>
+<td>群組容器或淺卡（<code>surfaceRaised</code> 底）</td>
 <td><code>surfaceTrack</code>（預設）</td>
 </tr>
 <tr>
-<td>卡片（更淺的底）</td>
-<td>呼叫端傳更淺的一階</td>
+<td>深卡（<code>neutral-300</code> 底，長期課表詳情）</td>
+<td>呼叫端傳<strong>更淺</strong>的一階</td>
 </tr>
 </tbody>
 </table>
-<p><strong>為什麼軌道色要開成 prop</strong>：它會疊在不同底色上，軌道要比所在的底稍深才看得出來。
-寫死的話在其中一種底上會消失。</p>
+<p><strong>為什麼軌道色要開成 prop</strong>：它會疊在深淺不同的底上，軌道要跟所在的底<strong>有對比</strong> ——
+淺底上要更深、深底上要更淺。寫死的話在其中一種底上會整條消失。</p>
 <h2>4 狀態 states ★</h2>
 <!-- states: empty, partial, full -->
 <!-- themes: light, dark -->
@@ -247,7 +247,7 @@
 <tr>
 <td>2026-08-31</td>
 <td>從 <code>ProgramListView</code> 與 <code>ProgramDetailView</code> 抽出</td>
-<td>兩處各手工重建一份（<code>GeometryReader</code> ＋ 兩個 <code>Capsule</code>），只差軌道色。<strong>設計文件的 L1 清單本來就有 <code>TLProgressBar</code>，只是實作沒有</strong></td>
+<td>兩處各手工重建一份（<code>GeometryReader</code> ＋ 兩個 <code>Capsule</code>），只差軌道色（一個更深、一個更淺，剛好是不能寫死的證據）。<strong>設計文件的 L1 清單本來就有 <code>TLProgressBar</code>，只是實作沒有</strong></td>
 </tr>
 <tr>
 <td>2026-08-31</td>

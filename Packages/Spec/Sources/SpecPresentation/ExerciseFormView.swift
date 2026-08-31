@@ -106,7 +106,7 @@ struct ExerciseFormView: View {
 
     private var muscleSection: some View {
         TLEditSection(localText("spec.muscleGroup")) {
-            TLFlowLayout(spacing: 8, lineSpacing: 8) {
+            TLFlowLayout(spacing: TLSpace.gapS, lineSpacing: TLSpace.gapS) {
                 ForEach(MuscleGroup.allCases, id: \.self) { group in
                     TLSelectableChip(
                         group.displayName(locale),
@@ -125,7 +125,7 @@ struct ExerciseFormView: View {
 
     private var equipmentSection: some View {
         TLEditSection(localText("spec.equipment"), footer: localText("spec.equipment.hint")) {
-            TLFlowLayout(spacing: 8, lineSpacing: 8) {
+            TLFlowLayout(spacing: TLSpace.gapS, lineSpacing: TLSpace.gapS) {
                 ForEach(Equipment.allCases, id: \.self) { item in
                     TLSelectableChip(
                         item.displayName(locale),

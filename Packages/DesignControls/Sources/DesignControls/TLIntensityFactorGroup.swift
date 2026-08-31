@@ -138,7 +138,7 @@ public struct TLIntensityOverridePill: View {
                         .foregroundStyle(TLColor.neutral600)
                 }
             }
-            .font(TLFont.zh(11.5, .semibold))
+            .font(TLFont.zh(TLFont.rowSub, .semibold))
             .padding(.horizontal, 10)
             .padding(.vertical, 5)
             .background {

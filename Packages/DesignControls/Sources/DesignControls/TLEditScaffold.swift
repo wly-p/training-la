@@ -68,13 +68,13 @@ public struct TLEditScaffold<Content: View>: View {
         HStack {
             Button(action: onCancel) {
                 cancelLabel
-                    .font(TLFont.zh(15.5, .medium))
+                    .font(TLFont.zh(TLFont.buttonLabel, .medium))
                     .foregroundStyle(TLColor.neutral600)
             }
             Spacer()
             Button(action: onSave) {
                 saveLabel
-                    .font(TLFont.zh(15.5, .bold))
+                    .font(TLFont.zh(TLFont.buttonLabel, .bold))
                     .foregroundStyle(canSave ? TLColor.accent700 : TLColor.neutral400)
             }
             .disabled(!canSave)
@@ -95,7 +95,7 @@ public struct TLEditScaffold<Content: View>: View {
                 .accessibilityIdentifier("editScaffold.title")
             if let subtitle {
                 subtitle
-                    .font(TLFont.zh(13, .regular))
+                    .font(TLFont.zh(TLFont.caption, .regular))
                     .foregroundStyle(TLColor.neutral600)
             }
             Rectangle()

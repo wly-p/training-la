@@ -107,8 +107,17 @@
         "light",
         "dark"
       ],
-      "confusableWith": [],
-      "dontUseFor": [],
+      "confusableWith": [
+        {
+          "name": "TLIconThumbnail",
+          "note": "`TLIconThumbnail`（列裡的方形圖片）—— 圓章是**字或數字**（抽象標示），"
+        }
+      ],
+      "dontUseFor": [
+        "放 3 個字以上 —— 會撐出圓形",
+        "當可點的按鈕 —— 它是標示，點擊屬於整列",
+        "用赭紅底 —— 那個顏色保留給可操作的東西"
+      ],
       "composedOf": null,
       "paths": {
         "spec": "atoms/TLBadge/TLBadge.spec.md",
@@ -152,8 +161,17 @@
         "light",
         "dark"
       ],
-      "confusableWith": [],
-      "dontUseFor": [],
+      "confusableWith": [
+        {
+          "name": "TLChevron",
+          "note": "`TLChevron`（可進入的列）—— 這個表示**選取**，那個表示**進入下一層**。"
+        }
+      ],
+      "dontUseFor": [
+        "當可點的按鈕 —— 22pt 不是合法觸控目標，要整列可點",
+        "跟 chevron 並存",
+        "表達「完成」之類的狀態 —— 它表達的是「被選中」，語意不同"
+      ],
       "composedOf": null,
       "paths": {
         "spec": "atoms/TLCheckCircle/TLCheckCircle.spec.md",
@@ -191,7 +209,11 @@
         "dark"
       ],
       "confusableWith": [],
-      "dontUseFor": [],
+      "dontUseFor": [
+        "表達展開／收合 —— 那要的是會旋轉的記號，不是這個",
+        "當作裝飾放在不可進入的列上 —— 那會騙使用者",
+        "自己加 padding 到元件裡 —— 間距是列的責任"
+      ],
       "composedOf": null,
       "paths": {
         "spec": "atoms/TLChevron/TLChevron.spec.md",
@@ -308,8 +330,17 @@
         "light",
         "dark"
       ],
-      "confusableWith": [],
-      "dontUseFor": [],
+      "confusableWith": [
+        {
+          "name": "TLIconThumbnail",
+          "note": "`TLIconThumbnail`（列裡的方形圖片預覽）—— 這個是**可點的動作**，那個是唯讀的縮圖。"
+        }
+      ],
+      "dontUseFor": [
+        "放文字進去 —— 它是圖示按鈕，文字動作用文字按鈕樣式",
+        "用 `size.iconButtonSmall` 卻不補觸控區 —— 那會做出 34pt 的觸控目標",
+        "用 `accent` 當次要動作 —— 一個畫面最多一個主要動作區"
+      ],
       "composedOf": null,
       "paths": {
         "spec": "atoms/TLCircleIconButton/TLCircleIconButton.spec.md",
@@ -344,8 +375,16 @@
         "light",
         "dark"
       ],
-      "confusableWith": [],
-      "dontUseFor": [],
+      "confusableWith": [
+        {
+          "name": "TLGroup",
+          "note": "容器外框 —— 那是 `TLGroup` 的圓角邊界，這個是**容器內部**的列間線。"
+        }
+      ],
+      "dontUseFor": [
+        "手動放在畫面層 —— 那會繞過「頭尾不畫線」的規則，而那正是這套視覺的辨識點",
+        "當區塊分隔 —— 區塊之間用的是間距（`space.section`），不是線"
+      ],
       "composedOf": null,
       "paths": {
         "spec": "atoms/TLDivider/TLDivider.spec.md",
@@ -387,8 +426,17 @@
         "light",
         "dark"
       ],
-      "confusableWith": [],
-      "dontUseFor": [],
+      "confusableWith": [
+        {
+          "name": "TLBadge",
+          "note": "`TLBadge`（列左側的圓章，表達分類或數量）—— 這個是**圖片預覽**，不表達任何值。"
+        }
+      ],
+      "dontUseFor": [
+        "當主要內容 —— 它是列的附屬，尺寸小到只能當提示",
+        "放非方形、非圖示的圖 —— 圓角比例是為 App 圖示調的",
+        "自己加 padding 到元件裡 —— 間距是列的責任"
+      ],
       "composedOf": null,
       "paths": {
         "spec": "atoms/TLIconThumbnail/TLIconThumbnail.spec.md",
@@ -444,8 +492,17 @@
         "light",
         "dark"
       ],
-      "confusableWith": [],
-      "dontUseFor": [],
+      "confusableWith": [
+        {
+          "name": "TLSegmentedControl",
+          "note": "`TLSegmentedControl`（切換檢視）—— 那個可互動、表達選擇；"
+        }
+      ],
+      "dontUseFor": [
+        "表達不確定的等待 —— 它是決定性的比例，不是 spinner",
+        "當分隔線 —— 那是 `TLDivider`",
+        "自己算比例然後傳 0 或 1 —— 直接傳算式，夾住是元件的責任"
+      ],
       "composedOf": null,
       "paths": {
         "spec": "atoms/TLProgressBar/TLProgressBar.spec.md",
@@ -497,8 +554,17 @@
         "light",
         "dark"
       ],
-      "confusableWith": [],
-      "dontUseFor": [],
+      "confusableWith": [
+        {
+          "name": "TLSettingsValue",
+          "note": "`TLSettingsValue`（設定列右側的值）—— 那個是**文字**（用中文字體），"
+        }
+      ],
+      "dontUseFor": [
+        "放純文字 —— Caprasimo 是為數字設計的，中文字會很奇怪",
+        "自己做格式化 —— 傳進來的應該是格式化好的字串，小數位數是呼叫端的決定",
+        "放兩個以上的數值 —— 一列一個答案"
+      ],
       "composedOf": null,
       "paths": {
         "spec": "atoms/TLRowValue/TLRowValue.spec.md",
@@ -539,8 +605,17 @@
         "light",
         "dark"
       ],
-      "confusableWith": [],
-      "dontUseFor": [],
+      "confusableWith": [
+        {
+          "name": "TLRowValue",
+          "note": "`TLRowValue`（列表列的右側數值）—— 那個是**數字**（用 Caprasimo、可帶單位），"
+        }
+      ],
+      "dontUseFor": [
+        "放數字 —— 數字用 `TLRowValue`，字體不同",
+        "當第二行副標 —— 副標是列的 `subtitle`，位置與字級都不一樣",
+        "沒有值時放一個空的 —— 那會留下一塊看不見的空白，不如不放"
+      ],
       "composedOf": null,
       "paths": {
         "spec": "atoms/TLSettingsValue/TLSettingsValue.spec.md",
@@ -570,8 +645,17 @@
         "light",
         "dark"
       ],
-      "confusableWith": [],
-      "dontUseFor": [],
+      "confusableWith": [
+        {
+          "name": "TLCheckCircle",
+          "note": "`TLCheckCircle`（清單裡的選取記號）—— 開關表達「這個功能開著嗎」，"
+        }
+      ],
+      "dontUseFor": [
+        "自繪一個看起來一樣的按鈕 —— 會失去 `switches` 的測試可定位性（XCUITest 認得 `.switches`、value 是 `\"1\"`／`\"0\"`）",
+        "用系統預設樣式 —— 見第 6 節",
+        "拿它表達「選中」—— 那是 `TLCheckCircle`"
+      ],
       "composedOf": null,
       "paths": {
         "spec": "atoms/TLToggle/TLToggle.spec.md",
@@ -614,9 +698,20 @@
         "light",
         "dark"
       ],
-      "confusableWith": [],
-      "dontUseFor": [],
-      "composedOf": null,
+      "confusableWith": [
+        {
+          "name": "TLPageHeader",
+          "note": "`TLPageHeader`（頁面主標）—— 這個是**主標上方的導航列**，兩者通常上下相鄰但職責不同："
+        }
+      ],
+      "dontUseFor": [
+        "當作 navigation bar 用 —— 它只有返回與一個動作，不是完整的工具列",
+        "在根層畫面用 —— 根層沒有「回去」，放了會騙使用者",
+        "把標題塞進 trailing —— 標題是 `TLPageHeader` 的事"
+      ],
+      "composedOf": [
+        "TLCircleIconButton"
+      ],
       "paths": {
         "spec": "molecules/TLBackBar/TLBackBar.spec.md",
         "preview": "molecules/TLBackBar/TLBackBar.preview.html",
@@ -646,9 +741,19 @@
         "light",
         "dark"
       ],
-      "confusableWith": [],
-      "dontUseFor": [],
-      "composedOf": null,
+      "confusableWith": [
+        {
+          "name": "TLGroup",
+          "note": "`TLGroup`（群組容器）—— 那個是這個 ＋ 圓角 ＋ 底色。"
+        }
+      ],
+      "dontUseFor": [
+        "當一般的 `VStack` 用 —— 它會硬加分隔線",
+        "期待它有間距 —— 子項間距是 0，靠分隔線區隔"
+      ],
+      "composedOf": [
+        "TLDivider"
+      ],
       "paths": {
         "spec": "molecules/TLDividedVStack/TLDividedVStack.spec.md",
         "preview": "molecules/TLDividedVStack/TLDividedVStack.preview.html",
@@ -698,8 +803,17 @@
         "light",
         "dark"
       ],
-      "confusableWith": [],
-      "dontUseFor": [],
+      "confusableWith": [
+        {
+          "name": "TLMuscleTag",
+          "note": "`TLMuscleTag` —— 那個**可選取**（chip，有選中／未選狀態、可點）；"
+        }
+      ],
+      "dontUseFor": [
+        "表達狀態（進行中／已完成）—— 那是狀態膠囊，用色與語意都不同",
+        "放長句 —— 它 `fixedSize`，長句會把整列撐爛",
+        "一列放兩個 —— 尾欄只有一欄"
+      ],
       "composedOf": null,
       "paths": {
         "spec": "molecules/TLEquipmentTag/TLEquipmentTag.spec.md",
@@ -731,9 +845,21 @@
         "light",
         "dark"
       ],
-      "confusableWith": [],
-      "dontUseFor": [],
-      "composedOf": null,
+      "confusableWith": [
+        {
+          "name": "TLSectionHeader",
+          "note": "`TLSectionHeader`（區塊標題）—— 那個是卡**上方**的標籤，這個是卡本身。"
+        }
+      ],
+      "dontUseFor": [
+        "包單一個非列的東西（例如一張圖）—— 那不是「一組列」，會拿到不該有的分隔線邏輯",
+        "巢狀 —— 卡中卡沒有設計，而且分隔線會亂",
+        "沒有內容時還放著 —— 見第 4 節的 empty"
+      ],
+      "composedOf": [
+        "TLDividedVStack",
+        "TLDivider"
+      ],
       "paths": {
         "spec": "molecules/TLGroup/TLGroup.spec.md",
         "preview": "molecules/TLGroup/TLGroup.preview.html",
@@ -785,8 +911,17 @@
         "light",
         "dark"
       ],
-      "confusableWith": [],
-      "dontUseFor": [],
+      "confusableWith": [
+        {
+          "name": "TLEmptyState",
+          "note": "`TLEmptyState` —— 差別是**有沒有自己的容器**。"
+        }
+      ],
+      "dontUseFor": [
+        "需要行動鈕時 —— 用 `TLEmptyState`",
+        "放在卡片裡 —— 它自己有上下留白，會跟卡片的 padding 疊起來",
+        "用同一份文案應付所有空的原因 —— 「搜尋無結果」與「還沒建立任何項目」是不同的事"
+      ],
       "composedOf": null,
       "paths": {
         "spec": "molecules/TLInlineEmptyState/TLInlineEmptyState.spec.md",
@@ -876,9 +1011,23 @@
         "light",
         "dark"
       ],
-      "confusableWith": [],
-      "dontUseFor": [],
-      "composedOf": null,
+      "confusableWith": [
+        {
+          "name": "TLSettingsRow",
+          "note": "`TLSettingsRow`（設定列）—— 那個沒有圓章、右側是「目前的值」，用在**設定**；"
+        }
+      ],
+      "dontUseFor": [
+        "同時用 `subtitle` 與 `detail` —— 兩行第二內容沒有設計",
+        "把狀態放進副標 —— 狀態一律放右側，副標是組成摘要",
+        "chevron 與 `TLCheckCircle` 並存 —— 點下去是選還是進去會分不清"
+      ],
+      "composedOf": [
+        "TLBadge",
+        "TLCheckCircle",
+        "TLChevron",
+        "TLRowValue"
+      ],
       "paths": {
         "spec": "molecules/TLListRow/TLListRow.spec.md",
         "preview": "molecules/TLListRow/TLListRow.preview.html",
@@ -928,13 +1077,116 @@
         "light",
         "dark"
       ],
-      "confusableWith": [],
-      "dontUseFor": [],
-      "composedOf": null,
+      "confusableWith": [
+        {
+          "name": "TLBackBar",
+          "note": "`TLBackBar`（返回列）—— 這個回答「這是哪裡」，那個回答「怎麼回去」。"
+        }
+      ],
+      "dontUseFor": [
+        "一頁放兩個 —— 主標只有一個，第二層用 `TLSectionHeader`",
+        "把返回鈕塞進 accessory —— 返回是 `TLBackBar` 的事，位置也不同",
+        "用它當區塊標題 —— 字級差太多（34 vs 10.5）"
+      ],
+      "composedOf": [
+        "TLCircleIconButton"
+      ],
       "paths": {
         "spec": "molecules/TLPageHeader/TLPageHeader.spec.md",
         "preview": "molecules/TLPageHeader/TLPageHeader.preview.html",
         "impl": "Packages/DesignSystem/Sources/DesignSystem/Molecules/TLPageHeader.swift"
+      }
+    },
+    {
+      "name": "TLRowContent",
+      "level": "L2",
+      "layer": "molecules",
+      "responsibility": "列的**內容排版**：左件 ＋ 主副標 ＋ 右件 ＋ 指向記號",
+      "prototypeIds": [
+        "5b"
+      ],
+      "prototypeNote": "4c",
+      "standalone": false,
+      "requiresContainer": [
+        "TLListRow"
+      ],
+      "containerOwns": "左右內距、最小高度、可不可點，**全部由容器負責**",
+      "props": [
+        {
+          "name": "title",
+          "type": "`Text`",
+          "kind": null,
+          "values": null,
+          "required": "是",
+          "default": "—",
+          "description": "列名"
+        },
+        {
+          "name": "subtitle",
+          "type": "`Text?`",
+          "kind": null,
+          "values": null,
+          "required": "否",
+          "default": "`nil`",
+          "description": "第二行。內容規則是「組成摘要」，見第 7 節"
+        },
+        {
+          "name": "equipment",
+          "type": "`String?`",
+          "kind": null,
+          "values": null,
+          "required": "否",
+          "default": "`nil`",
+          "description": "標題右側的小標。給的話走 `TLTitleWithTag` 排法"
+        },
+        {
+          "name": "showChevron",
+          "type": "`Bool`",
+          "kind": null,
+          "values": null,
+          "required": "否",
+          "default": "`false`",
+          "description": "是否通往下一層"
+        }
+      ],
+      "slots": [
+        "leading",
+        "TLBadge",
+        "TLCheckCircle"
+      ],
+      "events": [],
+      "variants": [],
+      "states": [
+        "single",
+        "withSub",
+        "withDetail"
+      ],
+      "themes": [
+        "light",
+        "dark"
+      ],
+      "confusableWith": [
+        {
+          "name": "TLListRow",
+          "note": "`TLListRow` —— 那個是**這個元件 ＋ 外框**（內距、最小高度、整列可點）。"
+        }
+      ],
+      "dontUseFor": [
+        "直接放進 `TLGroup` —— 沒有內距會貼邊，那是 `TLListRow` 的工作",
+        "同時給 `subtitle` 與 `detail` —— 兩行第二內容沒有設計",
+        "把狀態放進副標 —— 狀態一律放右側，副標是組成摘要"
+      ],
+      "composedOf": [
+        "TLBadge",
+        "TLCheckCircle",
+        "TLChevron",
+        "TLRowValue",
+        "TLTitleWithTag"
+      ],
+      "paths": {
+        "spec": "molecules/TLRowContent/TLRowContent.spec.md",
+        "preview": "molecules/TLRowContent/TLRowContent.preview.html",
+        "impl": "Packages/DesignSystem/Sources/DesignSystem/Molecules/TLRowContent.swift"
       }
     },
     {
@@ -1008,8 +1260,17 @@
         "light",
         "dark"
       ],
-      "confusableWith": [],
-      "dontUseFor": [],
+      "confusableWith": [
+        {
+          "name": "TLPageHeader",
+          "note": "`TLPageHeader` 的 `kicker`（主標上方的小標）—— 字級與樣式幾乎一樣，"
+        }
+      ],
+      "dontUseFor": [
+        "右側放圖示按鈕 —— 這裡只收文字操作，圖示操作屬於 `TLPageHeader` 的 accessory",
+        "一個區塊只有一列時還加標題 —— 標題與列名容易重複（`handoff-20` A 節就砍掉過一個）",
+        "傳已經大寫的字串 —— 大寫是元件的視覺處理，來源該是原文"
+      ],
       "composedOf": null,
       "paths": {
         "spec": "molecules/TLSectionHeader/TLSectionHeader.spec.md",
@@ -1095,8 +1356,17 @@
         "light",
         "dark"
       ],
-      "confusableWith": [],
-      "dontUseFor": [],
+      "confusableWith": [
+        {
+          "name": "TLChipRow",
+          "note": "`TLChipRow`（選一個值的 chip 列）—— chip 是「選一個**值**」（總長度、強度基準），"
+        }
+      ],
+      "dontUseFor": [
+        "超過 4 段 —— 改用 drill-in 選擇頁",
+        "段落文字長度差很多 —— `regular` 平分寬度會讓短的那段留一大片空白",
+        "在 `TLSettingsRow` 裡用 `regular` —— 會撐高列，`handoff-20` §B 就是為了修這個才加 compact"
+      ],
       "composedOf": null,
       "paths": {
         "spec": "molecules/TLSegmentedControl/TLSegmentedControl.spec.md",
@@ -1214,9 +1484,22 @@
         "light",
         "dark"
       ],
-      "confusableWith": [],
-      "dontUseFor": [],
-      "composedOf": null,
+      "confusableWith": [
+        {
+          "name": "TLListRow",
+          "note": "`TLListRow`（列表列）—— 那個有圓章、副標、可選取，用在**資料清單**；"
+        }
+      ],
+      "dontUseFor": [
+        "開關列 —— 用 `TLSettingsToggleRow`，它底層是 `Toggle`，保留 `switches` 的測試可定位性",
+        "destructive ＋ chevron 並存 —— 破壞性操作就地執行，不通往任何地方",
+        "放在 `TLGroup` 外面 —— 會失去圓角、底色與分隔線"
+      ],
+      "composedOf": [
+        "TLChevron",
+        "TLSegmentedControl",
+        "TLSettingsValue"
+      ],
       "paths": {
         "spec": "molecules/TLSettingsRow/TLSettingsRow.spec.md",
         "preview": "molecules/TLSettingsRow/TLSettingsRow.preview.html",
@@ -1288,13 +1571,101 @@
         "light",
         "dark"
       ],
-      "confusableWith": [],
-      "dontUseFor": [],
-      "composedOf": null,
+      "confusableWith": [
+        {
+          "name": "TLSettingsRow",
+          "note": "`TLSettingsRow` ＋ trailing 放開關 —— **不要那樣做**。"
+        }
+      ],
+      "dontUseFor": [
+        "開關以外的東西 —— 右側固定是開關，不是 slot",
+        "`hint` 與 `subtitle` 同時用 —— 擇一，兩個都放會讓列變得很吵",
+        "把說明文字放到群組下方 —— 見第 3 節"
+      ],
+      "composedOf": [
+        "TLToggle"
+      ],
       "paths": {
         "spec": "molecules/TLSettingsToggleRow/TLSettingsToggleRow.spec.md",
         "preview": "molecules/TLSettingsToggleRow/TLSettingsToggleRow.preview.html",
         "impl": "Packages/DesignSystem/Sources/DesignSystem/Molecules/TLSettingsToggleRow.swift"
+      }
+    },
+    {
+      "name": "TLTitleWithTag",
+      "level": "L2",
+      "layer": "molecules",
+      "responsibility": "名稱 ＋ 緊跟在後的小標籤",
+      "prototypeIds": [],
+      "prototypeNote": "12c",
+      "standalone": true,
+      "requiresContainer": null,
+      "containerOwns": "字體與顏色**由呼叫端先套在 `title` 上**（大標與列各有各的）",
+      "props": [
+        {
+          "name": "title",
+          "type": "`Text`",
+          "kind": null,
+          "values": null,
+          "required": "是",
+          "default": "—",
+          "description": "已經套好字體與顏色的名稱"
+        },
+        {
+          "name": "equipment",
+          "type": "`String`",
+          "kind": null,
+          "values": null,
+          "required": "是",
+          "default": "—",
+          "description": "跟在名稱後的標籤文字"
+        },
+        {
+          "name": "name",
+          "type": "`String`",
+          "kind": null,
+          "values": null,
+          "required": "是",
+          "default": "—",
+          "description": "便利建構子用：純字串名稱（使用者資料，不本地化）"
+        },
+        {
+          "name": "font",
+          "type": "`Font`",
+          "kind": null,
+          "values": null,
+          "required": "否",
+          "default": "`type.rowTitle` semibold",
+          "description": "便利建構子用：套在名稱上的字體"
+        }
+      ],
+      "slots": [],
+      "events": [],
+      "variants": [],
+      "states": [
+        "default"
+      ],
+      "themes": [
+        "light",
+        "dark"
+      ],
+      "confusableWith": [
+        {
+          "name": "TLEquipmentTag",
+          "note": "`TLEquipmentTag` 單用 —— 那是列尾欄的標籤；這個是名稱後面緊跟一顆。"
+        }
+      ],
+      "dontUseFor": [
+        "**清單列不要用**。標籤跟著名稱浮動時，每一列的左緣都不同，整份清單會出現鋸齒。",
+        "放兩顆標籤 —— 沒有這個排法"
+      ],
+      "composedOf": [
+        "TLEquipmentTag"
+      ],
+      "paths": {
+        "spec": "molecules/TLTitleWithTag/TLTitleWithTag.spec.md",
+        "preview": "molecules/TLTitleWithTag/TLTitleWithTag.preview.html",
+        "impl": "Packages/DesignSystem/Sources/DesignSystem/Molecules/TLTitleWithTag.swift"
       }
     },
     {
@@ -1400,13 +1771,406 @@
         "light",
         "dark"
       ],
-      "confusableWith": [],
-      "dontUseFor": [],
-      "composedOf": null,
+      "confusableWith": [
+        {
+          "name": "TemplateRow",
+          "note": "`TemplateRow`（範本列）—— 那個左側有數字圓章、副標是組成摘要；"
+        }
+      ],
+      "dontUseFor": [
+        "顯示範本／循環／長期 —— 那三個各有自己的 L3",
+        "自己判斷要顯示肌群還是器材 —— 那是分組狀態，屬於呼叫端"
+      ],
+      "composedOf": [
+        "TLEquipmentTag",
+        "TLListRow"
+      ],
       "paths": {
         "spec": "organisms/ExerciseRow/ExerciseRow.spec.md",
         "preview": "organisms/ExerciseRow/ExerciseRow.preview.html",
         "impl": "Packages/Spec/Sources/SpecPresentation/Components/ExerciseRow.swift"
+      }
+    },
+    {
+      "name": "ProgramRow",
+      "level": "L3",
+      "layer": "organisms",
+      "responsibility": "長期課表清單的一列",
+      "prototypeIds": [],
+      "prototypeNote": "8a",
+      "standalone": true,
+      "requiresContainer": [
+        "TLGroup"
+      ],
+      "containerOwns": "未啟用態的圓角、底色、分隔線由 `TLGroup` 負責；啟用態的卡自己有外框",
+      "props": [
+        {
+          "name": "id",
+          "type": "`UUID`",
+          "kind": null,
+          "values": null,
+          "required": "是",
+          "default": "—",
+          "description": "drill-in 的目的地。兩種形態都用得到"
+        },
+        {
+          "name": "name",
+          "type": "`String`",
+          "kind": null,
+          "values": null,
+          "required": "是",
+          "default": "—",
+          "description": "課表名"
+        },
+        {
+          "name": "summary",
+          "type": "`Text`",
+          "kind": null,
+          "values": null,
+          "required": "是",
+          "default": "—",
+          "description": "副標＝組成摘要"
+        },
+        {
+          "name": "progress",
+          "type": "`Progress?`",
+          "kind": null,
+          "values": null,
+          "required": "是",
+          "default": "—",
+          "description": "**`nil` ＝ 未啟用形態。** 有值就是卡片形態"
+        },
+        {
+          "name": "activateButton",
+          "type": "`AnyView?`",
+          "kind": null,
+          "values": null,
+          "required": "是",
+          "default": "—",
+          "description": "未啟用態右側的「啟用」鈕；啟用態不用"
+        },
+        {
+          "name": "dayUnit",
+          "type": "`Text`",
+          "kind": null,
+          "values": null,
+          "required": "是",
+          "default": "—",
+          "description": "「N / M 天」的單位字。由呼叫端給 —— 它才對得到 String Catalog"
+        },
+        {
+          "name": "todayLabel",
+          "type": "`Text`",
+          "kind": null,
+          "values": null,
+          "required": "是",
+          "default": "—",
+          "description": "「今天：」的前綴。同上"
+        },
+        {
+          "name": "menu",
+          "type": "`AnyView`",
+          "kind": null,
+          "values": null,
+          "required": "是",
+          "default": "—",
+          "description": "長按選單。兩種形態都有"
+        }
+      ],
+      "slots": [],
+      "events": [],
+      "variants": [
+        {
+          "name": "啟用（`progress != nil`）",
+          "note": "**一張卡**：accent 描邊 ＋ 上半可 drill-in ＋ 下半是進度（天數／今天／進度條）"
+        },
+        {
+          "name": "未啟用（`progress == nil`）",
+          "note": "一般列：左側可 drill-in、右側 inline「啟用」，**兩個獨立的點擊區**"
+        }
+      ],
+      "states": [
+        "active",
+        "inactive"
+      ],
+      "themes": [
+        "light",
+        "dark"
+      ],
+      "confusableWith": [
+        {
+          "name": "RotationRow",
+          "note": "`RotationRow` —— 那個兩種形態都是列；這個啟用後是卡。"
+        }
+      ],
+      "dontUseFor": [
+        "把啟用態的卡放進 `TLGroup` —— 卡自己有外框，會變成框中框",
+        "讓整張卡可點 —— 下半是進度資訊，點下去要去哪沒有答案"
+      ],
+      "composedOf": [
+        "TLBadge",
+        "TLProgressBar",
+        "TLRowContent"
+      ],
+      "paths": {
+        "spec": "organisms/ProgramRow/ProgramRow.spec.md",
+        "preview": "organisms/ProgramRow/ProgramRow.preview.html",
+        "impl": "Packages/Plan/Sources/PlanPresentation/Components/ProgramRow.swift"
+      }
+    },
+    {
+      "name": "RotationRow",
+      "level": "L3",
+      "layer": "organisms",
+      "responsibility": "循環清單的一列",
+      "prototypeIds": [],
+      "prototypeNote": "8b",
+      "standalone": false,
+      "requiresContainer": [
+        "TLGroup"
+      ],
+      "containerOwns": "圓角、底色、分隔線由 `TLGroup` 負責",
+      "props": [
+        {
+          "name": "mode",
+          "type": "`Mode`",
+          "kind": "enum",
+          "values": [
+            "active",
+            "inactive"
+          ],
+          "required": "是",
+          "default": "—",
+          "description": "兩種形態，差別不只是顏色，見第 3 節"
+        },
+        {
+          "name": "id",
+          "type": "`UUID`",
+          "kind": null,
+          "values": null,
+          "required": "是",
+          "default": "—",
+          "description": "drill-in 的目的地。**只有 `active` 用得到**"
+        },
+        {
+          "name": "name",
+          "type": "`String`",
+          "kind": null,
+          "values": null,
+          "required": "是",
+          "default": "—",
+          "description": "循環名"
+        },
+        {
+          "name": "subtitle",
+          "type": "`Text`",
+          "kind": null,
+          "values": null,
+          "required": "是",
+          "default": "—",
+          "description": "副標＝組成摘要"
+        },
+        {
+          "name": "trailing",
+          "type": "`AnyView`",
+          "kind": null,
+          "values": null,
+          "required": "是",
+          "default": "—",
+          "description": "右側內容：啟用態是進度膠囊、未啟用態是「啟用」鈕。**由呼叫端給** —— 它才知道文案與行為"
+        },
+        {
+          "name": "deactivateLabel",
+          "type": "`Text`",
+          "kind": null,
+          "values": null,
+          "required": "是",
+          "default": "—",
+          "description": "左滑露出的「停用」文案"
+        },
+        {
+          "name": "onDeactivate",
+          "type": "`() -> Void`",
+          "kind": null,
+          "values": null,
+          "required": "是",
+          "default": "—",
+          "description": "左滑停用"
+        },
+        {
+          "name": "menu",
+          "type": "`AnyView`",
+          "kind": null,
+          "values": null,
+          "required": "是",
+          "default": "—",
+          "description": "長按選單。兩種形態都有"
+        }
+      ],
+      "slots": [],
+      "events": [
+        "onDeactivate"
+      ],
+      "variants": [
+        {
+          "name": "active` 啟用",
+          "note": "可 drill-in（有 chevron）、圓章是赭紅、右側是進度膠囊、左滑可停用"
+        },
+        {
+          "name": "inactive` 未啟用",
+          "note": "**不 drill-in**（設計稿無 chevron）、圓章是灰、右側是 inline「啟用」鈕、不能左滑"
+        }
+      ],
+      "states": [
+        "active",
+        "inactive",
+        "swiped"
+      ],
+      "themes": [
+        "light",
+        "dark"
+      ],
+      "confusableWith": [
+        {
+          "name": "ProgramRow",
+          "note": "`ProgramRow` —— 那個的啟用態是**一張卡**不是一列（多了進度區），"
+        }
+      ],
+      "dontUseFor": [
+        "給 `inactive` 傳有意義的 `id` 期待它能點 —— 未啟用刻意不 drill-in",
+        "把「啟用」鈕做成整列可點 —— 那會跟 drill-in 撞在一起"
+      ],
+      "composedOf": [
+        "TLBadge",
+        "TLListRow",
+        "TLSwipeToRevealRow"
+      ],
+      "paths": {
+        "spec": "organisms/RotationRow/RotationRow.spec.md",
+        "preview": "organisms/RotationRow/RotationRow.preview.html",
+        "impl": "Packages/Plan/Sources/PlanPresentation/Components/RotationRow.swift"
+      }
+    },
+    {
+      "name": "TemplateRow",
+      "level": "L3",
+      "layer": "organisms",
+      "responsibility": "範本清單的一列",
+      "prototypeIds": [],
+      "prototypeNote": "5b",
+      "standalone": false,
+      "requiresContainer": [
+        "TLGroup"
+      ],
+      "containerOwns": "圓角、底色、分隔線由 `TLGroup` 負責",
+      "props": [
+        {
+          "name": "name",
+          "type": "`String`",
+          "kind": null,
+          "values": null,
+          "required": "是",
+          "default": "—",
+          "description": "範本名"
+        },
+        {
+          "name": "summary",
+          "type": "`Text`",
+          "kind": null,
+          "values": null,
+          "required": "是",
+          "default": "—",
+          "description": "副標＝組成摘要（這份範本含哪些動作）。階層關係唯一的傳達管道"
+        },
+        {
+          "name": "blockCount",
+          "type": "`Int`",
+          "kind": null,
+          "values": null,
+          "required": "是",
+          "default": "—",
+          "description": "圓章裡的數字＝含幾個動作"
+        },
+        {
+          "name": "duplicateLabel",
+          "type": "`Text`",
+          "kind": null,
+          "values": null,
+          "required": "是",
+          "default": "—",
+          "description": "左滑露出的「複製」文案"
+        },
+        {
+          "name": "deleteLabel",
+          "type": "`Text`",
+          "kind": null,
+          "values": null,
+          "required": "是",
+          "default": "—",
+          "description": "長按選單的「刪除」文案"
+        },
+        {
+          "name": "onDuplicate",
+          "type": "`() -> Void`",
+          "kind": null,
+          "values": null,
+          "required": "是",
+          "default": "—",
+          "description": "左滑複製"
+        },
+        {
+          "name": "onDelete",
+          "type": "`() -> Void`",
+          "kind": null,
+          "values": null,
+          "required": "是",
+          "default": "—",
+          "description": "選單刪除"
+        },
+        {
+          "name": "onTap",
+          "type": "`() -> Void`",
+          "kind": null,
+          "values": null,
+          "required": "是",
+          "default": "—",
+          "description": "點整列進編輯"
+        }
+      ],
+      "slots": [],
+      "events": [
+        "onDuplicate",
+        "onDelete",
+        "onTap"
+      ],
+      "variants": [],
+      "states": [
+        "default",
+        "swiped"
+      ],
+      "themes": [
+        "light",
+        "dark"
+      ],
+      "confusableWith": [
+        {
+          "name": "ExerciseRow",
+          "note": "`ExerciseRow`（動作列）—— 那個右側是分類標籤、沒有圓章；"
+        }
+      ],
+      "dontUseFor": [
+        "顯示循環或長期課表 —— 那兩個有進行中／未啟用兩種形態，這個沒有",
+        "把狀態放進 `summary` —— 副標是組成摘要，狀態一律放右側"
+      ],
+      "composedOf": [
+        "TLBadge",
+        "TLListRow",
+        "TLSwipeToRevealRow"
+      ],
+      "paths": {
+        "spec": "organisms/TemplateRow/TemplateRow.spec.md",
+        "preview": "organisms/TemplateRow/TemplateRow.preview.html",
+        "impl": "Packages/Plan/Sources/PlanPresentation/Components/TemplateRow.swift"
       }
     }
   ]

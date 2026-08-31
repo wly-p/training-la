@@ -1,0 +1,255 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>TemplateRow</title>
+<link rel="stylesheet" href="../../tokens/tokens.css">
+<link rel="stylesheet" href="../../preview.css">
+<style>
+  body { max-width: 62rem; line-height: 1.7; }
+  h1, h2, h3 { font-family: var(--font-page-title-family); line-height: 1.35; }
+  h1 { font-size: var(--font-page-title); margin: 0 0 var(--space-gap-l); }
+  h2 { font-size: var(--font-card-title); margin: var(--space-section) 0 var(--space-gap-m);
+       padding-top: var(--space-gap-m); border-top: 1px solid var(--border-subtle); }
+  h3 { font-size: var(--font-row-title); margin: var(--space-gap-l) 0 var(--space-gap-s); }
+  a { color: var(--accent-on-surface); }
+  table { border-collapse: collapse; width: 100%; margin: var(--space-gap-m) 0;
+          display: block; overflow-x: auto; }
+  th, td { text-align: left; padding: var(--space-gap-s) var(--space-gap-m);
+           border-bottom: 1px solid var(--border-subtle); vertical-align: top; }
+  th { font-size: var(--font-kicker); letter-spacing: var(--font-kicker-tracking);
+       text-transform: uppercase; color: var(--text-tertiary); }
+  pre { background: var(--surface-raised); border-radius: var(--radius-inner);
+        padding: var(--space-gap-m); overflow-x: auto; }
+  pre code { background: none; padding: 0; }
+  blockquote { margin: var(--space-gap-m) 0; padding-left: var(--space-gap-m);
+               border-left: 3px solid var(--border-subtle); color: var(--text-secondary); }
+  .back { font-size: var(--font-row-sub); margin-bottom: var(--space-gap-l); display: block; }
+</style>
+<a class="back" href="../../index.html">← 元件庫索引</a>
+<h1>TemplateRow</h1>
+<h2>1 身分</h2>
+<table>
+<thead>
+<tr>
+<th></th>
+<th></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>層級</td>
+<td>L3 有機體</td>
+</tr>
+<tr>
+<td>職責</td>
+<td>範本清單的一列</td>
+</tr>
+<tr>
+<td>原型 id</td>
+<td><code>5b</code></td>
+</tr>
+<tr>
+<td>獨立使用</td>
+<td><strong>否 —— 必須置於 <code>TLGroup</code> 之內</strong></td>
+</tr>
+<tr>
+<td>容器責任</td>
+<td>圓角、底色、分隔線由 <code>TLGroup</code> 負責</td>
+</tr>
+<tr>
+<td>實作</td>
+<td><code>Packages/Plan/Sources/PlanPresentation/Components/TemplateRow.swift</code></td>
+</tr>
+<tr>
+<td>Preview</td>
+<td><code>design-system/organisms/TemplateRow/TemplateRow.preview.html</code></td>
+</tr>
+<tr>
+<td>Preview CSS</td>
+<td>無自己的樣式（見 <code>components.preview.css</code> 的說明段）</td>
+</tr>
+</tbody>
+</table>
+<p><strong>組成</strong>：<code>TLSwipeToRevealRow</code>（控制項）＋ <code>TLListRow</code>（L2）＋ <code>TLBadge</code>（L1）。</p>
+<h2>2 介面 ★</h2>
+<p><strong>Props</strong></p>
+<table>
+<thead>
+<tr>
+<th>名稱</th>
+<th>型別</th>
+<th>值域</th>
+<th>必填</th>
+<th>預設</th>
+<th>說明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>name</code></td>
+<td><code>String</code></td>
+<td></td>
+<td>是</td>
+<td>—</td>
+<td>範本名</td>
+</tr>
+<tr>
+<td><code>summary</code></td>
+<td><code>Text</code></td>
+<td></td>
+<td>是</td>
+<td>—</td>
+<td>副標＝組成摘要（這份範本含哪些動作）。階層關係唯一的傳達管道</td>
+</tr>
+<tr>
+<td><code>blockCount</code></td>
+<td><code>Int</code></td>
+<td></td>
+<td>是</td>
+<td>—</td>
+<td>圓章裡的數字＝含幾個動作</td>
+</tr>
+<tr>
+<td><code>duplicateLabel</code></td>
+<td><code>Text</code></td>
+<td></td>
+<td>是</td>
+<td>—</td>
+<td>左滑露出的「複製」文案</td>
+</tr>
+<tr>
+<td><code>deleteLabel</code></td>
+<td><code>Text</code></td>
+<td></td>
+<td>是</td>
+<td>—</td>
+<td>長按選單的「刪除」文案</td>
+</tr>
+<tr>
+<td><code>onDuplicate</code></td>
+<td><code>() -&gt; Void</code></td>
+<td></td>
+<td>是</td>
+<td>—</td>
+<td>左滑複製</td>
+</tr>
+<tr>
+<td><code>onDelete</code></td>
+<td><code>() -&gt; Void</code></td>
+<td></td>
+<td>是</td>
+<td>—</td>
+<td>選單刪除</td>
+</tr>
+<tr>
+<td><code>onTap</code></td>
+<td><code>() -&gt; Void</code></td>
+<td></td>
+<td>是</td>
+<td>—</td>
+<td>點整列進編輯</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Slots</strong> — N/A
+<strong>事件</strong> — <code>onDuplicate</code> / <code>onDelete</code> / <code>onTap</code></p>
+<p><strong>兩個操作入口對應不同頻率</strong>：左滑露出複製（常用、單手可及）、長按出刪除（低頻、需要更明確的意圖）。</p>
+<h2>3 變體 variants</h2>
+<p>無。每一列長得一樣。</p>
+<h2>4 狀態 states ★</h2>
+<!-- states: default, swiped -->
+<!-- themes: light, dark -->
+
+<table>
+<thead>
+<tr>
+<th>類別</th>
+<th>狀態</th>
+<th>這個元件</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>互動</td>
+<td>default / pressed / disabled / focused</td>
+<td>default、pressed（由 <code>TLListRow</code> 給）、swiped（左滑露出動作）。沒有 disabled —— 範本沒有「不能編輯」的狀態</td>
+</tr>
+<tr>
+<td>選取</td>
+<td>selected / unselected / indeterminate</td>
+<td>N/A —— 範本清單不做選取</td>
+</tr>
+<tr>
+<td>資料</td>
+<td>empty / loading / error</td>
+<td>N/A —— 空清單是 <code>TLInlineEmptyState</code> 的事，不是這一列的</td>
+</tr>
+<tr>
+<td>內容極值</td>
+<td>最短 / 最長 / 溢出</td>
+<td>名稱與摘要各自一行截斷；圓章不縮</td>
+</tr>
+<tr>
+<td>主題</td>
+<td>light / dark</td>
+<td>兩者都有</td>
+</tr>
+<tr>
+<td>語言</td>
+<td>中文 / 英文</td>
+<td>摘要是全 app 中英落差最大的文字（一串名稱的連接）</td>
+</tr>
+</tbody>
+</table>
+<h2>5 度量與行為</h2>
+<p>全部由 <code>TLListRow</code> 決定（列高 <code>size.rowWithSub</code>、內距 <code>space.rowInset</code>）。
+左滑露出的動作寬 88pt，由 <code>TLSwipeToRevealRow</code> 決定。</p>
+<h3>文字與溢出</h3>
+<p>名稱一行截斷；摘要一行截斷。</p>
+<h3>動態</h3>
+<p>左滑：<code>motion.base</code> easeOut。按下態由 <code>TLListRow</code> 提供。</p>
+<h2>6 配色 ★</h2>
+<table>
+<thead>
+<tr>
+<th>用途</th>
+<th>token</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>圓章底／字</td>
+<td><code>neutral-300</code> / <code>neutral-800</code></td>
+</tr>
+</tbody>
+</table>
+<p><strong>圓章刻意是 neutral 不是 accent</strong> —— 那個數字是「含幾個動作」，是資訊不是狀態。
+赭紅保留給進行中的東西（見 <code>RotationRow</code>／<code>ProgramRow</code>）。</p>
+<h2>7 用法與禁用法</h2>
+<p><strong>用它</strong>：範本清單。</p>
+<p><strong>易混淆</strong>：<code>ExerciseRow</code>（動作列）—— 那個右側是分類標籤、沒有圓章；
+這個左側有數字圓章、副標是組成摘要。</p>
+<p><strong>不要用它</strong>：
+- 顯示循環或長期課表 —— 那兩個有進行中／未啟用兩種形態，這個沒有
+- 把狀態放進 <code>summary</code> —— 副標是組成摘要，狀態一律放右側</p>
+<h2>8 變更紀錄</h2>
+<table>
+<thead>
+<tr>
+<th>日期</th>
+<th>改動</th>
+<th>原因</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>2026-08-31</td>
+<td>從 <code>TemplateListView</code> 抽出成 L3</td>
+<td>階段 2 的分層落地</td>
+</tr>
+<tr>
+<td>2026-08-31</td>
+<td><strong>驗證結果：純由 L2／L1 組成，但撞到一個介面缺口</strong></td>
+<td><code>TLBadge(count:)</code> 把顏色寫死 sage，而同一個檔裡的 <code>init(icon:fill:tint:)</code> 早就把顏色開成 prop。需要 neutral 圓章的這一列只能繞過便利建構子手工建。<strong>介面不一致本身就是缺口</strong> —— 已把 <code>fill</code>／<code>tint</code> 補進 <code>init(count:)</code></td>
+</tr>
+</tbody>
+</table>

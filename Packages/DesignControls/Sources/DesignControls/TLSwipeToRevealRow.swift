@@ -16,7 +16,7 @@ public struct TLSwipeToRevealRow<Content: View>: View {
     @State private var offset: CGFloat = 0
     @State private var committed: CGFloat = 0
 
-    private let actionWidth: CGFloat = 88
+    private let actionWidth: CGFloat = TLSize.swipeAction
 
     public init(
         actionLabel: Text,

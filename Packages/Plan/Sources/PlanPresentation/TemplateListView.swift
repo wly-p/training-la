@@ -37,7 +37,7 @@ public struct TemplateListView: View {
             }
             .padding(.horizontal, TLSpace.page)
             .padding(.top, TLSpace.gapS)
-            .padding(.bottom, 40)
+            .padding(.bottom, TLSpace.pageBottom)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background(TLColor.bg)
@@ -134,7 +134,7 @@ public struct TemplateListView: View {
             .multilineTextAlignment(.center)
             .frame(maxWidth: .infinity)
             .padding(.horizontal, TLSpace.page)
-            .padding(.vertical, 26)
+            .padding(.vertical, TLSpace.section)
             .background(TLColor.neutral100)
             .clipShape(RoundedRectangle(cornerRadius: TLRadius.container, style: .continuous))
     }

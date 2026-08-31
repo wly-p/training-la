@@ -151,7 +151,7 @@ public struct AbilityListView: View {
                     .font(TLFont.display(20))
                     .foregroundStyle(TLColor.text)
                 Text(verbatim: value.unit.rawValue)
-                    .font(TLFont.zh(11.5))
+                    .font(TLFont.zh(TLFont.rowSub))
                     .foregroundStyle(TLColor.neutral500)
             }
         } else {
@@ -219,7 +219,7 @@ private struct AbilityEditSheet: View {
     private var topBar: some View {
         HStack {
             Button { dismiss() } label: { localText("ability.cancel") }
-                .font(TLFont.zh(15.5, .medium))
+                .font(TLFont.zh(TLFont.buttonLabel, .medium))
                 .foregroundStyle(TLColor.neutral600)
             Spacer()
             TLTitleWithTag(
@@ -232,7 +232,7 @@ private struct AbilityEditSheet: View {
             } label: {
                 localText("ability.done")
             }
-            .font(TLFont.zh(15.5, .semibold))
+            .font(TLFont.zh(TLFont.buttonLabel, .semibold))
             .foregroundStyle(TLColor.accent700)
         }
     }
@@ -262,7 +262,7 @@ private struct AbilityEditSheet: View {
             )
             stepButtons
             localText("ability.stepHint")
-                .font(TLFont.zh(11.5))
+                .font(TLFont.zh(TLFont.rowSub))
                 .foregroundStyle(TLColor.neutral500)
                 .multilineTextAlignment(.center)
         }

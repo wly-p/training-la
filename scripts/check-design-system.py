@@ -17,6 +17,7 @@ BASE = DS / ".presentation-baseline.json"
 _TOK    = json.loads((DS / "tokens/tokens.json").read_text())
 PRIM_C  = _TOK["primitive"]["color"]
 SEM_NAMES = list(_TOK["semantic"]["color"])
+TYPE_ROLES = _TOK["type"]["roles"]
 LEGACY  = [k for k in json.loads((DS / "tokens/_legacy-aliases.json").read_text()) if k != "note"]
 
 def kebab(x):
@@ -29,6 +30,10 @@ SECTIONS = ["1 身分", "2 介面", "3 變體", "4 狀態", "5 度量與行為",
 LITERAL_STYLE = re.compile(
     r"\.font\(\.system\(size: ?[0-9]"
     r"|\.font\(\.custom\([^,]*, ?size: ?[0-9]"
+    # `TLFont.zh(15.5)` 長得像吃了 token，其實是字面字級——**它一路躲過了 ratchet**。
+    # 設定頁被宣告成「字面樣式 0」的那一刻，SettingsView 裡就有一個 13。
+    # 2026-08-31 補上，基線跟著重設。
+    r"|TLFont\.(?:zh|display)\( ?[0-9]"
     r"|cornerRadius: ?[0-9]"
     r"|\.padding\((?:\.[a-z]+, )?[0-9]"
     r"|\.frame\(.*?(?:width|height): ?[0-9]"
@@ -61,15 +66,29 @@ CHECKS = {
          "—— 假資料最順手的來源就是真的運動名稱，那一刻就違反了規則三", "§4 規則三、§7.5"),
     7:  ("Presentation 層字面樣式**不得增加**（ratchet，不是硬門檻）", "§4 規則一"),
     8:  ("`DesignSystem` 未 import 任何功能 package", "§4 規則三"),
+    17: ("同一個字型家族內，兩個**不同**的字級值差距不得小於 1（同值的兩個角色是允許的）", "§5"),
     5:  ("生成物與來源一致：`tokens.json` → Swift／CSS；各 spec → `components.json`／`index.html`", "§5、§6"),
 }
 
 DEFINED_VARS = set()
 for _css in ("tokens/tokens.css", "preview.css"):
-    DEFINED_VARS |= set(re.findall(r"^\s*(--[a-z0-9-]+):", (DS / _css).read_text(), re.M))
+    DEFINED_VARS |= set(re.findall(r"^\s*(--[A-Za-z0-9-]+):", (DS / _css).read_text(), re.M))
 
 errs, warns = [], []
 def err(c, m): errs.append(f"✘ [檢查 {c}] {m}")
+
+# 檢查 9 原本只看 preview.html，但**壞掉的 var 在 CSS 檔裡一樣是靜默的**：
+# `width: var(--icon-in-check-circle)` 打錯名字不會報錯，只會渲染成無效值。
+# 這兩個名字錯了不知道多久，設計端看到的勾號與圓鈕圖示一直是自動尺寸。
+for _css in ("preview.css", "components.preview.css", "_controls/controls.preview.css"):
+    _p = DS / _css
+    if not _p.exists():
+        continue
+    _body = _p.read_text()
+    _local = set(re.findall(r"^\s*(--[A-Za-z0-9-]+):", _body, re.M))
+    for _v in sorted(set(re.findall(r"var\((--[A-Za-z0-9-]+)\)", _body))):
+        if _v not in DEFINED_VARS and _v not in _local:
+            err(9, f"{_css}：用了未定義的 token `var({_v})`——CSS 裡打錯 var 名字是靜默失效")
 
 def components():
     for layer in ("atoms", "molecules", "organisms"):
@@ -77,6 +96,13 @@ def components():
         if d.is_dir():
             for c in sorted(p for p in d.iterdir() if p.is_dir()):
                 yield layer, c
+
+# 控制項（DesignControls）不進交付包，但**它們是真的元件**：L3 組合得到它們。
+# 檢查 11 要認得，否則規格只能把組成寫得含糊（或乾脆不寫）——
+# 那正是這條檢查要擋的東西。
+def control_names():
+    d = DS / "_controls"
+    return {c.name for c in d.iterdir() if c.is_dir()} if d.is_dir() else set()
 
 def section(md, title):
     m = re.search(rf"^## {re.escape(title)}.*?$(.*?)(?=^## |\Z)", md, re.M | re.S)
@@ -201,7 +227,7 @@ for layer, cdir in components():
         err(6, f"{name}.preview.html：有外部請求，preview 必須自足")
 
     # preview 用到的 CSS 變數必須有定義（打錯名字會靜默渲染成空值）
-    for v in sorted(set(re.findall(r"var\((--[a-z0-9-]+)\)", prev))):
+    for v in sorted(set(re.findall(r"var\((--[A-Za-z0-9-]+)\)", prev))):
         if v not in DEFINED_VARS:
             err(9, f"{name}.preview.html：用了未定義的 token `var({v})`")
 
@@ -209,7 +235,7 @@ for layer, cdir in components():
     if layer != "atoms":
         comp = section(spec, "1 身分") or ""
         for ref in re.findall(r"`(TL\w+)`", comp):
-            if not any(c.name == ref for _, c in components()):
+            if not any(c.name == ref for _, c in components()) and ref not in control_names():
                 err(11, f"{name}：第 11 節宣告的組成元件 `{ref}` 不在元件庫裡")
 
 # ── 7：Presentation 層字面樣式（ratchet）──────────────────────────
@@ -298,7 +324,7 @@ for layer in ("atoms", "molecules", "organisms", "examples"):
             err(cid, f"{rel}：出現字面尺寸 `{lit.strip()}`，一律用 var(--…)"
                      f"（豁免只給設計系統自身的展示頁，按路徑判定）")
         if is_example:
-            for v in sorted(set(re.findall(r"var\((--[a-z0-9-]+)\)", body))):
+            for v in sorted(set(re.findall(r"var\((--[A-Za-z0-9-]+)\)", body))):
                 if v not in DEFINED_VARS:
                     err(15, f"{rel}：用了未定義的 token `var({v})`")
 
@@ -321,7 +347,8 @@ CPCSS = DS / "components.preview.css"
 if CPCSS.exists():
     css_body = CPCSS.read_text()
     # 每一段由 `/* TLXxx */` 標頭起算
-    sections = re.findall(r"^/\* (TL\w+)(?: [^*]*)? \*/", css_body, re.M)
+    # 純 `/* Name */` 的標頭才算元件段落（帶說明文字的是註解，例如骨架那幾段）。
+    sections = re.findall(r"^/\* ([A-Za-z]\w*) \*/\s*$", css_body, re.M)
     lib = {c.name for _, c in components()}
 
     for sec in sections:
@@ -370,6 +397,35 @@ for doc in [DS / "README.md"] + list(DS.rglob("*.spec.md")):
         if m.group(1) not in known:
             err(12, f"{doc.relative_to(ROOT)}：提到不存在的 token `{m.group(1)}`"
                     f"——被刪掉或改名了，文件沒跟上")
+
+# ── 17：字級尺度的最小間距 ────────────────────────────────────────
+# 設計端拍板的規則：同一個家族裡兩個**不同**的值差距不得小於 1。
+# 同值的兩個角色是允許的——`rowTitle` 與 `buttonLabel` 都是 15，它們表達的是
+# 「未來會分開走」而不是「現在不一樣大」。會被擋掉的是 15／15.5 這種 0.5 的漂移，
+# 也就是這一輪清掉的那 15 處。
+# `paired` 的角色不算尺度階（buttonLabelSmall 之於 buttonLabel，照 icon inXxx 的模式）。
+# 例外一律登記在 tokens.json 的 _scaleExceptions，並且每跑一次就印一次——
+# 靜默放行的例外會變成永久的例外。
+EXC = {(e["family"], tuple(e["pair"])): e["reason"]
+       for e in _TOK["type"].get("_scaleExceptions", [])}
+by_family = {}
+for _n, _r in TYPE_ROLES.items():
+    if _r.get("paired"):
+        continue
+    by_family.setdefault(_r.get("family", "zh"), {}).setdefault(_r["size"], []).append(_n)
+for _fam, _sizes in by_family.items():
+    _vals = sorted(_sizes)
+    for _a, _b in zip(_vals, _vals[1:]):
+        if _b - _a >= 1:
+            continue
+        who = f"{_a}（{'／'.join(_sizes[_a])}）與 {_b}（{'／'.join(_sizes[_b])}）"
+        if (_fam, (_a, _b)) in EXC:
+            warns.append(f"⚠ [檢查 17] 已登記的例外：{_fam} 家族 {who} 只差 {round(_b - _a, 2)}"
+                         f"——{EXC[(_fam, (_a, _b))]}")
+        else:
+            err(17, f"type 家族 `{_fam}`：{who} 只差 {round(_b - _a, 2)}——"
+                    f"同一家族裡不同的值至少要差 1，0.5 的差在螢幕上不存在，只會變成漂移。"
+                    f"真的要留就登記進 tokens.json 的 _scaleExceptions 並寫理由")
 
 # ── 8：DesignSystem 不得認識 domain ────────────────────────────────
 for f in (PKG / "DesignSystem").rglob("*.swift"):

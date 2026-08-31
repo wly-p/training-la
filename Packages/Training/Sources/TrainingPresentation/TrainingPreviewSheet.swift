@@ -86,12 +86,12 @@ struct TrainingPreviewSheet: View {
                     .foregroundStyle(TLColor.accent700)
             }
             Text(verbatim: blueprint.name ?? localString("training.todaysPlan", locale))
-                .font(TLFont.zh(30, .bold))
+                .font(TLFont.zh(TLFont.sheetTitle, .bold))
                 .foregroundStyle(TLColor.text)
             HStack(spacing: TLSpace.gapS) {
                 if let pill = WeightSourceFormatting.intensityPillText(blueprint.intensityFactor) {
                     Text(String(format: localString("training.preview.intensity %@", locale), pill))
-                        .font(TLFont.zh(11.5, .semibold))
+                        .font(TLFont.zh(TLFont.rowSub, .semibold))
                         .foregroundStyle(TLColor.accent800)
                         .padding(.horizontal, 10)
                         .padding(.vertical, 4)
@@ -114,7 +114,7 @@ struct TrainingPreviewSheet: View {
                 TLTitleWithTag(name: row.name, equipment: row.equipment.displayName(locale))
                 if let algebra = WeightSourceFormatting.algebraText(row.representative?.weightSource, locale: locale, in: weightUnit) {
                     Text(verbatim: algebra)
-                        .font(TLFont.zh(11, .regular))
+                        .font(TLFont.zh(TLFont.rowSub, .regular))
                         .foregroundStyle(TLColor.accent700)
                 } else if let reason = WeightSourceFormatting.unresolvedReason(row.representative?.weightSource, locale: locale) {
                     Text(verbatim: reason)
@@ -145,7 +145,7 @@ struct TrainingPreviewSheet: View {
             .foregroundStyle(TLColor.text)
         } else {
             localText("training.preview.pending")
-                .font(TLFont.zh(11.5, .semibold))
+                .font(TLFont.zh(TLFont.rowSub, .semibold))
                 .foregroundStyle(TLColor.neutral600)
                 .padding(.horizontal, 10)
                 .padding(.vertical, 5)

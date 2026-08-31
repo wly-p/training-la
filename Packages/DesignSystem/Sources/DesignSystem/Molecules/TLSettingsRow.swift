@@ -52,7 +52,7 @@ public struct TLSettingsRow<Trailing: View>: View {
         HStack(spacing: 0) {
             if role == .destructive {
                 Image(systemName: systemImage ?? "trash")
-                    .font(.system(size: TLFont.rowIcon, weight: .semibold))
+                    .font(.system(size: TLIcon.inRow, weight: .semibold))
                     .foregroundStyle(TLColor.danger700)
                     .padding(.trailing, TLSpace.sectionHeaderGap)
             } else if let systemImage {

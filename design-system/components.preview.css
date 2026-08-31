@@ -25,6 +25,10 @@
 }
 .tl-badge--text { font-size: var(--font-badge-text); }
 .tl-badge--number { font-size: var(--font-row-number); font-family: var(--font-row-number-family); }
+/* 數字圓章的 neutral 版：數字是「含幾項」，是資訊不是狀態。
+   赭紅／鼠尾草留給有狀態的東西。 */
+.tl-badge--neutral { background: var(--neutral-300); color: var(--neutral-800); }
+.tl-badge--accent { background: var(--action-primary); color: var(--surface-base); }
 .tl-badge svg { width: var(--icon-inline); height: var(--icon-inline); stroke-width: var(--icon-stroke); }
 
 /* TLCheckCircle */
@@ -37,7 +41,7 @@
 .tl-check-circle--on {
   background: var(--action-primary); border-color: transparent; color: var(--surface-base);
 }
-.tl-check-circle svg { width: var(--icon-in-check-circle); height: var(--icon-in-check-circle); stroke-width: var(--icon-stroke); }
+.tl-check-circle svg { width: var(--icon-inCheckCircle); height: var(--icon-inCheckCircle); stroke-width: var(--icon-stroke); }
 
 /* TLChevron */
 .tl-chevron {
@@ -53,7 +57,7 @@
   transition: transform var(--motion-fast) var(--motion-curve);
 }
 .tl-circle-icon-button svg {
-  width: var(--icon-in-icon-button); height: var(--icon-in-icon-button); stroke-width: var(--icon-stroke);
+  width: var(--icon-inIconButton); height: var(--icon-inIconButton); stroke-width: var(--icon-stroke);
 }
 .tl-circle-icon-button--accent { background: var(--action-primary); color: var(--surface-base); }
 .tl-circle-icon-button--outline {
@@ -84,7 +88,8 @@
   display: block; height: 100%;
   border-radius: var(--radius-pill); background: var(--action-primary);
 }
-/* 卡片底比群組容器淺，軌道要跟著換一階才看得出來 */
+/* 深底的卡（長期課表詳情，neutral-300）上，軌道要往**淺**的方向換一階才看得出來。
+   淺底的卡用預設的 surface-track 就好——方向不是固定的，所以它是 prop。 */
 .tl-progress-bar--on-card { background: var(--surface-raised); }
 
 /* TLRowValue */
@@ -188,11 +193,34 @@
 }
 .tl-inline-empty-state__title { font-size: var(--font-empty-title); font-weight: 700;
                                 color: var(--text-primary); }
-.tl-inline-empty-state__hint { font-size: var(--font-empty-hint); color: var(--text-secondary); }
+.tl-inline-empty-state__hint { font-size: var(--font-caption); color: var(--text-secondary); }
+
+/* TLRowContent */
+/* 列的內容排版。**沒有左右內距、沒有高度** —— 骨架的 .row 才是「內容 ＋ 外框」，
+   也就是 TLListRow。兩者的差別在這裡看得見：這一段沒有 padding 也沒有 height。 */
+.tl-row-content {
+  display: flex; align-items: center; gap: var(--space-gap-m);
+}
+.tl-row-content__text {
+  flex: 1; min-width: 0;
+  display: flex; flex-direction: column; gap: var(--space-title-sub-gap);
+}
+.tl-row-content__title { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+/* ⚠ 副標是 neutral-500 而不是語意的 text-secondary：文字階合併後 Swift 端還沒遷移。
+   鏡像跟著**實作**走，不跟著意圖走——否則設計端看到的顏色與 app 不同。 */
+.tl-row-content__sub { font-size: var(--font-row-sub); color: var(--neutral-500); }
+
+/* TLTitleWithTag */
+.tl-title-with-tag { display: flex; align-items: center; gap: var(--space-gap-s); min-width: 0; }
+.tl-title-with-tag__name {
+  min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
 
 /* TLListRow */
-.tl-list-row__sub { font-size: var(--font-row-sub); color: var(--text-secondary); }
+/* ＝ TLRowContent ＋ 外框（左右內距、最小高度、整列可點）。外框在骨架的 .row。 */
+.tl-list-row__sub { font-size: var(--font-row-sub); color: var(--neutral-500); }
 .tl-list-row--pressed { background: var(--border-subtle); }
+.tl-list-row--with-sub { height: var(--size-row-with-sub); }
 .tl-list-row--with-detail { height: var(--size-row-with-detail); }
 .tl-list-row__pill {
   display: inline-block; font-size: var(--font-row-sub); color: var(--text-secondary);
@@ -212,6 +240,31 @@
 
 /* ExerciseRow（L3）—— 它只是 TLListRow ＋ TLEquipmentTag 的組合，
    沒有自己的樣式。這一段留空是刻意的，證明「L3 = L2 的組合」在它身上成立。 */
+
+/* TemplateRow / RotationRow（L3）—— 純由 L2 組成，沒有自己的樣式。
+   留空是刻意的：那正是「L3 ＝ L2 的組合」在它們身上成立的證據。 */
+
+/* ProgramRow */
+/* 唯一有自己樣式的 L3：啟用態不是一列而是**一張卡**。
+   卡的外框是它自己的（描邊、內距、圓角），列的排版來自 TLRowContent。 */
+.tl-program-card {
+  display: flex; flex-direction: column; gap: var(--space-gap-m);
+  padding: var(--space-row-inset);
+  background: var(--surface-raised);
+  border: var(--size-hairline-thick) solid var(--accent-300);
+  border-radius: var(--radius-container);
+}
+.tl-program-card__meta { display: flex; align-items: baseline; justify-content: space-between; }
+.tl-program-card__day { font-family: var(--font-display); font-size: var(--font-card-number); }
+.tl-program-card__unit { font-size: var(--font-row-sub); color: var(--neutral-500); }
+.tl-program-card__today { font-size: var(--font-row-sub); font-weight: 600;
+                          color: var(--text-secondary); }
+/* 未啟用態是一般列，但右側按鈕要獨立可點——所以它自己補外框，不是 TLListRow。 */
+.tl-program-row--inactive {
+  display: flex; align-items: center; gap: var(--space-gap-m);
+  padding: 0 var(--space-row-inset);
+  height: var(--size-row-with-sub);
+}
 
 /* TLGroup / TLDivider / TLDividedVStack —— 它們的視覺表述就是骨架的 .group / .row，
    在 preview.css 裡。這是刻意的：那三個元件「是」容器與分隔線本身，

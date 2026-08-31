@@ -193,7 +193,7 @@ public struct RotationEditorView: View {
             title: Text(verbatim: spec.name),
             subtitle: Text(PlanFormatting.exerciseNamesSummary(spec, name: name)),
             leading: {
-                HStack(spacing: 8) {
+                HStack(spacing: TLSpace.gapS) {
                     dragHandle
                     TLBadge(fill: TLColor.accent200) {
                         Text(verbatim: "\(index + 1)")
@@ -203,7 +203,7 @@ public struct RotationEditorView: View {
                 }
             },
             trailing: {
-                HStack(spacing: 8) {
+                HStack(spacing: TLSpace.gapS) {
                     TLRowValue("\(spec.sets.count)", unit: localString("rotation.setsUnit", locale))
                     // 14b：這一格的強度覆寫（未覆寫＝線框「基準」，已覆寫＝accent 實心 ×N%）。
                     TLIntensityOverridePill(
@@ -243,7 +243,7 @@ public struct RotationEditorView: View {
 
     private var dragHandle: some View {
         Image(systemName: "line.3.horizontal")
-            .font(.system(size: 14, weight: .semibold))
+            .font(.system(size: TLIcon.inline, weight: .semibold))
             .foregroundStyle(TLColor.neutral400)
     }
 
@@ -346,7 +346,7 @@ public struct RotationEditorView: View {
                     }
                 }
                 .padding(.horizontal, TLSpace.rowInset)
-                .padding(.top, 8)
+                .padding(.top, TLSpace.gapS)
             }
         }
     }
@@ -440,7 +440,7 @@ struct IntensityOverrideSheet: View {
         VStack(alignment: .leading, spacing: TLSpace.gapL) {
             HStack {
                 Button(action: onCancel) { localText("plan.cancel") }
-                    .font(TLFont.zh(15.5, .medium))
+                    .font(TLFont.zh(TLFont.buttonLabel, .medium))
                     .foregroundStyle(TLColor.neutral600)
                 Spacer()
                 Button(action: onUseBaseline) { localText("rotation.intensity.useBaseline") }
@@ -448,7 +448,7 @@ struct IntensityOverrideSheet: View {
                     .foregroundStyle(TLColor.neutral600)
                 Spacer()
                 Button { onCommit(value) } label: { localText("plan.done") }
-                    .font(TLFont.zh(15.5, .bold))
+                    .font(TLFont.zh(TLFont.buttonLabel, .bold))
                     .foregroundStyle(TLColor.accent700)
             }
             TLValuePicker(

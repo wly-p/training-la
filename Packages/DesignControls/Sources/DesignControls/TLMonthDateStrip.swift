@@ -138,7 +138,7 @@ public struct TLMonthDateStrip: View {
     private var header: some View {
         HStack(spacing: TLSpace.gapS) {
             Text(verbatim: monthName(for: visibleMonth))
-                .font(TLFont.zh(19, .bold))
+                .font(TLFont.zh(TLFont.cardTitle, .bold))
                 .foregroundStyle(TLColor.text)
                 // 「8 月」→「August」→「Août」差三倍寬，只有月名可以被壓縮；
                 // 膠囊與 ‹ › 固定寬（handoff-21 F.1）。
@@ -178,7 +178,7 @@ public struct TLMonthDateStrip: View {
             anchorDate = today
         } label: {
             labels.today
-                .font(TLFont.zh(12.5, .semibold))
+                .font(TLFont.zh(TLFont.caption, .semibold))
                 .foregroundStyle(TLColor.text)
                 .padding(.horizontal, 15)
                 .frame(height: 34)

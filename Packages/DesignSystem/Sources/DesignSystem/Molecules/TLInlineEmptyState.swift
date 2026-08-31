@@ -25,7 +25,7 @@ public struct TLInlineEmptyState: View {
                 .foregroundStyle(TLColor.text)
             if let hint {
                 hint
-                    .font(TLFont.zh(TLFont.emptyHint, .regular))
+                    .font(TLFont.zh(TLFont.caption, .regular))
                     .foregroundStyle(TLColor.neutral600)
                     .multilineTextAlignment(.center)
             }

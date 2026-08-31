@@ -39,11 +39,11 @@ public struct TLEmptyState: View {
             .frame(width: 52, height: 52)
 
             Text(title)
-                .font(TLFont.zh(16, .bold))
+                .font(TLFont.zh(TLFont.emptyTitle, .bold))
                 .foregroundStyle(TLColor.text)
 
             Text(message)
-                .font(TLFont.zh(12.5, .regular))
+                .font(TLFont.zh(TLFont.caption, .regular))
                 .foregroundStyle(TLColor.neutral600)
                 .multilineTextAlignment(.center)
 

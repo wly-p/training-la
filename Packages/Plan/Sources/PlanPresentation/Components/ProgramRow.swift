@@ -78,10 +78,9 @@ struct ProgramRow: View {
                     .font(TLFont.zh(TLFont.rowSub, .semibold))
                     .foregroundStyle(TLColor.neutral700)
             }
-            TLProgressBar(
-                ratio: Double(progress.day) / Double(max(1, progress.totalDays)),
-                track: TLColor.neutral200
-            )
+            // 軌道用預設的 surfaceTrack——這張卡是 neutral-100 的淺底。
+            // （深底的那一張在 ProgramDetailView，它才需要傳更淺的軌道。）
+            TLProgressBar(ratio: Double(progress.day) / Double(max(1, progress.totalDays)))
         }
         .padding(TLSpace.rowInset)
         .background(TLColor.neutral100)

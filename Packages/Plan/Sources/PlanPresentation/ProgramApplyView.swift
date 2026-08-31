@@ -43,14 +43,14 @@ struct ProgramApplyView: View {
             HStack {
                 Button { dismiss() } label: {
                     localText("plan.close")
-                        .font(TLFont.zh(15.5, .medium))
+                        .font(TLFont.zh(TLFont.buttonLabel, .medium))
                         .foregroundStyle(TLColor.neutral600)
                 }
                 Spacer()
             }
             .padding(.horizontal, TLSpace.page)
-            .padding(.top, 14)
-            .padding(.bottom, 6)
+            .padding(.top, TLSpace.sheetBarTop)
+            .padding(.bottom, TLSpace.labelGap)
 
             ScrollView {
                 VStack(alignment: .leading, spacing: TLSpace.section) {
@@ -71,7 +71,7 @@ struct ProgramApplyView: View {
                 }
                 .padding(.horizontal, TLSpace.page)
                 .padding(.top, TLSpace.gapL)
-                .padding(.bottom, 40)
+                .padding(.bottom, TLSpace.pageBottom)
             }
         }
         .background(TLColor.bg.ignoresSafeArea())
@@ -141,7 +141,7 @@ struct ProgramApplyView: View {
             TLGroup {
                 ForEach(assignments) { assignment in
                     HStack(spacing: TLSpace.gapM) {
-                        VStack(alignment: .leading, spacing: 2) {
+                        VStack(alignment: .leading, spacing: TLSpace.titleSubGap) {
                             Text(verbatim: programName(assignment))
                                 .font(TLFont.zh(TLFont.rowTitle, .semibold))
                                 .foregroundStyle(TLColor.text)

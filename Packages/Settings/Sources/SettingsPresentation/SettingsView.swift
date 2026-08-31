@@ -243,7 +243,7 @@ public struct SettingsView: View {
     private var exportRow: some View {
         TLSettingsRow(localText("settings.export.title")) {
             localText("settings.export.unavailable")
-                .font(TLFont.zh(13))
+                .font(TLFont.zh(TLFont.caption))
                 .foregroundStyle(TLColor.neutral600)
         }
         .accessibilityIdentifier("settings.row.export")

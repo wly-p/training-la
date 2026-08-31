@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """從各元件的 spec.md 抽出 components.json ＋ index.html。
 
-**不是新的真相來源**——每個欄位都來自 spec 十二節裡已經有的資訊。
+**不是新的真相來源**——每個欄位都來自 spec 八節裡已經有的資訊。
 設計端要組畫面時讀這一份就知道有哪些元件、各自收什麼 props，
 不必逐份開 40 個 spec（開了也容易猜錯 props，然後被迫硬編，
 規則一就從設計端先破功）。
@@ -54,9 +54,15 @@ def collect():
     return comps
 
 def parse(md, name, layer, label):
-    s1, s2, s3, s4, s10, s11 = (sect(md, x) for x in (
+    # ⚠ 規格從十二節收成八節時，這裡沒跟上：`10 用法與禁用法` / `11 組成 ★`
+    # 兩個標題都不存在了，於是 composedOf / confusableWith / dontUseFor
+    # 靜默變成空的——**交付給設計端的 components.json 少了三個欄位而沒有人報錯**。
+    # 節名改對，並且「組成」現在住在第 1 節。
+    s1, s2, s3, s4, s10 = (sect(md, x) for x in (
         "1 身分", "2 介面", "3 變體 variants", "4 狀態 states ★",
-        "10 用法與禁用法", "11 組成 ★"))
+        "7 用法與禁用法"))
+    s11 = re.search(r"\*\*組成\*\*.*?(?=\n\n|\Z)", s1, re.S)
+    s11 = s11.group(0) if s11 else ""
     st = re.search(r"<!--\s*states:\s*([^>]+?)\s*-->", s4)
     th = re.search(r"<!--\s*themes:\s*([^>]+?)\s*-->", s4)
     split = lambda m: [x.strip() for x in m.group(1).split(",") if x.strip()] if m else []
@@ -121,7 +127,9 @@ def confusable(s10):
     m = re.search(r"\*\*易混淆\*\*\s*[：:]\s*(.+)", s10)
     if not m or m.group(1).strip().startswith(NONE + ("目前沒有",)):
         return []
-    return [{"name": n, "note": m.group(1).strip()} for n in re.findall(r"`(TL\w+)`", m.group(1))]
+    # L3 不以 TL 開頭（`TemplateRow`…），只抓 `TL\w+` 會把 L3 之間的易混淆對照整組漏掉。
+    return [{"name": n, "note": m.group(1).strip()}
+            for n in re.findall(r"`([A-Z][A-Za-z0-9]*)`", m.group(1))]
 
 def inline_list(s2, label):
     """`**Slots** — …` / `**事件** — …` 這種一行式宣告。回傳 [] 表示明確沒有。"""

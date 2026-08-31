@@ -231,7 +231,7 @@
 </tr>
 <tr>
 <td>左側圖示</td>
-<td><code>type.rowIcon</code> ＋ <code>semibold</code>，右側留 <code>space.sectionHeaderGap</code></td>
+<td><code>icon.inRow</code> ＋ <code>semibold</code>，右側留 <code>space.sectionHeaderGap</code></td>
 </tr>
 <tr>
 <td>標題與 hint 之間</td>
@@ -319,6 +319,11 @@
 <td>2026-08-30</td>
 <td><strong><code>handoff-20</code> §B 要求的「我的能力值右側狀態值」尚未實作</strong></td>
 <td>那一列右側目前是空的。設計端確認<strong>另開票</strong>處理 —— 它是功能改動不是榨取，混進來會讓「視覺零變化」失去驗證能力</td>
+</tr>
+<tr>
+<td>2026-08-31</td>
+<td>左側圖示從 <code>type.rowIcon</code> 改成 <code>icon.inRow</code></td>
+<td><strong>它一直不是字級。</strong>17 是 SF Symbol 的點數，卻住在字級群組裡，所以躲過了上一輪 icon 收斂。值沒變、群組換了。⚠ 若嚴格照「跟文字並排 → <code>icon.inline</code>」的判準它該是 14，那是 −3px、動到每一列設定的視覺改動，留給設計端拍板</td>
 </tr>
 </tbody>
 </table>

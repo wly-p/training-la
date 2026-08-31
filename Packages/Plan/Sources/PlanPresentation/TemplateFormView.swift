@@ -234,7 +234,7 @@ struct TemplateFormView: View {
     /// 細節行：器材 pill ＋（有設重量時）重量。日後要接別的技術欄位也在這一行往後加。
     @ViewBuilder
     private func detailLine(for block: PlanBlock) -> some View {
-        HStack(spacing: 6) {
+        HStack(spacing: TLSpace.labelGap) {
             TLEquipmentTag(equipmentName(for: block.exerciseId))
             if let weight = PlanFormatting.blockWeight(sets: block.sets, language: AppLanguage(locale: locale), in: displayUnit) {
                 Text(verbatim: "· \(weight)")
@@ -248,7 +248,7 @@ struct TemplateFormView: View {
 
     private var dragHandle: some View {
         Image(systemName: "line.3.horizontal")
-            .font(.system(size: 14, weight: .semibold))
+            .font(.system(size: TLIcon.inline, weight: .semibold))
             .foregroundStyle(TLColor.neutral400)
     }
 
@@ -309,11 +309,11 @@ struct TemplateFormView: View {
             localText("template.setNumber \(set.setIndex + 1)")
                 .font(TLFont.zh(TLFont.rowSub, .semibold))
                 .foregroundStyle(TLColor.neutral600)
-                .frame(width: 48, alignment: .leading)
+                .frame(width: TLSize.rowLeadColumn, alignment: .leading)
             Button {
                 editingSet = EditingSet(exerciseId: exerciseId, setId: set.id, setNumber: set.setIndex + 1)
             } label: {
-                HStack(spacing: 4) {
+                HStack(spacing: TLSpace.valueUnitGap) {
                     Text(verbatim: weightLabel(for: set.targetWeight))
                         .font(TLFont.display(16))
                         .foregroundStyle(TLColor.text)
@@ -323,7 +323,7 @@ struct TemplateFormView: View {
                         .foregroundStyle(TLColor.neutral700)
                 }
                 .padding(.horizontal, TLSpace.rowInset)
-                .padding(.vertical, 12)
+                .padding(.vertical, TLSpace.fieldPadV)
                 .background(TLColor.bg)
                 .clipShape(RoundedRectangle(cornerRadius: TLRadius.inner, style: .continuous))
             }
@@ -339,7 +339,7 @@ struct TemplateFormView: View {
     }
 
     private func shortcutRow(_ block: PlanBlock) -> some View {
-        HStack(spacing: 8) {
+        HStack(spacing: TLSpace.gapS) {
             shortcutButton(localText("template.shortcut.same")) { applySameForAll(exerciseIndex: block.exerciseIndex) }
             shortcutButton(localText("template.shortcut.progressive")) {
                 applyProgressive(exerciseIndex: block.exerciseIndex, step: weightStep)
@@ -677,7 +677,7 @@ private struct SetEditSheet: View {
     }
 
     private var modeChips: some View {
-        HStack(spacing: 8) {
+        HStack(spacing: TLSpace.gapS) {
             TLSelectableChip(
                 localString("template.set.absolute", locale), isSelected: mode == .absolute,
                 selectedFill: TLColor.accent, selectedText: TLColor.bg,

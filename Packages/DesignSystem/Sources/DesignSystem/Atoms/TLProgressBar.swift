@@ -4,8 +4,9 @@ import SwiftUI
 ///
 /// 規格：`design-system/atoms/TLProgressBar/TLProgressBar.spec.md`
 ///
-/// 軌道色是 prop 而不是固定值：這個元件會疊在不同底色上
-/// （群組容器 `surfaceRaised` 或卡片底），軌道要比它所在的底稍深才看得出來。
+/// 軌道色是 prop 而不是固定值：這個元件會疊在深淺不同的底上，
+/// 軌道要跟所在的底**有對比**——淺底上更深（預設的 `surfaceTrack`）、
+/// 深底上更淺（長期課表詳情那張 `neutral-300` 的卡）。寫死會讓它在其中一種底上整條消失。
 public struct TLProgressBar: View {
     private let ratio: Double
     private let track: Color

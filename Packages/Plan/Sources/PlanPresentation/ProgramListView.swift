@@ -31,9 +31,9 @@ public struct ProgramListView: View {
     private var experimentalNotice: some View {
         HStack(alignment: .top, spacing: TLSpace.gapS) {
             Image(systemName: "flask")
-                .font(.system(size: 13, weight: .semibold))
+                .font(.system(size: TLIcon.inline, weight: .semibold))
                 .foregroundStyle(TLColor.accent700)
-            VStack(alignment: .leading, spacing: 3) {
+            VStack(alignment: .leading, spacing: TLSpace.titleSubGap) {
                 localText("program.experimental.title")
                     .font(TLFont.zh(TLFont.rowTitle, .semibold))
                     .foregroundStyle(TLColor.accent800)
@@ -77,7 +77,7 @@ public struct ProgramListView: View {
             }
             .padding(.horizontal, TLSpace.page)
             .padding(.top, TLSpace.gapS)
-            .padding(.bottom, 40)
+            .padding(.bottom, TLSpace.pageBottom)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background(TLColor.bg)
@@ -174,7 +174,7 @@ public struct ProgramListView: View {
             .multilineTextAlignment(.center)
             .frame(maxWidth: .infinity)
             .padding(.horizontal, TLSpace.page)
-            .padding(.vertical, 26)
+            .padding(.vertical, TLSpace.section)
             .background(TLColor.neutral100)
             .clipShape(RoundedRectangle(cornerRadius: TLRadius.container, style: .continuous))
     }

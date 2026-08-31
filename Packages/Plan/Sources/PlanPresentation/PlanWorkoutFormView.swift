@@ -198,7 +198,7 @@ struct PlanWorkoutFormView: View {
             HStack {
                 Button { dismiss() } label: {
                     localText("plan.close")
-                        .font(TLFont.zh(15.5, .medium))
+                        .font(TLFont.zh(TLFont.buttonLabel, .medium))
                         .foregroundStyle(TLColor.neutral600)
                 }
                 Spacer()

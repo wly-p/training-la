@@ -135,6 +135,9 @@ public enum TLSpace {
     public static let numberUnitGap:      CGFloat = 4   // 大數字與它的單位之間
     public static let tagPadV:            CGFloat = 5   // 標籤的上下內距
     public static let tagPadH:            CGFloat = 9   // 分類標籤的左右內距。⚠ 專案裡有 5 種膠囊各自不同的內距，設計文件的 TLTag 是 5×12——待收斂，見 TLEquipmentTag 規格第 8 節
+    public static let gridGap:            CGFloat = 4   // 格狀預覽的格子之間
+    public static let fieldPadV:          CGFloat = 12  // 可點的值方塊（重量／次數）上下內距
+    public static let sheetBarTop:        CGFloat = 14  // 整頁 sheet 頂端關閉列的上緣留白（不是 TLCompactSheet，那個用 gapL）
 }
 
 public enum TLRadius {
@@ -142,6 +145,7 @@ public enum TLRadius {
     public static let inner:     CGFloat = 20  // 容器內的小方塊
     public static let pill:      CGFloat = 999 // 按鈕、輸入、標籤（實作用 .capsule）
     public static let iconThumb: CGFloat = 7   // App 圖示縮圖。25% ≈ iOS 圖示的 squircle 比例（22.4%）
+    public static let gridCell:  CGFloat = 5   // 格狀預覽的一格。比 iconThumb 7 更方，格子小、圓角要跟著小
 }
 
 public enum TLSize {
@@ -163,6 +167,9 @@ public enum TLSize {
     public static let quickActionRow:  CGFloat = 44  // 滾輪下方快捷列的高度（＝最小觸控）
     public static let progressBar:     CGFloat = 6   // 進度條高度
     public static let rowTailColumn:   CGFloat = 80  // 列右側尾欄的最小寬度。兩字標籤的欄寬；用 minWidth 讓長標往左長、右緣仍對齊——寫死 width 會把長標壓成兩行
+    public static let swipeAction:     CGFloat = 88  // 左滑露出的動作區寬度。固定，不隨文案長度變
+    public static let gridCell:        CGFloat = 18  // 格狀預覽的一格
+    public static let rowLeadColumn:   CGFloat = 48  // 列首的固定欄（序號）。與 rowTailColumn 80 對稱
 }
 
 public enum TLIcon {
@@ -177,6 +184,7 @@ public enum TLIcon {
     public static let standalone: CGFloat = 22
     public static let inCheckCircle: CGFloat = 11
     public static let inIconButton: CGFloat = 18
+    public static let inRow: CGFloat = 17
     public static let weight: Font.Weight = .semibold
 }
 
@@ -219,20 +227,23 @@ public enum TLFont {
     }
 
     // 角色字級（中文值；英文乘 1.08）
-    public static let pageTitle:  CGFloat = 34   // zh 家族；頁面主標，允許兩行
-    public static let cardTitle:  CGFloat = 21   // zh 家族
-    public static let rowTitle:   CGFloat = 15   // zh 家族
-    public static let rowValue:   CGFloat = 14   // zh 家族；設定列右側的值。比標題小一號、比三級文字深一階——值是列的答案
-    public static let rowIcon:    CGFloat = 17   // zh 家族；設定列左側的 SF Symbol
-    public static let rowNumber:  CGFloat = 16   // display 家族；列裡的數字（圓章數字、右側數值）。⚠ display 家族目前有 16 種字面字級、只有這一個有角色名，尺度收斂見 CHANGELOG 已知缺口
-    public static let cardNumber: CGFloat = 26   // display 家族；卡片裡的主要數字（進度的天數）。比 rowNumber 大、比 bigNumber 小
-    public static let emptyTitle: CGFloat = 16   // zh 家族；空狀態的主句
-    public static let emptyHint:  CGFloat = 12.5 // zh 家族；空狀態的說明句
-    public static let badgeText:  CGFloat = 12   // zh 家族；圓章裡的文字（肌群縮寫）
-    public static let segCompact: CGFloat = 12   // zh 家族；分段控制緊湊版的段落文字（handoff-20 §B：12.5→12）
-    public static let rowSub:     CGFloat = 11.5 // zh 家族
-    public static let kicker:     CGFloat = 10.5 // zh 家族；大寫
-    public static let bigNumber:  CGFloat = 66   // display 家族；訓練頁重量／次數
+    public static let pageTitle:        CGFloat = 34   // zh 家族；頁面主標，允許兩行
+    public static let sheetTitle:       CGFloat = 30   // zh 家族；sheet 的大標。比 pageTitle 小一階是刻意的——sheet 是次級表面，標題跟著降
+    public static let detailTitle:      CGFloat = 26   // zh 家族；導覽列不承載標題時，內容區的頁標題。描述的是**導覽情境**（push 進來、導覽列只有系統的 inline 日期），不是某一張卡。⚠ 與旁邊 display 28 的統計數字差 2px，兩種東西在爭同一張卡的最大字——留第二批
+    public static let cardTitle:        CGFloat = 21   // zh 家族；一組內容上方的標題：卡片、對話框、區塊、月曆標題（2026-08-31 併入原本的 20 與 19）
+    public static let rowTitle:         CGFloat = 15   // zh 家族
+    public static let buttonLabel:      CGFloat = 15   // zh 家族；按鈕與導覽列文字。與 rowTitle 同值但**各自有獨立的未來**——按鈕受 44pt 觸控區約束、列標題受 56pt 列高約束，日後很可能分開調。同值的兩個 token 不製造漂移，字面值才會
+    public static let rowValue:         CGFloat = 14   // zh 家族；設定列右側的值。比標題小一號、比三級文字深一階——值是列的答案
+    public static let buttonLabelSmall: CGFloat = 13   // zh 家族；小按鈕。是 buttonLabel 的**配對值**（照 icon paired 的模式），不是獨立的尺度階
+    public static let rowNumber:        CGFloat = 16   // display 家族；列裡的數字（圓章數字、右側數值）。⚠ display 家族目前有 16 種字面字級、只有這一個有角色名，尺度收斂見 CHANGELOG 已知缺口
+    public static let cardNumber:       CGFloat = 26   // display 家族；卡片裡的主要數字（進度的天數）。比 rowNumber 大、比 bigNumber 小
+    public static let emptyTitle:       CGFloat = 16   // zh 家族；空狀態的主句
+    public static let caption:          CGFloat = 12.5 // zh 家族；說明／提示文字（空狀態的說明句、編輯頁的說明）。原名 emptyHint——名字綁死在空狀態會讓人不敢用它，然後又寫一個字面值
+    public static let badgeText:        CGFloat = 12   // zh 家族；圓章裡的文字（肌群縮寫）
+    public static let segCompact:       CGFloat = 12   // zh 家族；分段控制緊湊版的段落文字（handoff-20 §B：12.5→12）
+    public static let rowSub:           CGFloat = 11.5 // zh 家族
+    public static let kicker:           CGFloat = 10.5 // zh 家族；大寫。⚠ 10.5 已在可讀下限，色也偏淡——與 10／9.5 那三處一起列在已知缺口待設計端檢視
+    public static let bigNumber:        CGFloat = 66   // display 家族；訓練頁重量／次數
 
     /// kicker 的字距（em → pt）。SwiftUI 的 tracking 吃點數，不是 em。
     public static let kickerTracking: CGFloat = 10.5 * 0.16

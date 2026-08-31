@@ -132,7 +132,7 @@ struct FinishWorkoutSheet: View {
                 .textCase(.uppercase)
                 .foregroundStyle(TLColor.accent700)
             Text(verbatim: workoutName ?? localString("training.free", locale))
-                .font(TLFont.zh(30, .bold))
+                .font(TLFont.zh(TLFont.sheetTitle, .bold))
                 .foregroundStyle(TLColor.text)
             Text(verbatim: subtitleTimeRange)
                 .font(.footnote)
@@ -165,7 +165,7 @@ struct FinishWorkoutSheet: View {
             }
             if let otherWorkText {
                 Text(verbatim: String(format: localString("training.finish.otherWork %@", locale), otherWorkText))
-                    .font(TLFont.zh(12.5, .regular))
+                    .font(TLFont.zh(TLFont.caption, .regular))
                     .foregroundStyle(TLColor.neutral600)
             }
             if targetVolume > 0 {

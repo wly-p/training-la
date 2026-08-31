@@ -86,7 +86,7 @@ public struct TLRulerSlider: View {
             ForEach(labels, id: \.self) { label in
                 let isCurrent = abs(label - liveValue) < 0.0001
                 Text(verbatim: TLNumberField.format(label))
-                    .font(TLFont.zh(11.5, isCurrent ? .bold : .regular))
+                    .font(TLFont.zh(TLFont.rowSub, isCurrent ? .bold : .regular))
                     .foregroundStyle(isCurrent ? TLColor.accent700 : TLColor.neutral500)
                     .frame(maxWidth: .infinity)
             }

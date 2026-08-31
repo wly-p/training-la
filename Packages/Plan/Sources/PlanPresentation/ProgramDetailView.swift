@@ -34,7 +34,7 @@ public struct ProgramDetailView: View {
                 }
             }
             .padding(.horizontal, TLSpace.page)
-            .padding(.bottom, 40)
+            .padding(.bottom, TLSpace.pageBottom)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background(TLColor.bg)
@@ -67,7 +67,7 @@ public struct ProgramDetailView: View {
     }
 
     private func header(_ program: Program) -> some View {
-        VStack(alignment: .leading, spacing: 8) {
+        VStack(alignment: .leading, spacing: TLSpace.gapS) {
             HStack {
                 TLCircleIconButton(systemImage: "chevron.left", filled: false) { dismiss() }
                     .accessibilityLabel(localText("plan.back"))
@@ -95,7 +95,7 @@ public struct ProgramDetailView: View {
     private func progressCard(_ progress: ProgramProgress) -> some View {
         VStack(spacing: TLSpace.gapM) {
             HStack(alignment: .firstTextBaseline) {
-                HStack(alignment: .firstTextBaseline, spacing: 4) {
+                HStack(alignment: .firstTextBaseline, spacing: TLSpace.numberUnitGap) {
                     Text(verbatim: "\(progress.day)")
                         .font(TLFont.display(30))
                         .foregroundStyle(TLColor.text)
@@ -140,7 +140,7 @@ public struct ProgramDetailView: View {
     }
 
     private var manage: some View {
-        VStack(alignment: .leading, spacing: 8) {
+        VStack(alignment: .leading, spacing: TLSpace.gapS) {
             TLSectionHeader(localText("rotation.manage.section"))
             TLGroup {
                 if viewModel.isActive {

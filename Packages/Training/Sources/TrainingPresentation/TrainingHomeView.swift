@@ -175,7 +175,7 @@ public struct TrainingHomeView: View {
                 Text(summary.isOvernight
                     ? localString("training.resume.overnightTitle", locale)
                     : localString("training.resume.sameDayTitle", locale))
-                    .font(TLFont.zh(20, .bold))
+                    .font(TLFont.zh(TLFont.cardTitle, .bold))
                     .foregroundStyle(TLColor.text)
                 Text(verbatim: resumeDescription(summary))
                     .font(.footnote)
@@ -357,7 +357,7 @@ public struct TrainingHomeView: View {
                 .clipShape(Capsule())
 
             Text(verbatim: card.title)
-                .font(TLFont.zh(20, .bold))
+                .font(TLFont.zh(TLFont.cardTitle, .bold))
                 .foregroundStyle(TLColor.text)
                 .lineLimit(2)
 
@@ -510,11 +510,11 @@ public struct TrainingHomeView: View {
                     format: localString("training.home.restDay.headline %@ %@", locale),
                     restDay.programName, cyclePositionText(restDay)
                 ))
-                .font(TLFont.zh(16, .bold))
+                .font(TLFont.zh(TLFont.emptyTitle, .bold))
                 .foregroundStyle(TLColor.text)
 
                 Text(verbatim: restDayRecapText(restDay))
-                    .font(TLFont.zh(12.5, .regular))
+                    .font(TLFont.zh(TLFont.caption, .regular))
                     .foregroundStyle(TLColor.sage800)
             }
             .frame(maxWidth: .infinity, alignment: .leading)

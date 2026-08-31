@@ -21,3 +21,19 @@
   padding: var(--space-chip-pad-v) 0; font-size: var(--font-row-sub);
   border: var(--size-hairline) solid var(--border-subtle); color: var(--text-secondary);
 }
+
+/* TLSwipeToRevealRow */
+/* 露出的動作固定寬度，內容整條左移蓋住它。preview 用靜態版面示意，不做手勢。 */
+.tl-swipe-row { position: relative; overflow: hidden; }
+.tl-swipe-row__action {
+  position: absolute; inset: 0 0 0 auto;
+  width: var(--size-swipe-action);
+  display: flex; align-items: center; justify-content: center;
+  background: var(--neutral-400); color: var(--surface-base);
+  font-size: var(--font-row-sub); font-weight: 600;
+}
+.tl-swipe-row__content {
+  position: relative;
+  background: var(--surface-raised);
+  transform: translateX(calc(-1 * var(--size-swipe-action)));
+}

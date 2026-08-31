@@ -60,7 +60,7 @@
 | 列高 | `size.row`（最小值，內容可撐高） |
 | 左右內距 | `space.rowInset` |
 | 標題字級 | `type.rowTitle` |
-| 左側圖示 | `type.rowIcon` ＋ `semibold`，右側留 `space.sectionHeaderGap` |
+| 左側圖示 | `icon.inRow` ＋ `semibold`，右側留 `space.sectionHeaderGap` |
 | 標題與 hint 之間 | `space.titleHintGap` |
 | trailing 與 chevron 之間 | `trailingGap`（預設 `space.gapS`） |
 | 最小寬度 | 標題可壓到換行；trailing 不縮 |
@@ -110,3 +110,4 @@
 | 2026-08-30 | 從三合一的 `TLSettingsRow.swift` 拆出 | 那個檔有 3 個 public 元件 |
 | 2026-08-30 | 內部字面值 `17`／`15`／`10`／`6` 改成 token | 元件內部的字面值也是字面值 |
 | 2026-08-30 | **`handoff-20` §B 要求的「我的能力值右側狀態值」尚未實作** | 那一列右側目前是空的。設計端確認**另開票**處理 —— 它是功能改動不是榨取，混進來會讓「視覺零變化」失去驗證能力 |
+| 2026-08-31 | 左側圖示從 `type.rowIcon` 改成 `icon.inRow` | **它一直不是字級。**17 是 SF Symbol 的點數，卻住在字級群組裡，所以躲過了上一輪 icon 收斂。值沒變、群組換了。⚠ 若嚴格照「跟文字並排 → `icon.inline`」的判準它該是 14，那是 −3px、動到每一列設定的視覺改動，留給設計端拍板 |

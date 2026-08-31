@@ -103,10 +103,14 @@
   --space-number-unit-gap: 4px;  /* 大數字與它的單位之間 */
   --space-tag-pad-v: 5px;  /* 標籤的上下內距 */
   --space-tag-pad-h: 9px;  /* 分類標籤的左右內距。⚠ 專案裡有 5 種膠囊各自不同的內距，設計文件的 TLTag 是 5×12——待收斂，見 TLEquipmentTag 規格第 8 節 */
+  --space-grid-gap: 4px;  /* 格狀預覽的格子之間 */
+  --space-field-pad-v: 12px;  /* 可點的值方塊（重量／次數）上下內距 */
+  --space-sheet-bar-top: 14px;  /* 整頁 sheet 頂端關閉列的上緣留白（不是 TLCompactSheet，那個用 gapL） */
   --radius-container: 28px;  /* 卡片／群組容器 */
   --radius-inner: 20px;  /* 容器內的小方塊 */
   --radius-pill: 999px;  /* 按鈕、輸入、標籤（實作用 .capsule） */
   --radius-icon-thumb: 7px;  /* App 圖示縮圖。25% ≈ iOS 圖示的 squircle 比例（22.4%） */
+  --radius-grid-cell: 5px;  /* 格狀預覽的一格。比 iconThumb 7 更方，格子小、圓角要跟著小 */
   --size-row: 56px;  /* 標準列高（設定列） */
   --size-row-with-sub: 62px;  /* 有副標的列 */
   --size-row-with-detail: 68px;  /* 有細節行的列（器材 pill ＋ 重量） */
@@ -125,17 +129,23 @@
   --size-quick-action-row: 44px;  /* 滾輪下方快捷列的高度（＝最小觸控） */
   --size-progress-bar: 6px;  /* 進度條高度 */
   --size-row-tail-column: 80px;  /* 列右側尾欄的最小寬度。兩字標籤的欄寬；用 minWidth 讓長標往左長、右緣仍對齊——寫死 width 會把長標壓成兩行 */
+  --size-swipe-action: 88px;  /* 左滑露出的動作區寬度。固定，不隨文案長度變 */
+  --size-grid-cell: 18px;  /* 格狀預覽的一格 */
+  --size-row-lead-column: 48px;  /* 列首的固定欄（序號）。與 rowTailColumn 80 對稱 */
 
   /* ── 字級（中文值；英文 × 1.08）── */
   --font-page-title: 34px;
+  --font-sheet-title: 30px;
+  --font-detail-title: 26px;
   --font-card-title: 21px;
   --font-row-title: 15px;
+  --font-button-label: 15px;
   --font-row-value: 14px;
-  --font-row-icon: 17px;
+  --font-button-label-small: 13px;
   --font-row-number: 16px;
   --font-card-number: 26px;
   --font-empty-title: 16px;
-  --font-empty-hint: 12.5px;
+  --font-caption: 12.5px;
   --font-badge-text: 12px;
   --font-seg-compact: 12px;
   --font-row-sub: 11.5px;
@@ -148,14 +158,17 @@
   --font-zh: 'Noto Sans TC', 'PingFang TC', sans-serif;
   --font-en: system-ui, -apple-system, sans-serif;
   --font-page-title-family: var(--font-zh);
+  --font-sheet-title-family: var(--font-zh);
+  --font-detail-title-family: var(--font-zh);
   --font-card-title-family: var(--font-zh);
   --font-row-title-family: var(--font-zh);
+  --font-button-label-family: var(--font-zh);
   --font-row-value-family: var(--font-zh);
-  --font-row-icon-family: var(--font-zh);
+  --font-button-label-small-family: var(--font-zh);
   --font-row-number-family: var(--font-display);
   --font-card-number-family: var(--font-display);
   --font-empty-title-family: var(--font-zh);
-  --font-empty-hint-family: var(--font-zh);
+  --font-caption-family: var(--font-zh);
   --font-badge-text-family: var(--font-zh);
   --font-seg-compact-family: var(--font-zh);
   --font-row-sub-family: var(--font-zh);
@@ -173,6 +186,7 @@
   --icon-standalone: 22px;
   --icon-inCheckCircle: 11px;
   --icon-inIconButton: 18px;
+  --icon-inRow: 17px;
   --icon-strokeWeb: 2.75px;
   --icon-stroke: 2.75;
 

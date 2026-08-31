@@ -33,11 +33,11 @@
 
 | 放在哪 | 軌道 |
 |---|---|
-| 群組容器（`surfaceRaised` 底） | `surfaceTrack`（預設） |
-| 卡片（更淺的底） | 呼叫端傳更淺的一階 |
+| 群組容器或淺卡（`surfaceRaised` 底） | `surfaceTrack`（預設） |
+| 深卡（`neutral-300` 底，長期課表詳情） | 呼叫端傳**更淺**的一階 |
 
-**為什麼軌道色要開成 prop**：它會疊在不同底色上，軌道要比所在的底稍深才看得出來。
-寫死的話在其中一種底上會消失。
+**為什麼軌道色要開成 prop**：它會疊在深淺不同的底上，軌道要跟所在的底**有對比** ——
+淺底上要更深、深底上要更淺。寫死的話在其中一種底上會整條消失。
 
 ## 4 狀態 states ★
 
@@ -95,5 +95,5 @@
 
 | 日期 | 改動 | 原因 |
 |---|---|---|
-| 2026-08-31 | 從 `ProgramListView` 與 `ProgramDetailView` 抽出 | 兩處各手工重建一份（`GeometryReader` ＋ 兩個 `Capsule`），只差軌道色。**設計文件的 L1 清單本來就有 `TLProgressBar`，只是實作沒有** |
+| 2026-08-31 | 從 `ProgramListView` 與 `ProgramDetailView` 抽出 | 兩處各手工重建一份（`GeometryReader` ＋ 兩個 `Capsule`），只差軌道色（一個更深、一個更淺，剛好是不能寫死的證據）。**設計文件的 L1 清單本來就有 `TLProgressBar`，只是實作沒有** |
 | 2026-08-31 | 高度 `6` 改成 `size.progressBar` | 元件內部的字面值也是字面值 |

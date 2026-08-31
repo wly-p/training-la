@@ -62,7 +62,7 @@ public struct ExerciseListView: View {
                     }
                     .padding(.horizontal, TLSpace.page)
                     .padding(.top, TLSpace.gapS)
-                    .padding(.bottom, 40)
+                    .padding(.bottom, TLSpace.pageBottom)
                 }
             }
         }

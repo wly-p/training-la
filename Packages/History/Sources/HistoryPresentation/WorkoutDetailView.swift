@@ -129,7 +129,7 @@ struct WorkoutDetailView: View {
             HStack(alignment: .top) {
                 VStack(alignment: .leading, spacing: 4) {
                     Text(verbatim: detail.summary.name ?? localString("history.freeTraining", locale))
-                        .font(TLFont.zh(26, .bold))
+                        .font(TLFont.zh(TLFont.detailTitle, .bold))
                         .foregroundStyle(TLColor.text)
                     Text(verbatim: subline(detail))
                         .font(TLFont.zh(TLFont.rowSub, .regular))
@@ -174,7 +174,7 @@ struct WorkoutDetailView: View {
     private func volumeStat(actual: Double, target: Double?) -> some View {
         VStack(alignment: .leading, spacing: 2) {
             localText(target != nil && target! > 0 ? "history.volumeActualTarget" : "history.totalVolume")
-                .font(TLFont.zh(11.5, .regular))
+                .font(TLFont.zh(TLFont.rowSub, .regular))
                 .foregroundStyle(TLColor.neutral600)
             HStack(alignment: .firstTextBaseline, spacing: 0) {
                 Text(verbatim: HistoryFormatting.formatNumber(actual))
@@ -199,7 +199,7 @@ struct WorkoutDetailView: View {
     private func achievementRateStat(rate: Double) -> some View {
         VStack(alignment: .leading, spacing: 2) {
             localText("history.achievementRate")
-                .font(TLFont.zh(11.5, .regular))
+                .font(TLFont.zh(TLFont.rowSub, .regular))
                 .foregroundStyle(TLColor.neutral600)
             (Text(verbatim: String(format: "%.0f", rate)).font(TLFont.display(28))
                 + Text(verbatim: " %").font(TLFont.zh(13, .medium)))
@@ -278,7 +278,7 @@ struct WorkoutDetailView: View {
         HStack(spacing: 0) {
             TLTitleWithTag(
                 title: Text(verbatim: group.exerciseName)
-                    .font(TLFont.zh(14, .semibold))
+                    .font(TLFont.zh(TLFont.rowValue, .semibold))
                     .foregroundColor(TLColor.text),
                 equipment: group.equipment.displayName(locale)
             )
@@ -304,7 +304,7 @@ struct WorkoutDetailView: View {
                     .frame(width: 44, alignment: .leading)
                 if set.status != .done {
                     localText(HistoryFormatting.statusLabel(set.status))
-                        .font(TLFont.zh(10.5, .semibold))
+                        .font(TLFont.zh(TLFont.kicker, .semibold))
                         .foregroundStyle(TLColor.neutral500)
                         .padding(.horizontal, 8).padding(.vertical, 3)
                         .background(Capsule().fill(TLColor.neutral200))
@@ -344,7 +344,7 @@ struct WorkoutDetailView: View {
         case false:
             let delta = HistoryFormatting.repsDelta(set) ?? 0
             Text(verbatim: delta > 0 ? "+\(delta)" : "\(delta)")
-                .font(TLFont.zh(12, .semibold))
+                .font(TLFont.zh(TLFont.badgeText, .semibold))
                 .foregroundStyle(delta > 0 ? TLColor.sage700 : TLColor.danger700)
         case nil:
             EmptyView()
@@ -396,7 +396,7 @@ struct WorkoutDetailView: View {
     private func accentStepper(label: LocalizedStringKey, value: String, onMinus: @escaping () -> Void, onPlus: @escaping () -> Void) -> some View {
         VStack(alignment: .leading, spacing: 4) {
             localText(label)
-                .font(TLFont.zh(11.5, .regular))
+                .font(TLFont.zh(TLFont.rowSub, .regular))
                 .foregroundStyle(TLColor.neutral500)
             HStack(spacing: 12) {
                 Button(action: onMinus) {

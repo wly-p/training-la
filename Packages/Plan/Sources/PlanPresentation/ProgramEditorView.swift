@@ -185,7 +185,7 @@ public struct ProgramEditorView: View {
 
     private var totalLengthSection: some View {
         TLEditSection(localText("program.totalLength.section")) {
-            TLFlowLayout(spacing: 8, lineSpacing: 8) {
+            TLFlowLayout(spacing: TLSpace.gapS, lineSpacing: TLSpace.gapS) {
                 ForEach([10, 14, 28], id: \.self) { preset in
                     TLSelectableChip(
                         totalLengthLabel(preset),
@@ -231,7 +231,7 @@ public struct ProgramEditorView: View {
     // MARK: - 週期（真正的 Domain 欄位：cycleLength／days）
 
     private var cycleSection: some View {
-        VStack(alignment: .leading, spacing: 8) {
+        VStack(alignment: .leading, spacing: TLSpace.gapS) {
             TLSectionHeader(
                 localText("program.cycle.header \(draftCycleLength)"),
                 actionLabel: localText("program.cycle.changeLength"),
@@ -246,7 +246,7 @@ public struct ProgramEditorView: View {
                     }
                 }
                 .padding(.horizontal, TLSpace.rowInset)
-                .padding(.bottom, 8)
+                .padding(.bottom, TLSpace.gapS)
             }
             TLGroup {
                 ForEach(Array(0..<draftCycleLength), id: \.self) { index in
@@ -346,9 +346,9 @@ public struct ProgramEditorView: View {
     }
 
     private var previewGrid: some View {
-        HStack(spacing: 4) {
+        HStack(spacing: TLSpace.gridGap) {
             ForEach(0..<draftCycleLength, id: \.self) { day in
-                VStack(spacing: 4) {
+                VStack(spacing: TLSpace.gridGap) {
                     ForEach(0..<rounds, id: \.self) { _ in
                         previewCell(cellState(day))
                     }
@@ -361,17 +361,17 @@ public struct ProgramEditorView: View {
     private func previewCell(_ state: DayCellState) -> some View {
         switch state {
         case .assigned:
-            RoundedRectangle(cornerRadius: 5, style: .continuous)
+            RoundedRectangle(cornerRadius: TLRadius.gridCell, style: .continuous)
                 .fill(TLColor.accent)
-                .frame(width: 18, height: 18)
+                .frame(width: TLSize.gridCell, height: TLSize.gridCell)
         case .rest:
-            RoundedRectangle(cornerRadius: 5, style: .continuous)
+            RoundedRectangle(cornerRadius: TLRadius.gridCell, style: .continuous)
                 .fill(TLColor.neutral100)
-                .frame(width: 18, height: 18)
+                .frame(width: TLSize.gridCell, height: TLSize.gridCell)
         case .unassigned:
-            RoundedRectangle(cornerRadius: 5, style: .continuous)
+            RoundedRectangle(cornerRadius: TLRadius.gridCell, style: .continuous)
                 .strokeBorder(TLColor.text.opacity(0.22), style: StrokeStyle(lineWidth: 1, dash: [2, 2]))
-                .frame(width: 18, height: 18)
+                .frame(width: TLSize.gridCell, height: TLSize.gridCell)
         }
     }
 

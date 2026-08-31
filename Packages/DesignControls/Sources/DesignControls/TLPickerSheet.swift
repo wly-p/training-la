@@ -119,7 +119,7 @@ public struct TLPickerSheet<Item: TLPickerSheetItem>: View {
     private var topBar: some View {
         HStack {
             Button { dismiss() } label: { labels.cancel }
-                .font(TLFont.zh(15.5, .medium))
+                .font(TLFont.zh(TLFont.buttonLabel, .medium))
                 .foregroundStyle(TLColor.neutral600)
             Spacer()
             title
@@ -134,7 +134,7 @@ public struct TLPickerSheet<Item: TLPickerSheetItem>: View {
                 } label: {
                     labels.createNewButton
                 }
-                .font(TLFont.zh(15.5, .bold))
+                .font(TLFont.zh(TLFont.buttonLabel, .bold))
                 .foregroundStyle(TLColor.accent700)
             } else {
                 // 佔位：讓標題保持水平居中

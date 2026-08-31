@@ -77,13 +77,13 @@ public struct TLCompactSheet<Content: View>: View {
         HStack {
             if let cancelTitle, let onCancel {
                 Button(action: onCancel) { cancelTitle }
-                    .font(TLFont.zh(15.5, .medium))
+                    .font(TLFont.zh(TLFont.buttonLabel, .medium))
                     .foregroundStyle(TLColor.neutral600)
                     .accessibilityIdentifier("compactSheet.cancel")
             }
             Spacer(minLength: TLSpace.gapM)
             Button(action: onConfirm) { confirmTitle }
-                .font(TLFont.zh(15.5, .bold))
+                .font(TLFont.zh(TLFont.buttonLabel, .bold))
                 .foregroundStyle(TLColor.accent700)
                 // 「完成」「好」各處文字不同又會跟著語言換，測試一律認這兩個 id。
                 .accessibilityIdentifier("compactSheet.confirm")

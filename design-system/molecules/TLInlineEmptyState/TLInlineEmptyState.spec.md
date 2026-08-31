@@ -50,7 +50,7 @@
 | | |
 |---|---|
 | 主句字級 | `type.emptyTitle` ＋ `bold` |
-| 說明字級 | `type.emptyHint` ＋ `regular` |
+| 說明字級 | `type.caption` ＋ `regular` |
 | 兩者間距 | `space.emptyStateGap` |
 | 上下留白 | `space.emptyStatePadV` |
 | 寬度 | 撐滿，內容置中 |
@@ -90,3 +90,4 @@
 |---|---|---|
 | 2026-08-31 | 從四個清單頁抽出 | `ExerciseListView`／`TemplateListView`／`RotationListView`／`ProgramListView` 各有一份**一字不差**的實作，只有文案不同 |
 | 2026-08-31 | 字級 `16`／`12.5` 與間距 `8`／`40` 改成 token | 元件內部的字面值也是字面值。⚠ `TLEmptyState` 也用同樣的 16／12.5 字面值，那個檔還沒榨取到 |
+| 2026-08-31 | `type.emptyHint` 改名 `type.caption` | 設計端拍板：名字綁死在空狀態，會讓人不敢拿它放編輯頁的說明文字，然後又寫一個字面 13 |

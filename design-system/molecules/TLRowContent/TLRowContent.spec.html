@@ -1,0 +1,292 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>TLRowContent</title>
+<link rel="stylesheet" href="../../tokens/tokens.css">
+<link rel="stylesheet" href="../../preview.css">
+<style>
+  body { max-width: 62rem; line-height: 1.7; }
+  h1, h2, h3 { font-family: var(--font-page-title-family); line-height: 1.35; }
+  h1 { font-size: var(--font-page-title); margin: 0 0 var(--space-gap-l); }
+  h2 { font-size: var(--font-card-title); margin: var(--space-section) 0 var(--space-gap-m);
+       padding-top: var(--space-gap-m); border-top: 1px solid var(--border-subtle); }
+  h3 { font-size: var(--font-row-title); margin: var(--space-gap-l) 0 var(--space-gap-s); }
+  a { color: var(--accent-on-surface); }
+  table { border-collapse: collapse; width: 100%; margin: var(--space-gap-m) 0;
+          display: block; overflow-x: auto; }
+  th, td { text-align: left; padding: var(--space-gap-s) var(--space-gap-m);
+           border-bottom: 1px solid var(--border-subtle); vertical-align: top; }
+  th { font-size: var(--font-kicker); letter-spacing: var(--font-kicker-tracking);
+       text-transform: uppercase; color: var(--text-tertiary); }
+  pre { background: var(--surface-raised); border-radius: var(--radius-inner);
+        padding: var(--space-gap-m); overflow-x: auto; }
+  pre code { background: none; padding: 0; }
+  blockquote { margin: var(--space-gap-m) 0; padding-left: var(--space-gap-m);
+               border-left: 3px solid var(--border-subtle); color: var(--text-secondary); }
+  .back { font-size: var(--font-row-sub); margin-bottom: var(--space-gap-l); display: block; }
+</style>
+<a class="back" href="../../index.html">← 元件庫索引</a>
+<h1>TLRowContent</h1>
+<h2>1 身分</h2>
+<table>
+<thead>
+<tr>
+<th></th>
+<th></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>層級</td>
+<td>L2 分子</td>
+</tr>
+<tr>
+<td>職責</td>
+<td>列的<strong>內容排版</strong>：左件 ＋ 主副標 ＋ 右件 ＋ 指向記號</td>
+</tr>
+<tr>
+<td>原型 id</td>
+<td><code>4c</code> <code>5b</code> <code>8a</code></td>
+</tr>
+<tr>
+<td>獨立使用</td>
+<td><strong>否 —— 它沒有外框，必須由 <code>TLListRow</code> 或卡片式版面給</strong></td>
+</tr>
+<tr>
+<td>容器責任</td>
+<td>左右內距、最小高度、可不可點，<strong>全部由容器負責</strong></td>
+</tr>
+<tr>
+<td>實作</td>
+<td><code>Packages/DesignSystem/Sources/DesignSystem/Molecules/TLRowContent.swift</code></td>
+</tr>
+<tr>
+<td>Preview</td>
+<td><code>design-system/molecules/TLRowContent/TLRowContent.preview.html</code></td>
+</tr>
+<tr>
+<td>Preview CSS</td>
+<td><code>components.preview.css</code> §TLRowContent</td>
+</tr>
+</tbody>
+</table>
+<p><strong>組成</strong>：由 <code>TLChevron</code>（L1）與 <code>TLTitleWithTag</code>（L2）組成；
+slot 常放 <code>TLBadge</code>／<code>TLCheckCircle</code>／<code>TLRowValue</code>（皆 L1）。</p>
+<h2>2 介面 ★</h2>
+<p><strong>Props</strong></p>
+<table>
+<thead>
+<tr>
+<th>名稱</th>
+<th>型別</th>
+<th>值域</th>
+<th>必填</th>
+<th>預設</th>
+<th>說明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>title</code></td>
+<td><code>Text</code></td>
+<td></td>
+<td>是</td>
+<td>—</td>
+<td>列名</td>
+</tr>
+<tr>
+<td><code>subtitle</code></td>
+<td><code>Text?</code></td>
+<td></td>
+<td>否</td>
+<td><code>nil</code></td>
+<td>第二行。內容規則是「組成摘要」，見第 7 節</td>
+</tr>
+<tr>
+<td><code>equipment</code></td>
+<td><code>String?</code></td>
+<td></td>
+<td>否</td>
+<td><code>nil</code></td>
+<td>標題右側的小標。給的話走 <code>TLTitleWithTag</code> 排法</td>
+</tr>
+<tr>
+<td><code>showChevron</code></td>
+<td><code>Bool</code></td>
+<td></td>
+<td>否</td>
+<td><code>false</code></td>
+<td>是否通往下一層</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Slots</strong> — <code>leading</code>（左側，通常放 <code>TLBadge</code> 或 <code>TLCheckCircle</code>）、
+<code>detail</code>（標題下方的細節行，放得下非文字元素）、
+<code>trailing</code>（右側，通常放 <code>TLRowValue</code>）。
+<strong>事件</strong> — 無。<strong>它不可點</strong> —— 點擊是外框的事。</p>
+<p><strong>另外對外給一個值</strong>：<code>preferredMinHeight</code> —— 這一列「應該」多高。
+它不是 prop 而是<strong>輸出</strong>：容器要不要用它自己決定（<code>TLListRow</code> 用，卡片式版面通常不用）。</p>
+<h2>3 變體 variants</h2>
+<p>無變體，但有三種填法（同 <code>TLListRow</code>）：</p>
+<table>
+<thead>
+<tr>
+<th>填法</th>
+<th>組成</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>圖示型</td>
+<td><code>leading</code> 放 <code>TLBadge</code> ＋ 主副標 ＋ <code>trailing</code> 放 <code>TLRowValue</code> ＋ chevron</td>
+</tr>
+<tr>
+<td>純文字型</td>
+<td>主標 ＋ <code>trailing</code></td>
+</tr>
+<tr>
+<td>可勾選型</td>
+<td><code>leading</code> 放 <code>TLCheckCircle</code> ＋ 主副標，<strong>沒有 chevron</strong></td>
+</tr>
+</tbody>
+</table>
+<h2>4 狀態 states ★</h2>
+<!-- states: single, withSub, withDetail -->
+<!-- themes: light, dark -->
+
+<table>
+<thead>
+<tr>
+<th>類別</th>
+<th>狀態</th>
+<th>這個元件</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>互動</td>
+<td>default / pressed / disabled / focused</td>
+<td><strong>一個都沒有。</strong> 它不可點 —— 按下態是 <code>TLListRow</code> 的事。這是刻意的：把互動留在這裡，卡片式版面就得繼承一個它用不到的按鈕</td>
+</tr>
+<tr>
+<td>選取</td>
+<td>selected / unselected / indeterminate</td>
+<td>由 <code>leading</code> 放的 <code>TLCheckCircle</code> 表達</td>
+</tr>
+<tr>
+<td>資料</td>
+<td>empty / loading / error</td>
+<td>N/A —— 沒有資料就不會有這一列</td>
+</tr>
+<tr>
+<td>內容極值</td>
+<td>最短 / 最長 / 溢出</td>
+<td>主標與副標各自一行截斷；<code>leading</code>／<code>trailing</code> 不縮</td>
+</tr>
+<tr>
+<td>主題</td>
+<td>light / dark</td>
+<td>兩者都有</td>
+</tr>
+<tr>
+<td>語言</td>
+<td>中文 / 英文</td>
+<td>副標是全 app 中英落差最大的文字</td>
+</tr>
+</tbody>
+</table>
+<p>三個 state 是<strong>填法</strong>不是互動態：<code>single</code>（只有主標）、<code>withSub</code>（主副標）、
+<code>withDetail</code>（主標 ＋ 細節行）。它們決定 <code>preferredMinHeight</code>。</p>
+<h2>5 度量與行為</h2>
+<table>
+<thead>
+<tr>
+<th></th>
+<th></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>左件與文字之間</td>
+<td><code>space.gapM</code></td>
+</tr>
+<tr>
+<td>主標與副標之間</td>
+<td><code>space.titleSubGap</code></td>
+</tr>
+<tr>
+<td>文字與右件之間</td>
+<td>最小 <code>space.gapS</code>（中間是彈性空白）</td>
+</tr>
+<tr>
+<td>主標字級</td>
+<td><code>type.rowTitle</code></td>
+</tr>
+<tr>
+<td>副標字級</td>
+<td><code>type.rowSub</code></td>
+</tr>
+<tr>
+<td><code>preferredMinHeight</code></td>
+<td>有細節行 <code>size.rowWithDetail</code>；有副標 <code>size.rowWithSub</code>；否則 <code>size.row</code></td>
+</tr>
+</tbody>
+</table>
+<p><strong>沒有左右內距、沒有高度、沒有底色</strong> —— 這三件事不在這裡是這個元件存在的理由。</p>
+<h3>文字與溢出</h3>
+<p>主標一行截斷加 <code>…</code>；有 <code>equipment</code> 時改走 <code>TLTitleWithTag</code>（名稱截斷、標籤不縮）。
+副標一行截斷。細節行與主標<strong>共用同一條左緣</strong> —— 器材不再需要自己的欄，對齊問題自然消失。</p>
+<h3>動態</h3>
+<p>無。轉場屬於外框。</p>
+<h2>6 配色 ★</h2>
+<table>
+<thead>
+<tr>
+<th>用途</th>
+<th>token</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>主標</td>
+<td><code>textPrimary</code></td>
+</tr>
+<tr>
+<td>副標</td>
+<td><code>neutral-500</code></td>
+</tr>
+</tbody>
+</table>
+<p>⚠ <strong>副標目前是原始色階不是語意 token。</strong> 文字階合併（<code>textSecondary</code> → neutral-700）
+之後 Swift 端還沒遷移，全 app 有九十幾處還直接用 <code>neutral-500</code>。
+CSS 鏡像跟著<strong>實作</strong>走而不是跟著意圖走 —— 否則設計端看到的顏色與 app 不同，
+而那正是這整輪重構要消滅的東西。遷移列在 <code>CHANGELOG.md</code> 的已知缺口。</p>
+<h2>7 用法與禁用法</h2>
+<p><strong>用它</strong>：需要「列的排版」但外框自己給的地方 —— 卡片式版面、右側要獨立可點的列。</p>
+<p><strong>易混淆</strong>：<code>TLListRow</code> —— 那個是<strong>這個元件 ＋ 外框</strong>（內距、最小高度、整列可點）。
+判準：整列點下去是一個動作嗎？是就用 <code>TLListRow</code>。</p>
+<p><strong>不要用它</strong>：
+- 直接放進 <code>TLGroup</code> —— 沒有內距會貼邊，那是 <code>TLListRow</code> 的工作
+- 同時給 <code>subtitle</code> 與 <code>detail</code> —— 兩行第二內容沒有設計
+- 把狀態放進副標 —— 狀態一律放右側，副標是組成摘要</p>
+<h2>8 變更紀錄</h2>
+<table>
+<thead>
+<tr>
+<th>日期</th>
+<th>改動</th>
+<th>原因</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>2026-08-31</td>
+<td>從 <code>TLListRow</code> 拆出</td>
+<td><strong>階段 2 最重要的一個修正。</strong> 長期課表的「進行中」卡手工重建了整個列（圓章＋主副標＋chevron），查下去不是偷懶而是<strong>用不了</strong>：<code>TLListRow</code> 把內容排版與列的外框綁在同一個型別，那張卡有自己的 padding、只有上半可點，外框全部不適用。拆開之後兩個呼叫端的手工重建都消失了</td>
+</tr>
+<tr>
+<td>2026-08-31</td>
+<td><strong>記錄副標配色的鏡像落差</strong></td>
+<td>Swift 用 <code>neutral-500</code>、語意層意圖是 <code>textSecondary</code>(neutral-700)。這是文字階合併後未遷移的殘留，不是這一輪能順手改的（會動到視覺）</td>
+</tr>
+</tbody>
+</table>

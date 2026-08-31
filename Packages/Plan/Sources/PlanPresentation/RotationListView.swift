@@ -57,7 +57,7 @@ public struct RotationListView: View {
             }
             .padding(.horizontal, TLSpace.page)
             .padding(.top, TLSpace.gapS)
-            .padding(.bottom, 40)
+            .padding(.bottom, TLSpace.pageBottom)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background(TLColor.bg)

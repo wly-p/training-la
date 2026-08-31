@@ -175,7 +175,7 @@ public struct ActiveWorkoutView: View {
                 (viewModel.isPlanFullyDone
                     ? localText("training.done.plan.title")
                     : localText("training.done.exercise.title"))
-                    .font(TLFont.zh(15, .semibold))
+                    .font(TLFont.zh(TLFont.rowTitle, .semibold))
                     .foregroundStyle(TLColor.sage900)
                     // 動作做完／課表做完是兩句不同的文案，測試只認「完成區的標題在不在」。
                     .accessibilityIdentifier("activeWorkout.completeBandTitle")
@@ -185,7 +185,7 @@ public struct ActiveWorkoutView: View {
                     .foregroundStyle(TLColor.sage900)
             }
             Text(verbatim: completeBandMessage)
-                .font(TLFont.zh(11.5, .regular))
+                .font(TLFont.zh(TLFont.rowSub, .regular))
                 .foregroundStyle(TLColor.sage800.opacity(0.85))
                 .fixedSize(horizontal: false, vertical: true)
             completeBandActions
@@ -925,7 +925,7 @@ public struct ActiveWorkoutView: View {
                 } icon: {
                     Image(systemName: "arrow.up")
                 }
-                .font(TLFont.zh(11.5, .semibold))
+                .font(TLFont.zh(TLFont.rowSub, .semibold))
                 .foregroundStyle(TLColor.accent700)
             }
             Button {

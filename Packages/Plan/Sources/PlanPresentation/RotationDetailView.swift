@@ -34,7 +34,7 @@ public struct RotationDetailView: View {
                 }
             }
             .padding(.horizontal, TLSpace.page)
-            .padding(.bottom, 40)
+            .padding(.bottom, TLSpace.pageBottom)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background(TLColor.bg)
@@ -69,7 +69,7 @@ public struct RotationDetailView: View {
     // MARK: - 標題列（返回＋編輯）＋ kicker＋名稱
 
     private func header(_ rotation: Rotation) -> some View {
-        VStack(alignment: .leading, spacing: 8) {
+        VStack(alignment: .leading, spacing: TLSpace.gapS) {
             HStack {
                 TLCircleIconButton(systemImage: "chevron.left", filled: false) { dismiss() }
                     .accessibilityLabel(localText("plan.back"))
@@ -98,7 +98,7 @@ public struct RotationDetailView: View {
 
     private func statusCard(_ rotation: Rotation) -> some View {
         VStack(alignment: .leading, spacing: TLSpace.gapM) {
-            HStack(alignment: .firstTextBaseline, spacing: 8) {
+            HStack(alignment: .firstTextBaseline, spacing: TLSpace.gapS) {
                 Text(verbatim: "\(rotation.roundsCompleted)")
                     .font(TLFont.display(30))
                     .foregroundStyle(TLColor.text)
@@ -112,7 +112,7 @@ public struct RotationDetailView: View {
                     .foregroundStyle(TLColor.neutral600)
             }
             if !rotation.workouts.isEmpty {
-                TLFlowLayout(spacing: 8, lineSpacing: 8) {
+                TLFlowLayout(spacing: TLSpace.gapS, lineSpacing: TLSpace.gapS) {
                     ForEach(Array(rotation.workouts.enumerated()), id: \.offset) { index, spec in
                         templateCapsule(spec.name, isCurrent: index == rotation.cursor)
                     }
@@ -162,7 +162,7 @@ public struct RotationDetailView: View {
     // MARK: - 管理群組
 
     private func manage(_ rotation: Rotation) -> some View {
-        VStack(alignment: .leading, spacing: 8) {
+        VStack(alignment: .leading, spacing: TLSpace.gapS) {
             TLSectionHeader(localText("rotation.manage.section"))
             TLGroup {
                 TLListRow(

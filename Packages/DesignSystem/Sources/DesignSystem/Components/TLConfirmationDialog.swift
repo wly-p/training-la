@@ -50,12 +50,12 @@ private struct TLConfirmationDialogModifier: ViewModifier {
             VStack(alignment: .leading, spacing: 0) {
                 // 文案靠左，不置中：這裡要讀的是後果，不是宣告。置中的長句每行起點都在跳。
                 title
-                    .font(TLFont.zh(20, .bold))
+                    .font(TLFont.zh(TLFont.cardTitle, .bold))
                     .tracking(-0.2)               // letter-spacing -.01em
                     .foregroundStyle(TLColor.text)
                     .fixedSize(horizontal: false, vertical: true)
                 message
-                    .font(TLFont.zh(13.5, .regular))
+                    .font(TLFont.zh(TLFont.caption, .regular))
                     .lineSpacing(6)               // 行高 1.65
                     .foregroundStyle(TLColor.neutral700)
                     .fixedSize(horizontal: false, vertical: true)
