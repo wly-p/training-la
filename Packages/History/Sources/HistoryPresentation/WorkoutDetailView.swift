@@ -237,7 +237,7 @@ struct WorkoutDetailView: View {
                         .font(TLFont.zh(TLFont.rowSub, .medium))
                         .foregroundStyle(TLColor.accent700)
                         .padding(.horizontal, TLSpace.rowInset)
-                        .frame(minHeight: 44)
+                        .frame(minHeight: TLSize.minTap)
                     }
                     .buttonStyle(.plain)
                 }
@@ -289,7 +289,7 @@ struct WorkoutDetailView: View {
                 .accessibilityIdentifier("workoutDetail.targetColumn")
         }
         .padding(.horizontal, TLSpace.rowInset)
-        .frame(minHeight: 40)
+        .frame(minHeight: TLSize.tableHeaderRow)
         .background(TLColor.neutral200)
     }
 
@@ -407,7 +407,7 @@ struct WorkoutDetailView: View {
                     .font(TLFont.display(20))
                     .monospacedDigit()
                     .foregroundStyle(TLColor.text)
-                    .frame(minWidth: 60)
+                    .frame(minWidth: TLSize.stepperValueMinW)
                 Button(action: onPlus) {
                     Image(systemName: "plus.circle.fill").font(.system(size: TLIcon.standalone)).foregroundStyle(TLColor.accent)
                 }

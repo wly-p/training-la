@@ -231,7 +231,7 @@ public struct TLPickerSheet<Item: TLPickerSheetItem>: View {
             }
         }
         .padding(.horizontal, TLSpace.rowInset)
-        .frame(minHeight: 58)
+        .frame(minHeight: TLSize.rowWithSub)
         .contentShape(Rectangle())
         .modifier(OptionalIdentifier(id: item.accessibilityIdentifier))
     }

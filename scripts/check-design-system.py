@@ -38,9 +38,13 @@ LITERAL_STYLE = re.compile(
     # 它們不只是「另一種寫法」——系統字級**跟著 Dynamic Type 縮放**，等於一套平行的字級系統。
     # 2026-09-04 補上，這是 ratchet 的第三個洞。
     r"|\.font\(\.(?:footnote|caption2?|subheadline|headline|title[23]?|body|callout|largeTitle)\b"
-    r"|cornerRadius: ?[0-9]"
+    # `cornerRadius` 只認得 RoundedRectangle 的那一個；UnevenRoundedRectangle 的四個角
+    # （bottomTrailingRadius…）逃掉了。2026-09-04 補。
+    r"|[a-zA-Z]*[Rr]adius: ?[0-9]"
     r"|\.padding\((?:\.[a-z]+, )?[0-9]"
-    r"|\.frame\(.*?(?:width|height): ?[0-9]"
+    # ⚠ 只寫 `width|height` 會漏掉 minWidth／maxHeight／idealWidth——大小寫敏感，
+    # 而那些正是「固定尺寸」最常見的寫法。2026-09-04 補（ratchet 的第四個洞）。
+    r"|\.frame\(.*?(?:[Ww]idth|[Hh]eight): ?[0-9]"
     # spacing 也是樣式。`spacing: 0` 不算——那是「不要間距、讓子項自己決定」的結構選擇，
     # 不是設計值，強迫它吃 token 只會逼出一個 TLSpace.none = 0。
     r"|spacing: ?[1-9]")
@@ -72,6 +76,7 @@ CHECKS = {
     8:  ("`DesignSystem` 未 import 任何功能 package", "§4 規則三"),
     17: ("同一個字型家族內，兩個**不同**的字級值差距不得小於 1（同值的兩個角色是允許的）", "§5"),
     18: ("`DesignSystem` 零邏輯：不得持有狀態、不得格式化／日期運算；`GeometryReader` 走登記制", "§4 規則二之二"),
+    19: ("畫面檔自己組的 view 成員**不得增加**（ratchet）——應用層是排列不是定義", "§4 規則一"),
     5:  ("生成物與來源一致：`tokens.json` → Swift／CSS；各 spec → `components.json`／`index.html`", "§5、§6"),
 }
 
@@ -254,6 +259,32 @@ for pkg in sorted(p.name for p in PKG.iterdir() if p.is_dir() and p.name != "Des
     if n:
         counts[pkg] = n
 
+# ── 19：畫面檔不得自己長元件（ratchet，正典 §4 規則一）──────────────
+#
+# 檢查 7 量的是**字面樣式**，不是**元件定義**。一個畫面檔可以一個字面值都沒有，
+# 卻仍然自己組了 26 個 view——那正是規則一要擋的東西，而它一直沒有數字。
+#
+# 量法：畫面檔（Presentation 下、不在 Components/ 裡）的頂層 `some View` 成員，
+# 扣掉 `body` 本身（那是畫面，不是元件）。
+#
+# 跟檢查 7 一樣走 ratchet 而不是硬門檻：畫面把自己拆成幾段是可讀性的選擇，
+# 硬性歸零會逼出一個 800 行的 body。**擋的是「又長出新的」。**
+VIEW_MEMBER = re.compile(
+    r"^\s*(?:@ViewBuilder\s+)?(?:private\s+)?(?:@ViewBuilder\s+)?"
+    r"(?:var|func)\s+(\w+)[^\n]*?some View", re.M)
+
+screen_counts = {}
+for f in sorted(PKG.rglob("*.swift")):
+    if ".build" in f.parts or "Presentation" not in str(f):
+        continue
+    if "/Components/" in str(f):        # L3 本來就是元件，不算畫面
+        continue
+    names = [n for n in VIEW_MEMBER.findall(f.read_text()) if n != "body"]
+    if names:
+        screen_counts[f.name] = len(names)
+
+SCREEN_BASE = DS / ".screen-baseline.json"
+
 if "--list" in sys.argv:
     print(json.dumps([{"id": k, "desc": v[0], "ref": v[1]} for k, v in CHECKS.items()],
                      ensure_ascii=False))
@@ -261,7 +292,10 @@ if "--list" in sys.argv:
 
 if "--update-baseline" in sys.argv:
     BASE.write_text(json.dumps(counts, indent=2, sort_keys=True) + "\n")
+    SCREEN_BASE.write_text(json.dumps(screen_counts, indent=2, sort_keys=True) + "\n")
     print(f"✔ 基線已更新：{counts}（總計 {sum(counts.values())}）")
+    print(f"✔ 畫面基線已更新：{len(screen_counts)} 個畫面檔、"
+          f"自己組的 view 共 {sum(screen_counts.values())} 個")
     sys.exit(0)
 
 base = json.loads(BASE.read_text()) if BASE.exists() else {}
@@ -467,6 +501,19 @@ for f in sorted((PKG / "DesignSystem").rglob("*.swift")):
         else:
             err(18, f"{f.name}：用了 `GeometryReader`。依可用空間做比例佈局是允許的，"
                     f"但要登記進 design-system/logic-exceptions.json 並寫理由")
+
+# ── 19：畫面檔不得自己長元件（ratchet，正典 §4 規則一）──────────────
+_sbase = json.loads(SCREEN_BASE.read_text()) if SCREEN_BASE.exists() else {}
+for _f, _n in screen_counts.items():
+    _b = _sbase.get(_f)
+    if _b is None:
+        err(19, f"{_f}：自己組了 {_n} 個 view 但基線沒有這個檔，跑 --update-baseline")
+    elif _n > _b:
+        err(19, f"{_f}：畫面自己組的 view 從 {_b} 增加到 {_n}——"
+                f"應用層是**排列**不是定義（正典 §4 規則一）。"
+                f"要新的東西就抽成 L3 放 Presentation/Components/")
+    elif _n < _b:
+        warns.append(f"↓ {_f}：{_b} → {_n} 個 view，記得跑 --update-baseline")
 
 # ── 8：DesignSystem 不得認識 domain ────────────────────────────────
 for f in (PKG / "DesignSystem").rglob("*.swift"):

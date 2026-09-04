@@ -1,0 +1,66 @@
+<!-- @dsCard group="Organisms" name="SetTableRow" subtitle="訓練中的組表一列" -->
+<!doctype html>
+<meta charset="utf-8">
+<title>SetTableRow</title>
+<link rel="stylesheet" href="../../tokens/tokens.css">
+<link rel="stylesheet" href="../../preview.css">
+<link rel="stylesheet" href="../../components.preview.css">
+<h1>SetTableRow</h1>
+<p class="note">
+  L3 有機體。訓練中的組表一列。<b>三種狀態同一個排版</b>，差別在每一欄放什麼。
+</p>
+
+<div class="kicker">狀態</div>
+<div class="tl-set-table">
+  <div class="tl-set-row tl-set-row--done" data-state="done">
+    <span class="tl-set-row__index">✓</span>
+    <span class="tl-set-row__target">20 × 10</span>
+    <span class="tl-set-row__actual">20 × 10 ↩</span>
+  </div>
+  <div class="tl-set-row tl-set-row--current" data-state="current">
+    <span class="tl-set-row__index"><span class="tl-set-badge">2</span></span>
+    <span class="tl-set-row__target tl-set-row__target--current">20 × 10</span>
+    <span class="tl-set-row__actual">現在這組</span>
+  </div>
+  <div class="tl-set-row tl-set-row--upcoming" data-state="upcoming">
+    <span class="tl-set-row__index">3</span>
+    <span class="tl-set-row__target">20 × 10</span>
+    <span class="tl-set-row__actual">—</span>
+  </div>
+</div>
+<p class="note">
+  <b>整列不可點</b>，只有 ↩ 可按 —— 點列沒有意義，而且會誤觸撤銷（實測過的 bug）。<br>
+  未做的整列淡出，那是第三個狀態訊號。
+</p>
+
+<div class="kicker">兩個看不見的測試錨點</div>
+<p class="note">
+  已完成與目前這組各有一個 <b>0×0、透明</b>的節點給 UITest 定位 ——
+  表格視覺上不畫「第 N 組」，但測試要數得出。
+  <b>那裡的 1 與 0 不是設計值</b>，是「看不見」的寫法，所以不吃 token。
+</p>
+
+<div class="kicker">主題</div>
+<div class="themes">
+  <div class="pane" data-theme="light">
+    <div class="kicker">light</div>
+    <div class="tl-set-table"><div class="tl-set-row tl-set-row--current">
+      <span class="tl-set-row__index"><span class="tl-set-badge">2</span></span>
+      <span class="tl-set-row__target tl-set-row__target--current">20 × 10</span>
+      <span class="tl-set-row__actual">現在這組</span></div></div>
+  </div>
+  <div class="pane" data-theme="dark">
+    <div class="kicker">dark（目前是 light 的複製）</div>
+    <div class="tl-set-table"><div class="tl-set-row tl-set-row--current">
+      <span class="tl-set-row__index"><span class="tl-set-badge">2</span></span>
+      <span class="tl-set-row__target tl-set-row__target--current">20 × 10</span>
+      <span class="tl-set-row__actual">現在這組</span></div></div>
+  </div>
+</div>
+
+<div class="kicker">不適用的狀態</div>
+<p class="note">
+  整列 pressed／disabled —— 不可點。<br>
+  selected —— <code>current</code> 是進度不是選取。<br>
+  empty —— 沒有組就不會有這一列。
+</p>

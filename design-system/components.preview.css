@@ -345,6 +345,67 @@
   height: var(--size-row-with-sub);
 }
 
+/* SetTableRow（L3）*/
+.tl-set-table { display: flex; flex-direction: column; gap: var(--space-gap-s); }
+.tl-set-row {
+  display: flex; align-items: center; gap: var(--space-set-column-gap);
+  padding: var(--space-row-inset);
+  background: var(--surface-raised); border-radius: var(--radius-inner);
+}
+.tl-set-row--done { }
+.tl-set-row--current { background: var(--surface-input); }
+.tl-set-row--upcoming { opacity: 0.6; }
+.tl-set-row__index { width: var(--size-set-index-column-narrow); flex: none; }
+.tl-set-row__target, .tl-set-row__actual {
+  flex: 1; text-align: right; color: var(--neutral-600); font-variant-numeric: tabular-nums;
+}
+.tl-set-row__target--current { color: var(--accent-800); font-weight: 700; }
+.tl-set-badge {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: var(--size-set-badge); height: var(--size-set-badge);
+  border-radius: var(--radius-pill);
+  background: var(--accent-800); color: var(--surface-base);
+  font-size: var(--font-badge-text); font-weight: 700;
+}
+
+/* ExerciseCompleteBand（L3）*/
+/* 不對稱色帶：左緣貼齊螢幕、右緣不到底。跟輸入色帶同一個形狀。 */
+.tl-band {
+  background: var(--sage-200);
+  padding: var(--space-row-inset) var(--space-row-inset) var(--space-row-inset) var(--space-page);
+  border-radius: 0 var(--radius-band) var(--radius-band) 0;
+  margin-bottom: var(--space-gap-s);
+}
+.tl-band__title { font-size: var(--font-row-title); font-weight: 600; color: var(--sage-900); }
+.tl-band__message { font-size: var(--font-row-sub); color: var(--sage-800);
+                    margin-top: var(--space-section-header-gap); }
+.tl-band__actions { display: flex; gap: var(--space-label-gap);
+                    margin-top: var(--space-value-unit-gap); }
+.tl-band__outline {
+  min-width: var(--size-band-button-min-w); text-align: center;
+  font-size: var(--font-row-title); font-weight: 600; color: var(--sage-900);
+  padding: var(--space-field-pad-v) var(--space-label-gap);
+  border: var(--size-hairline-thick) solid var(--sage-400); border-radius: var(--radius-pill);
+}
+.tl-band__primary {
+  flex: 1; text-align: center;
+  font-size: var(--font-button-label); font-weight: 700;
+  color: var(--surface-base); background: var(--action-primary);
+  padding: var(--space-field-pad-v); border-radius: var(--radius-pill);
+}
+
+/* UpNextRow（L3）*/
+/* 刻意沒有卡片底——設計稿是直接排在頁面底色上、只用細線分隔。 */
+.tl-upnext { display: flex; flex-direction: column; }
+.tl-upnext__row {
+  display: flex; align-items: center; gap: var(--space-gap-m);
+  padding: var(--space-field-pad-v) 0;
+  border-bottom: var(--size-hairline) solid var(--border-subtle);
+}
+.tl-upnext__name { flex: 1; min-width: 0; }
+.tl-upnext__row--current .tl-upnext__name { font-weight: 600; }
+.tl-upnext__target { color: var(--neutral-500); flex: none; }
+
 /* TLGroup / TLDivider / TLDividedVStack —— 它們的視覺表述就是骨架的 .group / .row，
    在 preview.css 裡。這是刻意的：那三個元件「是」容器與分隔線本身，
    不是放在容器裡的東西。 */

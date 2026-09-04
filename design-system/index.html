@@ -9,7 +9,7 @@
   .lvl { color: var(--text-tertiary); font-size: var(--font-row-sub); }
 </style>
 <h1>Training La 元件庫</h1>
-<p class="note">token 版本 1　·　34 個元件　·　規則見 <a href="README.html">README</a>、規格樣板見 <a href="_template.spec.html">規格樣板</a>　·　token 與契約的改動見 <a href="CHANGELOG.html">CHANGELOG</a><br><b>這輪先讀 <a href="HANDOFF.html">HANDOFF</a></b>（跟上輪的差別、想請你看什麼）。<br>先看 <b>Examples</b> 知道整頁長什麼樣，再讀 <a href="components.json">components.json</a>（機器讀的登錄檔，每個元件的 props／狀態／組成都在裡面），再開個別 preview。<br>token 的實際樣子見 <a href="tokens/tokens.preview.html">tokens.preview.html</a>。</p>
+<p class="note">token 版本 1　·　37 個元件　·　規則見 <a href="README.html">README</a>、規格樣板見 <a href="_template.spec.html">規格樣板</a>　·　token 與契約的改動見 <a href="CHANGELOG.html">CHANGELOG</a><br><b>這輪先讀 <a href="HANDOFF.html">HANDOFF</a></b>（跟上輪的差別、想請你看什麼）。<br>先看 <b>Examples</b> 知道整頁長什麼樣，再讀 <a href="components.json">components.json</a>（機器讀的登錄檔，每個元件的 props／狀態／組成都在裡面），再開個別 preview。<br>token 的實際樣子見 <a href="tokens/tokens.preview.html">tokens.preview.html</a>。</p>
 <div class="kicker">Examples —— 整頁長什麼樣</div>
 <div class="group">
   <div class="row"><span class="label"><a href="examples/settings-selection.example.html">設定選擇頁</a> <span class="lvl">— 主題／語言／App 圖示共用的 drill-in 子頁</span></span></div>
@@ -57,13 +57,16 @@
   <div class="row"><span class="label"><a href="molecules/TLStat/TLStat.preview.html">TLStat</a> <span class="lvl">— 一個統計數字 ＋ 它的標籤</span></span><span class="lvl">4 props · 2 狀態 · <a href="molecules/TLStat/TLStat.spec.html">規格</a></span></div>
   <div class="row"><span class="label"><a href="molecules/TLTitleWithTag/TLTitleWithTag.preview.html">TLTitleWithTag</a> <span class="lvl">— 名稱 ＋ 緊跟在後的小標籤</span></span><span class="lvl">4 props · <a href="molecules/TLTitleWithTag/TLTitleWithTag.spec.html">規格</a></span></div>
 </div>
-<div class="kicker">L3 有機體（7）</div>
+<div class="kicker">L3 有機體（10）</div>
 <div class="group">
+  <div class="row"><span class="label"><a href="organisms/ExerciseCompleteBand/ExerciseCompleteBand.preview.html">ExerciseCompleteBand</a> <span class="lvl">— 動作或課表做完時的完成區（16b／16e）</span></span><span class="lvl">9 props · 2 狀態 · <a href="organisms/ExerciseCompleteBand/ExerciseCompleteBand.spec.html">規格</a></span></div>
   <div class="row"><span class="label"><a href="organisms/ExerciseRow/ExerciseRow.preview.html">ExerciseRow</a> <span class="lvl">— 動作清單的一列　⚑ 需容器 TLGroup</span></span><span class="lvl">7 props · 2 狀態 · <a href="organisms/ExerciseRow/ExerciseRow.spec.html">規格</a></span></div>
   <div class="row"><span class="label"><a href="organisms/PlanWorkoutRow/PlanWorkoutRow.preview.html">PlanWorkoutRow</a> <span class="lvl">— 課表某一天的一列 —— **已經排定**的訓練　⚑ 需容器 TLGroup</span></span><span class="lvl">5 props · 2 狀態 · <a href="organisms/PlanWorkoutRow/PlanWorkoutRow.spec.html">規格</a></span></div>
   <div class="row"><span class="label"><a href="organisms/ProgramRow/ProgramRow.preview.html">ProgramRow</a> <span class="lvl">— 長期課表清單的一列</span></span><span class="lvl">8 props · 2 狀態 · <a href="organisms/ProgramRow/ProgramRow.spec.html">規格</a></span></div>
   <div class="row"><span class="label"><a href="organisms/ProjectedWorkoutRow/ProjectedWorkoutRow.preview.html">ProjectedWorkoutRow</a> <span class="lvl">— 課表某一天的一列 —— **長期課表投影出來、還沒落地**的訓練　⚑ 需容器 TLGroup</span></span><span class="lvl">4 props · <a href="organisms/ProjectedWorkoutRow/ProjectedWorkoutRow.spec.html">規格</a></span></div>
   <div class="row"><span class="label"><a href="organisms/RotationRow/RotationRow.preview.html">RotationRow</a> <span class="lvl">— 循環清單的一列　⚑ 需容器 TLGroup</span></span><span class="lvl">8 props · 3 狀態 · <a href="organisms/RotationRow/RotationRow.spec.html">規格</a></span></div>
+  <div class="row"><span class="label"><a href="organisms/SetTableRow/SetTableRow.preview.html">SetTableRow</a> <span class="lvl">— 訓練中的組表一列（組／目標／實際三欄）</span></span><span class="lvl">6 props · 3 狀態 · <a href="organisms/SetTableRow/SetTableRow.spec.html">規格</a></span></div>
   <div class="row"><span class="label"><a href="organisms/TemplateRow/TemplateRow.preview.html">TemplateRow</a> <span class="lvl">— 範本清單的一列　⚑ 需容器 TLGroup</span></span><span class="lvl">8 props · 2 狀態 · <a href="organisms/TemplateRow/TemplateRow.spec.html">規格</a></span></div>
+  <div class="row"><span class="label"><a href="organisms/UpNextRow/UpNextRow.preview.html">UpNextRow</a> <span class="lvl">— 訓練中「接下來」的一列</span></span><span class="lvl">5 props · 3 狀態 · <a href="organisms/UpNextRow/UpNextRow.spec.html">規格</a></span></div>
   <div class="row"><span class="label"><a href="organisms/WorkoutHistoryRow/WorkoutHistoryRow.preview.html">WorkoutHistoryRow</a> <span class="lvl">— 歷史清單（依日期）的一列　⚑ 需容器 TLGroup</span></span><span class="lvl">4 props · <a href="organisms/WorkoutHistoryRow/WorkoutHistoryRow.spec.html">規格</a></span></div>
 </div>

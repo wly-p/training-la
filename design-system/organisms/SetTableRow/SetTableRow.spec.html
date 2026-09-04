@@ -1,0 +1,316 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>SetTableRow</title>
+<link rel="stylesheet" href="../../tokens/tokens.css">
+<link rel="stylesheet" href="../../preview.css">
+<style>
+  body { max-width: 62rem; line-height: 1.7; }
+  h1, h2, h3 { font-family: var(--font-page-title-family); line-height: 1.35; }
+  h1 { font-size: var(--font-page-title); margin: 0 0 var(--space-gap-l); }
+  h2 { font-size: var(--font-card-title); margin: var(--space-section) 0 var(--space-gap-m);
+       padding-top: var(--space-gap-m); border-top: 1px solid var(--border-subtle); }
+  h3 { font-size: var(--font-row-title); margin: var(--space-gap-l) 0 var(--space-gap-s); }
+  a { color: var(--accent-on-surface); }
+  table { border-collapse: collapse; width: 100%; margin: var(--space-gap-m) 0;
+          display: block; overflow-x: auto; }
+  th, td { text-align: left; padding: var(--space-gap-s) var(--space-gap-m);
+           border-bottom: 1px solid var(--border-subtle); vertical-align: top; }
+  th { font-size: var(--font-kicker); letter-spacing: var(--font-kicker-tracking);
+       text-transform: uppercase; color: var(--text-tertiary); }
+  pre { background: var(--surface-raised); border-radius: var(--radius-inner);
+        padding: var(--space-gap-m); overflow-x: auto; }
+  pre code { background: none; padding: 0; }
+  blockquote { margin: var(--space-gap-m) 0; padding-left: var(--space-gap-m);
+               border-left: 3px solid var(--border-subtle); color: var(--text-secondary); }
+  .back { font-size: var(--font-row-sub); margin-bottom: var(--space-gap-l); display: block; }
+</style>
+<a class="back" href="../../index.html">← 元件庫索引</a>
+<h1>SetTableRow</h1>
+<h2>1 身分</h2>
+<table>
+<thead>
+<tr>
+<th></th>
+<th></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>層級</td>
+<td>L3 有機體</td>
+</tr>
+<tr>
+<td>職責</td>
+<td>訓練中的組表一列（組／目標／實際三欄）</td>
+</tr>
+<tr>
+<td>原型 id</td>
+<td><code>11c</code></td>
+</tr>
+<tr>
+<td>獨立使用</td>
+<td>是（自成一顆圓角列，不進 <code>TLGroup</code>）</td>
+</tr>
+<tr>
+<td>容器責任</td>
+<td>列與列之間的間距由組表給</td>
+</tr>
+<tr>
+<td>實作</td>
+<td><code>Packages/Training/Sources/TrainingPresentation/Components/SetTableRow.swift</code></td>
+</tr>
+<tr>
+<td>Preview</td>
+<td><code>design-system/organisms/SetTableRow/SetTableRow.preview.html</code></td>
+</tr>
+<tr>
+<td>Preview CSS</td>
+<td><code>components.preview.css</code> §SetTableRow</td>
+</tr>
+</tbody>
+</table>
+<p><strong>組成</strong>：<code>TLCard</code>（L2，<code>radius: .inner</code>）＋ 同檔的 <code>SetTableColumns</code>（欄位排版）。</p>
+<h2>2 介面 ★</h2>
+<p><strong>Props</strong></p>
+<table>
+<thead>
+<tr>
+<th>名稱</th>
+<th>型別</th>
+<th>值域</th>
+<th>必填</th>
+<th>預設</th>
+<th>說明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>row</code></td>
+<td><code>SetTableRow</code></td>
+<td></td>
+<td>是</td>
+<td>—</td>
+<td>這一組的資料（序號／目標／實際／狀態）</td>
+</tr>
+<tr>
+<td><code>weightUnit</code></td>
+<td><code>WeightUnit</code></td>
+<td><code>kg</code> / <code>lb</code></td>
+<td>是</td>
+<td>—</td>
+<td>顯示單位。<strong>元件不做換算判斷</strong>，只照傳進來的單位格式化</td>
+</tr>
+<tr>
+<td><code>isUndoable</code></td>
+<td><code>Bool</code></td>
+<td></td>
+<td>是</td>
+<td>—</td>
+<td>只有剛記錄的那一組能撤銷 —— <strong>由呼叫端算</strong>，元件不問 view model</td>
+</tr>
+<tr>
+<td><code>currentSetLabel</code></td>
+<td><code>Text</code></td>
+<td></td>
+<td>是</td>
+<td>—</td>
+<td>「現在這組」的文案</td>
+</tr>
+<tr>
+<td><code>undoLabel</code></td>
+<td><code>Text</code></td>
+<td></td>
+<td>是</td>
+<td>—</td>
+<td>撤銷鍵的無障礙文案</td>
+</tr>
+<tr>
+<td><code>onUndo</code></td>
+<td><code>() -&gt; Void</code></td>
+<td></td>
+<td>是</td>
+<td>—</td>
+<td>撤銷上一組</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Slots</strong> — N/A
+<strong>事件</strong> — <code>onUndo</code></p>
+<h2>3 變體 variants</h2>
+<p>無變體，但<strong>三種狀態同一個排版，差別在每一欄放什麼</strong>：</p>
+<table>
+<thead>
+<tr>
+<th>狀態</th>
+<th>組欄</th>
+<th>目標欄</th>
+<th>實際欄</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>done</code></td>
+<td>赭紅實心圓＋白勾</td>
+<td>目標值</td>
+<td>實際值 ＋（可撤銷時）↩</td>
+</tr>
+<tr>
+<td><code>current</code></td>
+<td>反白圓章＋序號</td>
+<td>目標值（粗體、accent）</td>
+<td>「現在這組」</td>
+</tr>
+<tr>
+<td><code>upcoming</code></td>
+<td>淡色序號</td>
+<td>目標值</td>
+<td><code>—</code></td>
+</tr>
+</tbody>
+</table>
+<h2>4 狀態 states ★</h2>
+<!-- states: done, current, upcoming -->
+<!-- themes: light, dark -->
+
+<table>
+<thead>
+<tr>
+<th>類別</th>
+<th>狀態</th>
+<th>這個元件</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>互動</td>
+<td>default / pressed / disabled / focused</td>
+<td><strong>整列不可點</strong> —— 只有 ↩ 可按。點列沒有意義，而且會誤觸撤銷</td>
+</tr>
+<tr>
+<td>選取</td>
+<td>selected / unselected / indeterminate</td>
+<td><code>current</code> 不是選取，是進度</td>
+</tr>
+<tr>
+<td>資料</td>
+<td>empty / loading / error</td>
+<td>N/A —— 沒有組就不會有這一列</td>
+</tr>
+<tr>
+<td>內容極值</td>
+<td>最短 / 最長 / 溢出</td>
+<td>數字用 <code>monospacedDigit</code> 對齊；欄寬固定，兩位數組序放得下</td>
+</tr>
+<tr>
+<td>主題</td>
+<td>light / dark</td>
+<td>兩者都有</td>
+</tr>
+<tr>
+<td>語言</td>
+<td>中文 / 英文</td>
+<td>「現在這組」在英文較長，是實際欄的寬度決定因素</td>
+</tr>
+</tbody>
+</table>
+<h2>5 度量與行為</h2>
+<table>
+<thead>
+<tr>
+<th></th>
+<th></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>組欄寬</td>
+<td><code>size.setIndexColumnNarrow</code>（28，留給兩位數）</td>
+</tr>
+<tr>
+<td>三欄間距</td>
+<td><code>space.setColumnGap</code></td>
+</tr>
+<tr>
+<td>圓章</td>
+<td><code>size.setBadge</code></td>
+</tr>
+<tr>
+<td>卡</td>
+<td><code>TLCard(radius: .inner)</code>，<code>current</code> 用深底</td>
+</tr>
+<tr>
+<td>未做的列</td>
+<td>整列 0.6 透明</td>
+</tr>
+</tbody>
+</table>
+<h3>兩個 0 尺寸的測試錨點</h3>
+<p><code>done</code> 與 <code>current</code> 各有一個 <strong>0×0、字級 1、透明</strong>的節點，帶 <code>accessibilityIdentifier</code>。
+表格視覺上不畫「第 N 組」（那是打勾圖示），但 UITest 要數得出「記了幾組」與「停在第幾組」。</p>
+<p><strong>那裡的 1 與 0 不是設計值，是「看不見」的寫法</strong>，所以刻意不吃 token。</p>
+<h3>動態</h3>
+<p>無轉場。狀態改變時直接換。</p>
+<h2>6 配色 ★</h2>
+<table>
+<thead>
+<tr>
+<th>用途</th>
+<th>token</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>current</code> 底</td>
+<td><code>surfaceInput</code>（借用，見 <code>TLCard</code> 規格第 6 節）</td>
+</tr>
+<tr>
+<td>其餘底</td>
+<td><code>surfaceRaised</code></td>
+</tr>
+<tr>
+<td><code>current</code> 目標值</td>
+<td><code>accent-800</code></td>
+</tr>
+<tr>
+<td>一般目標值</td>
+<td><code>neutral-600</code></td>
+</tr>
+<tr>
+<td>↩</td>
+<td><code>accent-700</code>（<strong>換掉系統藍</strong>，配色一致）</td>
+</tr>
+</tbody>
+</table>
+<h2>7 用法與禁用法</h2>
+<p><strong>用它</strong>：訓練中的組表。</p>
+<p><strong>易混淆</strong>：<code>PlanWorkoutRow</code> —— 那是「某一天要做哪些訓練」；這是「這個動作的第幾組」。</p>
+<p><strong>不要用它</strong>：
+- 讓整列可點 —— 一碰列就誤撤銷（實測過的 bug）
+- 自己算「能不能撤銷」 —— 那是 session 狀態，屬於呼叫端</p>
+<h2>8 變更紀錄</h2>
+<table>
+<thead>
+<tr>
+<th>日期</th>
+<th>改動</th>
+<th>原因</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>2026-09-04</td>
+<td>從 <code>ActiveWorkoutView</code> 抽出成 L3</td>
+<td>那個檔自己組了 26 個 view，這一組（列 ＋ 三欄 ＋ 欄位排版）佔 5 個</td>
+</tr>
+<tr>
+<td>2026-09-04</td>
+<td><code>SetTableColumns</code> 一起搬出來</td>
+<td>表頭與資料列共用它 —— 兩邊各寫一次的話欄寬遲早對不齊</td>
+</tr>
+<tr>
+<td>2026-09-04</td>
+<td>欄寬 <code>28</code> 與欄距 <code>12</code> 改吃 token</td>
+<td>⚠ 全 app 的「列首固定欄」已有 28／40／44／48／60 五種寬度，待設計端收斂</td>
+</tr>
+</tbody>
+</table>

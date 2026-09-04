@@ -2100,6 +2100,137 @@
       }
     },
     {
+      "name": "ExerciseCompleteBand",
+      "level": "L3",
+      "layer": "organisms",
+      "responsibility": "動作或課表做完時的完成區（16b／16e）",
+      "prototypeIds": [],
+      "prototypeNote": "16b",
+      "standalone": true,
+      "requiresContainer": null,
+      "containerOwns": "左緣要貼齊螢幕，所以它自己抵銷外層的頁面邊距",
+      "props": [
+        {
+          "name": "isPlanFullyDone",
+          "type": "`Bool`",
+          "kind": null,
+          "values": null,
+          "required": "是",
+          "default": "—",
+          "description": "課表整份做完（16e）還是只有這個動作（16b）。決定文案、按鈕數、主鈕行為"
+        },
+        {
+          "name": "title",
+          "type": "`Text`",
+          "kind": null,
+          "values": null,
+          "required": "是",
+          "default": "—",
+          "description": "標題"
+        },
+        {
+          "name": "message",
+          "type": "`String`",
+          "kind": null,
+          "values": null,
+          "required": "是",
+          "default": "—",
+          "description": "說明句。**呼叫端算好**（16e 要帶整場統計）"
+        },
+        {
+          "name": "primaryTitle",
+          "type": "`String`",
+          "kind": null,
+          "values": null,
+          "required": "是",
+          "default": "—",
+          "description": "主鈕文案"
+        },
+        {
+          "name": "oneMoreSetLabel",
+          "type": "`Text`",
+          "kind": null,
+          "values": null,
+          "required": "是",
+          "default": "—",
+          "description": "「加一組」"
+        },
+        {
+          "name": "addExtraLabel",
+          "type": "`Text`",
+          "kind": null,
+          "values": null,
+          "required": "是",
+          "default": "—",
+          "description": "「加練」（只有 16e 用得到）"
+        },
+        {
+          "name": "onOneMoreSet",
+          "type": "`() -> Void`",
+          "kind": null,
+          "values": null,
+          "required": "是",
+          "default": "—",
+          "description": "同一個動作再來一組"
+        },
+        {
+          "name": "onAddExtra",
+          "type": "`() -> Void`",
+          "kind": null,
+          "values": null,
+          "required": "是",
+          "default": "—",
+          "description": "開選擇器加新動作"
+        },
+        {
+          "name": "onPrimary",
+          "type": "`() -> Void`",
+          "kind": null,
+          "values": null,
+          "required": "是",
+          "default": "—",
+          "description": "下一個動作／結束訓練"
+        }
+      ],
+      "slots": [],
+      "events": [
+        "三個 closure"
+      ],
+      "variants": [
+        {
+          "name": "isPlanFullyDone",
+          "note": "圖示"
+        },
+        {
+          "name": "false`（16b 動作做完）",
+          "note": "`checkmark`"
+        },
+        {
+          "name": "true`（16e 課表做完）",
+          "note": "`flag`"
+        }
+      ],
+      "states": [
+        "exerciseDone",
+        "planDone"
+      ],
+      "themes": [
+        "light",
+        "dark"
+      ],
+      "confusableWith": [],
+      "dontUseFor": [
+        "做成彈窗 —— **舊實作就是彈窗**：它出現在狀態已經前進之後，不是防誤按而是事後追問，",
+        "蓋住組表 —— 誤按的人要看得到 ↩ 才能復原"
+      ],
+      "composedOf": null,
+      "paths": {
+        "spec": "organisms/ExerciseCompleteBand/ExerciseCompleteBand.spec.md",
+        "preview": "organisms/ExerciseCompleteBand/ExerciseCompleteBand.preview.html",
+        "impl": "Packages/Training/Sources/TrainingPresentation/Components/ExerciseCompleteBand.swift"
+      }
+    },
+    {
       "name": "ExerciseRow",
       "level": "L3",
       "layer": "organisms",
@@ -2657,6 +2788,110 @@
       }
     },
     {
+      "name": "SetTableRow",
+      "level": "L3",
+      "layer": "organisms",
+      "responsibility": "訓練中的組表一列（組／目標／實際三欄）",
+      "prototypeIds": [],
+      "prototypeNote": "11c",
+      "standalone": true,
+      "requiresContainer": [
+        "TLGroup"
+      ],
+      "containerOwns": "列與列之間的間距由組表給",
+      "props": [
+        {
+          "name": "row",
+          "type": "`SetTableRow`",
+          "kind": null,
+          "values": null,
+          "required": "是",
+          "default": "—",
+          "description": "這一組的資料（序號／目標／實際／狀態）"
+        },
+        {
+          "name": "weightUnit",
+          "type": "`WeightUnit`",
+          "kind": "enum",
+          "values": [
+            "kg",
+            "lb"
+          ],
+          "required": "是",
+          "default": "—",
+          "description": "顯示單位。**元件不做換算判斷**，只照傳進來的單位格式化"
+        },
+        {
+          "name": "isUndoable",
+          "type": "`Bool`",
+          "kind": null,
+          "values": null,
+          "required": "是",
+          "default": "—",
+          "description": "只有剛記錄的那一組能撤銷 —— **由呼叫端算**，元件不問 view model"
+        },
+        {
+          "name": "currentSetLabel",
+          "type": "`Text`",
+          "kind": null,
+          "values": null,
+          "required": "是",
+          "default": "—",
+          "description": "「現在這組」的文案"
+        },
+        {
+          "name": "undoLabel",
+          "type": "`Text`",
+          "kind": null,
+          "values": null,
+          "required": "是",
+          "default": "—",
+          "description": "撤銷鍵的無障礙文案"
+        },
+        {
+          "name": "onUndo",
+          "type": "`() -> Void`",
+          "kind": null,
+          "values": null,
+          "required": "是",
+          "default": "—",
+          "description": "撤銷上一組"
+        }
+      ],
+      "slots": [],
+      "events": [
+        "onUndo"
+      ],
+      "variants": [],
+      "states": [
+        "done",
+        "current",
+        "upcoming"
+      ],
+      "themes": [
+        "light",
+        "dark"
+      ],
+      "confusableWith": [
+        {
+          "name": "PlanWorkoutRow",
+          "note": "`PlanWorkoutRow` —— 那是「某一天要做哪些訓練」；這是「這個動作的第幾組」。"
+        }
+      ],
+      "dontUseFor": [
+        "讓整列可點 —— 一碰列就誤撤銷（實測過的 bug）",
+        "自己算「能不能撤銷」 —— 那是 session 狀態，屬於呼叫端"
+      ],
+      "composedOf": [
+        "TLCard"
+      ],
+      "paths": {
+        "spec": "organisms/SetTableRow/SetTableRow.spec.md",
+        "preview": "organisms/SetTableRow/SetTableRow.preview.html",
+        "impl": "Packages/Training/Sources/TrainingPresentation/Components/SetTableRow.swift"
+      }
+    },
+    {
       "name": "TemplateRow",
       "level": "L3",
       "layer": "organisms",
@@ -2776,6 +3011,97 @@
         "spec": "organisms/TemplateRow/TemplateRow.spec.md",
         "preview": "organisms/TemplateRow/TemplateRow.preview.html",
         "impl": "Packages/Plan/Sources/PlanPresentation/Components/TemplateRow.swift"
+      }
+    },
+    {
+      "name": "UpNextRow",
+      "level": "L3",
+      "layer": "organisms",
+      "responsibility": "訓練中「接下來」的一列",
+      "prototypeIds": [],
+      "prototypeNote": "11c",
+      "standalone": true,
+      "requiresContainer": [
+        "TLGroup"
+      ],
+      "containerOwns": "列與列之間的細線由「接下來」區段畫",
+      "props": [
+        {
+          "name": "name",
+          "type": "`String`",
+          "kind": null,
+          "values": null,
+          "required": "是",
+          "default": "—",
+          "description": "動作名"
+        },
+        {
+          "name": "isCurrent",
+          "type": "`Bool`",
+          "kind": null,
+          "values": null,
+          "required": "是",
+          "default": "—",
+          "description": "目前這個動作 → 名稱加粗"
+        },
+        {
+          "name": "target",
+          "type": "`String?`",
+          "kind": null,
+          "values": null,
+          "required": "是",
+          "default": "—",
+          "description": "右側目標「3 × 10 · 24 kg」。自由加練沒有課表目標＝`nil`。**呼叫端算好**"
+        },
+        {
+          "name": "onSelect",
+          "type": "`() -> Void`",
+          "kind": null,
+          "values": null,
+          "required": "是",
+          "default": "—",
+          "description": "點列＝切到那個動作"
+        },
+        {
+          "name": "onLongPress",
+          "type": "`() -> Void`",
+          "kind": null,
+          "values": null,
+          "required": "是",
+          "default": "—",
+          "description": "長按＝開中途改課"
+        }
+      ],
+      "slots": [],
+      "events": [
+        "onSelect",
+        "onLongPress"
+      ],
+      "variants": [],
+      "states": [
+        "normal",
+        "current",
+        "noTarget"
+      ],
+      "themes": [
+        "light",
+        "dark"
+      ],
+      "confusableWith": [
+        {
+          "name": "TLListRow",
+          "note": "`TLListRow` —— 那個有卡片底、有 chevron、是資料清單的列。"
+        }
+      ],
+      "dontUseFor": [
+        "套進 `TLGroup` —— 見上",
+        "自己算右側目標 —— 那要讀 blueprint，屬於呼叫端"
+      ],
+      "composedOf": null,
+      "paths": {
+        "spec": "organisms/UpNextRow/UpNextRow.spec.md",
+        "preview": "organisms/UpNextRow/UpNextRow.preview.html",
+        "impl": "Packages/Training/Sources/TrainingPresentation/Components/UpNextRow.swift"
       }
     },
     {

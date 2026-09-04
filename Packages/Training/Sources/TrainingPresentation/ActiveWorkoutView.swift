@@ -164,42 +164,6 @@ public struct ActiveWorkoutView: View {
         }
     }
 
-    /// 完成區（16b／16e）：**不開彈窗**，就地把輸入色帶換成綠色完成區——同一位置、同一形狀，
-    /// 只換底色與內容。組表與最後一組的 ↩ 完全不動，誤按的人什麼都不用做就能復原。
-    ///
-    /// 舊實作是蓋住全螢幕的彈窗：它出現在狀態已經前進之後，所以不是防誤按而是事後追問，
-    /// 還跟組表上既有的 ↩ 功能重疊（見 01-training C1）。
-    private var exerciseCompleteBand: some View {
-        VStack(alignment: .leading, spacing: TLSpace.sectionHeaderGap) {
-            Label {
-                (viewModel.isPlanFullyDone
-                    ? localText("training.done.plan.title")
-                    : localText("training.done.exercise.title"))
-                    .font(TLFont.zh(TLFont.rowTitle, .semibold))
-                    .foregroundStyle(TLColor.sage900)
-                    // 動作做完／課表做完是兩句不同的文案，測試只認「完成區的標題在不在」。
-                    .accessibilityIdentifier("activeWorkout.completeBandTitle")
-            } icon: {
-                Image(systemName: viewModel.isPlanFullyDone ? "flag" : "checkmark")
-                    .font(.system(size: TLIcon.inline, weight: .bold))
-                    .foregroundStyle(TLColor.sage900)
-            }
-            Text(verbatim: completeBandMessage)
-                .font(TLFont.zh(TLFont.rowSub, .regular))
-                .foregroundStyle(TLColor.sage800.opacity(0.85))
-                .fixedSize(horizontal: false, vertical: true)
-            completeBandActions
-                .padding(.top, TLSpace.valueUnitGap)
-        }
-        .padding(.vertical, TLSpace.rowInset)
-        .padding(.leading, TLSpace.page)
-        .padding(.trailing, TLSpace.rowInset)
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .background(TLColor.sage200)
-        .clipShape(UnevenRoundedRectangle(bottomTrailingRadius: 40, topTrailingRadius: 40, style: .continuous))
-        .padding(.leading, -TLSpace.page)
-        .padding(.trailing, TLSpace.gapL)
-    }
 
     /// 16b：「還想練就加一組，不然往下一個動作走。」／16e：整場摘要一行（完整數據在 13a）。
     private var completeBandMessage: String {
@@ -211,66 +175,6 @@ public struct ActiveWorkoutView: View {
             format: localString("training.done.plan.message %lld %lld %@", locale),
             stats.exerciseCount, stats.setCount, WeightDisplay.volume(stats.volume, in: weightUnit)
         )
-    }
-
-    /// 按鈕列（v13 C1）：副按鈕各固定 80pt、主按鈕吃滿剩餘，gap 6。
-    ///
-    /// 16b 是「加一組 ｜ 下一個」兩顆，16e 中間多插一顆「加練」。固定欄寬的用意是讓
-    /// **「加一組」在兩張卡的位置與尺寸完全相同** —— 最後一個動作同時是「再一組」與
-    /// 「加練」的最後機會，兩個層級都要在（v13 明列的決定）。
-    private var completeBandActions: some View {
-        HStack(spacing: TLSpace.labelGap) {
-            // 動作層級：同一個動作再來一組。兩張卡都有。
-            outlineBandButton(localText("training.done.oneMoreSet"), id: "addSet") {
-                viewModel.continueSameExercise()
-            }
-            // 訓練層級：開選擇器加一個新動作。只有課表做完（16e）才需要。
-            if viewModel.isPlanFullyDone {
-                outlineBandButton(localText("training.done.addExtra"), id: "addExtra") {
-                    showsExercisePicker = true
-                }
-            }
-            Button {
-                if viewModel.isPlanFullyDone {
-                    viewModel.dismissExerciseComplete()
-                    showsFinishSheet = true
-                } else {
-                    Task { await viewModel.advanceToNextPlanned() }
-                }
-            } label: {
-                Text(verbatim: completePrimaryTitle)
-                    .lineLimit(1)
-                    // 16e 三顆並排時主按鈕只剩約 135pt，英文比中文長，留一點縮放空間當保險。
-                    .minimumScaleFactor(0.75)
-                    .frame(maxWidth: .infinity)
-            }
-            .buttonStyle(.tlPrimary)
-            .accessibilityIdentifier("activeWorkout.completeBand.primary")
-        }
-    }
-
-    /// 完成區的 outline 副按鈕。
-    ///
-    /// 寬度是 **`minWidth: 80` 而不是固定 80**：設計稿的 80pt 是照中文字寬訂的，中文兩顆都會
-    /// 剛好落在 80（padding 之後仍不足 80，由 minWidth 撐開），所以「加一組在 16b 與 16e
-    /// 位置尺寸相同」這條規格照樣成立；英文字長很多，固定寬會直接被截成 `Add…`（實測過），
-    /// 所以讓它只往外長。主按鈕吃剩餘寬度，三顆並排仍放得下。
-    private func outlineBandButton(_ title: Text, id: String, action: @escaping () -> Void) -> some View {
-        Button(action: action) {
-            Label { title } icon: { Image(systemName: "plus") }
-                .font(TLFont.zh(TLFont.rowTitle, .semibold))
-                .foregroundStyle(TLColor.sage900)
-                .lineLimit(1)
-                .padding(.vertical, TLSpace.fieldPadV)
-                // 左右內距不能省：中文在 80pt 裡若不留白，字會頂到膠囊框線上。
-                .padding(.horizontal, TLSpace.labelGap)
-                .frame(minWidth: 80)
-                .overlay(Capsule().strokeBorder(TLColor.sage400, lineWidth: 1.5))
-                .contentShape(Capsule())
-        }
-        .buttonStyle(.plain)
-        .fixedSize(horizontal: true, vertical: false)
-        .accessibilityIdentifier("activeWorkout.completeBand.\(id)")
     }
 
     /// 「下一個 · 臥推 →」／「結束訓練 →」。動作名是 DB 資料，套進本地化模板。
@@ -365,14 +269,16 @@ public struct ActiveWorkoutView: View {
                     .foregroundStyle(TLColor.accent700)
                 HStack(spacing: TLSpace.sectionHeaderGap) {
                     // 標籤要跟著偏好走。寫死 30 的話按鈕上寫「+30 秒」、實際卻調別的值。
-                    restPill(String(format: localString("training.rest.adjust %lld", locale),
-                                    viewModel.restStep)) {
-                        viewModel.adjustRest(viewModel.restStep)
-                    }
-                    restPill(String(format: localString("training.rest.adjust %lld", locale),
-                                    -viewModel.restStep)) {
-                        viewModel.adjustRest(-viewModel.restStep)
-                    }
+                    TLPillButton(
+                        Text(verbatim: String(format: localString("training.rest.adjust %lld", locale),
+                                              viewModel.restStep)),
+                        tint: TLColor.accent800, width: .fill
+                    ) { viewModel.adjustRest(viewModel.restStep) }
+                    TLPillButton(
+                        Text(verbatim: String(format: localString("training.rest.adjust %lld", locale),
+                                              -viewModel.restStep)),
+                        tint: TLColor.accent800, width: .fill
+                    ) { viewModel.adjustRest(-viewModel.restStep) }
                     Button {
                         viewModel.dismissRest()
                     } label: {
@@ -391,10 +297,6 @@ public struct ActiveWorkoutView: View {
     private var restProgress: Double {
         guard let remaining = viewModel.restRemaining, let total = viewModel.restTotalSeconds, total > 0 else { return 1 }
         return 1 - (Double(remaining) / Double(total))
-    }
-
-    private func restPill(_ title: String, action: @escaping () -> Void) -> some View {
-        TLPillButton(Text(verbatim: title), tint: TLColor.accent800, width: .fill, action: action)
     }
 
     /// 「接下來·第N組」卡：休息中提早看到、也能先調——目標次數/上一組實際次數/重量，
@@ -432,8 +334,10 @@ public struct ActiveWorkoutView: View {
                         .foregroundStyle(TLColor.text)
                 }
                 HStack(spacing: TLSpace.gapS) {
-                    restPill("−\(WeightDisplay.value(viewModel.weightStep))") { viewModel.bumpWeight(-1) }
-                    restPill("+\(WeightDisplay.value(viewModel.weightStep))") { viewModel.bumpWeight(1) }
+                    TLPillButton(Text(verbatim: "−\(WeightDisplay.value(viewModel.weightStep))"),
+                                 tint: TLColor.accent800, width: .fill) { viewModel.bumpWeight(-1) }
+                    TLPillButton(Text(verbatim: "+\(WeightDisplay.value(viewModel.weightStep))"),
+                                 tint: TLColor.accent800, width: .fill) { viewModel.bumpWeight(1) }
                 }
                 localText("training.rest.tapHint")
                     .font(TLFont.zh(TLFont.rowSub))
@@ -457,7 +361,26 @@ public struct ActiveWorkoutView: View {
                 // 完成區與輸入色帶是同一個容器的兩種狀態，不是新畫面：crossfade 切換，
                 // 不做位移或彈跳，組表才不會在眼前跳掉（16b 實作備註）。
                 if viewModel.showExerciseComplete {
-                    exerciseCompleteBand
+                    ExerciseCompleteBand(
+                        isPlanFullyDone: viewModel.isPlanFullyDone,
+                        title: viewModel.isPlanFullyDone
+                            ? localText("training.done.plan.title")
+                            : localText("training.done.exercise.title"),
+                        message: completeBandMessage,
+                        primaryTitle: completePrimaryTitle,
+                        oneMoreSetLabel: localText("training.done.oneMoreSet"),
+                        addExtraLabel: localText("training.done.addExtra"),
+                        onOneMoreSet: { viewModel.continueSameExercise() },
+                        onAddExtra: { showsExercisePicker = true },
+                        onPrimary: {
+                            if viewModel.isPlanFullyDone {
+                                viewModel.dismissExerciseComplete()
+                                showsFinishSheet = true
+                            } else {
+                                Task { await viewModel.advanceToNextPlanned() }
+                            }
+                        }
+                    )
                         .transition(.opacity)
                 } else {
                     inputBand
@@ -513,34 +436,11 @@ public struct ActiveWorkoutView: View {
         }
     }
 
-    /// 組表的欄位幾何。**表頭與資料列共用同一組**——這是這張表唯一的欄位定義。
-    ///
-    /// 原本兩邊各寫各的（表頭用三個 Spacer 均分、資料列用固定 badge ＋ 兩個彈性欄），
-    /// 所以欄名跟值怎麼樣都對不齊，而且欄名的位置會隨「組／實際」的字寬變動——切英文就漂掉。
-    private enum SetColumn {
-        /// 組欄固定寬：badge 是圓形固定尺寸，本來就不該跟著伸縮。
-        /// 28 而非 badge 的 24——留給兩位數組序，第 10 組以上圓圈裡的數字才不會擠。
-        static let indexWidth: CGFloat = 28
-        static let gap: CGFloat = 12
-    }
-
-    /// 一列（表頭或資料列）的欄位排版：組欄固定寬靠左，剩下的寬度平分給目標／實際，兩欄各自靠右。
-    private func setTableColumns(
-        @ViewBuilder index: () -> some View,
-        @ViewBuilder target: () -> some View,
-        @ViewBuilder actual: () -> some View
-    ) -> some View {
-        HStack(spacing: SetColumn.gap) {
-            index().frame(width: SetColumn.indexWidth, alignment: .leading)
-            target().frame(maxWidth: .infinity, alignment: .trailing)
-            actual().frame(maxWidth: .infinity, alignment: .trailing)
-        }
-    }
 
     /// 組表（11c）：動作級摘要（已在 header）＋「組/目標/實際」欄名 ＋ 每組一列圓角列。
     private var setTableCard: some View {
         VStack(alignment: .leading, spacing: TLSpace.gapS) {
-            setTableColumns {
+            SetTableColumns {
                 localText("training.table.set")
             } target: {
                 localText("training.table.target")
@@ -555,7 +455,14 @@ public struct ActiveWorkoutView: View {
             .padding(.horizontal, TLSpace.rowInset)
             VStack(spacing: TLSpace.gapS) {
                 ForEach(viewModel.setTableRows) { row in
-                    setTableRow(row)
+                    SetTableRow(
+                        row: row,
+                        weightUnit: weightUnit,
+                        isUndoable: row.actual.map { viewModel.isUndoable(setId: $0.id) } ?? false,
+                        currentSetLabel: localText("training.table.currentSet"),
+                        undoLabel: localText("training.undoLastSet"),
+                        onUndo: { Task { await viewModel.undoLastSet() } }
+                    )
                 }
             }
         }
@@ -610,7 +517,13 @@ public struct ActiveWorkoutView: View {
                 .foregroundStyle(TLColor.neutral500)
             VStack(spacing: 0) {
                 ForEach(viewModel.sessionSequence) { exercise in
-                    upNextRow(exercise)
+                    UpNextRow(
+                        name: exercise.name,
+                        isCurrent: exercise.isCurrent,
+                        target: upNextTargetText(exercise),
+                        onSelect: { Task { await viewModel.select(exerciseId: exercise.id) } },
+                        onLongPress: { midWorkoutEditTarget = exercise }
+                    )
                     Rectangle().fill(TLColor.divider).frame(height: TLSize.hairline)
                 }
                 Button {
@@ -631,29 +544,6 @@ public struct ActiveWorkoutView: View {
         }
     }
 
-    private func upNextRow(_ exercise: SessionExercise) -> some View {
-        Button {
-            Task { await viewModel.select(exerciseId: exercise.id) }
-        } label: {
-            HStack(spacing: TLSpace.gapM) {
-                Text(verbatim: exercise.name)
-                    .font(TLFont.zh(TLFont.rowTitle, exercise.isCurrent ? .semibold : .regular))
-                    .foregroundStyle(TLColor.text)
-                Spacer(minLength: TLSpace.gapS)
-                if let target = upNextTargetText(exercise) {
-                    Text(verbatim: target)
-                        .font(TLFont.display(13.5))
-                        .foregroundStyle(TLColor.neutral500)
-                }
-            }
-            .padding(.vertical, TLSpace.fieldPadV)
-            .contentShape(Rectangle())
-        }
-        .buttonStyle(.plain)
-        // 長按該列＝對這個動作開中途改課（13e）——設計稿「長按可換動作」。
-        .onLongPressGesture(minimumDuration: 0.4) { midWorkoutEditTarget = exercise }
-        .accessibilityIdentifier("activeWorkout.midWorkoutEdit")
-    }
 
     /// 「接下來」列右側目標：`3 × 10 · 24 kg`（設計稿 Caprasimo）；自由加練沒有課表目標＝nil。
     private func upNextTargetText(_ exercise: SessionExercise) -> String? {
@@ -691,125 +581,6 @@ public struct ActiveWorkoutView: View {
             : String(format: localString("training.done.volume %@", locale),
                      WeightDisplay.volume(stats.volume, in: weightUnit)))
         return parts.joined(separator: " · ")
-    }
-
-    /// 組表一列（11c）：每組自成一顆圓角列——現在這組 neutral-300 反白，其餘 neutral-100，
-    /// 未做的整列淡出。取代原本靠 List row background 的做法（已移出 List）。
-    @ViewBuilder
-    private func setTableRow(_ row: ActiveWorkoutViewModel.SetTableRow) -> some View {
-        TLCard(radius: .inner,
-                fill: row.status == .current ? TLColor.neutral300 : TLColor.neutral100) {
-            setTableColumns {
-                setRowBadge(row)
-            } target: {
-                setRowTarget(row)
-            } actual: {
-                setRowActual(row)
-            }
-        }
-        .opacity(row.status == .upcoming ? 0.6 : 1)
-    }
-
-    @ViewBuilder private func setRowBadge(_ row: ActiveWorkoutViewModel.SetTableRow) -> some View {
-        switch row.status {
-        case .done:
-            // 赭紅實心圓＋白勾（11c）；palette 讓勾＝bg 白、圓＝accent，不用綠色。
-            Image(systemName: "checkmark.circle.fill")
-                .symbolRenderingMode(.palette)
-                .foregroundStyle(TLColor.bg, TLColor.accent)
-        case .current:
-            ZStack {
-                Circle().fill(TLColor.accent800)
-                Text(verbatim: "\(row.setIndex + 1)")
-                    .font(TLFont.zh(TLFont.badgeText, .bold))
-                    .foregroundStyle(TLColor.bg)
-            }
-            .frame(width: TLSize.setBadge, height: TLSize.setBadge)
-        case .upcoming:
-            Text(verbatim: "\(row.setIndex + 1)")
-                .font(TLFont.zh(TLFont.badgeText))
-                .foregroundStyle(TLColor.neutral500)
-        }
-    }
-
-    private func setRowTarget(_ row: ActiveWorkoutViewModel.SetTableRow) -> some View {
-        let text: String
-        if let weight = row.target?.targetWeight {
-            let reps = row.target?.targetReps.map { " × \($0)" } ?? ""
-            text = "\(WeightDisplay.weight(weight, in: weightUnit))\(reps)"
-        } else if let reps = row.target?.targetReps {
-            text = "× \(reps)"
-        } else {
-            text = "—"
-        }
-        return HStack(spacing: 0) {
-            // 11c 的表格不畫「第N組」這行（視覺上是打勾圖示），但測試要能數出「記了幾組」，
-            // 所以留一個 0 尺寸的錨點。文字用 verbatim 的序號而非本地化字串——它不會被看到，
-            // 進 String Catalog 只是徒增翻譯負擔。
-            if row.status == .done {
-                Text(verbatim: "\(row.setIndex + 1)")
-                    .font(.system(size: 1))
-                    .foregroundStyle(.clear)
-                    .frame(width: 0, height: 0)
-                    .accessibilityHidden(false)
-                    .accessibilityIdentifier("activeWorkout.completedSet")
-            }
-            Text(verbatim: text)
-                .monospacedDigit()
-                .fontWeight(row.status == .current ? .bold : .regular)
-                .foregroundStyle(row.status == .current ? TLColor.accent800 : TLColor.neutral600)
-        }
-    }
-
-    @ViewBuilder private func setRowActual(_ row: ActiveWorkoutViewModel.SetTableRow) -> some View {
-        switch row.status {
-        case .done:
-            HStack(spacing: TLSpace.valueUnitGap) {
-                if let actual = row.actual {
-                    // 重量／次數是數值資料（verbatim）；「×」不用翻譯，寫死字面量會被 SwiftUI 當
-                    // LocalizedStringKey 隱式抽進 String Catalog，故明確 verbatim（見 History 同類註解）。
-                    // 非重量模式的呈現屬於 B2-ui 那張設計票；現階段建立不了那種動作，走不到 nil 分支。
-                    Text(verbatim: actual.measurement.displayWeight.map { w in
-                        "\(WeightDisplay.weight(w, in: weightUnit)) × \(actual.measurement.displayReps ?? 0)"
-                    } ?? "—")
-                        .monospacedDigit()
-                        .fontWeight(.bold)
-                        .foregroundStyle(actual.status == .skipped ? .secondary : .primary)
-                }
-                // 復原鍵貼著它要撤銷的那一組，且只有剛記錄的那組有。
-                // .borderless（而非預設樣式）：預設樣式會讓整列空白處都轉發點擊，
-                // 一碰列就誤撤銷——同 bug③ 的教訓。
-                if let actual = row.actual, viewModel.isUndoable(setId: actual.id) {
-                    Button {
-                        Task { await viewModel.undoLastSet() }
-                    } label: {
-                        Image(systemName: "arrow.uturn.backward")
-                            .foregroundStyle(TLColor.accent700)   // 換掉系統藍，配色一致
-                    }
-                    .buttonStyle(.borderless)
-                    .accessibilityLabel(localText("training.undoLastSet"))
-                    .accessibilityIdentifier("activeWorkout.undoSet")
-                }
-            }
-        case .current:
-            // 11c 設計稿寫「現在這組」；但「第N組」是 UITests 大量依賴的可見文字（判斷有沒有記到
-            // 下一組），所以可見顯示改「現在這組」、另外保留一個 0 尺寸的「第N組」節點給測試找，
-            // 跟已完成列同一招，不弄壞既有測試。
-            HStack(spacing: 0) {
-                // 同上：0 尺寸錨點，讓測試能定位「目前停在第幾組」。
-                Text(verbatim: "\(row.setIndex + 1)")
-                    .font(.system(size: 1))
-                    .foregroundStyle(.clear)
-                    .frame(width: 0, height: 0)
-                    .accessibilityHidden(false)
-                    .accessibilityIdentifier("activeWorkout.currentSet.\(row.setIndex + 1)")
-                localText("training.table.currentSet")
-                    .font(TLFont.zh(TLFont.caption))
-                    .foregroundStyle(TLColor.accent700)
-            }
-        case .upcoming:
-            Text(verbatim: "—").foregroundStyle(TLColor.neutral500)
-        }
     }
 
     /// 13e 中途改課選單內容：換動作／加減組／跳過／移除，都只影響今天這一場。
@@ -936,7 +707,7 @@ public struct ActiveWorkoutView: View {
         .padding(.trailing, TLSpace.rowInset)
         .frame(maxWidth: .infinity, alignment: .leading)
         .background(TLColor.neutral300)
-        .clipShape(UnevenRoundedRectangle(bottomTrailingRadius: 40, topTrailingRadius: 40, style: .continuous))
+        .clipShape(UnevenRoundedRectangle(bottomTrailingRadius: TLRadius.band, topTrailingRadius: TLRadius.band, style: .continuous))
         // 左緣貼齊螢幕（抵銷外層 page 邊距）、右緣不到底 → 不對稱色帶。
         .padding(.leading, -TLSpace.page)
         .padding(.trailing, TLSpace.gapL)
@@ -982,22 +753,18 @@ public struct ActiveWorkoutView: View {
     private var quickActionRow: some View {
         let step = WeightDisplay.value(viewModel.weightStep)
         return HStack(spacing: TLSpace.gapS) {
-            quickPill("−\(step)") { viewModel.bumpWeight(-1) }
-            quickPill("+\(step)") { viewModel.bumpWeight(1) }
+            TLPillButton(Text(verbatim: "−\(step)")) { viewModel.bumpWeight(-1) }
+            TLPillButton(Text(verbatim: "+\(step)")) { viewModel.bumpWeight(1) }
             if viewModel.currentTarget?.targetWeight != nil {
-                quickPill(localString("training.table.resetToTarget", locale)) {
+                TLPillButton(localText("training.table.resetToTarget")) {
                     viewModel.resetToTarget()
                 }
             } else if !viewModel.currentBlockSets.isEmpty {
-                quickPill(localString("training.table.sameAsLast", locale)) {
+                TLPillButton(localText("training.table.sameAsLast")) {
                     viewModel.applyLastSetValues()
                 }
             }
         }
-    }
-
-    private func quickPill(_ title: String, action: @escaping () -> Void) -> some View {
-        TLPillButton(Text(verbatim: title), action: action)
     }
 
     private let restPresets = [30, 60, 90, 120, 150, 180, 240, 300]

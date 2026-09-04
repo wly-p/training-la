@@ -146,6 +146,7 @@ public enum TLSpace {
     public static let pillPadH:           CGFloat = 14  // 填色小膠囊鈕的左右內距
     public static let pillPadV:           CGFloat = 8   // 填色小膠囊鈕（hug 寬度）的上下內距
     public static let pillPadVWide:       CGFloat = 10  // 滿寬版的上下內距。⚠ 跟 pillPadV 差 2px——同一顆鈕的兩種寬度該不該有不同的高度，是膠囊幾何那組待決問題的一部分，見 temp/scale-questions.md
+    public static let setColumnGap:       CGFloat = 12  // 組表三欄之間
 }
 
 public enum TLRadius {
@@ -154,41 +155,47 @@ public enum TLRadius {
     public static let pill:      CGFloat = 999 // 按鈕、輸入、標籤（實作用 .capsule）
     public static let iconThumb: CGFloat = 7   // App 圖示縮圖。25% ≈ iOS 圖示的 squircle 比例（22.4%）
     public static let gridCell:  CGFloat = 5   // 格狀預覽的一格。比 iconThumb 7 更方，格子小、圓角要跟著小
+    public static let band:      CGFloat = 40  // 貼齊左緣的色帶，右側兩角的圓角（完成區、輸入色帶）
 }
 
 public enum TLSize {
-    public static let row:             CGFloat = 56  // 標準列高（設定列）
-    public static let rowWithSub:      CGFloat = 62  // 有副標的列
-    public static let rowWithDetail:   CGFloat = 68  // 有細節行的列（器材 pill ＋ 重量）
-    public static let rowHistory:      CGFloat = 66  // 歷史列
-    public static let badge:           CGFloat = 36  // 列左側圓章
-    public static let iconButton:      CGFloat = 44  // 標題右側圓鈕（＝最小觸控）
-    public static let iconButtonSmall: CGFloat = 34  // 月曆標題列的 ‹ ›，觸控區另外補到 44
-    public static let minTap:          CGFloat = 44
-    public static let switchW:         CGFloat = 46
-    public static let switchH:         CGFloat = 28
-    public static let stepField:       CGFloat = 88  // 級距頁自訂輸入框寬度
-    public static let hairline:        CGFloat = 1   // 1px 分隔線與外框
-    public static let iconThumb:       CGFloat = 28  // App 圖示縮圖，兩處統一
-    public static let checkCircle:     CGFloat = 22  // 可勾選列的圓形勾
-    public static let hairlineThick:   CGFloat = 1.5 // 空心圓／外框的線寬。比 hairline 粗，1px 在圓弧上會斷斷續續
-    public static let quickActionRow:  CGFloat = 44  // 滾輪下方快捷列的高度（＝最小觸控）
-    public static let progressBar:     CGFloat = 6   // 進度條高度
-    public static let rowTailColumn:   CGFloat = 80  // 列右側尾欄的最小寬度。兩字標籤的欄寬；用 minWidth 讓長標往左長、右緣仍對齊——寫死 width 會把長標壓成兩行
-    public static let swipeAction:     CGFloat = 88  // 左滑露出的動作區寬度。固定，不隨文案長度變
-    public static let gridCell:        CGFloat = 18  // 格狀預覽的一格
-    public static let rowLeadColumn:   CGFloat = 48  // 列首的固定欄（序號）。與 rowTailColumn 80 對稱
-    public static let chart:           CGFloat = 200 // 趨勢圖的高度
-    public static let legendDot:       CGFloat = 8   // 圖例的色點
-    public static let setIndexColumn:  CGFloat = 44  // 逐組列的序號欄，固定寬讓各組數字對齊
-    public static let dateColumn:      CGFloat = 40  // 列首的日期柱寬。⚠ 全 app 的『列首固定欄』有三種寬度：40（日期柱）、44（逐組列的組序）、48（範本編輯的組序）——後兩者是**同一個角色的兩個值**，待設計端收斂
-    public static let cardW:           CGFloat = 242 // 訓練首頁橫向卡的寬度。固定寬讓下一張露出一角，暗示可以滑
-    public static let cardMinH:        CGFloat = 190 // 訓練首頁橫向卡的最小高度。內容長短不一時卡要一樣高
-    public static let dayCircle:       CGFloat = 30  // 週進度的一天（7 圓進度環）
-    public static let restDayIcon:     CGFloat = 52  // 休息日回顧卡的圓形圖示
-    public static let pageDot:         CGFloat = 5   // 橫向卡片的頁點。當前那一顆拉長成 dotActive
-    public static let pageDotActive:   CGFloat = 20  // 當前頁點的長度。拉長而不是變色——變色在小尺寸上看不出來
-    public static let setBadge:        CGFloat = 20  // 組表列的小圓章（第 N 組）。比 size.badge 36 小得多——它在表格裡不是列首
+    public static let row:                  CGFloat = 56  // 標準列高（設定列）
+    public static let rowWithSub:           CGFloat = 62  // 有副標的列
+    public static let rowWithDetail:        CGFloat = 68  // 有細節行的列（器材 pill ＋ 重量）
+    public static let rowHistory:           CGFloat = 66  // 歷史列
+    public static let badge:                CGFloat = 36  // 列左側圓章
+    public static let iconButton:           CGFloat = 44  // 標題右側圓鈕（＝最小觸控）
+    public static let iconButtonSmall:      CGFloat = 34  // 月曆標題列的 ‹ ›，觸控區另外補到 44
+    public static let minTap:               CGFloat = 44
+    public static let switchW:              CGFloat = 46
+    public static let switchH:              CGFloat = 28
+    public static let stepField:            CGFloat = 88  // 級距頁自訂輸入框寬度
+    public static let hairline:             CGFloat = 1   // 1px 分隔線與外框
+    public static let iconThumb:            CGFloat = 28  // App 圖示縮圖，兩處統一
+    public static let checkCircle:          CGFloat = 22  // 可勾選列的圓形勾
+    public static let hairlineThick:        CGFloat = 1.5 // 空心圓／外框的線寬。比 hairline 粗，1px 在圓弧上會斷斷續續
+    public static let quickActionRow:       CGFloat = 44  // 滾輪下方快捷列的高度（＝最小觸控）
+    public static let progressBar:          CGFloat = 6   // 進度條高度
+    public static let rowTailColumn:        CGFloat = 80  // 列右側尾欄的最小寬度。兩字標籤的欄寬；用 minWidth 讓長標往左長、右緣仍對齊——寫死 width 會把長標壓成兩行
+    public static let swipeAction:          CGFloat = 88  // 左滑露出的動作區寬度。固定，不隨文案長度變
+    public static let gridCell:             CGFloat = 18  // 格狀預覽的一格
+    public static let rowLeadColumn:        CGFloat = 48  // 列首的固定欄（序號）。與 rowTailColumn 80 對稱
+    public static let chart:                CGFloat = 200 // 趨勢圖的高度
+    public static let legendDot:            CGFloat = 8   // 圖例的色點
+    public static let setIndexColumn:       CGFloat = 44  // 逐組列的序號欄，固定寬讓各組數字對齊
+    public static let dateColumn:           CGFloat = 40  // 列首的日期柱寬。⚠ 全 app 的『列首固定欄』有三種寬度：40（日期柱）、44（逐組列的組序）、48（範本編輯的組序）——後兩者是**同一個角色的兩個值**，待設計端收斂
+    public static let cardW:                CGFloat = 242 // 訓練首頁橫向卡的寬度。固定寬讓下一張露出一角，暗示可以滑
+    public static let cardMinH:             CGFloat = 190 // 訓練首頁橫向卡的最小高度。內容長短不一時卡要一樣高
+    public static let dayCircle:            CGFloat = 30  // 週進度的一天（7 圓進度環）
+    public static let restDayIcon:          CGFloat = 52  // 休息日回顧卡的圓形圖示
+    public static let pageDot:              CGFloat = 5   // 橫向卡片的頁點。當前那一顆拉長成 dotActive
+    public static let pageDotActive:        CGFloat = 20  // 當前頁點的長度。拉長而不是變色——變色在小尺寸上看不出來
+    public static let setBadge:             CGFloat = 20  // 組表列的小圓章（第 N 組）。比 size.badge 36 小得多——它在表格裡不是列首
+    public static let setIndexColumnNarrow: CGFloat = 28  // 組表的序號欄。28 而非圓章的 20——留給兩位數組序，第 10 組以上圓圈裡的數字才不會擠。⚠ 全 app 的『列首固定欄』已有 28／40／44／48 四種寬度，待設計端收斂
+    public static let bandButtonMinW:       CGFloat = 80  // 完成區副按鈕的最小寬。**是 minWidth 不是固定寬**：設計稿的 80 是照中文字寬訂的，英文字長很多，固定寬會被截成 `Add…`
+    public static let dialogButtonH:        CGFloat = 50  // 對話框按鈕的高度。跟一般按鈕的 padding 式高度不同，自成一對
+    public static let tableHeaderRow:       CGFloat = 40  // 表格的表頭列高。比一般列（56）矮——它不是可點的列
+    public static let stepperValueMinW:     CGFloat = 60  // ±調整器中間數值的最小寬。固定寬讓數字變動時兩顆鈕不會跳。⚠ 全 app 的『固定欄寬』已有 28／40／44／48／60 五種，待設計端收斂
 }
 
 public enum TLIcon {
