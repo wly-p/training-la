@@ -52,6 +52,79 @@
 
 ---
 
+## 2026-09-04 · 檢查 18（元件庫零邏輯）＋ 階段 5（訓練）
+
+### ratchet 的第三個洞：系統字級
+
+`.font(.footnote)` / `.caption` / `.headline` 這類**系統字級連數字都沒有**，
+前兩版的 regex 完全看不到它們。全 app **25 處，Training 佔 22**。
+
+它們比字面值更麻煩：**系統字級跟著 Dynamic Type 縮放，我們的固定值不會。**
+換掉等於把那 25 處從「會縮放」變成「不會縮放」—— 這是一個行為改變，記在下面。
+
+對照表（照設計端的判準就近併，位移都 ≤1px）：
+
+| 系統字級 | 預設點數 | 換成 | 位移 |
+|---|---|---|---|
+| `.footnote` | 13 | `caption`(12.5) | −0.5 |
+| `.footnote.semibold`（膠囊鈕） | 13 | `buttonLabelSmall`(13) | 0 |
+| `.caption` | 12 | `badgeText`(12) | 0 |
+| `.caption.bold`（圓章數字） | 12 | `badgeText`(12) | 0 |
+| `.caption2` | 11 | `rowSub`(11.5) | +0.5 |
+| `.caption2.semibold`（表頭、大寫） | 11 | `kicker`(10.5) | −0.5 |
+| `.subheadline.semibold` | 15 | `rowTitle`(15) | 0 |
+| `.headline` | 17 | `emptyTitle`(16) | −1 |
+| `.title2`（套在 SF Symbol 上） | 22 | `icon.standalone`(22) | 0 |
+
+`.headline` 那一處是唯一有疑慮的：17 在我們的尺度裡沒有位置（16 與 21 之間是空的），
+一處使用撐不起一個新階（`icon.l` 那次的原則），所以併進 16。
+**但 `emptyTitle` 這個名字對它是錯的** —— 那是「休息全螢幕裡下一個動作的名字」。
+名字該改成通用的小標題，跟 `emptyHint`→`caption` 同一型，列進待問清單。
+
+### 檢查 18：零邏輯終於有人守
+
+「元件不得有邏輯」寫在正典 §4 規則二之二，但**17 條檢查裡沒有一條看它**。
+這一輪已經證明過兩次「沒有檢查在擋的規則會漂」，所以補上：
+
+| 擋什麼 | 結果 |
+|---|---|
+| `@State` / `@FocusState` / `@StateObject` / `@Observable` / `ObservableObject` | **零違規** |
+| `String(format:` / `DateFormatter` / `NumberFormatter` / `Calendar(` / `.formatted(` | **零違規** |
+| `GeometryReader` | 一處：`TLProgressBar`，走登記制 |
+
+`TLProgressBar` 那一處不該被判違規也不該靜默放行：**把 `ratio` 映射成寬度就是進度條的
+呈現本身**，那是佈局不是業務邏輯。所以照檢查 17 的做法登記在
+`design-system/logic-exceptions.json`，每跑一次印一次。
+
+正典 §規則二之二 補上界線：**「不得計算」指的是不得從資料算出設計值，依可用空間做比例佈局不算。**
+
+三種違規都反向測過會擋。
+
+### 階段 5 抽出的兩個元件，都是「兩份實作」
+
+| | 問題 |
+|---|---|
+| `TLPillButton`（L1） | `ActiveWorkoutView` 裡有 `restPill` 與 `quickPill` **兩份實作**，只差 2px 內距與一階文字色 |
+| `TLStat`（L2） | `TrainingHomeView` 與 `FinishWorkoutSheet` **各有一份一模一樣的 `statNumber`**。跨檔的重複比同檔的更難發現——讀任何一邊都看不出來 |
+
+膠囊那兩個內距（8／10）**沒有自己收**：收成一個是視覺決定，屬於膠囊幾何那組待決問題。
+我只收實作，不收像素。
+
+### 第四根手工重建的進度條
+
+`FinishWorkoutSheet:172` 又有一份 `GeometryReader` ＋ 兩個 `Capsule`。
+階段 2 抽 `TLProgressBar` 時說「兩處各手工重建」——**當時漏數了這一處**，
+因為它藏在一個 `if targetVolume > 0` 裡面。已改用元件。
+
+### 進度
+
+元件 32 → **34**。字面樣式 153 → **66**（其中 34 是 display 字級、22 是膠囊幾何，
+都等設計端第二批；4 處是 UITest 的 0×0 幽靈錨點，那是測試鉤子不是樣式）。
+
+Ability 的 14 處也一併做完（它不在五個階段裡，但它是最後一個非零的檔）。
+
+---
+
 ## 2026-08-31 · TLCard 全面遷移（26 處）＋ 階段 4（課表）
 
 ### 「不要卡中卡」是錯的 —— 被 26 處實測推翻

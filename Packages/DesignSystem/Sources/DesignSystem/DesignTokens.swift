@@ -141,6 +141,11 @@ public enum TLSpace {
     public static let statGap:            CGFloat = 28  // 並排的統計數字之間。比 gapL 20 更開——兩組數字要看得出是兩組
     public static let cardSectionGap:     CGFloat = 16  // 卡片內各段之間
     public static let dateStackGap:       CGFloat = 1   // 日期柱裡日數與星期之間。刻意極窄——兩行要讀成一個東西
+    public static let carouselGap:        CGFloat = 14  // 橫向卡片之間
+    public static let bandGap:            CGFloat = 14  // 輸入色帶內各段之間
+    public static let pillPadH:           CGFloat = 14  // 填色小膠囊鈕的左右內距
+    public static let pillPadV:           CGFloat = 8   // 填色小膠囊鈕（hug 寬度）的上下內距
+    public static let pillPadVWide:       CGFloat = 10  // 滿寬版的上下內距。⚠ 跟 pillPadV 差 2px——同一顆鈕的兩種寬度該不該有不同的高度，是膠囊幾何那組待決問題的一部分，見 temp/scale-questions.md
 }
 
 public enum TLRadius {
@@ -179,6 +184,11 @@ public enum TLSize {
     public static let dateColumn:      CGFloat = 40  // 列首的日期柱寬。⚠ 全 app 的『列首固定欄』有三種寬度：40（日期柱）、44（逐組列的組序）、48（範本編輯的組序）——後兩者是**同一個角色的兩個值**，待設計端收斂
     public static let cardW:           CGFloat = 242 // 訓練首頁橫向卡的寬度。固定寬讓下一張露出一角，暗示可以滑
     public static let cardMinH:        CGFloat = 190 // 訓練首頁橫向卡的最小高度。內容長短不一時卡要一樣高
+    public static let dayCircle:       CGFloat = 30  // 週進度的一天（7 圓進度環）
+    public static let restDayIcon:     CGFloat = 52  // 休息日回顧卡的圓形圖示
+    public static let pageDot:         CGFloat = 5   // 橫向卡片的頁點。當前那一顆拉長成 dotActive
+    public static let pageDotActive:   CGFloat = 20  // 當前頁點的長度。拉長而不是變色——變色在小尺寸上看不出來
+    public static let setBadge:        CGFloat = 20  // 組表列的小圓章（第 N 組）。比 size.badge 36 小得多——它在表格裡不是列首
 }
 
 public enum TLIcon {
@@ -194,6 +204,8 @@ public enum TLIcon {
     public static let inCheckCircle: CGFloat = 11
     public static let inIconButton: CGFloat = 18
     public static let inRow: CGFloat = 17
+    public static let inDayCircle: CGFloat = 13
+    public static let inRestDayCircle: CGFloat = 22
     public static let weight: Font.Weight = .semibold
 }
 

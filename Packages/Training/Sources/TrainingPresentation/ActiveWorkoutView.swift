@@ -170,7 +170,7 @@ public struct ActiveWorkoutView: View {
     /// 舊實作是蓋住全螢幕的彈窗：它出現在狀態已經前進之後，所以不是防誤按而是事後追問，
     /// 還跟組表上既有的 ↩ 功能重疊（見 01-training C1）。
     private var exerciseCompleteBand: some View {
-        VStack(alignment: .leading, spacing: 10) {
+        VStack(alignment: .leading, spacing: TLSpace.sectionHeaderGap) {
             Label {
                 (viewModel.isPlanFullyDone
                     ? localText("training.done.plan.title")
@@ -181,7 +181,7 @@ public struct ActiveWorkoutView: View {
                     .accessibilityIdentifier("activeWorkout.completeBandTitle")
             } icon: {
                 Image(systemName: viewModel.isPlanFullyDone ? "flag" : "checkmark")
-                    .font(.system(size: 15, weight: .bold))
+                    .font(.system(size: TLIcon.inline, weight: .bold))
                     .foregroundStyle(TLColor.sage900)
             }
             Text(verbatim: completeBandMessage)
@@ -189,9 +189,9 @@ public struct ActiveWorkoutView: View {
                 .foregroundStyle(TLColor.sage800.opacity(0.85))
                 .fixedSize(horizontal: false, vertical: true)
             completeBandActions
-                .padding(.top, 4)
+                .padding(.top, TLSpace.valueUnitGap)
         }
-        .padding(.vertical, 18)
+        .padding(.vertical, TLSpace.rowInset)
         .padding(.leading, TLSpace.page)
         .padding(.trailing, TLSpace.rowInset)
         .frame(maxWidth: .infinity, alignment: .leading)
@@ -219,7 +219,7 @@ public struct ActiveWorkoutView: View {
     /// **「加一組」在兩張卡的位置與尺寸完全相同** —— 最後一個動作同時是「再一組」與
     /// 「加練」的最後機會，兩個層級都要在（v13 明列的決定）。
     private var completeBandActions: some View {
-        HStack(spacing: 6) {
+        HStack(spacing: TLSpace.labelGap) {
             // 動作層級：同一個動作再來一組。兩張卡都有。
             outlineBandButton(localText("training.done.oneMoreSet"), id: "addSet") {
                 viewModel.continueSameExercise()
@@ -261,9 +261,9 @@ public struct ActiveWorkoutView: View {
                 .font(TLFont.zh(TLFont.rowTitle, .semibold))
                 .foregroundStyle(TLColor.sage900)
                 .lineLimit(1)
-                .padding(.vertical, 12)
+                .padding(.vertical, TLSpace.fieldPadV)
                 // 左右內距不能省：中文在 80pt 裡若不留白，字會頂到膠囊框線上。
-                .padding(.horizontal, 6)
+                .padding(.horizontal, TLSpace.labelGap)
                 .frame(minWidth: 80)
                 .overlay(Capsule().strokeBorder(TLColor.sage400, lineWidth: 1.5))
                 .contentShape(Capsule())
@@ -318,14 +318,14 @@ public struct ActiveWorkoutView: View {
     private func restFullScreen(exerciseId: UUID) -> some View {
         let doneCount = viewModel.currentBlockSets.count
         return ScrollView {
-            VStack(alignment: .leading, spacing: 20) {
+            VStack(alignment: .leading, spacing: TLSpace.gapL) {
                 // 動作名已經是 navigationTitle（native 大標題），這裡不重複，只加課表進度 kicker。
                 if let plannedCount = viewModel.blueprint?.exercises.first(where: { $0.exerciseId == exerciseId })?.setCount {
                     Text(verbatim: String(
                         format: localString("training.rest.doneOfTotal %lld %lld", locale),
                         doneCount, plannedCount
                     ))
-                    .font(.footnote.weight(.semibold))
+                    .font(TLFont.zh(TLFont.buttonLabelSmall, .semibold))
                     .foregroundStyle(TLColor.accent600)
                 }
                 restTimerBlock
@@ -348,7 +348,7 @@ public struct ActiveWorkoutView: View {
     private var restTimerBlock: some View {
         let remaining = viewModel.restRemaining ?? 0
         return TLCard(fill: TLColor.accent200) {
-            VStack(spacing: 16) {
+            VStack(spacing: TLSpace.cardSectionGap) {
                 localText("training.resting")
                     .accessibilityIdentifier("activeWorkout.resting")
                     .font(TLFont.zh(TLFont.kicker, .semibold))
@@ -361,9 +361,9 @@ public struct ActiveWorkoutView: View {
                 ProgressView(value: restProgress)
                     .tint(TLColor.accent700)
                 localText("training.restTimer")
-                    .font(.caption)
+                    .font(TLFont.zh(TLFont.badgeText))
                     .foregroundStyle(TLColor.accent700)
-                HStack(spacing: 10) {
+                HStack(spacing: TLSpace.sectionHeaderGap) {
                     // 標籤要跟著偏好走。寫死 30 的話按鈕上寫「+30 秒」、實際卻調別的值。
                     restPill(String(format: localString("training.rest.adjust %lld", locale),
                                     viewModel.restStep)) {
@@ -394,38 +394,28 @@ public struct ActiveWorkoutView: View {
     }
 
     private func restPill(_ title: String, action: @escaping () -> Void) -> some View {
-        Button(action: action) {
-            Text(verbatim: title)
-                .font(.footnote.weight(.semibold))
-                .foregroundStyle(TLColor.accent800)
-                .padding(.horizontal, 14)
-                .padding(.vertical, 10)
-                .frame(maxWidth: .infinity)
-                .background(TLColor.bg)
-                .clipShape(Capsule())
-        }
-        .buttonStyle(.plain)
+        TLPillButton(Text(verbatim: title), tint: TLColor.accent800, width: .fill, action: action)
     }
 
     /// 「接下來·第N組」卡：休息中提早看到、也能先調——目標次數/上一組實際次數/重量，
     /// 重量沿用 draftWeightValue（appendSet 後 prefillDraft 已經預填好下一組的值）。
     private var nextSetCard: some View {
         TLCard {
-            VStack(alignment: .leading, spacing: 10) {
+            VStack(alignment: .leading, spacing: TLSpace.sectionHeaderGap) {
                 Text(verbatim: String(
                     format: localString("training.rest.next %lld", locale),
                     viewModel.currentBlockSets.count + 1
                 ))
-                .font(.caption)
+                .font(TLFont.zh(TLFont.badgeText))
                 .foregroundStyle(TLColor.neutral500)
 
                 HStack(alignment: .top) {
-                    VStack(alignment: .leading, spacing: 4) {
+                    VStack(alignment: .leading, spacing: TLSpace.valueUnitGap) {
                         if let exerciseId = viewModel.currentExerciseId {
                             Text(verbatim: viewModel.name(for: exerciseId))
-                                .font(.headline)
+                                .font(TLFont.zh(TLFont.emptyTitle, .semibold))
                         }
-                        HStack(spacing: 6) {
+                        HStack(spacing: TLSpace.labelGap) {
                             if let targetReps = viewModel.currentTarget?.targetReps {
                                 Text(verbatim: String(format: localString("training.rest.targetReps %lld", locale), targetReps))
                             }
@@ -433,7 +423,7 @@ public struct ActiveWorkoutView: View {
                                 Text(verbatim: String(format: localString("training.rest.lastReps %lld", locale), lastReps))
                             }
                         }
-                        .font(.footnote)
+                        .font(TLFont.zh(TLFont.caption))
                         .foregroundStyle(TLColor.neutral600)
                     }
                     Spacer()
@@ -441,12 +431,12 @@ public struct ActiveWorkoutView: View {
                         .font(TLFont.display(28))
                         .foregroundStyle(TLColor.text)
                 }
-                HStack(spacing: 8) {
+                HStack(spacing: TLSpace.gapS) {
                     restPill("−\(WeightDisplay.value(viewModel.weightStep))") { viewModel.bumpWeight(-1) }
                     restPill("+\(WeightDisplay.value(viewModel.weightStep))") { viewModel.bumpWeight(1) }
                 }
                 localText("training.rest.tapHint")
-                    .font(.caption2)
+                    .font(TLFont.zh(TLFont.rowSub))
                     .foregroundStyle(TLColor.neutral500)
             }
             .frame(maxWidth: .infinity, alignment: .leading)
@@ -488,7 +478,7 @@ public struct ActiveWorkoutView: View {
     /// 右上一顆 44pt ⋯ 圓鈕 → 對「當前動作」開中途改課（13e）。
     private func exerciseHeader(_ exerciseId: UUID) -> some View {
         HStack(alignment: .top, spacing: TLSpace.gapM) {
-            VStack(alignment: .leading, spacing: 4) {
+            VStack(alignment: .leading, spacing: TLSpace.valueUnitGap) {
                 // 完成狀態換一句 kicker 並轉綠：狀態的改變寫在標題列，不另外開一塊宣告。
                 (viewModel.showExerciseComplete
                     ? localText("training.done.kicker \(viewModel.durationMinutes)")
@@ -559,7 +549,7 @@ public struct ActiveWorkoutView: View {
                 localText("training.table.actual")
                     .accessibilityIdentifier("activeWorkout.actualColumn")
             }
-            .font(.caption2.weight(.semibold))
+            .font(TLFont.zh(TLFont.kicker, .semibold))
             .textCase(.uppercase)
             .foregroundStyle(TLColor.neutral500)
             .padding(.horizontal, TLSpace.rowInset)
@@ -621,7 +611,7 @@ public struct ActiveWorkoutView: View {
             VStack(spacing: 0) {
                 ForEach(viewModel.sessionSequence) { exercise in
                     upNextRow(exercise)
-                    Rectangle().fill(TLColor.divider).frame(height: 1)
+                    Rectangle().fill(TLColor.divider).frame(height: TLSize.hairline)
                 }
                 Button {
                     showsExercisePicker = true
@@ -633,7 +623,7 @@ public struct ActiveWorkoutView: View {
                     }
                     .font(TLFont.zh(TLFont.rowTitle, .semibold))
                     .foregroundStyle(TLColor.accent600)
-                    .padding(.vertical, 14)
+                    .padding(.vertical, TLSpace.fieldPadV)
                     .contentShape(Rectangle())
                 }
                 .buttonStyle(.plain)
@@ -656,7 +646,7 @@ public struct ActiveWorkoutView: View {
                         .foregroundStyle(TLColor.neutral500)
                 }
             }
-            .padding(.vertical, 14)
+            .padding(.vertical, TLSpace.fieldPadV)
             .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
@@ -731,13 +721,13 @@ public struct ActiveWorkoutView: View {
             ZStack {
                 Circle().fill(TLColor.accent800)
                 Text(verbatim: "\(row.setIndex + 1)")
-                    .font(.caption.bold())
+                    .font(TLFont.zh(TLFont.badgeText, .bold))
                     .foregroundStyle(TLColor.bg)
             }
-            .frame(width: 20, height: 20)
+            .frame(width: TLSize.setBadge, height: TLSize.setBadge)
         case .upcoming:
             Text(verbatim: "\(row.setIndex + 1)")
-                .font(.caption)
+                .font(TLFont.zh(TLFont.badgeText))
                 .foregroundStyle(TLColor.neutral500)
         }
     }
@@ -774,7 +764,7 @@ public struct ActiveWorkoutView: View {
     @ViewBuilder private func setRowActual(_ row: ActiveWorkoutViewModel.SetTableRow) -> some View {
         switch row.status {
         case .done:
-            HStack(spacing: 4) {
+            HStack(spacing: TLSpace.valueUnitGap) {
                 if let actual = row.actual {
                     // 重量／次數是數值資料（verbatim）；「×」不用翻譯，寫死字面量會被 SwiftUI 當
                     // LocalizedStringKey 隱式抽進 String Catalog，故明確 verbatim（見 History 同類註解）。
@@ -814,7 +804,7 @@ public struct ActiveWorkoutView: View {
                     .accessibilityHidden(false)
                     .accessibilityIdentifier("activeWorkout.currentSet.\(row.setIndex + 1)")
                 localText("training.table.currentSet")
-                    .font(.footnote)
+                    .font(TLFont.zh(TLFont.caption))
                     .foregroundStyle(TLColor.accent700)
             }
         case .upcoming:
@@ -881,7 +871,7 @@ public struct ActiveWorkoutView: View {
             } icon: {
                 Image(systemName: "arrow.turn.down.right")
             }
-            .font(.footnote)
+            .font(TLFont.zh(TLFont.caption))
             .accessibilityIdentifier("activeWorkout.nextSetPreview")
         // 「本場最後一組，做完就結束」拿掉：做完之後完成區的副行已經寫「本場最後一個動作」，
         // 同一件事講兩次（01-training C1 把它列為舊實作的問題之一）。
@@ -907,7 +897,7 @@ public struct ActiveWorkoutView: View {
     /// 快捷鍵；neutral-300 底、右側大圓角且不到底的不對稱形狀，左緣貼齊螢幕。取代原本的 ± stepper
     /// ——設計稿沒有 stepper，數字直接點開選擇器；快捷膠囊做 ±級距／回到目標微調。
     private var inputBand: some View {
-        VStack(alignment: .leading, spacing: 14) {
+        VStack(alignment: .leading, spacing: TLSpace.bandGap) {
             if let annotation = targetAnnotationText {
                 Label {
                     Text(verbatim: annotation)
@@ -920,7 +910,7 @@ public struct ActiveWorkoutView: View {
             Button {
                 showsValueEditor = true
             } label: {
-                HStack(alignment: .firstTextBaseline, spacing: 6) {
+                HStack(alignment: .firstTextBaseline, spacing: TLSpace.labelGap) {
                     Text(verbatim: WeightDisplay.value(viewModel.draftWeightValue))
                         .font(TLFont.display(TLFont.bigNumber))
                         .foregroundStyle(TLColor.neutral900)
@@ -941,7 +931,7 @@ public struct ActiveWorkoutView: View {
             .accessibilityIdentifier("activeWorkout.valueEditor")
             quickActionRow
         }
-        .padding(.vertical, 18)
+        .padding(.vertical, TLSpace.rowInset)
         .padding(.leading, TLSpace.page)
         .padding(.trailing, TLSpace.rowInset)
         .frame(maxWidth: .infinity, alignment: .leading)
@@ -991,7 +981,7 @@ public struct ActiveWorkoutView: View {
 
     private var quickActionRow: some View {
         let step = WeightDisplay.value(viewModel.weightStep)
-        return HStack(spacing: 8) {
+        return HStack(spacing: TLSpace.gapS) {
             quickPill("−\(step)") { viewModel.bumpWeight(-1) }
             quickPill("+\(step)") { viewModel.bumpWeight(1) }
             if viewModel.currentTarget?.targetWeight != nil {
@@ -1007,16 +997,7 @@ public struct ActiveWorkoutView: View {
     }
 
     private func quickPill(_ title: String, action: @escaping () -> Void) -> some View {
-        Button(action: action) {
-            Text(verbatim: title)
-                .font(.footnote.weight(.semibold))
-                .foregroundStyle(TLColor.accent700)
-                .padding(.horizontal, 14)
-                .padding(.vertical, 8)
-                .background(TLColor.bg)
-                .clipShape(Capsule())
-        }
-        .buttonStyle(.plain)
+        TLPillButton(Text(verbatim: title), action: action)
     }
 
     private let restPresets = [30, 60, 90, 120, 150, 180, 240, 300]

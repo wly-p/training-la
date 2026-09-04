@@ -109,6 +109,11 @@
   --space-stat-gap: 28px;  /* 並排的統計數字之間。比 gapL 20 更開——兩組數字要看得出是兩組 */
   --space-card-section-gap: 16px;  /* 卡片內各段之間 */
   --space-date-stack-gap: 1px;  /* 日期柱裡日數與星期之間。刻意極窄——兩行要讀成一個東西 */
+  --space-carousel-gap: 14px;  /* 橫向卡片之間 */
+  --space-band-gap: 14px;  /* 輸入色帶內各段之間 */
+  --space-pill-pad-h: 14px;  /* 填色小膠囊鈕的左右內距 */
+  --space-pill-pad-v: 8px;  /* 填色小膠囊鈕（hug 寬度）的上下內距 */
+  --space-pill-pad-v-wide: 10px;  /* 滿寬版的上下內距。⚠ 跟 pillPadV 差 2px——同一顆鈕的兩種寬度該不該有不同的高度，是膠囊幾何那組待決問題的一部分，見 temp/scale-questions.md */
   --radius-container: 28px;  /* 卡片／群組容器 */
   --radius-inner: 20px;  /* 容器內的小方塊 */
   --radius-pill: 999px;  /* 按鈕、輸入、標籤（實作用 .capsule） */
@@ -141,6 +146,11 @@
   --size-date-column: 40px;  /* 列首的日期柱寬。⚠ 全 app 的『列首固定欄』有三種寬度：40（日期柱）、44（逐組列的組序）、48（範本編輯的組序）——後兩者是**同一個角色的兩個值**，待設計端收斂 */
   --size-card-w: 242px;  /* 訓練首頁橫向卡的寬度。固定寬讓下一張露出一角，暗示可以滑 */
   --size-card-min-h: 190px;  /* 訓練首頁橫向卡的最小高度。內容長短不一時卡要一樣高 */
+  --size-day-circle: 30px;  /* 週進度的一天（7 圓進度環） */
+  --size-rest-day-icon: 52px;  /* 休息日回顧卡的圓形圖示 */
+  --size-page-dot: 5px;  /* 橫向卡片的頁點。當前那一顆拉長成 dotActive */
+  --size-page-dot-active: 20px;  /* 當前頁點的長度。拉長而不是變色——變色在小尺寸上看不出來 */
+  --size-set-badge: 20px;  /* 組表列的小圓章（第 N 組）。比 size.badge 36 小得多——它在表格裡不是列首 */
 
   /* ── 字級（中文值；英文 × 1.08）── */
   --font-page-title: 34px;
@@ -196,6 +206,8 @@
   --icon-inCheckCircle: 11px;
   --icon-inIconButton: 18px;
   --icon-inRow: 17px;
+  --icon-inDayCircle: 13px;
+  --icon-inRestDayCircle: 22px;
   --icon-strokeWeb: 2.75px;
   --icon-stroke: 2.75;
 

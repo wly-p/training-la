@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-08-31",
+  "generatedAt": "2026-09-04",
   "tokensVersion": 1,
   "components": [
     {
@@ -558,6 +558,97 @@
         "spec": "atoms/TLIconThumbnail/TLIconThumbnail.spec.md",
         "preview": "atoms/TLIconThumbnail/TLIconThumbnail.preview.html",
         "impl": "Packages/DesignSystem/Sources/DesignSystem/Atoms/TLIconThumbnail.swift"
+      }
+    },
+    {
+      "name": "TLPillButton",
+      "level": "L1",
+      "layer": "atoms",
+      "responsibility": "填色的小膠囊鈕",
+      "prototypeIds": [],
+      "prototypeNote": "11c",
+      "standalone": true,
+      "requiresContainer": null,
+      "containerOwns": "與相鄰鈕的間距由容器負責",
+      "props": [
+        {
+          "name": "title",
+          "type": "`Text`",
+          "kind": null,
+          "values": null,
+          "required": "是",
+          "default": "—",
+          "description": "鈕上的字"
+        },
+        {
+          "name": "tint",
+          "type": "`Color`",
+          "kind": null,
+          "values": [
+            "只吃語意 token"
+          ],
+          "required": "否",
+          "default": "`accent-700`",
+          "description": "文字色。底一律是 `surfaceBase`"
+        },
+        {
+          "name": "width",
+          "type": "`Width`",
+          "kind": "enum",
+          "values": [
+            "hug",
+            "fill"
+          ],
+          "required": "否",
+          "default": "`hug`",
+          "description": "見第 3 節"
+        },
+        {
+          "name": "action",
+          "type": "`() -> Void`",
+          "kind": null,
+          "values": null,
+          "required": "是",
+          "default": "—",
+          "description": "按下"
+        }
+      ],
+      "slots": [],
+      "events": [
+        "action"
+      ],
+      "variants": [
+        {
+          "name": "width",
+          "note": "寬度"
+        },
+        {
+          "name": "hug",
+          "note": "跟著內容"
+        },
+        {
+          "name": "fill",
+          "note": "撐滿可用寬度"
+        }
+      ],
+      "states": [
+        "hug",
+        "fill"
+      ],
+      "themes": [
+        "light",
+        "dark"
+      ],
+      "confusableWith": [],
+      "dontUseFor": [
+        "當頁面級的主要動作 —— 那是 `.tlPrimary`，這顆太小",
+        "放在白底上 —— 它的底就是 `surfaceBase`，會消失"
+      ],
+      "composedOf": null,
+      "paths": {
+        "spec": "atoms/TLPillButton/TLPillButton.spec.md",
+        "preview": "atoms/TLPillButton/TLPillButton.preview.html",
+        "impl": "Packages/DesignSystem/Sources/DesignSystem/Atoms/TLPillButton.swift"
       }
     },
     {
@@ -1849,6 +1940,86 @@
         "spec": "molecules/TLSettingsToggleRow/TLSettingsToggleRow.spec.md",
         "preview": "molecules/TLSettingsToggleRow/TLSettingsToggleRow.preview.html",
         "impl": "Packages/DesignSystem/Sources/DesignSystem/Molecules/TLSettingsToggleRow.swift"
+      }
+    },
+    {
+      "name": "TLStat",
+      "level": "L2",
+      "layer": "molecules",
+      "responsibility": "一個統計數字 ＋ 它的標籤",
+      "prototypeIds": [],
+      "prototypeNote": "6b",
+      "standalone": true,
+      "requiresContainer": null,
+      "containerOwns": "並排時的間距由容器給（`space.statGap`）",
+      "props": [
+        {
+          "name": "value",
+          "type": "`Text`",
+          "kind": null,
+          "values": null,
+          "required": "是",
+          "default": "—",
+          "description": "數字。**呼叫端負責格式化** —— 元件不做計算"
+        },
+        {
+          "name": "label",
+          "type": "`Text`",
+          "kind": null,
+          "values": null,
+          "required": "是",
+          "default": "—",
+          "description": "標籤"
+        },
+        {
+          "name": "numberFont",
+          "type": "`Font`",
+          "kind": null,
+          "values": null,
+          "required": "否",
+          "default": "`type.cardNumber`",
+          "description": "數字字級。見第 3 節"
+        },
+        {
+          "name": "alignment",
+          "type": "`HorizontalAlignment`",
+          "kind": "enum",
+          "values": [
+            "leading",
+            "center",
+            "trailing"
+          ],
+          "required": "否",
+          "default": "`leading`",
+          "description": "三個並排時中間那個置中、最右那個靠右"
+        }
+      ],
+      "slots": [],
+      "events": [],
+      "variants": [],
+      "states": [
+        "leading",
+        "trailing"
+      ],
+      "themes": [
+        "light",
+        "dark"
+      ],
+      "confusableWith": [
+        {
+          "name": "TLRowValue",
+          "note": "`TLRowValue` —— 那個是**列右側的值**（跟列名同一行）；"
+        }
+      ],
+      "dontUseFor": [
+        "讓它自己算數字 —— 元件不做計算（正典 §4 規則二之二），格式化在呼叫端",
+        "只放數字不放標籤 —— 沒有標籤的數字讀不出是什麼"
+      ],
+      "composedOf": null,
+      "paths": {
+        "spec": "molecules/TLStat/TLStat.spec.md",
+        "preview": "molecules/TLStat/TLStat.preview.html",
+        "impl": "Packages/DesignSystem/Sources/DesignSystem/Molecules/TLStat.swift"
       }
     },
     {

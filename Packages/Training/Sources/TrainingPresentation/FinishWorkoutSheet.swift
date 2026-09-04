@@ -93,7 +93,7 @@ struct FinishWorkoutSheet: View {
                     .frame(maxWidth: .infinity)
                 }
                 .padding(TLSpace.page)
-                .padding(.bottom, 20)
+                .padding(.bottom, TLSpace.gapL)
             }
             .background(TLColor.bg.ignoresSafeArea())
             .toolbar {
@@ -134,7 +134,7 @@ struct FinishWorkoutSheet: View {
                 .font(TLFont.zh(TLFont.sheetTitle, .bold))
                 .foregroundStyle(TLColor.text)
             Text(verbatim: subtitleTimeRange)
-                .font(.footnote)
+                .font(TLFont.zh(TLFont.caption))
                 .foregroundStyle(TLColor.neutral600)
         }
     }
@@ -155,7 +155,7 @@ struct FinishWorkoutSheet: View {
 
     private var statsCard: some View {
         TLCard(fill: TLColor.neutral300) {
-            VStack(alignment: .leading, spacing: 12) {
+            VStack(alignment: .leading, spacing: TLSpace.cardGap) {
                 HStack(alignment: .firstTextBaseline) {
                     statNumber(String(durationMinutes), label: "training.finish.minutes", alignment: .leading)
                     Spacer()
@@ -169,20 +169,13 @@ struct FinishWorkoutSheet: View {
                         .foregroundStyle(TLColor.neutral600)
                 }
                 if targetVolume > 0 {
-                    // 6pt 圓角進度條（neutral-200 軌 ＋ 赭紅填），取代偏細的原生 ProgressView。
-                    GeometryReader { geo in
-                        ZStack(alignment: .leading) {
-                            Capsule().fill(TLColor.neutral200)
-                            Capsule().fill(TLColor.accent)
-                                .frame(width: geo.size.width * min(totalVolume / targetVolume, 1))
-                        }
-                    }
-                    .frame(height: 6)
+                    // 深底的卡上，軌道要往更淺的方向換一階（見 TLProgressBar 規格第 3 節）。
+                    TLProgressBar(ratio: totalVolume / targetVolume, track: TLColor.neutral200)
                     Text(verbatim: String(
                         format: localString("training.finish.volumeGoal %@ %@", locale),
                         WeightDisplay.volume(targetVolume, in: weightUnit), String(format: "%.0f%%", totalVolume / targetVolume * 100)
                     ))
-                    .font(.footnote)
+                    .font(TLFont.zh(TLFont.caption))
                     .foregroundStyle(TLColor.neutral600)
                 }
             }
@@ -193,19 +186,18 @@ struct FinishWorkoutSheet: View {
     private func statNumber(
         _ value: String, label: String, alignment: HorizontalAlignment
     ) -> some View {
-        VStack(alignment: alignment, spacing: 2) {
-            Text(verbatim: value)
-                .font(TLFont.display(34))
-                .foregroundStyle(TLColor.text)
-            Text(LocalizedStringKey(label), bundle: .module)
-                .font(.caption2)
-                .foregroundStyle(TLColor.neutral600)
-        }
+        TLStat(
+            value: Text(verbatim: value),
+            label: Text(LocalizedStringKey(label), bundle: .module),
+            // ⚠ 34 在 display 尺度裡還沒有角色名（第二批），先由呼叫端傳。
+            numberFont: TLFont.display(34),
+            alignment: alignment
+        )
     }
 
     /// 達標組數：分子 34pt、分母縮小（`12/13` 的 `/13`），對齊右欄。
     private var achievedStat: some View {
-        VStack(alignment: .trailing, spacing: 2) {
+        VStack(alignment: .trailing, spacing: TLSpace.titleSubGap) {
             HStack(alignment: .firstTextBaseline, spacing: 0) {
                 Text(verbatim: "\(achievedCount.achieved)")
                     .font(TLFont.display(34))
@@ -215,7 +207,7 @@ struct FinishWorkoutSheet: View {
             }
             .foregroundStyle(TLColor.text)
             Text("training.finish.achievedSets", bundle: .module)
-                .font(.caption2)
+                .font(TLFont.zh(TLFont.rowSub))
                 .foregroundStyle(TLColor.neutral600)
         }
     }
@@ -244,7 +236,7 @@ struct FinishWorkoutSheet: View {
             } icon: {
                 Image(systemName: "trophy.fill")
             }
-            .font(.subheadline.weight(.semibold))
+            .font(TLFont.zh(TLFont.rowTitle, .semibold))
             .foregroundStyle(TLColor.sage800)
             .frame(maxWidth: .infinity, alignment: .leading)
         }
@@ -276,7 +268,7 @@ struct FinishWorkoutSheet: View {
                         achievementBadge(summary.allAchieved)
                     }
                     .padding(.horizontal, TLSpace.rowInset)
-                    .padding(.vertical, 14)
+                    .padding(.vertical, TLSpace.fieldPadV)
                 }
             }
         }
@@ -298,9 +290,9 @@ struct FinishWorkoutSheet: View {
     private var feelingSection: some View {
         VStack(alignment: .leading, spacing: TLSpace.gapS) {
             localText("training.howFeel")
-                .font(.footnote)
+                .font(TLFont.zh(TLFont.caption))
                 .foregroundStyle(TLColor.neutral500)
-            HStack(spacing: 8) {
+            HStack(spacing: TLSpace.gapS) {
                 feelingChip(value: 1, label: "training.finish.feeling.easy")
                 feelingChip(value: 3, label: "training.finish.feeling.justRight")
                 feelingChip(value: 5, label: "training.finish.feeling.hard")

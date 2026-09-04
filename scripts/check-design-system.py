@@ -34,6 +34,10 @@ LITERAL_STYLE = re.compile(
     # 設定頁被宣告成「字面樣式 0」的那一刻，SettingsView 裡就有一個 13。
     # 2026-08-31 補上，基線跟著重設。
     r"|TLFont\.(?:zh|display)\( ?[0-9]"
+    # 系統字級（.footnote/.caption/.headline…）連數字都沒有，前兩版的 regex 完全看不到它們。
+    # 它們不只是「另一種寫法」——系統字級**跟著 Dynamic Type 縮放**，等於一套平行的字級系統。
+    # 2026-09-04 補上，這是 ratchet 的第三個洞。
+    r"|\.font\(\.(?:footnote|caption2?|subheadline|headline|title[23]?|body|callout|largeTitle)\b"
     r"|cornerRadius: ?[0-9]"
     r"|\.padding\((?:\.[a-z]+, )?[0-9]"
     r"|\.frame\(.*?(?:width|height): ?[0-9]"
@@ -67,6 +71,7 @@ CHECKS = {
     7:  ("Presentation 層字面樣式**不得增加**（ratchet，不是硬門檻）", "§4 規則一"),
     8:  ("`DesignSystem` 未 import 任何功能 package", "§4 規則三"),
     17: ("同一個字型家族內，兩個**不同**的字級值差距不得小於 1（同值的兩個角色是允許的）", "§5"),
+    18: ("`DesignSystem` 零邏輯：不得持有狀態、不得格式化／日期運算；`GeometryReader` 走登記制", "§4 規則二之二"),
     5:  ("生成物與來源一致：`tokens.json` → Swift／CSS；各 spec → `components.json`／`index.html`", "§5、§6"),
 }
 
@@ -426,6 +431,42 @@ for _fam, _sizes in by_family.items():
             err(17, f"type 家族 `{_fam}`：{who} 只差 {round(_b - _a, 2)}——"
                     f"同一家族裡不同的值至少要差 1，0.5 的差在螢幕上不存在，只會變成漂移。"
                     f"真的要留就登記進 tokens.json 的 _scaleExceptions 並寫理由")
+
+# ── 18：DesignSystem 零邏輯（正典 §4 規則二之二）────────────────────
+#
+# 這條規則寫在正典裡，但一直**沒有任何檢查在擋**——靠的是慣例與 package 切分。
+# 這一輪已經證明過兩次「沒有檢查在擋的規則會漂」（ratchet 漏算字級、CSS 的 var 名字打錯），
+# 所以補上。
+#
+# 界線照正典：**不得持有或改變自己的狀態、不得從資料算出設計值**（格式化、日期運算）。
+# `@Binding` 與 closure prop 是資料通道，可以留。
+#
+# `GeometryReader` 是灰色地帶：進度條把 ratio 映射成寬度**就是它的呈現本身**，
+# 那是佈局不是業務邏輯。所以走登記制——登記過的放行但每次都印出來，
+# 沒登記的是硬錯。靜默放行的例外會變成永久的例外。
+STATE_PAT = re.compile(r"@State\b|@FocusState\b|@StateObject\b|@Observable\b|: *ObservableObject\b")
+COMPUTE_PAT = re.compile(r"String\(format:|DateFormatter|NumberFormatter|Calendar\(|\.formatted\(")
+GEOMETRY_ALLOW = json.loads((DS / "logic-exceptions.json").read_text())["geometryReader"] \
+    if (DS / "logic-exceptions.json").exists() else {}
+
+for f in sorted((PKG / "DesignSystem").rglob("*.swift")):
+    if ".build" in f.parts:
+        continue
+    rel = str(f.relative_to(ROOT))
+    body = f.read_text()
+    for m in STATE_PAT.finditer(body):
+        err(18, f"{f.name}：元件庫不得持有狀態（`{m.group(0)}`）——"
+                f"有狀態的是**控制項**，住 DesignControls")
+    for m in COMPUTE_PAT.finditer(body):
+        err(18, f"{f.name}：元件庫不得計算（`{m.group(0)}`）——"
+                f"格式化與日期運算屬於呼叫端，元件只收算好的 `Text`")
+    if "GeometryReader" in body:
+        why = GEOMETRY_ALLOW.get(f.name)
+        if why:
+            warns.append(f"⚠ [檢查 18] 已登記的 GeometryReader：{f.name}——{why}")
+        else:
+            err(18, f"{f.name}：用了 `GeometryReader`。依可用空間做比例佈局是允許的，"
+                    f"但要登記進 design-system/logic-exceptions.json 並寫理由")
 
 # ── 8：DesignSystem 不得認識 domain ────────────────────────────────
 for f in (PKG / "DesignSystem").rglob("*.swift"):

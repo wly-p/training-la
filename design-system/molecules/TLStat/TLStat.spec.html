@@ -1,0 +1,258 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>TLStat</title>
+<link rel="stylesheet" href="../../tokens/tokens.css">
+<link rel="stylesheet" href="../../preview.css">
+<style>
+  body { max-width: 62rem; line-height: 1.7; }
+  h1, h2, h3 { font-family: var(--font-page-title-family); line-height: 1.35; }
+  h1 { font-size: var(--font-page-title); margin: 0 0 var(--space-gap-l); }
+  h2 { font-size: var(--font-card-title); margin: var(--space-section) 0 var(--space-gap-m);
+       padding-top: var(--space-gap-m); border-top: 1px solid var(--border-subtle); }
+  h3 { font-size: var(--font-row-title); margin: var(--space-gap-l) 0 var(--space-gap-s); }
+  a { color: var(--accent-on-surface); }
+  table { border-collapse: collapse; width: 100%; margin: var(--space-gap-m) 0;
+          display: block; overflow-x: auto; }
+  th, td { text-align: left; padding: var(--space-gap-s) var(--space-gap-m);
+           border-bottom: 1px solid var(--border-subtle); vertical-align: top; }
+  th { font-size: var(--font-kicker); letter-spacing: var(--font-kicker-tracking);
+       text-transform: uppercase; color: var(--text-tertiary); }
+  pre { background: var(--surface-raised); border-radius: var(--radius-inner);
+        padding: var(--space-gap-m); overflow-x: auto; }
+  pre code { background: none; padding: 0; }
+  blockquote { margin: var(--space-gap-m) 0; padding-left: var(--space-gap-m);
+               border-left: 3px solid var(--border-subtle); color: var(--text-secondary); }
+  .back { font-size: var(--font-row-sub); margin-bottom: var(--space-gap-l); display: block; }
+</style>
+<a class="back" href="../../index.html">← 元件庫索引</a>
+<h1>TLStat</h1>
+<h2>1 身分</h2>
+<table>
+<thead>
+<tr>
+<th></th>
+<th></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>層級</td>
+<td>L2 分子</td>
+</tr>
+<tr>
+<td>職責</td>
+<td>一個統計數字 ＋ 它的標籤</td>
+</tr>
+<tr>
+<td>原型 id</td>
+<td><code>6b</code> <code>13a</code></td>
+</tr>
+<tr>
+<td>獨立使用</td>
+<td>是（通常並排放在卡裡）</td>
+</tr>
+<tr>
+<td>容器責任</td>
+<td>並排時的間距由容器給（<code>space.statGap</code>）</td>
+</tr>
+<tr>
+<td>實作</td>
+<td><code>Packages/DesignSystem/Sources/DesignSystem/Molecules/TLStat.swift</code></td>
+</tr>
+<tr>
+<td>Preview</td>
+<td><code>design-system/molecules/TLStat/TLStat.preview.html</code></td>
+</tr>
+<tr>
+<td>Preview CSS</td>
+<td><code>components.preview.css</code> §TLStat</td>
+</tr>
+</tbody>
+</table>
+<p><strong>組成</strong>：不由其他 <code>TL*</code> 元件組成。</p>
+<h2>2 介面 ★</h2>
+<p><strong>Props</strong></p>
+<table>
+<thead>
+<tr>
+<th>名稱</th>
+<th>型別</th>
+<th>值域</th>
+<th>必填</th>
+<th>預設</th>
+<th>說明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>value</code></td>
+<td><code>Text</code></td>
+<td></td>
+<td>是</td>
+<td>—</td>
+<td>數字。<strong>呼叫端負責格式化</strong> —— 元件不做計算</td>
+</tr>
+<tr>
+<td><code>label</code></td>
+<td><code>Text</code></td>
+<td></td>
+<td>是</td>
+<td>—</td>
+<td>標籤</td>
+</tr>
+<tr>
+<td><code>numberFont</code></td>
+<td><code>Font</code></td>
+<td></td>
+<td>否</td>
+<td><code>type.cardNumber</code></td>
+<td>數字字級。見第 3 節</td>
+</tr>
+<tr>
+<td><code>alignment</code></td>
+<td><code>HorizontalAlignment</code></td>
+<td><code>leading</code> / <code>center</code> / <code>trailing</code></td>
+<td>否</td>
+<td><code>leading</code></td>
+<td>三個並排時中間那個置中、最右那個靠右</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Slots</strong> — N/A
+<strong>事件</strong> — N/A（唯讀）</p>
+<h2>3 變體 variants</h2>
+<p>無變體，但數字字級是 prop：</p>
+<table>
+<thead>
+<tr>
+<th>用在哪</th>
+<th>字級</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>訓練首頁的週統計</td>
+<td><code>type.cardNumber</code>(26，預設)</td>
+</tr>
+<tr>
+<td>完成摘要的統計</td>
+<td>34</td>
+</tr>
+</tbody>
+</table>
+<p>⚠ <strong>34 目前沒有角色名</strong> —— display 家族的尺度還沒收斂（第二批），
+所以那一階由呼叫端傳。收斂之後這個 prop 應該換成 enum。</p>
+<h2>4 狀態 states ★</h2>
+<!-- states: leading, trailing -->
+<!-- themes: light, dark -->
+
+<table>
+<thead>
+<tr>
+<th>類別</th>
+<th>狀態</th>
+<th>這個元件</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>互動</td>
+<td>default / pressed / disabled / focused</td>
+<td><strong>一個都沒有</strong>，它唯讀</td>
+</tr>
+<tr>
+<td>選取</td>
+<td>selected / unselected / indeterminate</td>
+<td>N/A</td>
+</tr>
+<tr>
+<td>資料</td>
+<td>empty / loading / error</td>
+<td>N/A —— 沒有數字就不要放這個元件</td>
+</tr>
+<tr>
+<td>內容極值</td>
+<td>最短 / 最長 / 溢出</td>
+<td>數字不換行；標籤可換行</td>
+</tr>
+<tr>
+<td>主題</td>
+<td>light / dark</td>
+<td>兩者都有</td>
+</tr>
+<tr>
+<td>語言</td>
+<td>中文 / 英文</td>
+<td>標籤在英文較長，是並排時的寬度決定因素</td>
+</tr>
+</tbody>
+</table>
+<h2>5 度量與行為</h2>
+<table>
+<thead>
+<tr>
+<th></th>
+<th></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>數字與標籤之間</td>
+<td><code>space.titleSubGap</code></td>
+</tr>
+<tr>
+<td>數字字級</td>
+<td>見第 3 節（display 家族）</td>
+</tr>
+<tr>
+<td>標籤字級</td>
+<td><code>type.rowSub</code></td>
+</tr>
+</tbody>
+</table>
+<p><strong>標籤在下面不是上面</strong>：掃視時先看到數字，標籤只在需要確認「這是什麼」時才讀。</p>
+<h3>動態</h3>
+<p>無。</p>
+<h2>6 配色 ★</h2>
+<table>
+<thead>
+<tr>
+<th>用途</th>
+<th>token</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>數字</td>
+<td><code>textPrimary</code></td>
+</tr>
+<tr>
+<td>標籤</td>
+<td><code>neutral-600</code></td>
+</tr>
+</tbody>
+</table>
+<h2>7 用法與禁用法</h2>
+<p><strong>用它</strong>：卡片裡並排的統計數字。</p>
+<p><strong>易混淆</strong>：<code>TLRowValue</code> —— 那個是<strong>列右側的值</strong>（跟列名同一行）；
+這個是<strong>上下兩行</strong>、獨立成塊。</p>
+<p><strong>不要用它</strong>：
+- 讓它自己算數字 —— 元件不做計算（正典 §4 規則二之二），格式化在呼叫端
+- 只放數字不放標籤 —— 沒有標籤的數字讀不出是什麼</p>
+<h2>8 變更紀錄</h2>
+<table>
+<thead>
+<tr>
+<th>日期</th>
+<th>改動</th>
+<th>原因</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>2026-09-04</td>
+<td>新增</td>
+<td><code>TrainingHomeView</code> 與 <code>FinishWorkoutSheet</code> <strong>各有一份一模一樣的 <code>statNumber</code></strong>，只差數字字級與對齊。跨檔的重複比同檔的更難發現，因為讀任何一邊都看不出來</td>
+</tr>
+</tbody>
+</table>

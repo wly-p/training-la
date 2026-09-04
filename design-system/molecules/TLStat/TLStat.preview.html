@@ -1,0 +1,63 @@
+<!-- @dsCard group="Molecules" name="TLStat" subtitle="一個統計數字 ＋ 它的標籤" -->
+<!doctype html>
+<meta charset="utf-8">
+<title>TLStat</title>
+<link rel="stylesheet" href="../../tokens/tokens.css">
+<link rel="stylesheet" href="../../preview.css">
+<link rel="stylesheet" href="../../components.preview.css">
+<h1>TLStat</h1>
+<p class="note">
+  L2 分子。一個統計數字 ＋ 它的標籤。<br>
+  <b>標籤在下面不是上面</b>：掃視時先看到數字，標籤只在需要確認「這是什麼」時才讀。
+</p>
+
+<div class="kicker">狀態</div>
+<div class="tl-card tl-card--deep">
+  <div class="tl-stat-row">
+    <span class="tl-stat" data-state="leading">
+      <span class="tl-stat__value num">42</span>
+      <span class="tl-stat__label">項目一</span>
+    </span>
+    <span class="tl-stat">
+      <span class="tl-stat__value num">1,240</span>
+      <span class="tl-stat__label">項目二</span>
+    </span>
+    <span class="tl-stat tl-stat--trailing" data-state="trailing">
+      <span class="tl-stat__value num">12</span>
+      <span class="tl-stat__label">項目三</span>
+    </span>
+  </div>
+</div>
+<p class="note">
+  三個並排時，中間置中、最右靠右 —— 所以對齊是 prop。
+</p>
+
+<div class="kicker">數字字級是 prop</div>
+<p class="note">
+  訓練首頁的週統計用 <code>cardNumber</code>(26)、完成摘要用 34。<br>
+  <b>⚠ 34 目前沒有角色名</b> —— display 家族的尺度還沒收斂，收完之後這個 prop 應該換成 enum。
+</p>
+
+<div class="kicker">主題</div>
+<div class="themes">
+  <div class="pane" data-theme="light">
+    <div class="kicker">light</div>
+    <div class="tl-card tl-card--deep"><div class="tl-stat-row">
+      <span class="tl-stat"><span class="tl-stat__value num">42</span>
+        <span class="tl-stat__label">項目一</span></span>
+    </div></div>
+  </div>
+  <div class="pane" data-theme="dark">
+    <div class="kicker">dark（目前是 light 的複製）</div>
+    <div class="tl-card tl-card--deep"><div class="tl-stat-row">
+      <span class="tl-stat"><span class="tl-stat__value num">42</span>
+        <span class="tl-stat__label">項目一</span></span>
+    </div></div>
+  </div>
+</div>
+
+<div class="kicker">不適用的狀態</div>
+<p class="note">
+  互動的四態 —— 它唯讀。<br>
+  empty —— 沒有數字就不要放這個元件。
+</p>

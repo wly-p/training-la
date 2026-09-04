@@ -284,7 +284,7 @@ struct WorkoutDetailView: View {
             )
             Spacer(minLength: TLSpace.gapS)
             (localText("history.col.target") + Text(verbatim: " / ") + localText("history.col.actual"))
-                .font(.caption2.weight(.semibold))
+                .font(TLFont.zh(TLFont.rowSub, .semibold))
                 .foregroundStyle(TLColor.neutral500)
                 .accessibilityIdentifier("workoutDetail.targetColumn")
         }
@@ -400,7 +400,7 @@ struct WorkoutDetailView: View {
                 .foregroundStyle(TLColor.neutral500)
             HStack(spacing: TLSpace.cardGap) {
                 Button(action: onMinus) {
-                    Image(systemName: "minus.circle.fill").font(.title2).foregroundStyle(TLColor.accent)
+                    Image(systemName: "minus.circle.fill").font(.system(size: TLIcon.standalone)).foregroundStyle(TLColor.accent)
                 }
                 .buttonStyle(.plain)
                 Text(value)
@@ -409,7 +409,7 @@ struct WorkoutDetailView: View {
                     .foregroundStyle(TLColor.text)
                     .frame(minWidth: 60)
                 Button(action: onPlus) {
-                    Image(systemName: "plus.circle.fill").font(.title2).foregroundStyle(TLColor.accent)
+                    Image(systemName: "plus.circle.fill").font(.system(size: TLIcon.standalone)).foregroundStyle(TLColor.accent)
                 }
                 .buttonStyle(.plain)
             }

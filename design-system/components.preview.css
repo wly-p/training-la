@@ -100,6 +100,30 @@
   background: linear-gradient(135deg, var(--accent-300), var(--accent-600));
 }
 
+/* TLPillButton */
+.tl-pill-row { display: flex; gap: var(--space-gap-s); flex-wrap: wrap; }
+.tl-pill-grid { display: flex; gap: var(--space-gap-s); }
+.tl-pill-button {
+  font-size: var(--font-button-label-small); font-weight: 600;
+  color: var(--accent-700); background: var(--surface-base);
+  border-radius: var(--radius-pill);
+  padding: var(--space-pill-pad-v) var(--space-pill-pad-h);
+  white-space: nowrap;
+}
+/* ⚠ fill 版的上下內距比 hug 版多 2px——待收斂，見規格第 3 節 */
+.tl-pill-button--fill {
+  flex: 1; text-align: center;
+  padding-top: var(--space-pill-pad-v-wide); padding-bottom: var(--space-pill-pad-v-wide);
+}
+
+/* TLStat */
+.tl-stat-row { display: flex; justify-content: space-between; gap: var(--space-stat-gap); }
+.tl-stat { display: flex; flex-direction: column; gap: var(--space-title-sub-gap); }
+.tl-stat--trailing { align-items: flex-end; }
+.tl-stat__value { font-family: var(--font-display); font-size: var(--font-card-number);
+                  color: var(--text-primary); }
+.tl-stat__label { font-size: var(--font-row-sub); color: var(--neutral-600); }
+
 /* TLProgressBar */
 .tl-progress-bar {
   display: block; height: var(--size-progress-bar);

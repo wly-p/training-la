@@ -59,7 +59,7 @@ public struct TrainingHomeView: View {
                             .padding(.top, TLSpace.section)
                     }
                 }
-                .padding(.bottom, 40)
+                .padding(.bottom, TLSpace.pageBottom)
             }
             .background(TLColor.bg.ignoresSafeArea())
             #if os(iOS)
@@ -172,18 +172,18 @@ public struct TrainingHomeView: View {
         ZStack {
             Color.black.opacity(0.35).ignoresSafeArea()
             TLCard(padding: .page) {
-                VStack(alignment: .leading, spacing: 16) {
+                VStack(alignment: .leading, spacing: TLSpace.cardSectionGap) {
                     Text(summary.isOvernight
                         ? localString("training.resume.overnightTitle", locale)
                         : localString("training.resume.sameDayTitle", locale))
                         .font(TLFont.zh(TLFont.cardTitle, .bold))
                         .foregroundStyle(TLColor.text)
                     Text(verbatim: resumeDescription(summary))
-                        .font(.footnote)
+                        .font(TLFont.zh(TLFont.caption))
                         .foregroundStyle(TLColor.neutral600)
 
                     TLCard(radius: .inner, fill: TLColor.neutral300) {
-                        VStack(spacing: 10) {
+                        VStack(spacing: TLSpace.sectionHeaderGap) {
                             HStack {
                                 statNumber("\(summary.recordedSetCount)", label: "training.resume.recordedSets")
                                 Spacer()
@@ -197,7 +197,7 @@ public struct TrainingHomeView: View {
                                 format: localString("training.resume.dataStaysPut %lld", locale),
                                 summary.recordedSetCount
                             ))
-                            .font(.caption2)
+                            .font(TLFont.zh(TLFont.rowSub))
                             .foregroundStyle(TLColor.neutral600)
                         }
                     }
@@ -234,14 +234,7 @@ public struct TrainingHomeView: View {
     }
 
     private func statNumber(_ value: String, label: String) -> some View {
-        VStack(alignment: .leading, spacing: 2) {
-            Text(verbatim: value)
-                .font(TLFont.display(26))
-                .foregroundStyle(TLColor.text)
-            Text(LocalizedStringKey(label), bundle: .module)
-                .font(.caption2)
-                .foregroundStyle(TLColor.neutral600)
-        }
+        TLStat(value: Text(verbatim: value), label: Text(LocalizedStringKey(label), bundle: .module))
     }
 
     @ViewBuilder private func resumeActions(_ summary: ResumeSummary) -> some View {
@@ -259,7 +252,7 @@ public struct TrainingHomeView: View {
                 localText("training.resume.continue")
             }
         }
-        VStack(spacing: 10) {
+        VStack(spacing: TLSpace.sectionHeaderGap) {
             if summary.isOvernight {
                 endButton.buttonStyle(.tlPrimary)
                 continueButton.buttonStyle(.tlSecondary)
@@ -316,7 +309,7 @@ public struct TrainingHomeView: View {
 
     private var carousel: some View {
         ScrollView(.horizontal, showsIndicators: false) {
-            HStack(spacing: 14) {
+            HStack(spacing: TLSpace.carouselGap) {
                 ForEach(cards) { card in
                     cardView(card)
                 }
@@ -332,11 +325,11 @@ public struct TrainingHomeView: View {
     @State private var scrolledCardId: String?
 
     private var pageDots: some View {
-        HStack(spacing: 5) {
+        HStack(spacing: TLSize.pageDot) {
             ForEach(cards) { card in
                 Capsule()
                     .fill((scrolledCardId ?? cards.first?.id) == card.id ? TLColor.accent : TLColor.neutral300)
-                    .frame(width: (scrolledCardId ?? cards.first?.id) == card.id ? 20 : 5, height: 5)
+                    .frame(width: (scrolledCardId ?? cards.first?.id) == card.id ? TLSize.pageDotActive : TLSize.pageDot, height: TLSize.pageDot)
             }
         }
         .padding(.horizontal, TLSpace.page)
@@ -439,7 +432,7 @@ public struct TrainingHomeView: View {
         Button(action: onTap) {
             HStack(spacing: TLSpace.gapM) {
                 Image(systemName: icon)
-                    .font(.system(size: 15, weight: .semibold))
+                    .font(.system(size: TLIcon.inline, weight: .semibold))
                     .foregroundStyle(iconColor)
                     .frame(width: TLSize.badge)
                 title
@@ -499,10 +492,10 @@ public struct TrainingHomeView: View {
                     ZStack {
                         Circle().fill(Color.white)
                         Image(systemName: "moon.stars.fill")
-                            .font(.system(size: 22, weight: .medium))
+                            .font(.system(size: TLIcon.inRestDayCircle, weight: .medium))
                             .foregroundStyle(TLColor.sage700)
                     }
-                    .frame(width: 52, height: 52)
+                    .frame(width: TLSize.restDayIcon, height: TLSize.restDayIcon)
 
                     // 課表名是使用者資料（verbatim），套進本地化模板組成整句。
                     Text(verbatim: String(
@@ -671,7 +664,7 @@ public struct TrainingHomeView: View {
 
     private func recentSessionRow(_ session: RecentSessionSummary) -> some View {
         HStack(spacing: TLSpace.gapS) {
-            VStack(alignment: .leading, spacing: 2) {
+            VStack(alignment: .leading, spacing: TLSpace.titleSubGap) {
                 // 範本名是使用者資料（verbatim）。
                 Text(verbatim: session.name ?? freeTrainingLabel)
                     .font(TLFont.zh(TLFont.rowTitle, .semibold))

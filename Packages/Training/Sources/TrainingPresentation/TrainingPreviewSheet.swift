@@ -68,7 +68,7 @@ struct TrainingPreviewSheet: View {
             }
             .padding(.horizontal, TLSpace.page)
             .padding(.top, TLSpace.section)
-            .padding(.bottom, 40)
+            .padding(.bottom, TLSpace.pageBottom)
         }
         .background(TLColor.bg.ignoresSafeArea())
         .presentationDragIndicator(.visible)
@@ -110,7 +110,7 @@ struct TrainingPreviewSheet: View {
 
     private func exerciseRow(_ row: ExerciseRow) -> some View {
         HStack(alignment: .center, spacing: TLSpace.gapM) {
-            VStack(alignment: .leading, spacing: 3) {
+            VStack(alignment: .leading, spacing: TLSpace.titleSubGap) {
                 TLTitleWithTag(name: row.name, equipment: row.equipment.displayName(locale))
                 if let algebra = WeightSourceFormatting.algebraText(row.representative?.weightSource, locale: locale, in: weightUnit) {
                     Text(verbatim: algebra)
@@ -127,14 +127,14 @@ struct TrainingPreviewSheet: View {
         }
         // 水平內距不可省——沒有它，列內文字會貼齊 TLGroup 邊緣被圓角切掉（bug1 破圖主因）。
         .padding(.horizontal, TLSpace.rowInset)
-        .frame(minHeight: 62)
+        .frame(minHeight: TLSize.rowWithSub)
     }
 
     @ViewBuilder private func trailingValue(_ row: ExerciseRow) -> some View {
         if let weight = row.representative?.targetWeight {
             // 統一成「20kg × 8」（displayString 帶單位，不能寫死 kg —— 使用者可能用 lb）。
             // 組數放在前面的「N 組」，這裡不重複。
-            HStack(spacing: 4) {
+            HStack(spacing: TLSpace.valueUnitGap) {
                 Text(verbatim: weight.displayString(in: weightUnit))
                     .font(TLFont.display(15))
                 if let reps = row.representative?.targetReps {

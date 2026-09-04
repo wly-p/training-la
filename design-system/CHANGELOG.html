@@ -78,6 +78,143 @@
 <li><strong>12</strong> 文件裡提到的 token 名都要真的存在。抓「token 被刪／改名，文件還在講它」。</li>
 </ul>
 <hr />
+<h2>2026-09-04 · 檢查 18（元件庫零邏輯）＋ 階段 5（訓練）</h2>
+<h3>ratchet 的第三個洞：系統字級</h3>
+<p><code>.font(.footnote)</code> / <code>.caption</code> / <code>.headline</code> 這類<strong>系統字級連數字都沒有</strong>，
+前兩版的 regex 完全看不到它們。全 app <strong>25 處，Training 佔 22</strong>。</p>
+<p>它們比字面值更麻煩：<strong>系統字級跟著 Dynamic Type 縮放，我們的固定值不會。</strong>
+換掉等於把那 25 處從「會縮放」變成「不會縮放」—— 這是一個行為改變，記在下面。</p>
+<p>對照表（照設計端的判準就近併，位移都 ≤1px）：</p>
+<table>
+<thead>
+<tr>
+<th>系統字級</th>
+<th>預設點數</th>
+<th>換成</th>
+<th>位移</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>.footnote</code></td>
+<td>13</td>
+<td><code>caption</code>(12.5)</td>
+<td>−0.5</td>
+</tr>
+<tr>
+<td><code>.footnote.semibold</code>（膠囊鈕）</td>
+<td>13</td>
+<td><code>buttonLabelSmall</code>(13)</td>
+<td>0</td>
+</tr>
+<tr>
+<td><code>.caption</code></td>
+<td>12</td>
+<td><code>badgeText</code>(12)</td>
+<td>0</td>
+</tr>
+<tr>
+<td><code>.caption.bold</code>（圓章數字）</td>
+<td>12</td>
+<td><code>badgeText</code>(12)</td>
+<td>0</td>
+</tr>
+<tr>
+<td><code>.caption2</code></td>
+<td>11</td>
+<td><code>rowSub</code>(11.5)</td>
+<td>+0.5</td>
+</tr>
+<tr>
+<td><code>.caption2.semibold</code>（表頭、大寫）</td>
+<td>11</td>
+<td><code>kicker</code>(10.5)</td>
+<td>−0.5</td>
+</tr>
+<tr>
+<td><code>.subheadline.semibold</code></td>
+<td>15</td>
+<td><code>rowTitle</code>(15)</td>
+<td>0</td>
+</tr>
+<tr>
+<td><code>.headline</code></td>
+<td>17</td>
+<td><code>emptyTitle</code>(16)</td>
+<td>−1</td>
+</tr>
+<tr>
+<td><code>.title2</code>（套在 SF Symbol 上）</td>
+<td>22</td>
+<td><code>icon.standalone</code>(22)</td>
+<td>0</td>
+</tr>
+</tbody>
+</table>
+<p><code>.headline</code> 那一處是唯一有疑慮的：17 在我們的尺度裡沒有位置（16 與 21 之間是空的），
+一處使用撐不起一個新階（<code>icon.l</code> 那次的原則），所以併進 16。
+<strong>但 <code>emptyTitle</code> 這個名字對它是錯的</strong> —— 那是「休息全螢幕裡下一個動作的名字」。
+名字該改成通用的小標題，跟 <code>emptyHint</code>→<code>caption</code> 同一型，列進待問清單。</p>
+<h3>檢查 18：零邏輯終於有人守</h3>
+<p>「元件不得有邏輯」寫在正典 §4 規則二之二，但<strong>17 條檢查裡沒有一條看它</strong>。
+這一輪已經證明過兩次「沒有檢查在擋的規則會漂」，所以補上：</p>
+<table>
+<thead>
+<tr>
+<th>擋什麼</th>
+<th>結果</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>@State</code> / <code>@FocusState</code> / <code>@StateObject</code> / <code>@Observable</code> / <code>ObservableObject</code></td>
+<td><strong>零違規</strong></td>
+</tr>
+<tr>
+<td><code>String(format:</code> / <code>DateFormatter</code> / <code>NumberFormatter</code> / <code>Calendar(</code> / <code>.formatted(</code></td>
+<td><strong>零違規</strong></td>
+</tr>
+<tr>
+<td><code>GeometryReader</code></td>
+<td>一處：<code>TLProgressBar</code>，走登記制</td>
+</tr>
+</tbody>
+</table>
+<p><code>TLProgressBar</code> 那一處不該被判違規也不該靜默放行：<strong>把 <code>ratio</code> 映射成寬度就是進度條的
+呈現本身</strong>，那是佈局不是業務邏輯。所以照檢查 17 的做法登記在
+<code>design-system/logic-exceptions.json</code>，每跑一次印一次。</p>
+<p>正典 §規則二之二 補上界線：<strong>「不得計算」指的是不得從資料算出設計值，依可用空間做比例佈局不算。</strong></p>
+<p>三種違規都反向測過會擋。</p>
+<h3>階段 5 抽出的兩個元件，都是「兩份實作」</h3>
+<table>
+<thead>
+<tr>
+<th></th>
+<th>問題</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>TLPillButton</code>（L1）</td>
+<td><code>ActiveWorkoutView</code> 裡有 <code>restPill</code> 與 <code>quickPill</code> <strong>兩份實作</strong>，只差 2px 內距與一階文字色</td>
+</tr>
+<tr>
+<td><code>TLStat</code>（L2）</td>
+<td><code>TrainingHomeView</code> 與 <code>FinishWorkoutSheet</code> <strong>各有一份一模一樣的 <code>statNumber</code></strong>。跨檔的重複比同檔的更難發現——讀任何一邊都看不出來</td>
+</tr>
+</tbody>
+</table>
+<p>膠囊那兩個內距（8／10）<strong>沒有自己收</strong>：收成一個是視覺決定，屬於膠囊幾何那組待決問題。
+我只收實作，不收像素。</p>
+<h3>第四根手工重建的進度條</h3>
+<p><code>FinishWorkoutSheet:172</code> 又有一份 <code>GeometryReader</code> ＋ 兩個 <code>Capsule</code>。
+階段 2 抽 <code>TLProgressBar</code> 時說「兩處各手工重建」——<strong>當時漏數了這一處</strong>，
+因為它藏在一個 <code>if targetVolume &gt; 0</code> 裡面。已改用元件。</p>
+<h3>進度</h3>
+<p>元件 32 → <strong>34</strong>。字面樣式 153 → <strong>66</strong>（其中 34 是 display 字級、22 是膠囊幾何，
+都等設計端第二批；4 處是 UITest 的 0×0 幽靈錨點，那是測試鉤子不是樣式）。</p>
+<p>Ability 的 14 處也一併做完（它不在五個階段裡，但它是最後一個非零的檔）。</p>
+<hr />
 <h2>2026-08-31 · TLCard 全面遷移（26 處）＋ 階段 4（課表）</h2>
 <h3>「不要卡中卡」是錯的 —— 被 26 處實測推翻</h3>
 <p>抽 <code>TLCard</code> 時我在規格第 7 節寫了「不要卡中卡：兩層 <code>radius.container</code> 疊在一起，

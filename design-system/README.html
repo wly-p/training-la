@@ -199,7 +199,13 @@ design ◄─────────────────► 元件庫(code)
 窮舉的價值不在文件完整，在於<strong>設計端能一眼看到這個元件有什麼可用</strong>，不必猜、不必問。</p>
 <h3>規則二之二 · 元件不得有邏輯</h3>
 <p><strong>元件不得持有或改變自己的狀態</strong>（<code>@State</code> / <code>@FocusState</code>），<strong>不得計算</strong>
-（格式化、日期運算、幾何）。<code>@Binding</code> 與 closure prop 是<strong>資料通道</strong>，可以留。</p>
+（格式化、日期運算）。<code>@Binding</code> 與 closure prop 是<strong>資料通道</strong>，可以留。</p>
+<p><strong>「計算」指的是從資料算出設計值，不是佈局。</strong> 依可用空間做比例佈局
+（進度條把 <code>ratio</code> 映射成寬度）<strong>就是呈現本身</strong>，不算違規 —— 但 <code>GeometryReader</code>
+要登記進 <code>logic-exceptions.json</code> 並寫理由，沒登記的是硬錯。
+靜默放行的例外會變成永久的例外。</p>
+<p>由<strong>檢查 18</strong> 機器擋。這條規則在 2026-09-04 之前只是慣例 ——
+而這一輪已經證明過兩次「沒有檢查在擋的規則會漂」。</p>
 <p>有狀態或計算的東西不是「元件」而是「控制項」，住 <code>DesignControls</code>
 （相依 <code>DesignControls → DesignSystem</code>，反向不行）。</p>
 <p>判準的用處在寫規格第 2 節時：看到 <code>format: (Double) -&gt; String</code> 這種 prop，
@@ -496,6 +502,11 @@ Noto 子集（<code>make preview-font</code> 重生；原始字型 11MB，不進
 <td>17</td>
 <td>同一個字型家族內，兩個<strong>不同</strong>的字級值差距不得小於 1（同值的兩個角色是允許的）</td>
 <td>§5</td>
+</tr>
+<tr>
+<td>18</td>
+<td><code>DesignSystem</code> 零邏輯：不得持有狀態、不得格式化／日期運算；<code>GeometryReader</code> 走登記制</td>
+<td>§4 規則二之二</td>
 </tr>
 </tbody>
 </table>

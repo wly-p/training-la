@@ -1,0 +1,6 @@
+{
+  "_note": "正典 §4 規則二之二（元件不得有邏輯）的例外登記簿。檢查 18 讀這一份。登記過的放行，但每次跑檢查都會印出來——靜默放行的例外會變成永久的例外。",
+  "geometryReader": {
+    "TLProgressBar.swift": "把 ratio 映射成填滿寬度**就是進度條的呈現本身**，不是業務邏輯。SwiftUI 沒有不靠 GeometryReader 表達比例寬度又不扭曲膠囊端點的寫法（scaleEffect 會把 6pt 高的圓端壓扁）。"
+  }
+}
