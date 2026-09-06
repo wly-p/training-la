@@ -328,7 +328,9 @@ public struct RotationEditorView: View {
                 TLListRow(
                     title: localText("rotation.createdAfter.activateNow"),
                     trailing: {
-                        Toggle("", isOn: $isActiveOnCreate).labelsHidden().toggleStyle(.tlSwitch)
+                        Toggle(isOn: $isActiveOnCreate) { EmptyView() }
+                            .labelsHidden()
+                            .toggleStyle(.tlSwitch)
                     }
                 )
                 TLListRow(

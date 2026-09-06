@@ -37,6 +37,16 @@ public struct Workout: Identifiable, Equatable, Sendable {
     }
 
     public var isFinished: Bool { endedAt != nil }
+
+    /// 「重複上次」用：依 exerciseIndex 順序的動作序列與各自組數（熱身不計入組數）。
+    public var repeatSequence: [RepeatWorkoutExercise] {
+        blocks.map { block in
+            RepeatWorkoutExercise(
+                exerciseId: block.exerciseId,
+                setCount: max(1, block.sets.filter { !$0.isWarmup }.count)
+            )
+        }
+    }
 }
 
 /// 場次內的一組。exerciseIndex 相同＝同一個動作區塊；index 皆 0-based，由 app 指派。

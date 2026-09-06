@@ -226,6 +226,7 @@ struct AppDependencies {
                 ),
                 today: today
             ),
+            createPlanWorkout: CreatePlanWorkout(repository: planRepository),
             today: today,
             listExercises: ListExercises(repository: exerciseRepository),
             currentLanguage: { languageStore.load() ?? .fallback }
@@ -236,7 +237,7 @@ struct AppDependencies {
                 // 循環課表的游標在排課「完成」時才推進（E1）；沒接上這條就永遠停在第一張。
                 rotationRepository: rotationRepository
             ),
-            discardRotationPlan: DiscardRotationPlanWorkout(repository: planRepository)
+            discardRotationPlan: DiscardOrphanPlanWorkout(repository: planRepository)
         )
 
         return AppDependencies(

@@ -241,6 +241,38 @@ struct WorkoutUseCaseTests {
     }
 }
 
+struct WorkoutRepeatSequenceTests {
+    private let kg60 = Weight(value: 60, unit: .kg)
+
+    @Test func ordersByExerciseIndexAndCountsNonWarmupSets() {
+        var workout = Workout(id: UUID(), day: DayDate(year: 2026, month: 7, day: 20))
+        let benchPress = UUID()
+        let squat = UUID()
+        workout.appendSet(exerciseId: benchPress, measurement: .weightReps(weight: kg60, reps: 8), isWarmup: true)
+        workout.appendSet(exerciseId: benchPress, measurement: .weightReps(weight: kg60, reps: 8))
+        workout.appendSet(exerciseId: benchPress, measurement: .weightReps(weight: kg60, reps: 6))
+        workout.appendSet(exerciseId: squat, measurement: .weightReps(weight: kg60, reps: 5))
+
+        let sequence = workout.repeatSequence
+
+        #expect(sequence.map(\.exerciseId) == [benchPress, squat])
+        #expect(sequence.map(\.setCount) == [2, 1])  // 熱身組不計入
+    }
+
+    @Test func warmupOnlyExerciseStillCountsAtLeastOneSet() {
+        var workout = Workout(id: UUID(), day: DayDate(year: 2026, month: 7, day: 20))
+        let benchPress = UUID()
+        workout.appendSet(exerciseId: benchPress, measurement: .weightReps(weight: kg60, reps: 8), isWarmup: true)
+
+        #expect(workout.repeatSequence == [RepeatWorkoutExercise(exerciseId: benchPress, setCount: 1)])
+    }
+
+    @Test func emptyWorkoutHasEmptySequence() {
+        let workout = Workout(id: UUID(), day: DayDate(year: 2026, month: 7, day: 20))
+        #expect(workout.repeatSequence.isEmpty)
+    }
+}
+
 struct DayDateTests {
     @Test func isoStringRoundTrips() {
         let day = DayDate(year: 2026, month: 7, day: 9)

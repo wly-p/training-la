@@ -250,7 +250,7 @@ struct RotationCursorLifecycleTests {
         await rotationRepo.seed(Rotation(id: id, name: "R", workouts: [spec("A"), spec("B")], cursor: 0))
 
         let plan = try await makeStart(rotationRepo, planRepo)(id: id, date: today)
-        try await DiscardRotationPlanWorkout(repository: planRepo)(id: plan!.id)
+        try await DiscardOrphanPlanWorkout(repository: planRepo)(id: plan!.id)
 
         let r = try await rotationRepo.get(id: id)!
         #expect(r.current?.name == "A")
@@ -324,11 +324,25 @@ struct RotationCursorLifecycleTests {
         let fromTemplate = PlanWorkout(id: UUID(), name: "範本來的", date: today, origin: .template, orderIndex: 1)
         await planRepo.seed([manual, fromTemplate])
 
-        try await DiscardRotationPlanWorkout(repository: planRepo)(id: manual.id)
-        try await DiscardRotationPlanWorkout(repository: planRepo)(id: fromTemplate.id)
+        try await DiscardOrphanPlanWorkout(repository: planRepo)(id: manual.id)
+        try await DiscardOrphanPlanWorkout(repository: planRepo)(id: fromTemplate.id)
 
         #expect(try await planRepo.get(id: manual.id) != nil)
         #expect(try await planRepo.get(id: fromTemplate.id) != nil)
+    }
+
+    /// 「重複上次」派出的一次性排課跟循環一樣是孤兒：捨棄後徹底清除，不留卡片。
+    @Test func discardingAlsoRemovesRepeatLastOwnedPlans() async throws {
+        let planRepo = MockPlanWorkoutRepository()
+        let repeated = PlanWorkout(id: UUID(), name: nil, date: today, origin: .repeatLast, orderIndex: 0)
+        let manual = PlanWorkout(id: UUID(), name: "自己排的", date: today, origin: .manual, orderIndex: 1)
+        await planRepo.seed([repeated, manual])
+
+        try await DiscardOrphanPlanWorkout(repository: planRepo)(id: repeated.id)
+        try await DiscardOrphanPlanWorkout(repository: planRepo)(id: manual.id)
+
+        #expect(try await planRepo.get(id: repeated.id) == nil)
+        #expect(try await planRepo.get(id: manual.id) != nil)
     }
 
     /// 沒有 rotationId 的排課（手動、範本、長期課表）標記完成時，不該去碰任何循環。

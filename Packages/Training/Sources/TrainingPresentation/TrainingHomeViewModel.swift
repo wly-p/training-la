@@ -263,9 +263,22 @@ public final class TrainingHomeViewModel {
         await start(blueprint: nil)
     }
 
-    /// 重複上次：開一場新的自由訓練（沿用「上次」提示的既有機制，選動作時會自動帶上次紀錄預填）。
+    /// 重複上次：重放上次那場的動作序列與組數（不含重量/次數，練習時重新輸入）。
+    /// 沒有歷史紀錄、或無法材料化排課（provider 沒接這個能力）時退化成自由訓練。
     public func startRepeatingLast() async {
-        await start(blueprint: nil)
+        guard let last = recentFinished.first else {
+            await start(blueprint: nil)
+            return
+        }
+        do {
+            guard let blueprint = try await plannedProvider?.repeatWorkout(exercises: last.repeatSequence) else {
+                await start(blueprint: nil)
+                return
+            }
+            await start(blueprint: blueprint)
+        } catch {
+            errorMessage = .training("training.error.startFailed \(error.localizedDescription)")
+        }
     }
 
     /// 「最近練過 · 再練一次」（13f 右）：照那場當初的排課藍圖再開一場；
