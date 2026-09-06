@@ -39,10 +39,16 @@ private final class MockDataEraser: DataErasing, @unchecked Sendable {
     }
 }
 
+private struct StubNotificationAuthorizationChecking: NotificationAuthorizationChecking {
+    let status: NotificationAuthorizationStatus
+    func currentStatus() async -> NotificationAuthorizationStatus { status }
+}
+
 @MainActor
 private func makeViewModel(
     theme: AppTheme = .system,
     iconSwitcher: MockIconSwitcher = MockIconSwitcher(),
+    notificationAuthorization: any NotificationAuthorizationChecking = NoopNotificationAuthorizationChecking(),
     languageStore: any LanguagePreferenceStoring = InMemoryLanguageStore(),
     systemPreferredLanguages: [String] = [],
     dataEraser: MockDataEraser = MockDataEraser(),
@@ -51,6 +57,7 @@ private func makeViewModel(
     SettingsViewModel(
         store: InMemoryThemeStore(initial: theme),
         iconSwitcher: iconSwitcher,
+        notificationAuthorization: notificationAuthorization,
         languageStore: languageStore,
         systemPreferredLanguages: systemPreferredLanguages,
         dataEraser: dataEraser,
@@ -191,5 +198,24 @@ struct SettingsViewModelTests {
 
         #expect(store.load().sound == false)
         #expect(store.load().backgroundNotification == false)
+    }
+
+    /// 開關不能說謊：系統實際拒絕了授權，`notificationAuthorizationDenied` 要反映出來，
+    /// 不管偏好本身還顯示開著。
+    @Test func refreshNotificationAuthorizationReflectsDeniedStatus() async {
+        let vm = makeViewModel(notificationAuthorization: StubNotificationAuthorizationChecking(status: .denied))
+        #expect(vm.notificationAuthorizationDenied == false) // 還沒查之前預設 false
+
+        await vm.refreshNotificationAuthorization()
+
+        #expect(vm.notificationAuthorizationDenied == true)
+    }
+
+    @Test func refreshNotificationAuthorizationReflectsAuthorizedStatus() async {
+        let vm = makeViewModel(notificationAuthorization: StubNotificationAuthorizationChecking(status: .authorized))
+
+        await vm.refreshNotificationAuthorization()
+
+        #expect(vm.notificationAuthorizationDenied == false)
     }
 }

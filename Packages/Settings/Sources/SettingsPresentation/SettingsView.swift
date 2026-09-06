@@ -193,14 +193,32 @@ public struct SettingsView: View {
                 .accessibilityIdentifier("settings.toggle.sound")
                 // 說明原本是整組下方的獨立段落，會讓人分不清它在解釋整組還是最後一列；
                 // 改成這一列自己的副標（同「聲音／含震動」的歸屬，只是句子長、排第二行）。
+                // 系統已拒絕授權時，開關顯示開著也完全不會生效——換成警示文案，
+                // 不能讓這顆開關繼續說謊。
                 TLSettingsToggleRow(
                     localText("settings.restReminder.background.toggle"),
-                    subtitle: localText("settings.restReminder.background.hint"),
+                    subtitle: viewModel.notificationAuthorizationDenied
+                        ? localText("settings.restReminder.background.deniedHint")
+                        : localText("settings.restReminder.background.hint"),
                     isOn: $viewModel.restReminder.backgroundNotification
                 )
                 .accessibilityIdentifier("settings.toggle.background")
+                // 通知已在系統設定被拒絕：app 內部的開關無法重新授權，只能導去系統設定。
+                if viewModel.notificationAuthorizationDenied {
+                    TLSettingsRow(
+                        localText("settings.restReminder.background.openSettings"),
+                        showChevron: true,
+                        onTap: {
+                            #if canImport(UIKit)
+                            SystemSettingsOpener.open()
+                            #endif
+                        }
+                    ) { EmptyView() }
+                    .accessibilityIdentifier("settings.row.openNotificationSettings")
+                }
             }
         }
+        .task { await viewModel.refreshNotificationAuthorization() }
     }
 
     // MARK: - 資料 ＋ 刪除

@@ -14,6 +14,13 @@ public protocol RestEndReminding: Sendable {
     func cancel() async
     /// 前景倒數歸零時播聲音（依偏好；系統音自帶震動）。
     func deliverForeground() async
+    /// 提前請求背景通知授權（訓練開始時呼叫），避免第一次休息才彈系統彈窗。
+    /// 偏好關閉時不問（沒有排通知的打算）。冪等，可重複呼叫。
+    func prepareNotificationAuthorization() async
+}
+
+extension RestEndReminding {
+    public func prepareNotificationAuthorization() async {}
 }
 
 // MARK: - 各手段的 channel port（可分別注入、替換；未來 Apple Watch＝換一組實作）
@@ -31,6 +38,26 @@ public protocol RestNotificationScheduling: Sendable {
 /// 前景聲音。
 public protocol ReminderSoundPlaying: Sendable {
     func play() async
+}
+
+// MARK: - 系統通知授權狀態（讀，不是「偏好」，是「系統實際允不允許」）
+
+/// 抽成專案自己的型別，讓 domain 不用 import `UserNotifications`。
+public enum NotificationAuthorizationStatus: Sendable {
+    case notDetermined
+    case authorized
+    case denied
+}
+
+/// 讀取目前的系統通知授權狀態，給 Settings 判斷「背景通知」開關是否已經失效
+/// （使用者拒絕過、但偏好仍顯示開著）用。
+public protocol NotificationAuthorizationChecking: Sendable {
+    func currentStatus() async -> NotificationAuthorizationStatus
+}
+
+public struct NoopNotificationAuthorizationChecking: NotificationAuthorizationChecking {
+    public init() {}
+    public func currentStatus() async -> NotificationAuthorizationStatus { .notDetermined }
 }
 
 // MARK: - 偏好持久化

@@ -453,6 +453,38 @@
         }
       }
     },
+    "settings.restReminder.background.deniedHint" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Notifications are turned off in system settings — this won't actually remind you"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已在系統設定關閉通知，開著也不會真的提醒"
+          }
+        }
+      }
+    },
+    "settings.restReminder.background.openSettings" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Open System Settings"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "前往系統設定開啟"
+          }
+        }
+      }
+    },
     "settings.restReminder.background.toggle" : {
       "localizations" : {
         "en" : {

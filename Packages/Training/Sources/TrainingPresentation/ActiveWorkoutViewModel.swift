@@ -55,6 +55,9 @@ public final class ActiveWorkoutViewModel {
     private var adjustedRestByExercise: [UUID: Int] = [:]
     /// 排/取消通知的非同步工作（fire-and-forget，不擋 UI）；測試可 await 它確認已排。
     var pendingRestNotify: Task<Void, Never>?
+    /// `onAppear()` 提前請求通知授權的非同步工作（fire-and-forget，不擋畫面載入）；
+    /// 測試可 await 它確認已呼叫。
+    var pendingAuthPrepare: Task<Void, Never>?
     /// 這段休息期間 App 真的被切到背景過（不只是 `.inactive`）。
     /// 背景到點時系統通知已經提醒過一次，回前景就不該再彈一次彈窗（見 `enterForeground`）。
     private var didEnterBackgroundDuringRest = false
@@ -338,6 +341,9 @@ public final class ActiveWorkoutViewModel {
     // MARK: - 動作
 
     public func onAppear() async {
+        // 提前到「進入訓練畫面」就問，而不是等第一次休息才彈系統彈窗——那是最爛的時機。
+        // fire-and-forget：不擋動作庫載入。
+        pendingAuthPrepare = Task { [reminder] in await reminder.prepareNotificationAuthorization() }
         do {
             catalog = try await exerciseCatalog.exercises()
         } catch {

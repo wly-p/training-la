@@ -121,6 +121,11 @@ struct AppDependencies {
             : RestEndReminder(notifications: UserNotificationRestScheduler(languageStore: languageStore),
                               sound: SystemSoundReminderPlayer(),
                               store: reminderStore)
+        // UI 測試（in-memory）用 Noop：避免真的去查系統通知授權（模擬器上狀態不穩定，
+        // 且測試不該依賴真實系統彈窗狀態）。
+        let notificationAuthorization: any NotificationAuthorizationChecking = inMemory
+            ? NoopNotificationAuthorizationChecking()
+            : UserNotificationAuthorizationChecker()
         var dependencies = assemble(
             exerciseRepository: SpecDataFactory.makeExerciseRepository(
                 container: container,
@@ -138,6 +143,7 @@ struct AppDependencies {
             abilityValueRepository: abilityValueRepository,
             reminder: reminder,
             reminderStore: reminderStore,
+            notificationAuthorization: notificationAuthorization,
             languageStore: languageStore,
             weightUnitStore: weightUnitStore,
             trainingPreferences: trainingPreferences,
@@ -165,6 +171,7 @@ struct AppDependencies {
         abilityValueRepository: any AbilityValueRepository,
         reminder: any RestEndReminding,
         reminderStore: any RestReminderPreferenceStoring,
+        notificationAuthorization: any NotificationAuthorizationChecking = NoopNotificationAuthorizationChecking(),
         languageStore: any LanguagePreferenceStoring = InMemoryLanguageStore(),
         weightUnitStore: any WeightUnitPreferenceStoring = InMemoryWeightUnitStore(),
         trainingPreferences: any TrainingPreferenceStoring = InMemoryTrainingPreferenceStore(),
@@ -403,6 +410,7 @@ struct AppDependencies {
                     store: UserDefaultsThemeStore(),
                     iconSwitcher: UIApplicationIconSwitcher(),
                     restReminderStore: reminderStore,
+                    notificationAuthorization: notificationAuthorization,
                     languageStore: languageStore,
                     weightUnitStore: weightUnitStore,
                     preferences: trainingPreferences,

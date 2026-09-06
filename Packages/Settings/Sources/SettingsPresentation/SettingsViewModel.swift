@@ -31,6 +31,11 @@ public final class SettingsViewModel {
         didSet { restReminderStore.save(restReminder) }
     }
 
+    /// 系統實際拒絕了通知授權——偏好可能仍顯示「背景通知」開著，但已經完全失效。
+    /// 由 `refreshNotificationAuthorization()` 更新（View 用 `.task`／回到前景時呼叫，
+    /// 因為使用者可能離開去系統設定改了才回來）。
+    public private(set) var notificationAuthorizationDenied = false
+
     /// 目前語言；改動即持久化。RootView 讀它套 `.environment(\.locale, …)`，切換即時重繪全 App。
     public var language: AppLanguage {
         didSet { languageStore.save(language) }
@@ -60,6 +65,7 @@ public final class SettingsViewModel {
     private let store: any ThemeStoring
     private let iconSwitcher: any IconSwitching
     private let restReminderStore: any RestReminderPreferenceStoring
+    private let notificationAuthorization: any NotificationAuthorizationChecking
     private let languageStore: any LanguagePreferenceStoring
     private let weightUnitStore: any WeightUnitPreferenceStoring
     private let preferences: any TrainingPreferenceStoring
@@ -71,6 +77,7 @@ public final class SettingsViewModel {
         store: any ThemeStoring,
         iconSwitcher: any IconSwitching,
         restReminderStore: any RestReminderPreferenceStoring = InMemoryRestReminderPreferenceStore(),
+        notificationAuthorization: any NotificationAuthorizationChecking = NoopNotificationAuthorizationChecking(),
         languageStore: any LanguagePreferenceStoring = InMemoryLanguageStore(),
         weightUnitStore: any WeightUnitPreferenceStoring = InMemoryWeightUnitStore(),
         preferences: any TrainingPreferenceStoring = InMemoryTrainingPreferenceStore(),
@@ -81,6 +88,7 @@ public final class SettingsViewModel {
         self.store = store
         self.iconSwitcher = iconSwitcher
         self.restReminderStore = restReminderStore
+        self.notificationAuthorization = notificationAuthorization
         self.languageStore = languageStore
         self.weightUnitStore = weightUnitStore
         self.preferences = preferences
@@ -112,5 +120,11 @@ public final class SettingsViewModel {
             isErasing = false
             eraseFailed = true
         }
+    }
+
+    /// 重查系統通知授權狀態。View 用 `.task`／回到前景時呼叫——
+    /// 使用者可能離開這頁去系統設定改了授權，回來要反映最新狀態，不能只在 init 查一次。
+    public func refreshNotificationAuthorization() async {
+        notificationAuthorizationDenied = await notificationAuthorization.currentStatus() == .denied
     }
 }
