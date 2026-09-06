@@ -3,6 +3,13 @@ import Observation
 import RemindersDomain
 import SharedKernel
 
+/// 匯出成功產生的檔案；`Identifiable` 讓 `.sheet(item:)` 可以直接綁它。
+public struct ExportedFile: Identifiable, Equatable {
+    public let url: URL
+    public var id: URL { url }
+    public init(url: URL) { self.url = url }
+}
+
 @MainActor
 @Observable
 public final class SettingsViewModel {
@@ -62,6 +69,13 @@ public final class SettingsViewModel {
     /// 刪除失敗；綁 UI 的錯誤 alert。
     public var eraseFailed = false
 
+    /// 匯出進行中；UI 用來顯示進度並鎖住按鈕、防重複觸發。
+    public private(set) var isExporting = false
+    /// 匯出失敗；綁 UI 的錯誤 alert。
+    public var exportFailed = false
+    /// 匯出成功產生的檔案；UI 用 `.sheet(item:)` 呼出分享面板。
+    public var exportedFile: ExportedFile?
+
     private let store: any ThemeStoring
     private let iconSwitcher: any IconSwitching
     private let restReminderStore: any RestReminderPreferenceStoring
@@ -70,6 +84,7 @@ public final class SettingsViewModel {
     private let weightUnitStore: any WeightUnitPreferenceStoring
     private let preferences: any TrainingPreferenceStoring
     private let dataEraser: any DataErasing
+    private let historyExporter: any WorkoutHistoryExporting
     /// 清除成功後由 App 層觸發整個畫面重建（回到全新初始狀態）。
     private let onErased: @MainActor () -> Void
 
@@ -83,6 +98,7 @@ public final class SettingsViewModel {
         preferences: any TrainingPreferenceStoring = InMemoryTrainingPreferenceStore(),
         systemPreferredLanguages: [String] = Locale.preferredLanguages,
         dataEraser: any DataErasing = NoopDataEraser(),
+        historyExporter: any WorkoutHistoryExporting = NoopWorkoutHistoryExporting(),
         onErased: @escaping @MainActor () -> Void = {}
     ) {
         self.store = store
@@ -92,6 +108,7 @@ public final class SettingsViewModel {
         self.languageStore = languageStore
         self.weightUnitStore = weightUnitStore
         self.preferences = preferences
+        self.historyExporter = historyExporter
         self.dataEraser = dataEraser
         self.onErased = onErased
         self.theme = store.load() // init 期間 didSet 不觸發，不會多存一次
@@ -126,5 +143,26 @@ public final class SettingsViewModel {
     /// 使用者可能離開這頁去系統設定改了授權，回來要反映最新狀態，不能只在 init 查一次。
     public func refreshNotificationAuthorization() async {
         notificationAuthorizationDenied = await notificationAuthorization.currentStatus() == .denied
+    }
+
+    public func exportJSON() async {
+        await runExport { try await historyExporter.exportJSON() }
+    }
+
+    public func exportCSV() async {
+        await runExport { try await historyExporter.exportCSV() }
+    }
+
+    private func runExport(_ export: () async throws -> URL) async {
+        guard !isExporting else { return }
+        isExporting = true
+        do {
+            let url = try await export()
+            isExporting = false
+            exportedFile = ExportedFile(url: url)
+        } catch {
+            isExporting = false
+            exportFailed = true
+        }
     }
 }

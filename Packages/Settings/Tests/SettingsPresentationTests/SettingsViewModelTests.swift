@@ -1,3 +1,4 @@
+import Foundation
 import RemindersDomain
 import SharedKernel
 import Testing
@@ -44,6 +45,26 @@ private struct StubNotificationAuthorizationChecking: NotificationAuthorizationC
     func currentStatus() async -> NotificationAuthorizationStatus { status }
 }
 
+private final class MockHistoryExporter: WorkoutHistoryExporting, @unchecked Sendable {
+    var jsonURL: URL = URL(fileURLWithPath: "/tmp/history.json")
+    var csvURL: URL = URL(fileURLWithPath: "/tmp/history.csv")
+    var shouldFail = false
+    private(set) var exportJSONCallCount = 0
+    private(set) var exportCSVCallCount = 0
+
+    func exportJSON() async throws -> URL {
+        exportJSONCallCount += 1
+        if shouldFail { throw StubError.failure }
+        return jsonURL
+    }
+
+    func exportCSV() async throws -> URL {
+        exportCSVCallCount += 1
+        if shouldFail { throw StubError.failure }
+        return csvURL
+    }
+}
+
 @MainActor
 private func makeViewModel(
     theme: AppTheme = .system,
@@ -52,6 +73,7 @@ private func makeViewModel(
     languageStore: any LanguagePreferenceStoring = InMemoryLanguageStore(),
     systemPreferredLanguages: [String] = [],
     dataEraser: MockDataEraser = MockDataEraser(),
+    historyExporter: any WorkoutHistoryExporting = NoopWorkoutHistoryExporting(),
     onErased: @escaping @MainActor () -> Void = {}
 ) -> SettingsViewModel {
     SettingsViewModel(
@@ -61,6 +83,7 @@ private func makeViewModel(
         languageStore: languageStore,
         systemPreferredLanguages: systemPreferredLanguages,
         dataEraser: dataEraser,
+        historyExporter: historyExporter,
         onErased: onErased
     )
 }
@@ -217,5 +240,39 @@ struct SettingsViewModelTests {
         await vm.refreshNotificationAuthorization()
 
         #expect(vm.notificationAuthorizationDenied == false)
+    }
+
+    @Test func exportJSONSucceedsSetsExportedFile() async {
+        let exporter = MockHistoryExporter()
+        let vm = makeViewModel(historyExporter: exporter)
+
+        await vm.exportJSON()
+
+        #expect(exporter.exportJSONCallCount == 1)
+        #expect(vm.exportedFile?.url == exporter.jsonURL)
+        #expect(vm.isExporting == false)
+        #expect(vm.exportFailed == false)
+    }
+
+    @Test func exportCSVSucceedsSetsExportedFile() async {
+        let exporter = MockHistoryExporter()
+        let vm = makeViewModel(historyExporter: exporter)
+
+        await vm.exportCSV()
+
+        #expect(exporter.exportCSVCallCount == 1)
+        #expect(vm.exportedFile?.url == exporter.csvURL)
+    }
+
+    @Test func exportFailureSurfacesErrorAndClearsExportingFlag() async {
+        let exporter = MockHistoryExporter()
+        exporter.shouldFail = true
+        let vm = makeViewModel(historyExporter: exporter)
+
+        await vm.exportJSON()
+
+        #expect(vm.exportFailed == true)
+        #expect(vm.exportedFile == nil)
+        #expect(vm.isExporting == false)
     }
 }

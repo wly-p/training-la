@@ -415,6 +415,10 @@ struct AppDependencies {
                     weightUnitStore: weightUnitStore,
                     preferences: trainingPreferences,
                     dataEraser: dataEraser,
+                    historyExporter: WorkoutExportAdapter(
+                        exportHistory: ExportWorkoutHistory(repository: workoutRepository),
+                        listExercises: ListExercises(repository: exerciseRepository)
+                    ),
                     onErased: onErased
                 )
             },
