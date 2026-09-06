@@ -10,6 +10,8 @@ import SwiftUI
 public struct AbilityListView: View {
     /// 目前語言：`localString` 要靠它才能查到 app 設定的語言（而非手機語系）。
     @Environment(\.locale) private var locale
+    /// 全域重量顯示偏好；唯讀顯示（清單列數字、建議值副標）要換算成這個單位再印。
+    @Environment(\.weightDisplayUnit) private var weightDisplayUnit
     @Bindable private var viewModel: AbilityListViewModel
     @State private var editingRow: AbilityListViewModel.Row?
     /// 使用者的重量級距偏好；編輯頁的 ± 與刻度尺跟隨它，不寫死。
@@ -146,11 +148,12 @@ public struct AbilityListView: View {
     @ViewBuilder
     private func valueDisplay(for row: AbilityListViewModel.Row) -> some View {
         if let value = row.current?.value {
+            let displayed = value.converted(to: weightDisplayUnit)
             HStack(alignment: .firstTextBaseline, spacing: TLSpace.valueUnitGap) {
-                Text(verbatim: TLNumberField.format(value.value))
+                Text(verbatim: TLNumberField.format(displayed.value))
                     .font(TLFont.display(20))
                     .foregroundStyle(TLColor.text)
-                Text(verbatim: value.unit.rawValue)
+                Text(verbatim: displayed.unit.rawValue)
                     .font(TLFont.zh(TLFont.rowSub))
                     .foregroundStyle(TLColor.neutral500)
             }
@@ -164,8 +167,9 @@ public struct AbilityListView: View {
     private func subtitle(for row: AbilityListViewModel.Row) -> Text? {
         guard let current = row.current else {
             guard let suggestion = row.suggestion else { return nil }
+            let displayed = suggestion.converted(to: weightDisplayUnit)
             let text = localText("ability.suggestion")
-                + Text(verbatim: " \(TLNumberField.format(suggestion.value)) \(suggestion.unit.rawValue)")
+                + Text(verbatim: " \(TLNumberField.format(displayed.value)) \(displayed.unit.rawValue)")
             return row.isPerSide ? text + localText("ability.perSide") : text
         }
         let source: Text = switch current.source {
