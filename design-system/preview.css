@@ -1,0 +1,110 @@
+/* preview 的共用外殼。**這支不是生成物，可以手改。**
+ *
+ * 為什麼要有它：每份 preview 各自重寫 .group / .row / .kicker 這些外殼樣式的話，
+ * 第二個元件會 copy-paste，第十個就開始漂移——於是「preview 長得不一樣」變成新的
+ * 漂移來源，而且是在用來防漂移的那包東西裡面。
+ *
+ * 這支只服務 preview，不進 app。元件自己特有的樣式寫在各自的 preview.html 裡。
+ */
+
+body {
+  margin: 0;
+  padding: var(--space-page);
+  background: var(--surface-base);
+  color: var(--text-primary);
+  font-family: var(--font-zh);
+  font-size: var(--font-row-title);
+}
+
+h1 {
+  font-family: var(--font-page-title-family);
+  font-size: var(--font-card-title);
+  font-weight: 700;
+  margin: 0 0 var(--space-gap-l);
+}
+
+.kicker {
+  font-size: var(--font-kicker);
+  letter-spacing: var(--font-kicker-tracking);
+  text-transform: uppercase;
+  /* tertiary 是給「掃視就過」的標示用的，但 kicker 只有 10.5px——
+     小字 ＋ 低對比會讀不動，所以用 secondary。 */
+  color: var(--text-secondary);
+  margin: var(--space-section) 0 var(--space-gap-s);
+}
+.kicker:first-child { margin-top: 0; }
+
+.note {
+  font-size: var(--font-row-sub);
+  color: var(--text-secondary);
+  line-height: 1.6;
+  margin-top: var(--space-gap-s);
+}
+
+/* 群組容器：圓角 28 ＋ neutral-100 底 ＋ 列間 1px 分隔線左內縮 18，首尾不畫線 */
+.group {
+  background: var(--surface-raised);
+  border-radius: var(--radius-container);
+  overflow: hidden;
+}
+.row {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: var(--space-gap-m);
+  height: var(--size-row);
+  padding: 0 var(--space-row-inset);
+}
+/* 分隔線左內縮 rowInset，且首尾不畫 —— 對齊 app 的 TLDivider
+   （Support/TLDividedVStack.swift 有 .padding(.leading, TLSpace.rowInset)）。
+   畫在 .row 的 border-bottom 上會橫跨整列寬，那是錯的。 */
+.row:not(:last-child)::after {
+  content: "";
+  position: absolute;
+  left: var(--space-row-inset);
+  right: 0;
+  bottom: 0;
+  height: 1px;
+  background: var(--border-subtle);
+}
+.row .label { flex: 1; min-width: 0; }
+
+/* 主題並排：兩個 pane 各自掛 data-theme，靠 tokens.css 的元素層級選擇器生效。
+   並排比切換好用——不必點擊就能對照。 */
+.themes { display: flex; gap: var(--space-gap-l); flex-wrap: wrap; }
+.pane {
+  flex: 1 1 260px;
+  min-width: 0;
+  padding: var(--space-gap-l);
+  border-radius: var(--radius-inner);
+  background: var(--surface-base);
+}
+
+/* 數字一律 Caprasimo */
+.num { font-family: var(--font-display); }
+
+code {
+  font-family: ui-monospace, monospace;
+  font-size: 0.92em;
+  background: var(--surface-track);
+  padding: 1px 5px;
+  border-radius: 5px;
+}
+
+/* ── examples/ 用的畫面外殼 ─────────────────────────────────────────
+ * 只放**展示骨架**：手機外框、頁面內容區。
+ *
+ * 元件在 preview 裡的視覺表述（TLBackBar / TLPageHeader / TLIconThumbnail…）
+ * 不在這裡，在 components.preview.css —— 那些是元件的第二份實作，
+ * 必須一元件一段、可計數、被檢查盯著，否則會長成一份沒有規格的平行設計系統。
+ */
+
+/* 手機外框。純展示骨架，不是產品的一部分。 */
+.screen {
+  background: var(--surface-base);
+  border-radius: var(--radius-container);
+  border: var(--size-hairline) solid var(--border-subtle);
+  overflow: hidden;
+  max-width: 22rem;
+  padding-bottom: var(--space-page-bottom);
+}

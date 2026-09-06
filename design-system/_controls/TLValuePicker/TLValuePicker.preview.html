@@ -1,0 +1,88 @@
+<!-- @dsCard group="Molecules" name="TLValuePicker" subtitle="從常用數值裡選一個" -->
+<!doctype html>
+<meta charset="utf-8">
+<title>TLValuePicker</title>
+<link rel="stylesheet" href="../../tokens/tokens.css">
+<link rel="stylesheet" href="../../preview.css">
+<link rel="stylesheet" href="../controls.preview.css">
+<style>
+align-items: center; }
+          padding: var(--space-chip-pad-v) 0; font-size: var(--font-row-sub);
+          border: var(--size-hairline) solid var(--border-subtle); color: var(--text-secondary); }
+</style>
+
+<h1>TLValuePicker</h1>
+<p class="note">
+  L2 分子。從一組<b>常用</b>數值裡選一個。中間那格永遠是選中的值 ——
+  位置即選取，不需要額外記號。<br>
+  滾輪只放常用值；<b>常用值以外的情況要有出口</b>（例如並存一個輸入框）。
+</p>
+
+<div class="kicker">狀態</div>
+<div class="tl-value-picker" data-state="idle">
+  <div>
+    <div class="kicker">單位</div>
+    <div class="tl-value-picker__wheel">
+      <div class="tl-value-picker__value tl-value-picker__value--far">1</div>
+      <div class="tl-value-picker__value tl-value-picker__value--near">1.25</div>
+      <div class="tl-value-picker__value tl-value-picker__value--selected">2.5</div>
+      <div class="tl-value-picker__value tl-value-picker__value--near">5</div>
+      <div class="tl-value-picker__value tl-value-picker__value--far">10</div>
+    </div>
+  </div>
+</div>
+<div class="tl-value-picker" data-state="dragging" style="margin-top: var(--space-section)">
+  <div class="tl-value-picker__wheel">
+    <div class="tl-value-picker__value tl-value-picker__value--far">1.25</div>
+    <div class="tl-value-picker__value tl-value-picker__value--near">2.5</div>
+    <div class="tl-value-picker__value tl-value-picker__value--selected">5</div>
+    <div class="tl-value-picker__value tl-value-picker__value--near">10</div>
+    <div class="tl-value-picker__value tl-value-picker__value--far">15</div>
+  </div>
+</div>
+<p class="note">
+  拖曳結束後<b>滾到最近的一格</b>，時長依距離遞增但有上限 ——
+  那個曲線是純函式算的，有單元測試釘住。
+</p>
+
+<div class="kicker">快捷列</div>
+<div class="tl-value-picker">
+  <div class="tl-value-picker__wheel">
+    <div class="tl-value-picker__value tl-value-picker__value--near">60</div>
+    <div class="tl-value-picker__value tl-value-picker__value--selected">90</div>
+    <div class="tl-value-picker__value tl-value-picker__value--near">120</div>
+  </div>
+  <div class="tl-value-picker__quick">
+    <span class="tl-value-picker__chip">−30</span>
+    <span class="tl-value-picker__chip">+30</span>
+    <span class="tl-value-picker__chip">重設</span>
+  </div>
+</div>
+<p class="note">有沒有快捷列會改變整體高度。快捷列高度 ＝ 最小觸控。</p>
+
+<div class="kicker">主題</div>
+<div class="themes">
+  <div class="pane" data-theme="light">
+    <div class="kicker">light</div>
+    <div class="tl-value-picker__wheel"><div class="tl-value-picker__value tl-value-picker__value--near">1.25</div><div class="tl-value-picker__value tl-value-picker__value--selected">2.5</div>
+      <div class="tl-value-picker__value tl-value-picker__value--near">5</div></div>
+  </div>
+  <div class="pane" data-theme="dark">
+    <div class="kicker">dark（目前是 light 的複製）</div>
+    <div class="tl-value-picker__wheel"><div class="tl-value-picker__value tl-value-picker__value--near">1.25</div><div class="tl-value-picker__value tl-value-picker__value--selected">2.5</div>
+      <div class="tl-value-picker__value tl-value-picker__value--near">5</div></div>
+  </div>
+</div>
+
+<div class="kicker">已知缺口：無障礙</div>
+<p class="note">
+  ⚠ 這是目前<b>無障礙最弱的元件</b>。滾輪是自繪的，VoiceOver 沒有原生 picker 的語意。
+  正確做法是包成 <code>adjustable</code> trait ＋ increment／decrement 動作，尚未實作。
+</p>
+
+<div class="kicker">不適用的狀態</div>
+<p class="note">
+  disabled／focused —— 沒有這些情境。<br>
+  loading／error —— 值是靜態的。<br>
+  ⚠ <code>values</code> 為空時滾輪會是空的，呼叫端應保證非空。
+</p>

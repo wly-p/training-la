@@ -1,0 +1,229 @@
+<!doctype html>
+<meta charset="utf-8">
+<title><元件名></title>
+<link rel="stylesheet" href="tokens/tokens.css">
+<link rel="stylesheet" href="preview.css">
+<style>
+  body { max-width: 62rem; line-height: 1.7; }
+  h1, h2, h3 { font-family: var(--font-page-title-family); line-height: 1.35; }
+  h1 { font-size: var(--font-page-title); margin: 0 0 var(--space-gap-l); }
+  h2 { font-size: var(--font-card-title); margin: var(--space-section) 0 var(--space-gap-m);
+       padding-top: var(--space-gap-m); border-top: 1px solid var(--border-subtle); }
+  h3 { font-size: var(--font-row-title); margin: var(--space-gap-l) 0 var(--space-gap-s); }
+  a { color: var(--accent-on-surface); }
+  table { border-collapse: collapse; width: 100%; margin: var(--space-gap-m) 0;
+          display: block; overflow-x: auto; }
+  th, td { text-align: left; padding: var(--space-gap-s) var(--space-gap-m);
+           border-bottom: 1px solid var(--border-subtle); vertical-align: top; }
+  th { font-size: var(--font-kicker); letter-spacing: var(--font-kicker-tracking);
+       text-transform: uppercase; color: var(--text-tertiary); }
+  pre { background: var(--surface-raised); border-radius: var(--radius-inner);
+        padding: var(--space-gap-m); overflow-x: auto; }
+  pre code { background: none; padding: 0; }
+  blockquote { margin: var(--space-gap-m) 0; padding-left: var(--space-gap-m);
+               border-left: 3px solid var(--border-subtle); color: var(--text-secondary); }
+  .back { font-size: var(--font-row-sub); margin-bottom: var(--space-gap-l); display: block; }
+</style>
+<a class="back" href="index.html">← 元件庫索引</a>
+<h1>&lt;元件名&gt;</h1>
+<blockquote>
+<p>規格樣板。八節，標 ★ 的可機器驗。
+<strong>不適用的項目寫 <code>N/A</code> 並附理由，不要刪掉標題</strong> —— 省略正是狀態遺失的方式。</p>
+<p><strong>這個專案不做無障礙</strong>（見 <code>ARCHITECTURE.md</code>）。<code>accessibilityIdentifier</code> 是
+測試定位用的，不是無障礙工程 —— 需要記的話寫在第 2 節的事件旁邊。</p>
+</blockquote>
+<h2>1 身分</h2>
+<table>
+<thead>
+<tr>
+<th></th>
+<th></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>層級</td>
+<td>L1 原子 / L2 分子</td>
+</tr>
+<tr>
+<td>職責</td>
+<td>一句話</td>
+</tr>
+<tr>
+<td>原型 id</td>
+<td><code>4c</code> / <code>13a</code> …（沿用設計文件的 id）</td>
+</tr>
+<tr>
+<td>獨立使用</td>
+<td>是 / <strong>否 —— 必須置於 <code>TLxxx</code> 之內</strong></td>
+</tr>
+<tr>
+<td>容器責任</td>
+<td>哪些事情不歸這個元件管（間距、位置、按下態…）</td>
+</tr>
+<tr>
+<td>實作</td>
+<td><code>Packages/…/X.swift</code></td>
+</tr>
+<tr>
+<td>Preview</td>
+<td><code>design-system/…/X.preview.html</code></td>
+</tr>
+<tr>
+<td>Preview CSS</td>
+<td><code>components.preview.css</code> §X</td>
+</tr>
+</tbody>
+</table>
+<p><strong>組成</strong>：由哪些下層元件組成（L2 才有；L1 寫 N/A）</p>
+<blockquote>
+<p>「獨立使用」與「容器責任」是給組畫面的人的護欄。L1 原子幾乎都<strong>自己不完整</strong> ——
+badge 要放在列裡、chevron 要放在可進入的列裡。不寫清楚的話，組畫面的人會直接把它
+擺在畫面上，然後間距全錯。這兩格會進 <code>components.json</code>。</p>
+</blockquote>
+<h2>2 介面 ★</h2>
+<p><strong>Props</strong></p>
+<table>
+<thead>
+<tr>
+<th>名稱</th>
+<th>型別</th>
+<th>值域</th>
+<th>必填</th>
+<th>預設</th>
+<th>說明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<blockquote>
+<p><strong>值域比型別重要。</strong> <code>style: TLTagStyle</code> 這一行的資訊量是零 ——
+要寫出那 6 種 style 分別叫什麼。沒有值域，組畫面的人只能猜 case 名稱，
+猜錯就硬編一個顏色上去。</p>
+<p><strong>元件不得有邏輯。</strong> 格式化、日期運算、幾何計算都不屬於元件 ——
+那些是呼叫端的事，或該住 <code>DesignControls</code>。這一節如果出現
+<code>format: (Double) -&gt; String</code> 這種，先問它為什麼在這裡。</p>
+</blockquote>
+<p><strong>Slots</strong> — 可插入的子內容（SwiftUI 的 <code>@ViewBuilder</code>）
+<strong>事件</strong> — <code>onTap</code> / <code>onChange</code> …</p>
+<h2>3 變體 variants</h2>
+<p>互斥的樣式選擇。<strong>要寫出變體之間哪些狀態不通用</strong>。</p>
+<table>
+<thead>
+<tr>
+<th>變體</th>
+<th>說明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<h2>4 狀態 states ★</h2>
+<!-- states: default -->
+<!-- themes: light, dark -->
+
+<p>上面兩行是<strong>機器讀的</strong>：<code>states</code> 是這個元件自身會有的樣子，<code>preview.html</code> 每個都要有
+對應的 <code>data-state</code>；<code>themes</code> 是維度，由 <code>data-theme</code> 承接。
+<strong>不要把 light／dark 寫進 <code>states</code></strong>，機器檢查會擋。</p>
+<table>
+<thead>
+<tr>
+<th>類別</th>
+<th>狀態</th>
+<th>這個元件</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>互動</td>
+<td>default / pressed / disabled / focused</td>
+<td></td>
+</tr>
+<tr>
+<td>選取</td>
+<td>selected / unselected / indeterminate</td>
+<td></td>
+</tr>
+<tr>
+<td>資料</td>
+<td>empty / loading / error</td>
+<td></td>
+</tr>
+<tr>
+<td>內容極值</td>
+<td>最短 / 最長 / 溢出 / 數字最大位數</td>
+<td></td>
+</tr>
+<tr>
+<td>主題</td>
+<td>light / dark</td>
+<td></td>
+</tr>
+<tr>
+<td>語言</td>
+<td>中文 / 英文（字級 ×1.08）</td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<h2>5 度量與行為</h2>
+<p>全部寫 token 名，不寫數字。</p>
+<table>
+<thead>
+<tr>
+<th></th>
+<th></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>尺寸</td>
+<td></td>
+</tr>
+<tr>
+<td>內距</td>
+<td></td>
+</tr>
+<tr>
+<td>最小寬度</td>
+<td>被壓到多窄還成立</td>
+</tr>
+<tr>
+<td>壓縮行為</td>
+<td>空間不夠時誰先讓</td>
+</tr>
+</tbody>
+</table>
+<h3>文字與溢出</h3>
+<p>溢出處理 / 多語系寬度 / Dynamic Type 行為（現在不實作，位置先寫）。</p>
+<h3>動態</h3>
+<p>轉場 / 動畫時長與曲線。全部寫 <code>motion.*</code> token。</p>
+<h2>6 配色 ★</h2>
+<p>只列語意 token，不出現任何 hex。</p>
+<h2>7 用法與禁用法</h2>
+<p><strong>用它</strong>：…</p>
+<p><strong>易混淆</strong>：<code>TLxxx</code>（它是「…」）—— 這個是「…」</p>
+<blockquote>
+<p>固定寫成一行對照，並且<strong>兩邊的規格都要寫</strong>。會搞混的時候，人看的是其中一份，不是兩份。</p>
+</blockquote>
+<p><strong>不要用它</strong>：
+- 禁止 —— 為什麼</p>
+<blockquote>
+<p>每條都要有「為什麼」那半句。<strong>3–4 條是上限</strong>：超過就代表這個元件職責混了，
+那時該拆元件，不是加禁令。</p>
+</blockquote>
+<h2>8 變更紀錄</h2>
+<p>偏離設計稿時記這裡，含原因。</p>

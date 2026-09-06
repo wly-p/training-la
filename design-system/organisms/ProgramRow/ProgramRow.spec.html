@@ -1,0 +1,341 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>ProgramRow</title>
+<link rel="stylesheet" href="../../tokens/tokens.css">
+<link rel="stylesheet" href="../../preview.css">
+<style>
+  body { max-width: 62rem; line-height: 1.7; }
+  h1, h2, h3 { font-family: var(--font-page-title-family); line-height: 1.35; }
+  h1 { font-size: var(--font-page-title); margin: 0 0 var(--space-gap-l); }
+  h2 { font-size: var(--font-card-title); margin: var(--space-section) 0 var(--space-gap-m);
+       padding-top: var(--space-gap-m); border-top: 1px solid var(--border-subtle); }
+  h3 { font-size: var(--font-row-title); margin: var(--space-gap-l) 0 var(--space-gap-s); }
+  a { color: var(--accent-on-surface); }
+  table { border-collapse: collapse; width: 100%; margin: var(--space-gap-m) 0;
+          display: block; overflow-x: auto; }
+  th, td { text-align: left; padding: var(--space-gap-s) var(--space-gap-m);
+           border-bottom: 1px solid var(--border-subtle); vertical-align: top; }
+  th { font-size: var(--font-kicker); letter-spacing: var(--font-kicker-tracking);
+       text-transform: uppercase; color: var(--text-tertiary); }
+  pre { background: var(--surface-raised); border-radius: var(--radius-inner);
+        padding: var(--space-gap-m); overflow-x: auto; }
+  pre code { background: none; padding: 0; }
+  blockquote { margin: var(--space-gap-m) 0; padding-left: var(--space-gap-m);
+               border-left: 3px solid var(--border-subtle); color: var(--text-secondary); }
+  .back { font-size: var(--font-row-sub); margin-bottom: var(--space-gap-l); display: block; }
+</style>
+<a class="back" href="../../index.html">← 元件庫索引</a>
+<h1>ProgramRow</h1>
+<h2>1 身分</h2>
+<table>
+<thead>
+<tr>
+<th></th>
+<th></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>層級</td>
+<td>L3 有機體</td>
+</tr>
+<tr>
+<td>職責</td>
+<td>長期課表清單的一列</td>
+</tr>
+<tr>
+<td>原型 id</td>
+<td><code>8a</code></td>
+</tr>
+<tr>
+<td>獨立使用</td>
+<td>啟用態是一張卡，<strong>不必放進 <code>TLGroup</code></strong>；未啟用態是列，必須放進 <code>TLGroup</code></td>
+</tr>
+<tr>
+<td>容器責任</td>
+<td>未啟用態的圓角、底色、分隔線由 <code>TLGroup</code> 負責；啟用態的卡自己有外框</td>
+</tr>
+<tr>
+<td>實作</td>
+<td><code>Packages/Plan/Sources/PlanPresentation/Components/ProgramRow.swift</code></td>
+</tr>
+<tr>
+<td>Preview</td>
+<td><code>design-system/organisms/ProgramRow/ProgramRow.preview.html</code></td>
+</tr>
+<tr>
+<td>Preview CSS</td>
+<td><code>components.preview.css</code> §ProgramRow</td>
+</tr>
+</tbody>
+</table>
+<p><strong>組成</strong>：<code>TLRowContent</code>（L2）＋ <code>TLBadge</code>（L1）＋ <code>TLProgressBar</code>（L1）。</p>
+<h2>2 介面 ★</h2>
+<p><strong>Props</strong></p>
+<table>
+<thead>
+<tr>
+<th>名稱</th>
+<th>型別</th>
+<th>值域</th>
+<th>必填</th>
+<th>預設</th>
+<th>說明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>id</code></td>
+<td><code>UUID</code></td>
+<td></td>
+<td>是</td>
+<td>—</td>
+<td>drill-in 的目的地。兩種形態都用得到</td>
+</tr>
+<tr>
+<td><code>name</code></td>
+<td><code>String</code></td>
+<td></td>
+<td>是</td>
+<td>—</td>
+<td>課表名</td>
+</tr>
+<tr>
+<td><code>summary</code></td>
+<td><code>Text</code></td>
+<td></td>
+<td>是</td>
+<td>—</td>
+<td>副標＝組成摘要</td>
+</tr>
+<tr>
+<td><code>progress</code></td>
+<td><code>Progress?</code></td>
+<td></td>
+<td>是</td>
+<td>—</td>
+<td><strong><code>nil</code> ＝ 未啟用形態。</strong> 有值就是卡片形態</td>
+</tr>
+<tr>
+<td><code>activateButton</code></td>
+<td><code>AnyView?</code></td>
+<td></td>
+<td>是</td>
+<td>—</td>
+<td>未啟用態右側的「啟用」鈕；啟用態不用</td>
+</tr>
+<tr>
+<td><code>dayUnit</code></td>
+<td><code>Text</code></td>
+<td></td>
+<td>是</td>
+<td>—</td>
+<td>「N / M 天」的單位字。由呼叫端給 —— 它才對得到 String Catalog</td>
+</tr>
+<tr>
+<td><code>todayLabel</code></td>
+<td><code>Text</code></td>
+<td></td>
+<td>是</td>
+<td>—</td>
+<td>「今天：」的前綴。同上</td>
+</tr>
+<tr>
+<td><code>menu</code></td>
+<td><code>AnyView</code></td>
+<td></td>
+<td>是</td>
+<td>—</td>
+<td>長按選單。兩種形態都有</td>
+</tr>
+</tbody>
+</table>
+<p><code>Progress</code> ＝ <code>day</code> / <code>totalDays</code> / <code>todayWorkoutName?</code>。</p>
+<p><strong>Slots</strong> — N/A
+<strong>事件</strong> — 無自己的事件（drill-in 走 <code>NavigationLink(value:)</code>，動作在 <code>menu</code> 與 <code>activateButton</code> 裡）</p>
+<h2>3 變體 variants</h2>
+<table>
+<thead>
+<tr>
+<th>變體</th>
+<th>說明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>啟用（<code>progress != nil</code>）</td>
+<td><strong>一張卡</strong>：accent 描邊 ＋ 上半可 drill-in ＋ 下半是進度（天數／今天／進度條）</td>
+</tr>
+<tr>
+<td>未啟用（<code>progress == nil</code>）</td>
+<td>一般列：左側可 drill-in、右側 inline「啟用」，<strong>兩個獨立的點擊區</strong></td>
+</tr>
+</tbody>
+</table>
+<p><strong>兩種形態的差別比 <code>RotationRow</code> 大</strong> —— 那個兩種都是列，這個換了容器。</p>
+<h2>4 狀態 states ★</h2>
+<!-- states: active, inactive -->
+<!-- themes: light, dark -->
+
+<table>
+<thead>
+<tr>
+<th>類別</th>
+<th>狀態</th>
+<th>這個元件</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>互動</td>
+<td>default / pressed / disabled / focused</td>
+<td>卡的上半可點、未啟用列的左右各自可點。<strong>沒有整列 pressed 底色</strong> —— 可點的是區塊不是整列</td>
+</tr>
+<tr>
+<td>選取</td>
+<td>selected / unselected / indeterminate</td>
+<td>N/A</td>
+</tr>
+<tr>
+<td>資料</td>
+<td>empty / loading / error</td>
+<td>今天沒有排課時顯示「—」，那是<strong>內容</strong>不是狀態</td>
+</tr>
+<tr>
+<td>內容極值</td>
+<td>最短 / 最長 / 溢出</td>
+<td>名稱與摘要一行截斷；天數與進度條不縮</td>
+</tr>
+<tr>
+<td>主題</td>
+<td>light / dark</td>
+<td>兩者都有</td>
+</tr>
+<tr>
+<td>語言</td>
+<td>中文 / 英文</td>
+<td>「今天：」那一行在英文明顯長，與左側天數競爭同一行</td>
+</tr>
+</tbody>
+</table>
+<h2>5 度量與行為</h2>
+<table>
+<thead>
+<tr>
+<th></th>
+<th></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>卡的內距</td>
+<td><code>space.rowInset</code>（四邊）</td>
+</tr>
+<tr>
+<td>卡內各段間距</td>
+<td><code>space.gapM</code></td>
+</tr>
+<tr>
+<td>卡的外框</td>
+<td><code>radius.container</code> ＋ <code>size.hairlineThick</code> 描邊</td>
+</tr>
+<tr>
+<td>天數字級</td>
+<td><code>type.cardNumber</code>（display 家族）</td>
+</tr>
+<tr>
+<td>天數與單位之間</td>
+<td><code>space.numberUnitGap</code></td>
+</tr>
+<tr>
+<td>進度條</td>
+<td><code>size.progressBar</code> 高</td>
+</tr>
+<tr>
+<td>未啟用列</td>
+<td>左右 <code>space.rowInset</code>、最小高度 <code>size.rowWithSub</code></td>
+</tr>
+</tbody>
+</table>
+<p><strong>上半用 <code>TLRowContent</code> 而不是 <code>TLListRow</code></strong> —— 卡片自己有 padding、只有上半可點，
+列的外框（內距、最小高度、整列 Button）全都不適用。這就是拆出 <code>TLRowContent</code> 的原因。</p>
+<h3>文字與溢出</h3>
+<p>名稱與摘要各一行截斷。「今天：」那一行靠右，與左側天數共用一行。</p>
+<h3>動態</h3>
+<p>進度條無動畫（值變化時直接跳）。</p>
+<h2>6 配色 ★</h2>
+<table>
+<thead>
+<tr>
+<th>用途</th>
+<th>token</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>卡底</td>
+<td><code>surfaceRaised</code></td>
+</tr>
+<tr>
+<td>卡描邊</td>
+<td><code>accent-300</code></td>
+</tr>
+<tr>
+<td>圓章（啟用／未啟用）</td>
+<td><code>actionPrimary</code> ／ <code>neutral-300</code></td>
+</tr>
+<tr>
+<td>天數</td>
+<td><code>textPrimary</code></td>
+</tr>
+<tr>
+<td>單位</td>
+<td><code>neutral-500</code></td>
+</tr>
+<tr>
+<td>「今天：」</td>
+<td><code>textSecondary</code></td>
+</tr>
+<tr>
+<td>進度條軌道</td>
+<td><code>surfaceTrack</code>（預設）</td>
+</tr>
+</tbody>
+</table>
+<p>⚠ 單位是 <code>neutral-500</code> 而不是語意 token —— 與 <code>TLRowContent</code> 副標同一個未遷移的殘留。</p>
+<p><strong>這張卡用預設軌道</strong>：卡底是 <code>surfaceRaised</code>（淺），預設的 <code>surfaceTrack</code> 就夠對比。
+需要傳 <code>track</code> 的是長期課表<strong>詳情頁</strong>那張深底的卡 —— 它要往更淺的方向換。</p>
+<h2>7 用法與禁用法</h2>
+<p><strong>用它</strong>：長期課表清單。</p>
+<p><strong>易混淆</strong>：<code>RotationRow</code> —— 那個兩種形態都是列；這個啟用後是卡。
+判準：啟用後要不要顯示進度？要就是這個。</p>
+<p><strong>不要用它</strong>：
+- 把啟用態的卡放進 <code>TLGroup</code> —— 卡自己有外框，會變成框中框
+- 讓整張卡可點 —— 下半是進度資訊，點下去要去哪沒有答案</p>
+<h2>8 變更紀錄</h2>
+<table>
+<thead>
+<tr>
+<th>日期</th>
+<th>改動</th>
+<th>原因</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>2026-08-31</td>
+<td>從 <code>ProgramListView</code> 抽出成 L3</td>
+<td>階段 2 的分層落地</td>
+</tr>
+<tr>
+<td>2026-08-31</td>
+<td><strong>驗證結果：這一個不能純由當時的 L2 組成 —— 架構賭注的答案在它身上</strong></td>
+<td>「進行中」卡原本<strong>手工重建了整個 <code>TLListRow</code></strong>（圓章＋主副標＋chevron）。查下去不是偷懶，是<strong>用不了</strong>：<code>TLListRow</code> 把內容排版與列的外框綁在同一個型別，而這張卡有自己的 padding、只有上半可點。<strong>分層是對的，錯的是那個分子的介面。</strong> 拆出 <code>TLRowContent</code> 之後手工重建消失</td>
+</tr>
+<tr>
+<td>2026-08-31</td>
+<td><code>TLProgressBar</code> 抽成 L1，軌道色開成 prop</td>
+<td>兩處各自手工重建（<code>GeometryReader</code> ＋ 兩個 <code>Capsule</code>），只差軌道色。設計文件的 L1 清單本來就有它，只是實作沒有</td>
+</tr>
+</tbody>
+</table>

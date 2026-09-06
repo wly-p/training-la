@@ -1,0 +1,292 @@
+/* 由 scripts/gen-tokens.py 從 design-system/tokens/tokens.json 生成。
+   不要手改這個檔——改 tokens.json 然後重跑生成器。make lint 會擋不一致。 */
+
+@font-face {
+  font-family: 'Caprasimo';
+  src: url('../fonts/Caprasimo-Regular.ttf') format('truetype');
+  font-display: swap;
+}
+
+/* 實作用系統的 PingFang TC；preview 用包內的 Noto Sans TC 子集，與設計稿一致。子集由 scripts/gen-preview-font.py 從 preview 實際用到的字產生。 */
+@font-face {
+  font-family: 'Noto Sans TC';
+  src: url('../fonts/NotoSansTC-subset.woff2') format('woff2');
+  font-display: swap;
+}
+
+:root {
+  /* ── 色階層 primitive ── */
+  --accent-100: #FFF2EB;
+  --accent-200: #FFE1D0;
+  --accent-300: #FFC6A5;
+  --accent-400: #F6A06B;
+  --accent-500: #C67139;
+  --accent-600: #B2622D;
+  --accent-700: #8C491A;
+  --accent-800: #643312;
+  --accent-900: #402310;
+  --sage-100: #F0FAE1;
+  --sage-200: #E1EECC;
+  --sage-300: #CCDBB2;
+  --sage-400: #AEBF92;
+  --sage-500: #7A8A5E;
+  --sage-600: #728157;
+  --sage-700: #56633F;
+  --sage-800: #3D472B;
+  --sage-900: #272E1B;
+  --neutral-100: #F9F4ED;
+  --neutral-200: #EEE7DB;
+  --neutral-300: #DCD3C4;
+  --neutral-400: #C0B6A5;
+  --neutral-500: #A19786;
+  --neutral-600: #82796A;
+  --neutral-700: #645C50;
+  --neutral-800: #474238;
+  --neutral-900: #2E2B25;
+  --danger-100: #FAEDE8;
+  --danger-200: #F3DDD6;
+  --danger-300: #D9A89B;
+  --danger-400: #B8776A;
+  --danger-500: #D96552;
+  --danger-600: #B74736;
+  --danger-700: #7E3123;
+  --danger-800: #661F14;
+  --danger-900: #40140D;
+  --sand-base: #F5EAD8;
+  --sand-raised: #EBDDC5;
+  --ink-900: #201E1D;
+
+  /* ── 語意層 semantic（淺色）── */
+  --surface-base: rgb(245 234 216);  /* 頁面底色 */
+  --surface-raised: rgb(249 244 237);  /* 卡片／群組容器底 */
+  --surface-track: rgb(238 231 219);  /* 分段控制軌道 */
+  --surface-input: rgb(220 211 196);  /* 輸入色帶（訓練頁） */
+  --text-primary: rgb(32 30 29);  /* 主文字 */
+  --text-secondary: rgb(100 92 80);  /* 二級文字、需要讀完的說明句 */
+  --text-tertiary: rgb(130 121 106);  /* 掃視就過的標示：圖示與 ≥13pt 的非句子文字（4.0:1，過不了正文的 4.5） */
+  --text-numeric: rgb(46 43 37);  /* 大數字 */
+  --border-subtle: rgb(32 30 29 / 8%);  /* 列間分隔線 */
+  --action-primary: rgb(198 113 57);  /* 可操作的東西（赭紅） */
+  --action-pressed: rgb(178 98 45);  /* 實心按鈕按下態 */
+  --category-tag: rgb(122 138 94);  /* 分類標示（肌群） */
+  --danger-solid: rgb(183 71 54);  /* 破壞性實心底 */
+  --accent-on-surface: rgb(140 73 26);  /* 在容器底上的可讀 accent 文字 */
+  --danger-on-surface: rgb(126 49 35);  /* 在容器底上的破壞性文字／外框 */
+
+  /* ── 尺寸 ── */
+  --space-page: 26px;  /* 頁面左右邊距 */
+  --space-section: 26px;  /* 區塊之間 */
+  --space-row-inset: 18px;  /* 列內左右 padding、分隔線左內縮 */
+  --space-gap-s: 8px;
+  --space-gap-m: 13px;
+  --space-gap-l: 20px;
+  --space-page-bottom: 40px;  /* 捲動內容的頁尾留白 */
+  --space-group-gap: 22px;  /* 設定頁的群組之間。比 section(26) 緊——這一頁群組多，26 會把最後幾張卡推出畫面 */
+  --space-card-gap: 12px;  /* 同一個群組標題底下、兩張卡之間 */
+  --space-label-gap: 6px;  /* 元件與它下方的說明文字之間 */
+  --space-value-unit-gap: 4px;  /* 數字與它的單位之間 */
+  --space-header-top: 22px;  /* 頁面主標上方 */
+  --space-kicker-gap: 8px;  /* kicker 與它下方主標之間 */
+  --space-section-header-gap: 10px;  /* 區塊標題與它下方群組之間 */
+  --space-title-sub-gap: 2px;  /* 列的主標與副標之間 */
+  --space-title-hint-gap: 6px;  /* 標題與同一行的補充小字之間 */
+  --space-picker-gap: 16px;  /* 滾輪與它的 kicker 之間 */
+  --space-chip-pad-v: 12px;  /* 快捷 chip 的上下內距 */
+  --space-seg-track-pad: 4px;  /* 分段控制軌道的內距 */
+  --space-seg-track-pad-compact: 2px;  /* 同上，設定列裡的緊湊版（handoff-20 §B：4→2，讓它不撐高 56pt 的列） */
+  --space-seg-item-pad-v: 10px;  /* 分段控制每一段的上下內距 */
+  --space-seg-item-pad-v-compact: 5px;  /* 同上，緊湊版 */
+  --space-seg-item-pad-h: 13px;  /* 緊湊版每一段的左右內距（regular 是平分寬度，不用這個） */
+  --space-switch-knob-inset: 3px;  /* 開關旋鈕與軌道邊緣的距離 */
+  --space-empty-state-gap: 8px;  /* 空狀態主句與說明之間 */
+  --space-empty-state-pad-v: 40px;  /* 空狀態的上下留白 */
+  --space-number-unit-gap: 4px;  /* 大數字與它的單位之間 */
+  --space-tag-pad-v: 5px;  /* 標籤的上下內距 */
+  --space-tag-pad-h: 9px;  /* 分類標籤的左右內距。⚠ 專案裡有 5 種膠囊各自不同的內距，設計文件的 TLTag 是 5×12——待收斂，見 TLEquipmentTag 規格第 8 節 */
+  --space-grid-gap: 4px;  /* 格狀預覽的格子之間 */
+  --space-field-pad-v: 12px;  /* 可點的值方塊（重量／次數）上下內距 */
+  --space-sheet-bar-top: 14px;  /* 整頁 sheet 頂端關閉列的上緣留白（不是 TLCompactSheet，那個用 gapL） */
+  --space-stat-gap: 28px;  /* 並排的統計數字之間。比 gapL 20 更開——兩組數字要看得出是兩組 */
+  --space-card-section-gap: 16px;  /* 卡片內各段之間 */
+  --space-date-stack-gap: 1px;  /* 日期柱裡日數與星期之間。刻意極窄——兩行要讀成一個東西 */
+  --space-carousel-gap: 14px;  /* 橫向卡片之間 */
+  --space-band-gap: 14px;  /* 輸入色帶內各段之間 */
+  --space-pill-pad-h: 14px;  /* 填色小膠囊鈕的左右內距 */
+  --space-pill-pad-v: 8px;  /* 填色小膠囊鈕（hug 寬度）的上下內距 */
+  --space-pill-pad-v-wide: 10px;  /* 滿寬版的上下內距。⚠ 跟 pillPadV 差 2px——同一顆鈕的兩種寬度該不該有不同的高度，是膠囊幾何那組待決問題的一部分，見 temp/scale-questions.md */
+  --space-set-column-gap: 12px;  /* 組表三欄之間 */
+  --radius-container: 28px;  /* 卡片／群組容器 */
+  --radius-inner: 20px;  /* 容器內的小方塊 */
+  --radius-pill: 999px;  /* 按鈕、輸入、標籤（實作用 .capsule） */
+  --radius-icon-thumb: 7px;  /* App 圖示縮圖。25% ≈ iOS 圖示的 squircle 比例（22.4%） */
+  --radius-grid-cell: 5px;  /* 格狀預覽的一格。比 iconThumb 7 更方，格子小、圓角要跟著小 */
+  --radius-band: 40px;  /* 貼齊左緣的色帶，右側兩角的圓角（完成區、輸入色帶） */
+  --size-row: 56px;  /* 標準列高（設定列） */
+  --size-row-with-sub: 62px;  /* 有副標的列 */
+  --size-row-with-detail: 68px;  /* 有細節行的列（器材 pill ＋ 重量） */
+  --size-row-history: 66px;  /* 歷史列 */
+  --size-badge: 36px;  /* 列左側圓章 */
+  --size-icon-button: 44px;  /* 標題右側圓鈕（＝最小觸控） */
+  --size-icon-button-small: 34px;  /* 月曆標題列的 ‹ ›，觸控區另外補到 44 */
+  --size-min-tap: 44px;
+  --size-switch-w: 46px;
+  --size-switch-h: 28px;
+  --size-step-field: 88px;  /* 級距頁自訂輸入框寬度 */
+  --size-hairline: 1px;  /* 1px 分隔線與外框 */
+  --size-icon-thumb: 28px;  /* App 圖示縮圖，兩處統一 */
+  --size-check-circle: 22px;  /* 可勾選列的圓形勾 */
+  --size-hairline-thick: 1.5px;  /* 空心圓／外框的線寬。比 hairline 粗，1px 在圓弧上會斷斷續續 */
+  --size-quick-action-row: 44px;  /* 滾輪下方快捷列的高度（＝最小觸控） */
+  --size-progress-bar: 6px;  /* 進度條高度 */
+  --size-row-tail-column: 80px;  /* 列右側尾欄的最小寬度。兩字標籤的欄寬；用 minWidth 讓長標往左長、右緣仍對齊——寫死 width 會把長標壓成兩行 */
+  --size-swipe-action: 88px;  /* 左滑露出的動作區寬度。固定，不隨文案長度變 */
+  --size-grid-cell: 18px;  /* 格狀預覽的一格 */
+  --size-row-lead-column: 48px;  /* 列首的固定欄（序號）。與 rowTailColumn 80 對稱 */
+  --size-chart: 200px;  /* 趨勢圖的高度 */
+  --size-legend-dot: 8px;  /* 圖例的色點 */
+  --size-set-index-column: 44px;  /* 逐組列的序號欄，固定寬讓各組數字對齊 */
+  --size-date-column: 40px;  /* 列首的日期柱寬。⚠ 全 app 的『列首固定欄』有三種寬度：40（日期柱）、44（逐組列的組序）、48（範本編輯的組序）——後兩者是**同一個角色的兩個值**，待設計端收斂 */
+  --size-card-w: 242px;  /* 訓練首頁橫向卡的寬度。固定寬讓下一張露出一角，暗示可以滑 */
+  --size-card-min-h: 190px;  /* 訓練首頁橫向卡的最小高度。內容長短不一時卡要一樣高 */
+  --size-day-circle: 30px;  /* 週進度的一天（7 圓進度環） */
+  --size-rest-day-icon: 52px;  /* 休息日回顧卡的圓形圖示 */
+  --size-page-dot: 5px;  /* 橫向卡片的頁點。當前那一顆拉長成 dotActive */
+  --size-page-dot-active: 20px;  /* 當前頁點的長度。拉長而不是變色——變色在小尺寸上看不出來 */
+  --size-set-badge: 20px;  /* 組表列的小圓章（第 N 組）。比 size.badge 36 小得多——它在表格裡不是列首 */
+  --size-set-index-column-narrow: 28px;  /* 組表的序號欄。28 而非圓章的 20——留給兩位數組序，第 10 組以上圓圈裡的數字才不會擠。⚠ 全 app 的『列首固定欄』已有 28／40／44／48 四種寬度，待設計端收斂 */
+  --size-band-button-min-w: 80px;  /* 完成區副按鈕的最小寬。**是 minWidth 不是固定寬**：設計稿的 80 是照中文字寬訂的，英文字長很多，固定寬會被截成 `Add…` */
+  --size-dialog-button-h: 50px;  /* 對話框按鈕的高度。跟一般按鈕的 padding 式高度不同，自成一對 */
+  --size-table-header-row: 40px;  /* 表格的表頭列高。比一般列（56）矮——它不是可點的列 */
+  --size-stepper-value-min-w: 60px;  /* ±調整器中間數值的最小寬。固定寬讓數字變動時兩顆鈕不會跳。⚠ 全 app 的『固定欄寬』已有 28／40／44／48／60 五種，待設計端收斂 */
+
+  /* ── 字級（中文值；英文 × 1.08）── */
+  --font-page-title: 34px;
+  --font-sheet-title: 30px;
+  --font-detail-title: 26px;
+  --font-card-title: 21px;
+  --font-row-title: 15px;
+  --font-button-label: 15px;
+  --font-row-value: 14px;
+  --font-button-label-small: 13px;
+  --font-row-number: 16px;
+  --font-card-number: 26px;
+  --font-empty-title: 16px;
+  --font-caption: 12.5px;
+  --font-badge-text: 12px;
+  --font-seg-compact: 12px;
+  --font-row-sub: 11.5px;
+  --font-kicker: 10.5px;
+  --font-big-number: 66px;
+  --font-kicker-tracking: 0.16em;
+
+  /* 家族。每個角色歸屬哪一支見下面的 --font-<role>-family。 */
+  --font-display: 'Caprasimo', serif;
+  --font-zh: 'Noto Sans TC', 'PingFang TC', sans-serif;
+  --font-en: system-ui, -apple-system, sans-serif;
+  --font-page-title-family: var(--font-zh);
+  --font-sheet-title-family: var(--font-zh);
+  --font-detail-title-family: var(--font-zh);
+  --font-card-title-family: var(--font-zh);
+  --font-row-title-family: var(--font-zh);
+  --font-button-label-family: var(--font-zh);
+  --font-row-value-family: var(--font-zh);
+  --font-button-label-small-family: var(--font-zh);
+  --font-row-number-family: var(--font-display);
+  --font-card-number-family: var(--font-display);
+  --font-empty-title-family: var(--font-zh);
+  --font-caption-family: var(--font-zh);
+  --font-badge-text-family: var(--font-zh);
+  --font-seg-compact-family: var(--font-zh);
+  --font-row-sub-family: var(--font-zh);
+  --font-kicker-family: var(--font-zh);
+  --font-big-number-family: var(--font-display);
+
+  /* 圖示。兩組，不是一個尺度——這是設計端拍板的分法：
+  · inline / standalone ＝ 跟文字並排、或獨立擺放。這兩個是真的尺度刻度。
+  · inXxx ＝ **裝在固定容器裡的配對值**，跟著容器直徑走，不是刻度。
+    容器改尺寸就改這個值，不要拿它去跟 inline/standalone 比。
+⚠ 新增圖示尺寸前先問：它是跟文字並排、獨立擺放、還是裝在某個容器裡？
+  前兩者用既有的兩階；第三者才新增一個 inXxx 配對值。
+  這條是為了防止它又長回五個彼此沒有關係的特設值。 */
+  --icon-inline: 14px;
+  --icon-standalone: 22px;
+  --icon-inCheckCircle: 11px;
+  --icon-inIconButton: 18px;
+  --icon-inRow: 17px;
+  --icon-inDayCircle: 13px;
+  --icon-inRestDayCircle: 22px;
+  --icon-strokeWeb: 2.75px;
+  --icon-stroke: 2.75;
+
+  /* 動效 */
+  --motion-fast: 0.15s;
+  --motion-base: 0.2s;
+  --motion-curve: cubic-bezier(0, 0, 0.58, 1);  /* SwiftUI 的 .easeOut 對應 CSS 的 cubic-bezier(0, 0, 0.58, 1)（＝ ease-out）。這個換算是刻意的，不是隨手填的。 */
+
+  /* ── 陰影 ── */
+  --shadow-sm: 0 1px 2px rgb(46 43 37 / 14%);  /* 卡片 */
+  --shadow-md: 0 3px 10px rgb(46 43 37 / 16%);  /* 分段控制選中膠囊 */
+  --shadow-lg: 0 12px 32px rgb(46 43 37 / 22%);  /* 對話框 */
+}
+
+/* 深色：目前是淺色的複製——位置先留好，實際色階等 C6a。
+   只有語意層有 theme 分支；色階層是固定色票，不在這裡覆寫。
+
+   選擇器刻意用 [data-theme="dark"] 而不是 :root[data-theme="dark"]：
+   preview 要能把兩個主題並排在同一頁（各自掛在子元素上對照），
+   綁死 :root 的話只有整頁切換才生效，並排永遠是同一個主題。 */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --surface-base: rgb(245 234 216);
+    --surface-raised: rgb(249 244 237);
+    --surface-track: rgb(238 231 219);
+    --surface-input: rgb(220 211 196);
+    --text-primary: rgb(32 30 29);
+    --text-secondary: rgb(100 92 80);
+    --text-tertiary: rgb(130 121 106);
+    --text-numeric: rgb(46 43 37);
+    --border-subtle: rgb(32 30 29 / 8%);
+    --action-primary: rgb(198 113 57);
+    --action-pressed: rgb(178 98 45);
+    --category-tag: rgb(122 138 94);
+    --danger-solid: rgb(183 71 54);
+    --accent-on-surface: rgb(140 73 26);
+    --danger-on-surface: rgb(126 49 35);
+  }
+}
+
+[data-theme="dark"] {
+  --surface-base: rgb(245 234 216);
+  --surface-raised: rgb(249 244 237);
+  --surface-track: rgb(238 231 219);
+  --surface-input: rgb(220 211 196);
+  --text-primary: rgb(32 30 29);
+  --text-secondary: rgb(100 92 80);
+  --text-tertiary: rgb(130 121 106);
+  --text-numeric: rgb(46 43 37);
+  --border-subtle: rgb(32 30 29 / 8%);
+  --action-primary: rgb(198 113 57);
+  --action-pressed: rgb(178 98 45);
+  --category-tag: rgb(122 138 94);
+  --danger-solid: rgb(183 71 54);
+  --accent-on-surface: rgb(140 73 26);
+  --danger-on-surface: rgb(126 49 35);
+}
+
+[data-theme="light"] {
+  --surface-base: rgb(245 234 216);
+  --surface-raised: rgb(249 244 237);
+  --surface-track: rgb(238 231 219);
+  --surface-input: rgb(220 211 196);
+  --text-primary: rgb(32 30 29);
+  --text-secondary: rgb(100 92 80);
+  --text-tertiary: rgb(130 121 106);
+  --text-numeric: rgb(46 43 37);
+  --border-subtle: rgb(32 30 29 / 8%);
+  --action-primary: rgb(198 113 57);
+  --action-pressed: rgb(178 98 45);
+  --category-tag: rgb(122 138 94);
+  --danger-solid: rgb(183 71 54);
+  --accent-on-surface: rgb(140 73 26);
+  --danger-on-surface: rgb(126 49 35);
+}

@@ -29,24 +29,23 @@ public struct ProgramListView: View {
     /// 在重做完成前先把話講明白——留著入口讓已經建好課表的人還進得去，
     /// 但不要讓任何人以為這是完成品。
     private var experimentalNotice: some View {
-        HStack(alignment: .top, spacing: TLSpace.gapS) {
-            Image(systemName: "flask")
-                .font(.system(size: 13, weight: .semibold))
-                .foregroundStyle(TLColor.accent700)
-            VStack(alignment: .leading, spacing: 3) {
-                localText("program.experimental.title")
-                    .font(TLFont.zh(TLFont.rowTitle, .semibold))
-                    .foregroundStyle(TLColor.accent800)
-                localText("program.experimental.message")
-                    .font(TLFont.zh(TLFont.rowSub, .regular))
+        TLCard(radius: .inner, fill: TLColor.accent200) {
+            HStack(alignment: .top, spacing: TLSpace.gapS) {
+                Image(systemName: "flask")
+                    .font(.system(size: TLIcon.inline, weight: .semibold))
                     .foregroundStyle(TLColor.accent700)
-                    .fixedSize(horizontal: false, vertical: true)
+                VStack(alignment: .leading, spacing: TLSpace.titleSubGap) {
+                    localText("program.experimental.title")
+                        .font(TLFont.zh(TLFont.rowTitle, .semibold))
+                        .foregroundStyle(TLColor.accent800)
+                    localText("program.experimental.message")
+                        .font(TLFont.zh(TLFont.rowSub, .regular))
+                        .foregroundStyle(TLColor.accent700)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
             }
+            .frame(maxWidth: .infinity, alignment: .leading)
         }
-        .padding(TLSpace.rowInset)
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .background(TLColor.accent200)
-        .clipShape(RoundedRectangle(cornerRadius: TLRadius.inner, style: .continuous))
         .accessibilityIdentifier("program.experimentalNotice")
     }
 
@@ -59,17 +58,17 @@ public struct ProgramListView: View {
                 }
                 if !viewModel.activePrograms.isEmpty {
                     VStack(alignment: .leading, spacing: 0) {
-                        SectionHeader(localText("rotation.active.section") + Text(verbatim: " · \(viewModel.activePrograms.count)"), tint: TLColor.accent600)
+                        TLSectionHeader(localText("rotation.active.section") + Text(verbatim: " · \(viewModel.activePrograms.count)"), tint: TLColor.accent600)
                         VStack(spacing: TLSpace.gapM) {
-                            ForEach(viewModel.activePrograms) { activeCard($0) }
+                            ForEach(viewModel.activePrograms) { programRow($0, active: true) }
                         }
                     }
                 }
                 if !viewModel.inactivePrograms.isEmpty {
                     VStack(alignment: .leading, spacing: 0) {
-                        SectionHeader(localText("rotation.inactive.section") + Text(verbatim: " · \(viewModel.inactivePrograms.count)"), tint: TLColor.neutral500)
+                        TLSectionHeader(localText("rotation.inactive.section") + Text(verbatim: " · \(viewModel.inactivePrograms.count)"), tint: TLColor.neutral500)
                         TLGroup {
-                            ForEach(viewModel.inactivePrograms) { inactiveRow($0) }
+                            ForEach(viewModel.inactivePrograms) { programRow($0, active: false) }
                         }
                     }
                 }
@@ -77,7 +76,7 @@ public struct ProgramListView: View {
             }
             .padding(.horizontal, TLSpace.page)
             .padding(.top, TLSpace.gapS)
-            .padding(.bottom, 40)
+            .padding(.bottom, TLSpace.pageBottom)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background(TLColor.bg)
@@ -138,134 +137,49 @@ public struct ProgramListView: View {
 
     // MARK: - 進行中卡片（真實進度）
 
-    private func activeCard(_ program: Program) -> some View {
-        let progress = viewModel.progressByProgram[program.id]
-        return VStack(spacing: TLSpace.gapM) {
-            // 上半：點進詳情頁（8a）
-            NavigationLink(value: program.id) {
-                HStack(spacing: TLSpace.gapM) {
-                    CircleBadge(icon: "chart.bar", fill: TLColor.accent, tint: TLColor.bg)
-                    VStack(alignment: .leading, spacing: 2) {
-                        Text(verbatim: program.name)
-                            .font(TLFont.zh(TLFont.rowTitle))
-                            .foregroundStyle(TLColor.text)
-                            .lineLimit(1)
-                        Text(PlanFormatting.programLibrarySummary(program, language: AppLanguage(locale: locale)))
-                            .font(TLFont.zh(TLFont.rowSub, .regular))
-                            .foregroundStyle(TLColor.neutral500)
-                            .lineLimit(1)
-                    }
-                    Spacer(minLength: TLSpace.gapS)
-                    Chevron()
+    private func programRow(_ program: Program, active: Bool) -> some View {
+        let p = viewModel.progressByProgram[program.id]
+        return ProgramRow(
+            id: program.id,
+            name: program.name,
+            summary: Text(PlanFormatting.programLibrarySummary(program, language: AppLanguage(locale: locale))),
+            progress: active ? p.map {
+                ProgramRow.Progress(day: $0.day, totalDays: $0.totalDays, todayWorkoutName: $0.todayWorkoutName)
+            } : nil,
+            activateButton: active ? nil : AnyView(
+                Button {
+                    Task { await viewModel.activate(id: program.id) }
+                } label: {
+                    localText("plan.activate")
                 }
-                .contentShape(Rectangle())
-            }
-            .buttonStyle(.plain)
-
-            // 下半：天數＋今天＋進度條（真實）
-            if let progress {
-                HStack(alignment: .firstTextBaseline) {
-                    HStack(alignment: .firstTextBaseline, spacing: 4) {
-                        Text(verbatim: "\(progress.day)")
-                            .font(TLFont.display(26))
-                            .foregroundStyle(TLColor.text)
-                        (Text(verbatim: "/ \(progress.totalDays) ") + localText("program.dayUnit"))
-                            .font(TLFont.zh(TLFont.rowSub))
-                            .foregroundStyle(TLColor.neutral500)
-                    }
-                    Spacer()
-                    (localText("program.today") + Text(verbatim: "：\(progress.todayWorkoutName ?? "—")"))
-                        .font(TLFont.zh(TLFont.rowSub, .semibold))
-                        .foregroundStyle(TLColor.neutral700)
+                .buttonStyle(.tlText)
+            ),
+            dayUnit: localText("program.dayUnit"),
+            todayLabel: localText("program.today"),
+            menu: AnyView(
+                Button(role: .destructive) {
+                    Task { await viewModel.delete(id: program.id) }
+                } label: {
+                    Label { localText("plan.delete") } icon: { Image(systemName: "trash") }
                 }
-                progressBar(Double(progress.day) / Double(max(1, progress.totalDays)))
-            }
-        }
-        .padding(TLSpace.rowInset)
-        .background(TLColor.neutral100)
-        .clipShape(RoundedRectangle(cornerRadius: TLRadius.container, style: .continuous))
-        .overlay {
-            RoundedRectangle(cornerRadius: TLRadius.container, style: .continuous)
-                .strokeBorder(TLColor.accent300, lineWidth: 1.5)
-        }
-    }
-
-    private func progressBar(_ ratio: Double) -> some View {
-        GeometryReader { geo in
-            ZStack(alignment: .leading) {
-                Capsule().fill(TLColor.neutral200)
-                Capsule().fill(TLColor.accent)
-                    .frame(width: geo.size.width * min(1, max(0, ratio)))
-            }
-        }
-        .frame(height: 6)
-    }
-
-    // MARK: - 未啟用列
-
-    private func inactiveRow(_ program: Program) -> some View {
-        // 左側可點進詳情頁（8a，可再進編輯）、右側 inline「啟用」——兩個獨立點擊區。
-        HStack(spacing: TLSpace.gapM) {
-            NavigationLink(value: program.id) {
-                HStack(spacing: TLSpace.gapM) {
-                    CircleBadge(icon: "chart.bar", fill: TLColor.neutral300, tint: TLColor.neutral600)
-                    VStack(alignment: .leading, spacing: 2) {
-                        Text(verbatim: program.name)
-                            .font(TLFont.zh(TLFont.rowTitle))
-                            .foregroundStyle(TLColor.text)
-                            .lineLimit(1)
-                        Text(PlanFormatting.programLibrarySummary(program, language: AppLanguage(locale: locale)))
-                            .font(TLFont.zh(TLFont.rowSub, .regular))
-                            .foregroundStyle(TLColor.neutral500)
-                            .lineLimit(1)
-                    }
-                    Spacer(minLength: TLSpace.gapS)
-                }
-                .contentShape(Rectangle())
-            }
-            .buttonStyle(.plain)
-
-            Button {
-                Task { await viewModel.activate(id: program.id) }
-            } label: {
-                localText("plan.activate")
-            }
-            .buttonStyle(.tlText)
-        }
-        .padding(.horizontal, TLSpace.rowInset)
-        .frame(minHeight: TLSize.rowWithSub)
-        .contextMenu {
-            Button(role: .destructive) {
-                Task { await viewModel.delete(id: program.id) }
-            } label: {
-                Label { localText("plan.delete") } icon: { Image(systemName: "trash") }
-            }
-        }
+            )
+        )
     }
 
     private func explainerCard(_ text: Text) -> some View {
-        text
-            .font(TLFont.zh(TLFont.rowTitle, .regular))
-            .foregroundStyle(TLColor.neutral600)
-            .multilineTextAlignment(.center)
-            .frame(maxWidth: .infinity)
-            .padding(.horizontal, TLSpace.page)
-            .padding(.vertical, 26)
-            .background(TLColor.neutral100)
-            .clipShape(RoundedRectangle(cornerRadius: TLRadius.container, style: .continuous))
+        TLCard(padding: .roomy) {
+            text
+                .font(TLFont.zh(TLFont.rowTitle, .regular))
+                .foregroundStyle(TLColor.neutral600)
+                .multilineTextAlignment(.center)
+                .frame(maxWidth: .infinity)
+        }
     }
 
     private var emptyState: some View {
-        VStack(spacing: 8) {
-            localText("program.empty")
-                .font(TLFont.zh(16, .bold))
-                .foregroundStyle(TLColor.text)
-            localText("program.empty.hint")
-                .font(TLFont.zh(12.5, .regular))
-                .foregroundStyle(TLColor.neutral600)
-                .multilineTextAlignment(.center)
-        }
-        .frame(maxWidth: .infinity)
-        .padding(.vertical, 40)
+        TLInlineEmptyState(
+            title: localText("program.empty"),
+            hint: localText("program.empty.hint")
+        )
     }
 }

@@ -13,6 +13,7 @@ let package = Package(
     dependencies: [
         .package(path: "../SharedKernel"),
         .package(path: "../DesignSystem"),
+        .package(path: "../DesignControls"),
     ],
     targets: [
         .target(name: "PlanDomain", dependencies: ["SharedKernel"]),
@@ -22,6 +23,7 @@ let package = Package(
             dependencies: [
                 "PlanDomain",
                 .product(name: "DesignSystem", package: "DesignSystem"),
+                .product(name: "DesignControls", package: "DesignControls"),
             ],
             resources: [.process("Localizable.xcstrings")]
         ),

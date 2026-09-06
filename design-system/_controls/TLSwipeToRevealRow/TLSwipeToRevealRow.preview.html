@@ -1,0 +1,49 @@
+<!-- @dsCard group="Controls" name="TLSwipeToRevealRow" subtitle="左滑露出單一動作的列" -->
+<!doctype html>
+<meta charset="utf-8">
+<title>TLSwipeToRevealRow</title>
+<link rel="stylesheet" href="../../tokens/tokens.css">
+<link rel="stylesheet" href="../../preview.css">
+<link rel="stylesheet" href="../../components.preview.css">
+<link rel="stylesheet" href="../controls.preview.css">
+
+<h1>TLSwipeToRevealRow</h1>
+<p class="note">
+  <b>控制項，不進交付包。</b> 它有狀態（拖曳位移）與手勢判斷，不是純呈現。<br>
+  一次只露出<b>一個</b>動作 —— 兩個以上就變成需要記憶的選單，那是長按選單的工作。
+</p>
+
+<div class="kicker">狀態</div>
+<div class="group">
+  <div class="row" data-state="closed">
+    <span class="label">關閉 —— 內容自帶不透明底，完全蓋住底下的動作</span>
+  </div>
+</div>
+<div class="group tl-swipe-row" data-state="open">
+  <div class="tl-swipe-row__action"><span>停用</span></div>
+  <div class="row tl-swipe-row__content">
+    <span class="label">開啟 —— 內容整條左移，露出固定寬度的動作</span>
+  </div>
+</div>
+<p class="note">
+  <b>預設是灰的不是紅的</b>：這裡露出的是可回復的操作（停用、複製）。
+  刪除走長按選單 —— 那需要更明確的意圖。
+</p>
+
+<div class="kicker">主題</div>
+<div class="themes">
+  <div class="pane" data-theme="light">
+    <div class="kicker">light</div>
+    <div class="group tl-swipe-row">
+      <div class="tl-swipe-row__action"><span>停用</span></div>
+      <div class="row tl-swipe-row__content"><span class="label">項目名稱</span></div>
+    </div>
+  </div>
+  <div class="pane" data-theme="dark">
+    <div class="kicker">dark（目前是 light 的複製）</div>
+    <div class="group tl-swipe-row">
+      <div class="tl-swipe-row__action"><span>停用</span></div>
+      <div class="row tl-swipe-row__content"><span class="label">項目名稱</span></div>
+    </div>
+  </div>
+</div>

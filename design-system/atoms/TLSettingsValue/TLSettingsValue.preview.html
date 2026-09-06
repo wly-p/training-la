@@ -1,0 +1,52 @@
+<!-- @dsCard group="Atoms" name="TLSettingsValue" subtitle="設定列右側的目前值" -->
+<!doctype html>
+<meta charset="utf-8">
+<title>TLSettingsValue</title>
+<link rel="stylesheet" href="../../tokens/tokens.css">
+<link rel="stylesheet" href="../../preview.css">
+<link rel="stylesheet" href="../../components.preview.css">
+<style>
+stroke-width: var(--icon-stroke); }
+</style>
+<h1>TLSettingsValue</h1>
+<p class="note">
+  L1 原子。設定列右側的「目前的值」。<br>
+  比標題小一號、比 chevron 深一階 —— <b>值是列的答案</b>，不該跟標題一樣重，也不該淡到讀不到。
+</p>
+
+<div class="kicker">狀態</div>
+<div class="group">
+  <div class="row" data-state="default">
+    <span class="label">主題</span>
+    <span class="tl-settings-value">深色</span>
+    <svg class="tl-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+         stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg>
+  </div>
+</div>
+
+<div class="kicker">內容極值</div>
+<div class="group">
+  <div class="row"><span class="label">最短</span><span class="tl-settings-value">開</span></div>
+  <div class="row"><span class="label">中文</span><span class="tl-settings-value">跟隨系統</span></div>
+  <div class="row"><span class="label">英文通常更長</span><span class="tl-settings-value">Follow System</span></div>
+</div>
+<p class="note">空間不夠時<b>標題先讓</b>，值不截斷 —— 截斷值等於讓這一列失去意義。</p>
+
+<div class="kicker">主題</div>
+<div class="themes">
+  <div class="pane" data-theme="light">
+    <div class="kicker">light</div>
+    <div class="group"><div class="row"><span class="label">主題</span><span class="tl-settings-value">深色</span></div></div>
+  </div>
+  <div class="pane" data-theme="dark">
+    <div class="kicker">dark（目前是 light 的複製）</div>
+    <div class="group"><div class="row"><span class="label">主題</span><span class="tl-settings-value">深色</span></div></div>
+  </div>
+</div>
+
+<div class="kicker">不適用的狀態</div>
+<p class="note">
+  pressed／disabled／focused —— 按下態由整列表現。<br>
+  selected —— 它顯示值，不表達選取。<br>
+  empty／loading／error —— 呼叫端保證有值；沒有值就不要放這個元件。
+</p>

@@ -62,10 +62,10 @@ struct WorkoutDetailView: View {
                     .padding(.horizontal, TLSpace.page)
                     .padding(.top, TLSpace.section)
                 } else {
-                    ProgressView().padding(.top, 60).frame(maxWidth: .infinity)
+                    ProgressView().padding(.top, TLSpace.pageBottom).frame(maxWidth: .infinity)
                 }
             }
-            .padding(.bottom, 40)
+            .padding(.bottom, TLSpace.pageBottom)
         }
         .background(TLColor.bg.ignoresSafeArea())
         .navigationTitle(HistoryFormatting.dayLabel(summary.day, locale: locale))
@@ -125,42 +125,42 @@ struct WorkoutDetailView: View {
     private func achievementCard(_ detail: HistoryWorkoutDetail) -> some View {
         let (achievedCount, totalCount) = HistoryFormatting.achievedSetCount(detail.blocks)
         let (actualVolume, targetVolume) = HistoryFormatting.totalVolume(detail.blocks)
-        return VStack(alignment: .leading, spacing: 16) {
-            HStack(alignment: .top) {
-                VStack(alignment: .leading, spacing: 4) {
-                    Text(verbatim: detail.summary.name ?? localString("history.freeTraining", locale))
-                        .font(TLFont.zh(26, .bold))
-                        .foregroundStyle(TLColor.text)
-                    Text(verbatim: subline(detail))
+        // 深底那一階的卡（見 TLCard 規格第 6 節：兩階卡底，第二階還沒有語意名字）
+        return TLCard(fill: TLColor.neutral300) {
+            VStack(alignment: .leading, spacing: TLSpace.cardSectionGap) {
+                HStack(alignment: .top) {
+                    VStack(alignment: .leading, spacing: TLSpace.valueUnitGap) {
+                        Text(verbatim: detail.summary.name ?? localString("history.freeTraining", locale))
+                            .font(TLFont.zh(TLFont.detailTitle, .bold))
+                            .foregroundStyle(TLColor.text)
+                        Text(verbatim: subline(detail))
+                            .font(TLFont.zh(TLFont.rowSub, .regular))
+                            .foregroundStyle(TLColor.neutral600)
+                    }
+                    Spacer()
+                    if totalCount > 0 {
+                        localText("history.achievedCount \(achievedCount) \(totalCount)")
+                            .font(TLFont.zh(TLFont.rowSub, .semibold))
+                            .foregroundStyle(TLColor.sage800)
+                            .padding(.horizontal, 12)
+                            .padding(.vertical, 6)
+                            .background(Capsule().fill(TLColor.sage200))
+                    }
+                }
+                HStack(alignment: .firstTextBaseline, spacing: TLSpace.statGap) {
+                    volumeStat(actual: actualVolume, target: targetVolume)
+                    if let targetVolume, targetVolume > 0 {
+                        achievementRateStat(rate: actualVolume / targetVolume * 100)
+                    }
+                }
+                if let note = detail.note {
+                    Text(verbatim: note)
                         .font(TLFont.zh(TLFont.rowSub, .regular))
                         .foregroundStyle(TLColor.neutral600)
                 }
-                Spacer()
-                if totalCount > 0 {
-                    localText("history.achievedCount \(achievedCount) \(totalCount)")
-                        .font(TLFont.zh(TLFont.rowSub, .semibold))
-                        .foregroundStyle(TLColor.sage800)
-                        .padding(.horizontal, 12)
-                        .padding(.vertical, 6)
-                        .background(Capsule().fill(TLColor.sage200))
-                }
             }
-            HStack(alignment: .firstTextBaseline, spacing: 28) {
-                volumeStat(actual: actualVolume, target: targetVolume)
-                if let targetVolume, targetVolume > 0 {
-                    achievementRateStat(rate: actualVolume / targetVolume * 100)
-                }
-            }
-            if let note = detail.note {
-                Text(verbatim: note)
-                    .font(TLFont.zh(TLFont.rowSub, .regular))
-                    .foregroundStyle(TLColor.neutral600)
-            }
+            .frame(maxWidth: .infinity, alignment: .leading)
         }
-        .padding(TLSpace.rowInset)
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .background(TLColor.neutral300)
-        .clipShape(RoundedRectangle(cornerRadius: TLRadius.container, style: .continuous))
     }
 
     /// 副行「7/27 (週一) · 42 分」：日期 ＋ 時長（沒時長只給日期）。
@@ -172,9 +172,9 @@ struct WorkoutDetailView: View {
 
     /// 總量：有目標時「實際 / 目標 kg」（實際大黑、目標小灰）；無目標只顯示「實際 kg」。
     private func volumeStat(actual: Double, target: Double?) -> some View {
-        VStack(alignment: .leading, spacing: 2) {
+        VStack(alignment: .leading, spacing: TLSpace.titleSubGap) {
             localText(target != nil && target! > 0 ? "history.volumeActualTarget" : "history.totalVolume")
-                .font(TLFont.zh(11.5, .regular))
+                .font(TLFont.zh(TLFont.rowSub, .regular))
                 .foregroundStyle(TLColor.neutral600)
             HStack(alignment: .firstTextBaseline, spacing: 0) {
                 Text(verbatim: HistoryFormatting.formatNumber(actual))
@@ -197,9 +197,9 @@ struct WorkoutDetailView: View {
 
     /// 達成率：sage 綠色大字（全 App 唯一「刻意安排重量才有意義」的正向指標）。
     private func achievementRateStat(rate: Double) -> some View {
-        VStack(alignment: .leading, spacing: 2) {
+        VStack(alignment: .leading, spacing: TLSpace.titleSubGap) {
             localText("history.achievementRate")
-                .font(TLFont.zh(11.5, .regular))
+                .font(TLFont.zh(TLFont.rowSub, .regular))
                 .foregroundStyle(TLColor.neutral600)
             (Text(verbatim: String(format: "%.0f", rate)).font(TLFont.display(28))
                 + Text(verbatim: " %").font(TLFont.zh(13, .medium)))
@@ -214,7 +214,7 @@ struct WorkoutDetailView: View {
         let visible = (viewModel.isEditing || expandedAll) ? lines : Array(lines.prefix(collapseThreshold))
         let remaining = lines.count - visible.count
         return VStack(alignment: .leading, spacing: TLSpace.gapS) {
-            SectionHeader(localText("history.setComparison"))
+            TLSectionHeader(localText("history.setComparison"))
             TLGroup {
                 if viewModel.isEditing {
                     // 編輯模式維持單一平表：每列都要能點進去改，分組標頭只會擋路。
@@ -237,7 +237,7 @@ struct WorkoutDetailView: View {
                         .font(TLFont.zh(TLFont.rowSub, .medium))
                         .foregroundStyle(TLColor.accent700)
                         .padding(.horizontal, TLSpace.rowInset)
-                        .frame(minHeight: 44)
+                        .frame(minHeight: TLSize.minTap)
                     }
                     .buttonStyle(.plain)
                 }
@@ -276,35 +276,35 @@ struct WorkoutDetailView: View {
     /// 舊版每列重印動作名，加上器材標會變成 N 個 pill（handoff-15 D 節）。
     private func groupHeader(_ group: LineGroup) -> some View {
         HStack(spacing: 0) {
-            ExerciseNameWithEquipment(
+            TLTitleWithTag(
                 title: Text(verbatim: group.exerciseName)
-                    .font(TLFont.zh(14, .semibold))
+                    .font(TLFont.zh(TLFont.rowValue, .semibold))
                     .foregroundColor(TLColor.text),
                 equipment: group.equipment.displayName(locale)
             )
             Spacer(minLength: TLSpace.gapS)
             (localText("history.col.target") + Text(verbatim: " / ") + localText("history.col.actual"))
-                .font(.caption2.weight(.semibold))
+                .font(TLFont.zh(TLFont.rowSub, .semibold))
                 .foregroundStyle(TLColor.neutral500)
                 .accessibilityIdentifier("workoutDetail.targetColumn")
         }
         .padding(.horizontal, TLSpace.rowInset)
-        .frame(minHeight: 40)
+        .frame(minHeight: TLSize.tableHeaderRow)
         .background(TLColor.neutral200)
     }
 
     private func displayRow(_ line: FlatLine) -> some View {
         let set = line.set
         return HStack(spacing: 0) {
-            HStack(spacing: 6) {
+            HStack(spacing: TLSpace.labelGap) {
                 // 動作名移到分組標頭，這裡只留「組 N」（固定寬 44，讓各組的數字對齊）。
                 localText("history.setN \(set.setIndex + 1)")
                     .font(TLFont.zh(TLFont.rowSub, .regular))
                     .foregroundStyle(TLColor.neutral500)
-                    .frame(width: 44, alignment: .leading)
+                    .frame(width: TLSize.setIndexColumn, alignment: .leading)
                 if set.status != .done {
                     localText(HistoryFormatting.statusLabel(set.status))
-                        .font(TLFont.zh(10.5, .semibold))
+                        .font(TLFont.zh(TLFont.kicker, .semibold))
                         .foregroundStyle(TLColor.neutral500)
                         .padding(.horizontal, 8).padding(.vertical, 3)
                         .background(Capsule().fill(TLColor.neutral200))
@@ -339,12 +339,12 @@ struct WorkoutDetailView: View {
         switch HistoryFormatting.achieved(set) {
         case true:
             Image(systemName: "checkmark")
-                .font(.system(size: 13, weight: .bold))
+                .font(.system(size: TLIcon.inline, weight: .bold))
                 .foregroundStyle(TLColor.sage)
         case false:
             let delta = HistoryFormatting.repsDelta(set) ?? 0
             Text(verbatim: delta > 0 ? "+\(delta)" : "\(delta)")
-                .font(TLFont.zh(12, .semibold))
+                .font(TLFont.zh(TLFont.badgeText, .semibold))
                 .foregroundStyle(delta > 0 ? TLColor.sage700 : TLColor.danger700)
         case nil:
             EmptyView()
@@ -388,28 +388,28 @@ struct WorkoutDetailView: View {
                     identifierPrefix: "workoutDetail.statusSegment"
                 )
             }
-            .padding(.vertical, 12)
+            .padding(.vertical, TLSpace.fieldPadV)
             .padding(.horizontal, TLSpace.rowInset)
         }
     }
 
     private func accentStepper(label: LocalizedStringKey, value: String, onMinus: @escaping () -> Void, onPlus: @escaping () -> Void) -> some View {
-        VStack(alignment: .leading, spacing: 4) {
+        VStack(alignment: .leading, spacing: TLSpace.valueUnitGap) {
             localText(label)
-                .font(TLFont.zh(11.5, .regular))
+                .font(TLFont.zh(TLFont.rowSub, .regular))
                 .foregroundStyle(TLColor.neutral500)
-            HStack(spacing: 12) {
+            HStack(spacing: TLSpace.cardGap) {
                 Button(action: onMinus) {
-                    Image(systemName: "minus.circle.fill").font(.title2).foregroundStyle(TLColor.accent)
+                    Image(systemName: "minus.circle.fill").font(.system(size: TLIcon.standalone)).foregroundStyle(TLColor.accent)
                 }
                 .buttonStyle(.plain)
                 Text(value)
                     .font(TLFont.display(20))
                     .monospacedDigit()
                     .foregroundStyle(TLColor.text)
-                    .frame(minWidth: 60)
+                    .frame(minWidth: TLSize.stepperValueMinW)
                 Button(action: onPlus) {
-                    Image(systemName: "plus.circle.fill").font(.title2).foregroundStyle(TLColor.accent)
+                    Image(systemName: "plus.circle.fill").font(.system(size: TLIcon.standalone)).foregroundStyle(TLColor.accent)
                 }
                 .buttonStyle(.plain)
             }
@@ -418,7 +418,7 @@ struct WorkoutDetailView: View {
 
     private var deleteRow: some View {
         TLGroup {
-            SettingsRow(
+            TLSettingsRow(
                 localText("history.deleteWorkout"),
                 role: .destructive,
                 onTap: { showsDeleteConfirm = true }

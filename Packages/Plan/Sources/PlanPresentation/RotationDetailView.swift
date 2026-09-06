@@ -34,7 +34,7 @@ public struct RotationDetailView: View {
                 }
             }
             .padding(.horizontal, TLSpace.page)
-            .padding(.bottom, 40)
+            .padding(.bottom, TLSpace.pageBottom)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background(TLColor.bg)
@@ -69,9 +69,9 @@ public struct RotationDetailView: View {
     // MARK: - 標題列（返回＋編輯）＋ kicker＋名稱
 
     private func header(_ rotation: Rotation) -> some View {
-        VStack(alignment: .leading, spacing: 8) {
+        VStack(alignment: .leading, spacing: TLSpace.gapS) {
             HStack {
-                CircleIconButton(systemImage: "chevron.left", filled: false) { dismiss() }
+                TLCircleIconButton(systemImage: "chevron.left", filled: false) { dismiss() }
                     .accessibilityLabel(localText("plan.back"))
                 Spacer()
                 NavigationLink(value: RotationEditRoute(id: rotation.id)) {
@@ -97,32 +97,31 @@ public struct RotationDetailView: View {
     // MARK: - 狀態卡
 
     private func statusCard(_ rotation: Rotation) -> some View {
-        VStack(alignment: .leading, spacing: TLSpace.gapM) {
-            HStack(alignment: .firstTextBaseline, spacing: 8) {
-                Text(verbatim: "\(rotation.roundsCompleted)")
-                    .font(TLFont.display(30))
-                    .foregroundStyle(TLColor.text)
-                localText("rotation.rounds \(rotation.roundsCompleted)")
-                    .font(TLFont.zh(TLFont.rowTitle))
-                    .foregroundStyle(TLColor.neutral700)
-                Text(verbatim: "·")
-                    .foregroundStyle(TLColor.neutral500)
-                localText("rotation.detail.completed \(rotation.completedCount)")
-                    .font(TLFont.zh(TLFont.rowSub))
-                    .foregroundStyle(TLColor.neutral600)
-            }
-            if !rotation.workouts.isEmpty {
-                FlowLayout(spacing: 8, lineSpacing: 8) {
-                    ForEach(Array(rotation.workouts.enumerated()), id: \.offset) { index, spec in
-                        templateCapsule(spec.name, isCurrent: index == rotation.cursor)
+        TLCard(fill: TLColor.neutral300) {
+            VStack(alignment: .leading, spacing: TLSpace.gapM) {
+                HStack(alignment: .firstTextBaseline, spacing: TLSpace.gapS) {
+                    Text(verbatim: "\(rotation.roundsCompleted)")
+                        .font(TLFont.display(30))
+                        .foregroundStyle(TLColor.text)
+                    localText("rotation.rounds \(rotation.roundsCompleted)")
+                        .font(TLFont.zh(TLFont.rowTitle))
+                        .foregroundStyle(TLColor.neutral700)
+                    Text(verbatim: "·")
+                        .foregroundStyle(TLColor.neutral500)
+                    localText("rotation.detail.completed \(rotation.completedCount)")
+                        .font(TLFont.zh(TLFont.rowSub))
+                        .foregroundStyle(TLColor.neutral600)
+                }
+                if !rotation.workouts.isEmpty {
+                    TLFlowLayout(spacing: TLSpace.gapS, lineSpacing: TLSpace.gapS) {
+                        ForEach(Array(rotation.workouts.enumerated()), id: \.offset) { index, spec in
+                            templateCapsule(spec.name, isCurrent: index == rotation.cursor)
+                        }
                     }
                 }
             }
+            .frame(maxWidth: .infinity, alignment: .leading)
         }
-        .padding(TLSpace.rowInset)
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .background(TLColor.neutral300)
-        .clipShape(RoundedRectangle(cornerRadius: TLRadius.container, style: .continuous))
     }
 
     private func templateCapsule(_ name: String, isCurrent: Bool) -> some View {
@@ -138,10 +137,10 @@ public struct RotationDetailView: View {
 
     private func composition(_ rotation: Rotation) -> some View {
         VStack(alignment: .leading, spacing: 0) {
-            SectionHeader(localText("rotation.detail.composition \(rotation.workouts.count)"))
+            TLSectionHeader(localText("rotation.detail.composition \(rotation.workouts.count)"))
             TLGroup {
                 ForEach(Array(rotation.workouts.enumerated()), id: \.offset) { index, spec in
-                    ListRow(
+                    TLListRow(
                         title: Text(verbatim: spec.name),
                         subtitle: Text(PlanFormatting.summary(spec, name: viewModel.name(for:), language: AppLanguage(locale: locale))),
                         leading: { indexBadge(index + 1, isCurrent: index == rotation.cursor) }
@@ -152,7 +151,7 @@ public struct RotationDetailView: View {
     }
 
     private func indexBadge(_ n: Int, isCurrent: Bool) -> some View {
-        CircleBadge(fill: isCurrent ? TLColor.accent200 : TLColor.neutral200) {
+        TLBadge(fill: isCurrent ? TLColor.accent200 : TLColor.neutral200) {
             Text(verbatim: "\(n)")
                 .font(TLFont.display(15))
                 .foregroundStyle(isCurrent ? TLColor.accent800 : TLColor.neutral700)
@@ -162,25 +161,25 @@ public struct RotationDetailView: View {
     // MARK: - 管理群組
 
     private func manage(_ rotation: Rotation) -> some View {
-        VStack(alignment: .leading, spacing: 8) {
-            SectionHeader(localText("rotation.manage.section"))
+        VStack(alignment: .leading, spacing: TLSpace.gapS) {
+            TLSectionHeader(localText("rotation.manage.section"))
             TLGroup {
-                ListRow(
+                TLListRow(
                     title: localText("rotation.manage.next"),
                     onTap: { Task { await viewModel.advance() } },
                     trailing: { rightText(Text(verbatim: nextName(rotation))) }
                 )
-                ListRow(
+                TLListRow(
                     title: localText("rotation.manage.reset"),
                     onTap: { Task { await viewModel.reset() } },
                     trailing: { rightText(localText("rotation.manage.reset.hint")) }
                 )
-                ListRow(
+                TLListRow(
                     title: localText("rotation.manage.deactivate"),
                     onTap: { showDeactivateConfirm = true },
                     trailing: { rightText(localText("rotation.manage.deactivate.hint")) }
                 )
-                SettingsRow(
+                TLSettingsRow(
                     localText("rotation.manage.delete"),
                     role: .destructive,
                     onTap: { showDeleteConfirm = true }

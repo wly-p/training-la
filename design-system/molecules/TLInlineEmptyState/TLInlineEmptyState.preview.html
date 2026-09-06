@@ -1,0 +1,60 @@
+<!-- @dsCard group="Molecules" name="TLInlineEmptyState" subtitle="清單裡的空狀態" -->
+<!doctype html>
+<meta charset="utf-8">
+<title>TLInlineEmptyState</title>
+<link rel="stylesheet" href="../../tokens/tokens.css">
+<link rel="stylesheet" href="../../preview.css">
+<link rel="stylesheet" href="../../components.preview.css">
+<h1>TLInlineEmptyState</h1>
+<p class="note">
+  L2 分子。清單空了、但頁面其他部分還在時用。<br>
+  跟 <code>TLEmptyState</code> 的差別是<b>有沒有自己的容器</b> ——
+  判準是「畫面上還有別的東西嗎？」有 → 用這個。
+</p>
+
+<div class="kicker">狀態</div>
+<div class="tl-inline-empty-state" data-state="default">
+  <div class="tl-inline-empty-state__title">還沒有任何項目</div>
+  <div class="tl-inline-empty-state__hint">建立第一個之後會出現在這裡</div>
+</div>
+<div class="tl-inline-empty-state" data-state="titleOnly">
+  <div class="tl-inline-empty-state__title">只有主句</div>
+</div>
+
+<div class="kicker">在清單原本的位置</div>
+<div class="group">
+  <div class="row"><span class="label">頁面其他部分還在</span></div>
+</div>
+<div class="tl-inline-empty-state">
+  <div class="tl-inline-empty-state__title">搜尋沒有結果</div>
+  <div class="tl-inline-empty-state__hint">換個關鍵字，或清除搜尋看全部</div>
+</div>
+<p class="note">
+  <b>不要用同一份文案應付所有空的原因</b> ——
+  「搜尋無結果」與「還沒建立任何項目」是不同的事。
+</p>
+
+<div class="kicker">主題</div>
+<div class="themes">
+  <div class="pane" data-theme="light">
+    <div class="kicker">light</div>
+    <div class="tl-inline-empty-state">
+      <div class="tl-inline-empty-state__title">還沒有任何項目</div>
+      <div class="tl-inline-empty-state__hint">建立第一個之後會出現在這裡</div>
+    </div>
+  </div>
+  <div class="pane" data-theme="dark">
+    <div class="kicker">dark（目前是 light 的複製）</div>
+    <div class="tl-inline-empty-state">
+      <div class="tl-inline-empty-state__title">還沒有任何項目</div>
+      <div class="tl-inline-empty-state__hint">建立第一個之後會出現在這裡</div>
+    </div>
+  </div>
+</div>
+
+<div class="kicker">不適用的狀態</div>
+<p class="note">
+  pressed／disabled／focused —— 不可互動。<br>
+  selected —— 它不表達選取。<br>
+  loading／error —— 它本身就是空狀態的呈現；不同的「為什麼空」由呼叫端換文案。
+</p>

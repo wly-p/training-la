@@ -1,0 +1,291 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>TLSettingsToggleRow</title>
+<link rel="stylesheet" href="../../tokens/tokens.css">
+<link rel="stylesheet" href="../../preview.css">
+<style>
+  body { max-width: 62rem; line-height: 1.7; }
+  h1, h2, h3 { font-family: var(--font-page-title-family); line-height: 1.35; }
+  h1 { font-size: var(--font-page-title); margin: 0 0 var(--space-gap-l); }
+  h2 { font-size: var(--font-card-title); margin: var(--space-section) 0 var(--space-gap-m);
+       padding-top: var(--space-gap-m); border-top: 1px solid var(--border-subtle); }
+  h3 { font-size: var(--font-row-title); margin: var(--space-gap-l) 0 var(--space-gap-s); }
+  a { color: var(--accent-on-surface); }
+  table { border-collapse: collapse; width: 100%; margin: var(--space-gap-m) 0;
+          display: block; overflow-x: auto; }
+  th, td { text-align: left; padding: var(--space-gap-s) var(--space-gap-m);
+           border-bottom: 1px solid var(--border-subtle); vertical-align: top; }
+  th { font-size: var(--font-kicker); letter-spacing: var(--font-kicker-tracking);
+       text-transform: uppercase; color: var(--text-tertiary); }
+  pre { background: var(--surface-raised); border-radius: var(--radius-inner);
+        padding: var(--space-gap-m); overflow-x: auto; }
+  pre code { background: none; padding: 0; }
+  blockquote { margin: var(--space-gap-m) 0; padding-left: var(--space-gap-m);
+               border-left: 3px solid var(--border-subtle); color: var(--text-secondary); }
+  .back { font-size: var(--font-row-sub); margin-bottom: var(--space-gap-l); display: block; }
+</style>
+<a class="back" href="../../index.html">← 元件庫索引</a>
+<h1>TLSettingsToggleRow</h1>
+<h2>1 身分</h2>
+<table>
+<thead>
+<tr>
+<th></th>
+<th></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>層級</td>
+<td>L2 分子</td>
+</tr>
+<tr>
+<td>職責</td>
+<td>設定頁裡的開關列</td>
+</tr>
+<tr>
+<td>原型 id</td>
+<td><code>4b</code> <code>12a</code></td>
+</tr>
+<tr>
+<td>獨立使用</td>
+<td><strong>否 —— 必須置於 <code>TLGroup</code> 之內</strong></td>
+</tr>
+<tr>
+<td>容器責任</td>
+<td>圓角、底色、分隔線由 <code>TLGroup</code> 負責</td>
+</tr>
+<tr>
+<td>實作</td>
+<td><code>Packages/DesignSystem/Sources/DesignSystem/Molecules/TLSettingsToggleRow.swift</code></td>
+</tr>
+<tr>
+<td>Preview</td>
+<td><code>design-system/molecules/TLSettingsToggleRow/TLSettingsToggleRow.preview.html</code></td>
+</tr>
+<tr>
+<td>Preview CSS</td>
+<td><code>components.preview.css</code> §TLSettingsToggleRow</td>
+</tr>
+</tbody>
+</table>
+<p><strong>組成</strong>：由 <code>TLToggle</code>（L1）組成。
+<code>TLToggle</code> 的實作形式是 <code>ToggleStyle</code> 而不是 View，所以這裡是
+<code>Toggle(...).toggleStyle(.tlSwitch)</code> 而不是實例化一個子 View。</p>
+<h2>2 介面 ★</h2>
+<p><strong>Props</strong></p>
+<table>
+<thead>
+<tr>
+<th>名稱</th>
+<th>型別</th>
+<th>值域</th>
+<th>必填</th>
+<th>預設</th>
+<th>說明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>title</code></td>
+<td><code>Text</code></td>
+<td></td>
+<td>是</td>
+<td>—</td>
+<td>列名</td>
+</tr>
+<tr>
+<td><code>hint</code></td>
+<td><code>Text?</code></td>
+<td></td>
+<td>否</td>
+<td><code>nil</code></td>
+<td>標題後方同一行的小灰字。<strong>短詞用</strong>（如「含震動」）</td>
+</tr>
+<tr>
+<td><code>subtitle</code></td>
+<td><code>Text?</code></td>
+<td></td>
+<td>否</td>
+<td><code>nil</code></td>
+<td>標題下方第二行。<strong>整句用</strong>。列高改吃 <code>size.rowWithSub</code></td>
+</tr>
+<tr>
+<td><code>isOn</code></td>
+<td><code>Binding&lt;Bool&gt;</code></td>
+<td></td>
+<td>是</td>
+<td>—</td>
+<td>開關狀態</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Slots</strong> — N/A（右側固定是開關）
+<strong>事件</strong> — 透過 <code>isOn</code> binding 回寫</p>
+<h2>3 變體 variants</h2>
+<p>無變體，但<strong>說明文字有兩種放法</strong>（擇一，不要同時用）：</p>
+<table>
+<thead>
+<tr>
+<th>放法</th>
+<th>用在</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>hint</code></td>
+<td>短詞，跟標題同一行（「含震動」）</td>
+</tr>
+<tr>
+<td><code>subtitle</code></td>
+<td>整句，第二行（「App 不在前景時以系統通知提醒」）</td>
+</tr>
+</tbody>
+</table>
+<p><strong>說明文字固定屬於某一列</strong>，不要放在群組下方 ——
+那會產生「這段在解釋整組還是最後一列」的歧義。</p>
+<h2>4 狀態 states ★</h2>
+<!-- states: on, off, withHint, withSubtitle -->
+<!-- themes: light, dark -->
+
+<table>
+<thead>
+<tr>
+<th>類別</th>
+<th>狀態</th>
+<th>這個元件</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>互動</td>
+<td>default / pressed / disabled / focused</td>
+<td>開關自己有按下態。<strong>沒有 disabled</strong> —— ⚠ 這是實際的缺口：通知開關在系統權限被拒時應該要能表達「打不開」，目前做不到（見第 12 節）</td>
+</tr>
+<tr>
+<td>選取</td>
+<td>selected / unselected / indeterminate</td>
+<td>開／關就是它的兩個狀態；沒有 indeterminate</td>
+</tr>
+<tr>
+<td>資料</td>
+<td>empty / loading / error</td>
+<td>N/A</td>
+</tr>
+<tr>
+<td>內容極值</td>
+<td>最短 / 最長 / 溢出</td>
+<td>標題可換行；開關永遠不被壓縮</td>
+</tr>
+<tr>
+<td>主題</td>
+<td>light / dark</td>
+<td>兩者都有</td>
+</tr>
+<tr>
+<td>語言</td>
+<td>中文 / 英文</td>
+<td><code>subtitle</code> 是整句，英文明顯較長，第二行可能變兩行</td>
+</tr>
+</tbody>
+</table>
+<h2>5 度量與行為</h2>
+<table>
+<thead>
+<tr>
+<th></th>
+<th></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>列高</td>
+<td>無 subtitle：<code>size.row</code>；有 subtitle：<code>size.rowWithSub</code></td>
+</tr>
+<tr>
+<td>左右內距</td>
+<td><code>space.rowInset</code></td>
+</tr>
+<tr>
+<td>標題與 subtitle 之間</td>
+<td><code>space.titleSubGap</code></td>
+</tr>
+<tr>
+<td>標題與 hint 之間</td>
+<td><code>space.titleHintGap</code></td>
+</tr>
+<tr>
+<td>開關</td>
+<td><code>size.switchW</code> × <code>size.switchH</code></td>
+</tr>
+</tbody>
+</table>
+<h3>文字與溢出</h3>
+<p><strong>溢出</strong>：標題與 subtitle 都可換行，列高跟著長（<code>minHeight</code>）。</p>
+<p><strong>多語系寬度</strong>：<code>subtitle</code> 是整句，是全設定頁最長的文字。英文常會變成兩行。</p>
+<p><strong>Dynamic Type</strong>：應跟隨。這一列的文字最多，放大後高度增加最明顯。</p>
+<h3>動態</h3>
+<p>開關的滑動與底色轉換由 <code>TLSwitchToggleStyle</code> 提供。</p>
+<h2>6 配色 ★</h2>
+<table>
+<thead>
+<tr>
+<th>用途</th>
+<th>token</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>標題</td>
+<td><code>textPrimary</code></td>
+</tr>
+<tr>
+<td>hint / subtitle</td>
+<td><code>textTertiary</code></td>
+</tr>
+<tr>
+<td>開關（開）</td>
+<td><code>actionPrimary</code></td>
+</tr>
+<tr>
+<td>開關（關）</td>
+<td><code>surfaceInput</code></td>
+</tr>
+</tbody>
+</table>
+<p><strong>不可以用系統 <code>Toggle</code> 的預設樣式</strong> —— 系統綠會讓整頁瞬間變回原生。</p>
+<h2>7 用法與禁用法</h2>
+<p><strong>用它</strong>：設定頁裡的布林開關。</p>
+<p><strong>易混淆</strong>：<code>TLSettingsRow</code> ＋ trailing 放開關 —— <strong>不要那樣做</strong>。
+底層不是 <code>Toggle</code> 的話會失去 <code>switches</code> 的測試可定位性。</p>
+<p><strong>不要用它</strong>：
+- 開關以外的東西 —— 右側固定是開關，不是 slot
+- <code>hint</code> 與 <code>subtitle</code> 同時用 —— 擇一，兩個都放會讓列變得很吵
+- 把說明文字放到群組下方 —— 見第 3 節</p>
+<h2>8 變更紀錄</h2>
+<table>
+<thead>
+<tr>
+<th>日期</th>
+<th>改動</th>
+<th>原因</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>2026-08-30</td>
+<td>從三合一的 <code>TLSettingsRow.swift</code> 拆出</td>
+<td>那個檔有 3 個 public 元件</td>
+</tr>
+<tr>
+<td>2026-08-30</td>
+<td>內部字面值 <code>3</code>／<code>6</code> 改成 token</td>
+<td>元件內部的字面值也是字面值</td>
+</tr>
+<tr>
+<td>2026-08-30</td>
+<td><strong>記錄 disabled 缺口</strong></td>
+<td>體檢 P1-3 指出：通知授權被拒後，設定裡的開關<strong>仍然顯示開著</strong>，是一個會說謊的設定。要修那個，這個元件需要 disabled 態（或一個「被系統擋住」的表達）。已有 UI 設計票在排（通知授權時機與權限狀態顯示）</td>
+</tr>
+</tbody>
+</table>

@@ -1,0 +1,64 @@
+<!-- @dsCard group="Molecules" name="TLTitleWithTag" subtitle="名稱 ＋ 緊跟在後的小標籤" -->
+<!doctype html>
+<meta charset="utf-8">
+<title>TLTitleWithTag</title>
+<link rel="stylesheet" href="../../tokens/tokens.css">
+<link rel="stylesheet" href="../../preview.css">
+<link rel="stylesheet" href="../../components.preview.css">
+<h1>TLTitleWithTag</h1>
+<p class="note">
+  L2 分子。名稱 ＋ 緊跟在後的小標籤。<br>
+  <b>清單列不要用它</b> —— 標籤跟著名稱浮動時，每一列的左緣都不同，整份清單會出現鋸齒。
+</p>
+
+<div class="kicker">狀態</div>
+<div class="group">
+  <div class="row" data-state="default">
+    <span class="tl-title-with-tag">
+      <span class="tl-title-with-tag__name">項目名稱</span>
+      <span class="tl-equipment-tag">標籤</span>
+    </span>
+  </div>
+</div>
+
+<div class="kicker">內容極值 —— 名稱先讓，標籤不縮</div>
+<div class="group">
+  <div class="row">
+    <span class="tl-title-with-tag">
+      <span class="tl-title-with-tag__name">短名</span>
+      <span class="tl-equipment-tag">標籤</span>
+    </span>
+  </div>
+  <div class="row">
+    <span class="tl-title-with-tag">
+      <span class="tl-title-with-tag__name">很長很長很長很長很長很長很長很長很長很長的名稱</span>
+      <span class="tl-equipment-tag">較長的標籤</span>
+    </span>
+  </div>
+</div>
+<p class="note">
+  兩個容易做錯的細節，也就是它為什麼是元件：名稱要一行截斷、標籤要保住不被壓縮。
+  少了前者，長名稱把標籤推到第二行；少了後者，標籤被壓成一團。
+</p>
+
+<div class="kicker">主題</div>
+<div class="themes">
+  <div class="pane" data-theme="light">
+    <div class="kicker">light</div>
+    <div class="group"><div class="row"><span class="tl-title-with-tag">
+      <span class="tl-title-with-tag__name">項目名稱</span>
+      <span class="tl-equipment-tag">標籤</span></span></div></div>
+  </div>
+  <div class="pane" data-theme="dark">
+    <div class="kicker">dark（目前是 light 的複製）</div>
+    <div class="group"><div class="row"><span class="tl-title-with-tag">
+      <span class="tl-title-with-tag__name">項目名稱</span>
+      <span class="tl-equipment-tag">標籤</span></span></div></div>
+  </div>
+</div>
+
+<div class="kicker">不適用的狀態</div>
+<p class="note">
+  pressed／disabled／focused —— 不可互動。<br>
+  empty —— 沒有標籤就不要用這個排法，直接放名稱。
+</p>

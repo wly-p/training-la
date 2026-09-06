@@ -68,7 +68,7 @@ struct TrainingPreviewSheet: View {
             }
             .padding(.horizontal, TLSpace.page)
             .padding(.top, TLSpace.section)
-            .padding(.bottom, 40)
+            .padding(.bottom, TLSpace.pageBottom)
         }
         .background(TLColor.bg.ignoresSafeArea())
         .presentationDragIndicator(.visible)
@@ -86,12 +86,12 @@ struct TrainingPreviewSheet: View {
                     .foregroundStyle(TLColor.accent700)
             }
             Text(verbatim: blueprint.name ?? localString("training.todaysPlan", locale))
-                .font(TLFont.zh(30, .bold))
+                .font(TLFont.zh(TLFont.sheetTitle, .bold))
                 .foregroundStyle(TLColor.text)
             HStack(spacing: TLSpace.gapS) {
                 if let pill = WeightSourceFormatting.intensityPillText(blueprint.intensityFactor) {
                     Text(String(format: localString("training.preview.intensity %@", locale), pill))
-                        .font(TLFont.zh(11.5, .semibold))
+                        .font(TLFont.zh(TLFont.rowSub, .semibold))
                         .foregroundStyle(TLColor.accent800)
                         .padding(.horizontal, 10)
                         .padding(.vertical, 4)
@@ -110,11 +110,11 @@ struct TrainingPreviewSheet: View {
 
     private func exerciseRow(_ row: ExerciseRow) -> some View {
         HStack(alignment: .center, spacing: TLSpace.gapM) {
-            VStack(alignment: .leading, spacing: 3) {
-                ExerciseNameWithEquipment(name: row.name, equipment: row.equipment.displayName(locale))
+            VStack(alignment: .leading, spacing: TLSpace.titleSubGap) {
+                TLTitleWithTag(name: row.name, equipment: row.equipment.displayName(locale))
                 if let algebra = WeightSourceFormatting.algebraText(row.representative?.weightSource, locale: locale, in: weightUnit) {
                     Text(verbatim: algebra)
-                        .font(TLFont.zh(11, .regular))
+                        .font(TLFont.zh(TLFont.rowSub, .regular))
                         .foregroundStyle(TLColor.accent700)
                 } else if let reason = WeightSourceFormatting.unresolvedReason(row.representative?.weightSource, locale: locale) {
                     Text(verbatim: reason)
@@ -127,14 +127,14 @@ struct TrainingPreviewSheet: View {
         }
         // 水平內距不可省——沒有它，列內文字會貼齊 TLGroup 邊緣被圓角切掉（bug1 破圖主因）。
         .padding(.horizontal, TLSpace.rowInset)
-        .frame(minHeight: 62)
+        .frame(minHeight: TLSize.rowWithSub)
     }
 
     @ViewBuilder private func trailingValue(_ row: ExerciseRow) -> some View {
         if let weight = row.representative?.targetWeight {
             // 統一成「20kg × 8」（displayString 帶單位，不能寫死 kg —— 使用者可能用 lb）。
             // 組數放在前面的「N 組」，這裡不重複。
-            HStack(spacing: 4) {
+            HStack(spacing: TLSpace.valueUnitGap) {
                 Text(verbatim: weight.displayString(in: weightUnit))
                     .font(TLFont.display(15))
                 if let reps = row.representative?.targetReps {
@@ -145,7 +145,7 @@ struct TrainingPreviewSheet: View {
             .foregroundStyle(TLColor.text)
         } else {
             localText("training.preview.pending")
-                .font(TLFont.zh(11.5, .semibold))
+                .font(TLFont.zh(TLFont.rowSub, .semibold))
                 .foregroundStyle(TLColor.neutral600)
                 .padding(.horizontal, 10)
                 .padding(.vertical, 5)
@@ -157,31 +157,30 @@ struct TrainingPreviewSheet: View {
 
     /// 「和上次比」灰卡（14c）：不是鼓勵語，是讓「開始」有依據——上次日期／達標組數／主項增減。
     private func vsLastCard(_ c: LastWorkoutComparison) -> some View {
-        VStack(alignment: .leading, spacing: TLSpace.gapS) {
-            localText("training.preview.vsLast")
-                .font(TLFont.zh(TLFont.kicker, .semibold))
-                .tracking(TLFont.kickerTracking)
-                .textCase(.uppercase)
-                .foregroundStyle(TLColor.neutral500)
-            Text(verbatim: String(
-                format: localString("training.preview.vsLast.summary %@ %lld %lld", locale),
-                "\(c.date.month)/\(c.date.day)", c.achievedSets, c.totalSets
-            ))
-            .font(TLFont.zh(TLFont.rowTitle, .medium))
-            .foregroundStyle(TLColor.text)
-            if let delta = c.mainLiftDeltaKg {
+        TLCard(radius: .inner, fill: TLColor.neutral300) {
+            VStack(alignment: .leading, spacing: TLSpace.gapS) {
+                localText("training.preview.vsLast")
+                    .font(TLFont.zh(TLFont.kicker, .semibold))
+                    .tracking(TLFont.kickerTracking)
+                    .textCase(.uppercase)
+                    .foregroundStyle(TLColor.neutral500)
                 Text(verbatim: String(
-                    format: localString("training.preview.vsLast.mainLift %@", locale),
-                    mainLiftDeltaText(delta)
+                    format: localString("training.preview.vsLast.summary %@ %lld %lld", locale),
+                    "\(c.date.month)/\(c.date.day)", c.achievedSets, c.totalSets
                 ))
-                .font(TLFont.zh(TLFont.rowSub, .semibold))
-                .foregroundStyle(delta > 0 ? TLColor.accent700 : TLColor.neutral600)
+                .font(TLFont.zh(TLFont.rowTitle, .medium))
+                .foregroundStyle(TLColor.text)
+                if let delta = c.mainLiftDeltaKg {
+                    Text(verbatim: String(
+                        format: localString("training.preview.vsLast.mainLift %@", locale),
+                        mainLiftDeltaText(delta)
+                    ))
+                    .font(TLFont.zh(TLFont.rowSub, .semibold))
+                    .foregroundStyle(delta > 0 ? TLColor.accent700 : TLColor.neutral600)
+                }
             }
+            .frame(maxWidth: .infinity, alignment: .leading)
         }
-        .padding(TLSpace.rowInset)
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .background(TLColor.neutral300)
-        .clipShape(RoundedRectangle(cornerRadius: TLRadius.inner, style: .continuous))
     }
 
     /// 主項增減文字：`+2.5 kg` / `−2.5 kg` / `持平`。

@@ -1,3 +1,4 @@
+import DesignControls
 import DesignSystem
 import PlanDomain
 import SharedKernel
@@ -25,7 +26,7 @@ public struct TemplateListView: View {
                     emptyState
                 } else {
                     VStack(alignment: .leading, spacing: 0) {
-                        SectionHeader(localText("template.sectionTitle")
+                        TLSectionHeader(localText("template.sectionTitle")
                             + Text(verbatim: " · \(viewModel.templates.count)"))
                         TLGroup {
                             ForEach(viewModel.templates) { row($0) }
@@ -36,7 +37,7 @@ public struct TemplateListView: View {
             }
             .padding(.horizontal, TLSpace.page)
             .padding(.top, TLSpace.gapS)
-            .padding(.bottom, 40)
+            .padding(.bottom, TLSpace.pageBottom)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background(TLColor.bg)
@@ -95,10 +96,13 @@ public struct TemplateListView: View {
 
     private func row(_ template: WorkoutTemplate) -> some View {
         // 左滑露出「複製」（14a，88pt、neutral-400 底）——左滑只有複製，刪除依 8b 原則不放滑動裡。
-        SwipeToRevealRow(
-            actionLabel: localText("template.duplicate"),
-            actionSystemImage: "doc.on.doc",
-            onAction: {
+        TemplateRow(
+            name: template.name,
+            summary: Text(PlanFormatting.templateSummary(template, name: viewModel.name(for:), language: AppLanguage(locale: locale))),
+            blockCount: template.blocks.count,
+            duplicateLabel: localText("template.duplicate"),
+            deleteLabel: localText("plan.delete"),
+            onDuplicate: {
                 Task {
                     guard let copy = await viewModel.duplicate(
                         id: template.id,
@@ -107,59 +111,30 @@ public struct TemplateListView: View {
                     duplicatedFromName = template.name
                     editing = .edit(copy)
                 }
+            },
+            onDelete: { Task { await viewModel.delete(id: template.id) } },
+            onTap: {
+                duplicatedFromName = nil
+                editing = .edit(template)
             }
-        ) {
-            ListRow(
-                title: Text(verbatim: template.name),
-                subtitle: Text(PlanFormatting.templateSummary(template, name: viewModel.name(for:), language: AppLanguage(locale: locale))),
-                showChevron: true,
-                onTap: {
-                    duplicatedFromName = nil
-                    editing = .edit(template)
-                },
-                leading: {
-                    // 數字圓章＝含幾個動作（neutral 底，設計稿 5b）。
-                    CircleBadge(fill: TLColor.neutral300) {
-                        Text(verbatim: "\(template.blocks.count)")
-                            .font(TLFont.display(16))
-                            .foregroundStyle(TLColor.neutral800)
-                    }
-                }
-            )
-            .contextMenu {
-                Button(role: .destructive) {
-                    Task { await viewModel.delete(id: template.id) }
-                } label: {
-                    Label { localText("plan.delete") } icon: { Image(systemName: "trash") }
-                }
-            }
-        }
+        )
     }
 
     private var emptyState: some View {
-        VStack(spacing: 8) {
-            localText("template.empty")
-                .font(TLFont.zh(16, .bold))
-                .foregroundStyle(TLColor.text)
-            localText("template.empty.hint")
-                .font(TLFont.zh(12.5, .regular))
-                .foregroundStyle(TLColor.neutral600)
-                .multilineTextAlignment(.center)
-        }
-        .frame(maxWidth: .infinity)
-        .padding(.vertical, 40)
+        TLInlineEmptyState(
+            title: localText("template.empty"),
+            hint: localText("template.empty.hint")
+        )
     }
 
     private func explainerCard(_ text: Text) -> some View {
-        text
-            .font(TLFont.zh(TLFont.rowTitle, .regular))
-            .foregroundStyle(TLColor.neutral600)
-            .multilineTextAlignment(.center)
-            .frame(maxWidth: .infinity)
-            .padding(.horizontal, TLSpace.page)
-            .padding(.vertical, 26)
-            .background(TLColor.neutral100)
-            .clipShape(RoundedRectangle(cornerRadius: TLRadius.container, style: .continuous))
+        TLCard(padding: .roomy) {
+            text
+                .font(TLFont.zh(TLFont.rowTitle, .regular))
+                .foregroundStyle(TLColor.neutral600)
+                .multilineTextAlignment(.center)
+                .frame(maxWidth: .infinity)
+        }
     }
 }
 

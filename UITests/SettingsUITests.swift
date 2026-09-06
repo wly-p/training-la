@@ -1,6 +1,22 @@
 import XCTest
 
 final class SettingsUITests: XCTestCase {
+    /// 設定列「目前的值」怎麼讀。
+    ///
+    /// 以前是 `row.value`——那靠的是 `TLSettingsRow` 套的 `accessibilityValue`。
+    /// 2026-08-30 移除無障礙那一輪把它拿掉了（`717fb1d`），於是 `value` 一律是空字串。
+    ///
+    /// SwiftUI 的 `Button` 會把子元素的文字合進 `label`（實測「Language, English」），
+    /// 所以改讀 label：**列名與值都在同一個字串裡**，斷言值有沒有出現在裡面。
+    private func assertRowValue(_ row: XCUIElement, _ expected: String,
+                                file: StaticString = #filePath, line: UInt = #line) {
+        XCTAssertTrue(
+            row.label.contains(expected),
+            "設定列應顯示「\(expected)」，實際 label 是「\(row.label)」",
+            file: file, line: line
+        )
+    }
+
     @MainActor
     func testThemeSelectionDrillInUpdatesValue() throws {
         let app = XCUIApplication()
@@ -25,7 +41,7 @@ final class SettingsUITests: XCTestCase {
         // 主題列的目前值 = 剛才選的那個
         let row = app.buttons["settings.row.theme"]
         XCTAssertTrue(row.waitForExistence(timeout: 5))
-        XCTAssertEqual(row.value as? String, darkLabel)
+        assertRowValue(row, darkLabel)
     }
 
     @MainActor
@@ -62,9 +78,15 @@ final class SettingsUITests: XCTestCase {
         // 選完自動返回設定根頁
         XCTAssertTrue(app.staticTexts["settings.title"].waitForExistence(timeout: 5))
 
+        // ⚠ 這一列的「目前值」讀不到：它的右件是 `TLIconThumbnail`（一張圖，沒有文字），
+        // 所以沒有東西會被折進 Button 的 label——不像主題／語言列的值是文字。
+        // 以前靠 `accessibilityValue` 讀，那個在 `717fb1d 移除無障礙` 被拿掉了。
+        //
+        // 所以這裡只驗流程走得完（選單開得了、系統彈窗處理得掉、選完會回到設定根頁），
+        // 值的部分等它有測試用的讀取管道再補。已記進 design-system/CHANGELOG.md 的已知缺口。
+        _ = optionLabel
         let row = app.buttons["settings.row.appIcon"]
         XCTAssertTrue(row.waitForExistence(timeout: 5))
-        XCTAssertEqual(row.value as? String, optionLabel)
     }
 
     @MainActor
@@ -78,7 +100,7 @@ final class SettingsUITests: XCTestCase {
         // 使用者都認得自己的選項。所以期望值跟著這一輪的 app 語言走，不是跟著介面語言走。
         let row = app.buttons["settings.row.language"]
         XCTAssertTrue(row.waitForExistence(timeout: 5))
-        XCTAssertEqual(row.value as? String, uitestAppLanguage == "en" ? "English" : "繁體中文")
+        assertRowValue(row, uitestAppLanguage == "en" ? "English" : "繁體中文")
     }
 
     /// 語言切換本身。刻意固定從繁中開始——英文那一輪如果讓它從英文起跑，就沒有「切換」可測了。
@@ -103,8 +125,10 @@ final class SettingsUITests: XCTestCase {
         XCTAssertEqual(title.label, "Settings", "設定大標題應為 Settings")
         let langRowEN = app.buttons["settings.row.language"]
         XCTAssertTrue(langRowEN.waitForExistence(timeout: 5))
-        XCTAssertEqual(langRowEN.label, "Language")
-        XCTAssertEqual(langRowEN.value as? String, "English")
+        // label 同時含列名與值（「Language, English」），所以兩個都用 contains 斷言。
+        XCTAssertTrue(langRowEN.label.contains("Language"),
+                      "語言列的列名應為 Language，實際是「\(langRowEN.label)」")
+        assertRowValue(langRowEN, "English")
 
         // App target 的 tab bar 也英文化（驗證 app-target String Catalog 生效）
         XCTAssertEqual(app.buttons["tabBar.item.settings"].label, "Settings")
@@ -112,7 +136,7 @@ final class SettingsUITests: XCTestCase {
 
         // 回歸（bug2）：其他分頁的標題也要更新——原本用 navigationTitle 橋接 UIKit 會被快取、
         // 不隨 \.locale 重解析，靠 .id(language) 重建整個 TabView 才會以新語言重產。
-        // 歷史頁改版後標題是 PageHeader（純 SwiftUI Text），不再是 navigationTitle，
+        // 歷史頁改版後標題是 TLPageHeader（純 SwiftUI Text），不再是 navigationTitle，
         // 但一樣要驗證切語言後這個標題確實跟著換。
         app.buttons["tabBar.item.history"].tap()
         XCTAssertTrue(app.staticTexts["History"].waitForExistence(timeout: 5), "切英文後歷史大標題應為 History")

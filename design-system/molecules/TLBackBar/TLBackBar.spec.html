@@ -1,0 +1,223 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>TLBackBar</title>
+<link rel="stylesheet" href="../../tokens/tokens.css">
+<link rel="stylesheet" href="../../preview.css">
+<style>
+  body { max-width: 62rem; line-height: 1.7; }
+  h1, h2, h3 { font-family: var(--font-page-title-family); line-height: 1.35; }
+  h1 { font-size: var(--font-page-title); margin: 0 0 var(--space-gap-l); }
+  h2 { font-size: var(--font-card-title); margin: var(--space-section) 0 var(--space-gap-m);
+       padding-top: var(--space-gap-m); border-top: 1px solid var(--border-subtle); }
+  h3 { font-size: var(--font-row-title); margin: var(--space-gap-l) 0 var(--space-gap-s); }
+  a { color: var(--accent-on-surface); }
+  table { border-collapse: collapse; width: 100%; margin: var(--space-gap-m) 0;
+          display: block; overflow-x: auto; }
+  th, td { text-align: left; padding: var(--space-gap-s) var(--space-gap-m);
+           border-bottom: 1px solid var(--border-subtle); vertical-align: top; }
+  th { font-size: var(--font-kicker); letter-spacing: var(--font-kicker-tracking);
+       text-transform: uppercase; color: var(--text-tertiary); }
+  pre { background: var(--surface-raised); border-radius: var(--radius-inner);
+        padding: var(--space-gap-m); overflow-x: auto; }
+  pre code { background: none; padding: 0; }
+  blockquote { margin: var(--space-gap-m) 0; padding-left: var(--space-gap-m);
+               border-left: 3px solid var(--border-subtle); color: var(--text-secondary); }
+  .back { font-size: var(--font-row-sub); margin-bottom: var(--space-gap-l); display: block; }
+</style>
+<a class="back" href="../../index.html">← 元件庫索引</a>
+<h1>TLBackBar</h1>
+<h2>1 身分</h2>
+<table>
+<thead>
+<tr>
+<th></th>
+<th></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>層級</td>
+<td>L2 分子</td>
+</tr>
+<tr>
+<td>職責</td>
+<td>drill-in 子頁左上角的返回列</td>
+</tr>
+<tr>
+<td>原型 id</td>
+<td>無 —— <strong>這一層從來沒有設計稿</strong>，見第 12 節</td>
+</tr>
+<tr>
+<td>獨立使用</td>
+<td>是 —— 它自己就是一個橫列，直接放在畫面最上方</td>
+</tr>
+<tr>
+<td>容器責任</td>
+<td>左右邊距與上邊距由這個元件自己負責；下方的間距由畫面給</td>
+</tr>
+<tr>
+<td>實作</td>
+<td><code>Packages/DesignSystem/Sources/DesignSystem/Molecules/TLBackBar.swift</code></td>
+</tr>
+<tr>
+<td>Preview</td>
+<td><code>design-system/molecules/TLBackBar/TLBackBar.preview.html</code></td>
+</tr>
+<tr>
+<td>Preview CSS</td>
+<td><code>components.preview.css</code> §TLBackBar</td>
+</tr>
+</tbody>
+</table>
+<p><strong>組成</strong>：由 <code>TLCircleIconButton</code>（L1）組成。</p>
+<h2>2 介面 ★</h2>
+<p><strong>Props</strong></p>
+<table>
+<thead>
+<tr>
+<th>名稱</th>
+<th>型別</th>
+<th>值域</th>
+<th>必填</th>
+<th>預設</th>
+<th>說明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>onBack</code></td>
+<td><code>() -&gt; Void</code></td>
+<td></td>
+<td>是</td>
+<td>—</td>
+<td>點返回鈕</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Slots</strong> — <code>trailing</code>：右側的操作區，預設空。某些子頁在這裡放一個文字操作（例：編輯）。
+<strong>事件</strong> — <code>onBack</code>（見上）</p>
+<h2>3 變體 variants</h2>
+<p>無。<strong>一個上邊距，兩頁共用。</strong></p>
+<h2>4 狀態 states ★</h2>
+<!-- states: default -->
+<!-- themes: light, dark -->
+
+<table>
+<thead>
+<tr>
+<th>類別</th>
+<th>狀態</th>
+<th>這個元件</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>互動</td>
+<td>default / pressed / disabled / focused</td>
+<td><strong>只有 default。</strong> 按下態由 <code>TLCircleIconButton</code> 自己表現；這個容器不變</td>
+</tr>
+<tr>
+<td>選取</td>
+<td>selected / unselected / indeterminate</td>
+<td>N/A —— 它不表達選取</td>
+</tr>
+<tr>
+<td>資料</td>
+<td>empty / loading / error</td>
+<td>N/A —— 沒有資料輸入</td>
+</tr>
+<tr>
+<td>內容極值</td>
+<td>最短 / 最長 / 溢出 / 數字最大位數</td>
+<td>trailing 放太寬時會擠壓中間的空白，但返回鈕永遠保持原尺寸</td>
+</tr>
+<tr>
+<td>主題</td>
+<td>light / dark</td>
+<td>兩者都有。自己沒有底色，顏色都來自 <code>TLCircleIconButton</code></td>
+</tr>
+<tr>
+<td>語言</td>
+<td>中文 / 英文</td>
+<td>自己無可見文字；trailing 若放文字動作會受語言長度影響</td>
+</tr>
+</tbody>
+</table>
+<h2>5 度量與行為</h2>
+<table>
+<thead>
+<tr>
+<th></th>
+<th></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>左右邊距</td>
+<td><code>space.page</code></td>
+</tr>
+<tr>
+<td>上邊距</td>
+<td><code>space.gapS</code></td>
+</tr>
+<tr>
+<td>返回鈕</td>
+<td><code>TLCircleIconButton</code> 的預設尺寸（<code>size.iconButton</code> ＝ 最小觸控）</td>
+</tr>
+<tr>
+<td>最小寬度</td>
+<td>返回鈕 ＋ trailing 的寬度和；再窄就由 trailing 讓</td>
+</tr>
+<tr>
+<td>壓縮行為</td>
+<td>中間的 Spacer 先被壓掉；返回鈕不縮</td>
+</tr>
+</tbody>
+</table>
+<h3>文字與溢出</h3>
+<p>自己無文字。trailing 放文字動作時，中英長度差由該動作自己處理。</p>
+<p><strong>Dynamic Type</strong>：返回鈕不跟隨（它是固定觸控目標）；trailing 的文字應該跟隨。</p>
+<h3>動態</h3>
+<p>無轉場。返回鈕的按下態動畫由 <code>TLCircleIconButton</code> 提供。</p>
+<h2>6 配色 ★</h2>
+<p>自己沒有顏色。返回鈕用 <code>TLCircleIconButton</code> 的 <code>outline</code> 材質。</p>
+<h2>7 用法與禁用法</h2>
+<p><strong>用它</strong>：drill-in 子頁需要一個返回入口時。</p>
+<p><strong>易混淆</strong>：<code>TLPageHeader</code>（頁面主標）—— 這個是<strong>主標上方的導航列</strong>，兩者通常上下相鄰但職責不同：
+一個管「怎麼回去」，一個管「這是哪裡」。</p>
+<p><strong>不要用它</strong>：
+- 當作 navigation bar 用 —— 它只有返回與一個動作，不是完整的工具列
+- 在根層畫面用 —— 根層沒有「回去」，放了會騙使用者
+- 把標題塞進 trailing —— 標題是 <code>TLPageHeader</code> 的事</p>
+<h2>8 變更紀錄</h2>
+<table>
+<thead>
+<tr>
+<th>日期</th>
+<th>改動</th>
+<th>原因</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>2026-08-30</td>
+<td>從 <code>SettingsSelectionView.swift</code> 與 <code>StepPreferenceView.swift</code> 抽出</td>
+<td>同一個返回列在兩個畫面各寫一份</td>
+</tr>
+<tr>
+<td>2026-08-30</td>
+<td><strong>加 <code>trailing</code> slot</strong></td>
+<td>抽的時候查到 <code>RotationDetailView</code> / <code>ProgramDetailView</code> 有同樣的返回列，但右側多一個「編輯」。不先留這個位置的話，階段 4 會回頭改這個元件</td>
+</tr>
+<tr>
+<td>2026-08-30</td>
+<td><strong>統一成 <code>space.gapS</code>，不做變體</strong>（設計端拍板）</td>
+<td>原本 12（選擇頁）與 8（級距頁）並存，而 12 沒有任何文件來源、8 剛好是 <code>gapS</code>。所以這題其實是「要不要為了 12 新增一個 token」，答案是不要。選 8 的理由：返回鈕是 44×44 觸控區、圓形視覺本體比觸控區小，<strong>上緣本來就自帶留白</strong>，再多給會把主標推得太低——主標與返回鈕該是同一個「頁面開頭」的單位。若實際看起來擠，正確解法是新增語意 token（例如 <code>space.screenTop</code>）兩頁一起用，不是把某一頁改回字面 12</td>
+</tr>
+<tr>
+<td>2026-08-30</td>
+<td>改用 <code>TLCircleIconButton</code> 的 <code>style:</code> API，不用 <code>filled:</code></td>
+<td>那個 init 標了「舊呼叫端相容」。全專案還有 3 處在用，之後順手換掉</td>
+</tr>
+</tbody>
+</table>

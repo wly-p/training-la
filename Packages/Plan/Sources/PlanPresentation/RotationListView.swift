@@ -1,3 +1,4 @@
+import DesignControls
 import DesignSystem
 import PlanDomain
 import SharedKernel
@@ -56,7 +57,7 @@ public struct RotationListView: View {
             }
             .padding(.horizontal, TLSpace.page)
             .padding(.top, TLSpace.gapS)
-            .padding(.bottom, 40)
+            .padding(.bottom, TLSpace.pageBottom)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background(TLColor.bg)
@@ -146,14 +147,8 @@ public struct RotationListView: View {
         @ViewBuilder content: () -> Content
     ) -> some View {
         VStack(alignment: .leading, spacing: 0) {
-            SectionHeader(header, tint: tint)
-            TLGroup(content: content)
-                .overlay {
-                    if bordered {
-                        RoundedRectangle(cornerRadius: TLRadius.container, style: .continuous)
-                            .strokeBorder(TLColor.accent300, lineWidth: 1.5)
-                    }
-                }
+            TLSectionHeader(header, tint: tint)
+            TLGroup(border: bordered ? TLColor.accent300 : nil, content: content)
         }
     }
 
@@ -161,46 +156,38 @@ public struct RotationListView: View {
 
     private func activeRow(_ rotation: Rotation) -> some View {
         // 左滑露出「停用」（8b，neutral-400、非紅）→ accent 確認；drill-in 用 value-based NavigationLink。
-        SwipeToRevealRow(
-            actionLabel: localText("rotation.manage.deactivate"),
-            actionSystemImage: "pause",
-            onAction: { pendingDeactivate = rotation.id }
-        ) {
-            NavigationLink(value: rotation.id) {
-                ListRow(
-                    title: Text(verbatim: rotation.name),
-                    subtitle: Text(PlanFormatting.rotationSummary(rotation, language: AppLanguage(locale: locale))),
-                    showChevron: true,
-                    leading: {
-                        CircleBadge(icon: "arrow.triangle.2.circlepath", fill: TLColor.accent, tint: TLColor.bg)
-                    },
-                    trailing: { statusPill(rotation) }
-                )
-            }
-            .buttonStyle(.plain)
-        }
-        .contextMenu { rowMenu(rotation) }
+        RotationRow(
+            mode: .active,
+            id: rotation.id,
+            name: rotation.name,
+            subtitle: Text(PlanFormatting.rotationSummary(rotation, language: AppLanguage(locale: locale))),
+            trailing: AnyView(statusPill(rotation)),
+            deactivateLabel: localText("rotation.manage.deactivate"),
+            onDeactivate: { pendingDeactivate = rotation.id },
+            menu: AnyView(rowMenu(rotation))
+        )
     }
 
     private func inactiveRow(_ rotation: Rotation) -> some View {
         // 未啟用列：設計稿無 chevron、不 drill-in（低頻編輯先啟用再進）；右側 inline「啟用」。
         // 有進度者副標顯示「停在第 N 輪 · 目前範本」（8b）；沒進度就顯示組成摘要。
-        ListRow(
-            title: Text(verbatim: rotation.name),
+        RotationRow(
+            mode: .inactive,
+            id: rotation.id,
+            name: rotation.name,
             subtitle: inactiveSubtitle(rotation),
-            leading: {
-                CircleBadge(icon: "arrow.triangle.2.circlepath", fill: TLColor.neutral300, tint: TLColor.neutral600)
-            },
-            trailing: {
+            trailing: AnyView(
                 Button {
                     Task { await viewModel.setActive(id: rotation.id, true) }
                 } label: {
                     localText("plan.activate")
                 }
                 .buttonStyle(.tlText)
-            }
+            ),
+            deactivateLabel: Text(verbatim: ""),
+            onDeactivate: {},
+            menu: AnyView(rowMenu(rotation))
         )
-        .contextMenu { rowMenu(rotation) }
     }
 
     private func inactiveSubtitle(_ rotation: Rotation) -> Text {
@@ -251,16 +238,9 @@ public struct RotationListView: View {
     }
 
     private var emptyState: some View {
-        VStack(spacing: 8) {
-            localText("rotation.empty")
-                .font(TLFont.zh(16, .bold))
-                .foregroundStyle(TLColor.text)
-            localText("rotation.empty.hint")
-                .font(TLFont.zh(12.5, .regular))
-                .foregroundStyle(TLColor.neutral600)
-                .multilineTextAlignment(.center)
-        }
-        .frame(maxWidth: .infinity)
-        .padding(.vertical, 40)
+        TLInlineEmptyState(
+            title: localText("rotation.empty"),
+            hint: localText("rotation.empty.hint")
+        )
     }
 }

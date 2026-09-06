@@ -1,0 +1,133 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>交付說明 · 第八輪（階段 5 完成 —— 五個階段全數做完）</title>
+<link rel="stylesheet" href="tokens/tokens.css">
+<link rel="stylesheet" href="preview.css">
+<style>
+  body { max-width: 62rem; line-height: 1.7; }
+  h1, h2, h3 { font-family: var(--font-page-title-family); line-height: 1.35; }
+  h1 { font-size: var(--font-page-title); margin: 0 0 var(--space-gap-l); }
+  h2 { font-size: var(--font-card-title); margin: var(--space-section) 0 var(--space-gap-m);
+       padding-top: var(--space-gap-m); border-top: 1px solid var(--border-subtle); }
+  h3 { font-size: var(--font-row-title); margin: var(--space-gap-l) 0 var(--space-gap-s); }
+  a { color: var(--accent-on-surface); }
+  table { border-collapse: collapse; width: 100%; margin: var(--space-gap-m) 0;
+          display: block; overflow-x: auto; }
+  th, td { text-align: left; padding: var(--space-gap-s) var(--space-gap-m);
+           border-bottom: 1px solid var(--border-subtle); vertical-align: top; }
+  th { font-size: var(--font-kicker); letter-spacing: var(--font-kicker-tracking);
+       text-transform: uppercase; color: var(--text-tertiary); }
+  pre { background: var(--surface-raised); border-radius: var(--radius-inner);
+        padding: var(--space-gap-m); overflow-x: auto; }
+  pre code { background: none; padding: 0; }
+  blockquote { margin: var(--space-gap-m) 0; padding-left: var(--space-gap-m);
+               border-left: 3px solid var(--border-subtle); color: var(--text-secondary); }
+  .back { font-size: var(--font-row-sub); margin-bottom: var(--space-gap-l); display: block; }
+</style>
+<a class="back" href="index.html">← 元件庫索引</a>
+<h1>交付說明 · 第八輪（階段 5 完成 —— 五個階段全數做完）</h1>
+<blockquote>
+<p>給設計端。每輪重寫，只講「這輪跟上輪的差別」與「這輪想請你看什麼」。
+規則書是 <code>README.md</code>（正典），完整決策脈絡在 <code>CHANGELOG.md</code>。
+日期：2026-09-04</p>
+</blockquote>
+<hr />
+<h2>五個階段全部做完了</h2>
+<table>
+<thead>
+<tr>
+<th>階段</th>
+<th>範圍</th>
+<th>字面樣式</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td>設定</td>
+<td>13 → 0</td>
+</tr>
+<tr>
+<td>2</td>
+<td>動作庫</td>
+<td>66 → 17</td>
+</tr>
+<tr>
+<td>3</td>
+<td>歷史</td>
+<td>38 → 15</td>
+</tr>
+<tr>
+<td>4</td>
+<td>課表</td>
+<td>12 → 3</td>
+</tr>
+<tr>
+<td>5</td>
+<td>訓練</td>
+<td>100 → 24</td>
+</tr>
+</tbody>
+</table>
+<p><strong>全 app：208 → 66。</strong> 而剩下的 66 處<strong>每一處都有理由</strong>：</p>
+<pre><code>34  display 字級      等你的第二批
+22  膠囊幾何          等你的第二批
+ 6  中文字級          單位 4（跟著數字走）＋ 低於可讀下限 2
+ 4  UITest 幽靈錨點   0×0 的測試鉤子，不是樣式
+</code></pre>
+<p><strong>換句話說：能收的都收完了，剩下的都在等你。</strong></p>
+<hr />
+<h2>這一包有什麼</h2>
+<p>元件 <strong>34</strong> 個（Atoms 13 · Molecules 15 · Organisms 7），機器檢查 <strong>18</strong> 條。</p>
+<p>這一輪新增：<code>TLPillButton</code>（L1）· <code>TLStat</code>（L2）· <code>TLCircleIcon</code>（L1，上一輪）。</p>
+<hr />
+<h2>一 · 我們的字級尺度以外，還有第二套字級系統</h2>
+<p><code>.font(.footnote)</code> / <code>.caption</code> / <code>.headline</code> 這類<strong>系統字級</strong>，全 app <strong>25 處</strong>
+（Training 佔 22）。它們連數字都沒有，所以<strong>前兩版的檢查完全看不到</strong>。</p>
+<p>比字面值更麻煩的地方：<strong>系統字級跟著 Dynamic Type 縮放，我們的固定值不會。</strong></p>
+<p>已經照你的判準就近併，位移都 ≤1px（完整對照表在 <code>CHANGELOG.md</code>）。
+但這代表<strong>那 25 處從「會縮放」變成「不會縮放」</strong> —— 這是行為改變，不只是像素改變。</p>
+<hr />
+<h2>二 · 「元件不得有邏輯」終於有人守</h2>
+<p>這條規則寫在正典裡，但<strong>18 條檢查裡一直沒有一條看它</strong>。已補上檢查 18。</p>
+<p>掃描結果：<strong>零狀態、零格式化</strong>，只有 <code>TLProgressBar</code> 用了 <code>GeometryReader</code>。
+那一處走登記制 —— 把 <code>ratio</code> 映射成寬度<strong>就是進度條的呈現本身</strong>，那是佈局不是邏輯。</p>
+<hr />
+<h2>三 · 這一輪抽出的兩個元件，都是「同一件事的兩份實作」</h2>
+<table>
+<thead>
+<tr>
+<th></th>
+<th>原本</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>TLPillButton</code></td>
+<td>訓練頁裡有 <code>restPill</code> 與 <code>quickPill</code> 兩份，只差 2px 內距與一階文字色</td>
+</tr>
+<tr>
+<td><code>TLStat</code></td>
+<td>訓練首頁與完成摘要<strong>各有一份一模一樣的</strong>「大數字＋標籤」</td>
+</tr>
+</tbody>
+</table>
+<p><code>TLStat</code> 那個特別值得記：<strong>跨檔的重複比同檔的更難發現</strong> —— 讀任何一邊都看不出來。</p>
+<p>膠囊的那兩個內距（8／10）<strong>我沒有自己收</strong> —— 收成一個是視覺決定，屬於下面問題 2。</p>
+<hr />
+<h2>這輪想請你看的（前四個是上一輪就問過、還沒回的）</h2>
+<p><strong>1 · display 字級尺度</strong>（34 處在等）
+13 個值、只有 3 個有角色名。<code>15</code> 用了 14 次比已命名的 <code>rowNumber</code>(16) 還常用 ——
+<code>rowNumber</code> 當初可能就取錯了。</p>
+<p><strong>2 · 膠囊幾何</strong>（22 處在等）
+三分法（標籤／chip／按鈕）成立嗎？每一類的幾何是什麼？
+<code>TLPillButton</code> 的 hug／fill 差 2px 也在這一題裡。</p>
+<p><strong>3 · 字級小端 <code>11.5 / 12 / 12 / 12.5</code></strong> 四個角色擠在 1px 內，你的規則說不行。</p>
+<p><strong>4 · 卡底三階只有一階有語意名字</strong>（<code>neutral-300</code>、<code>accent-200</code> 還在借原始色階）。</p>
+<p><strong>5 · 新的：<code>emptyTitle</code>(16) 該改名。</strong>
+訓練頁有一處 <code>.headline</code>(17) 併進了它 —— 但那是「休息全螢幕裡下一個動作的名字」，
+跟「空狀態」無關。跟 <code>emptyHint</code>→<code>caption</code> 同一型：名字綁死在一個情境，
+下一個人就不敢用它，然後又寫一個字面值。</p>
+<p><strong>6 · 新的：Dynamic Type 的立場。</strong>
+現在全 app 幾乎都是固定字級。要支援 Dynamic Type 的話，字級 token 得改成
+相對於系統字級的定義 —— 那是尺度層的重做，愈晚做愈貴。要現在決定嗎？</p>

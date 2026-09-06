@@ -1,0 +1,39 @@
+/* 控制項在 preview 裡的視覺表述。
+ *
+ * 跟 components.preview.css 分開，因為控制項不是元件庫的一部分
+ * （有內部狀態與計算，住 DesignControls）。這個檔不進交付包。
+ */
+/* TLValuePicker */
+.tl-value-picker { display: flex; flex-direction: column; gap: var(--space-picker-gap); }
+.tl-value-picker__wheel { text-align: center; }
+.tl-value-picker__value { font-family: var(--font-display); padding: var(--space-gap-s) 0; }
+.tl-value-picker__value--far {
+  font-size: var(--font-row-title); color: var(--text-tertiary); opacity: .5;
+}
+.tl-value-picker__value--near { font-size: var(--font-card-title); color: var(--text-secondary); }
+.tl-value-picker__value--selected { font-size: var(--font-page-title); color: var(--text-numeric); }
+.tl-value-picker__quick {
+  display: flex; gap: var(--space-gap-s);
+  height: var(--size-quick-action-row); align-items: center;
+}
+.tl-value-picker__chip {
+  flex: 1; text-align: center; border-radius: var(--radius-pill);
+  padding: var(--space-chip-pad-v) 0; font-size: var(--font-row-sub);
+  border: var(--size-hairline) solid var(--border-subtle); color: var(--text-secondary);
+}
+
+/* TLSwipeToRevealRow */
+/* 露出的動作固定寬度，內容整條左移蓋住它。preview 用靜態版面示意，不做手勢。 */
+.tl-swipe-row { position: relative; overflow: hidden; }
+.tl-swipe-row__action {
+  position: absolute; inset: 0 0 0 auto;
+  width: var(--size-swipe-action);
+  display: flex; align-items: center; justify-content: center;
+  background: var(--neutral-400); color: var(--surface-base);
+  font-size: var(--font-row-sub); font-weight: 600;
+}
+.tl-swipe-row__content {
+  position: relative;
+  background: var(--surface-raised);
+  transform: translateX(calc(-1 * var(--size-swipe-action)));
+}

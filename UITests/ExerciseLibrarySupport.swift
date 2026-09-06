@@ -100,7 +100,7 @@ extension XCUIApplication {
         )
     }
 
-    /// 排課表單裡加一個動作：PickerSheet 是多選，選完要按確認鈕。
+    /// 排課表單裡加一個動作：TLPickerSheet 是多選，選完要按確認鈕。
     @MainActor func addExerciseToPlan(
         named name: String, file: StaticString = #filePath, line: UInt = #line
     ) {

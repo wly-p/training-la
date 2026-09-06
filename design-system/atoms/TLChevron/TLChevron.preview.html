@@ -1,0 +1,70 @@
+<!-- @dsCard group="Atoms" name="TLChevron" subtitle="可進入的列右側指向記號" -->
+<!doctype html>
+<meta charset="utf-8">
+<title>TLChevron</title>
+<link rel="stylesheet" href="../../tokens/tokens.css">
+<link rel="stylesheet" href="../../preview.css">
+<link rel="stylesheet" href="../../components.preview.css">
+<style>
+/* 尺寸與 stroke 一律走 token。SVG 的 width/height 屬性吃不到 var()，
+     但改用 CSS 就可以，stroke-width 本身也是 CSS 屬性。 */
+    display: block;
+    color: var(--text-tertiary);
+    width: var(--icon-inline);
+    height: var(--icon-inline);
+    stroke-width: var(--icon-stroke);
+  }
+</style>
+
+<h1>TLChevron</h1>
+<p class="note">
+  L1 原子。無 props、無變體。尺寸與顏色固定；間距由使用它的列負責。<br>
+  設計端形狀用 Lucide <code>chevron-right</code>（<code>--icon-stroke</code>），
+  實作用 SF Symbol <code>chevron.right</code>（<code>--icon-s</code>／semibold）——
+  這是全專案既定的圖示對應慣例。
+</p>
+
+<div class="kicker">狀態</div>
+<div class="group">
+  <div class="row" data-state="default">
+    <span class="label">預設（唯一的狀態）</span>
+    <svg class="tl-chevron" viewBox="0 0 24 24" fill="none"
+         stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"
+         aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg>
+  </div>
+</div>
+
+<div class="kicker">主題</div>
+<div class="themes">
+  <div class="pane" data-theme="light">
+    <div class="kicker">light</div>
+    <div class="group">
+      <div class="row">
+        <span class="label">在群組容器裡的實際位置</span>
+        <svg class="tl-chevron" viewBox="0 0 24 24" fill="none"
+             stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"
+             aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg>
+      </div>
+    </div>
+  </div>
+  <div class="pane" data-theme="dark">
+    <div class="kicker">dark（目前是 light 的複製）</div>
+    <div class="group">
+      <div class="row">
+        <span class="label">在群組容器裡的實際位置</span>
+        <svg class="tl-chevron" viewBox="0 0 24 24" fill="none"
+             stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"
+             aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="kicker">不適用的狀態</div>
+<p class="note">
+  pressed／disabled／focused —— 按下態由整列表現，chevron 本身不變。<br>
+  selected／unselected／indeterminate —— 它不表達選取。<br>
+  empty／loading／error —— 沒有資料輸入。<br>
+  內容極值 —— 固定圖示，無內容。<br>
+  語言 —— 無文字；但方向受語系影響（RTL 自動鏡射），見規格第 7 節。
+</p>

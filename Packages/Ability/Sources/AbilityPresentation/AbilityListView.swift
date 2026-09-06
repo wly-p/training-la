@@ -1,4 +1,5 @@
 import AbilityDomain
+import DesignControls
 import DesignSystem
 import SharedKernel
 import SwiftUI
@@ -22,11 +23,11 @@ public struct AbilityListView: View {
     public var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 0) {
-                PageHeader(localText("ability.title"))
+                TLPageHeader(localText("ability.title"))
                 if !viewModel.rows.isEmpty { summaryLine }
 
                 if viewModel.rows.isEmpty {
-                    EmptyState(
+                    TLEmptyState(
                         systemImage: "chart.bar.xaxis",
                         title: localString("ability.empty.title", locale),
                         message: localString("ability.empty.message", locale)
@@ -49,7 +50,7 @@ public struct AbilityListView: View {
                     .padding(.top, TLSpace.gapM)
                 }
             }
-            .padding(.bottom, 40)
+            .padding(.bottom, TLSpace.pageBottom)
         }
         .background(TLColor.bg.ignoresSafeArea())
         .task { await viewModel.load() }
@@ -75,18 +76,18 @@ public struct AbilityListView: View {
             .font(TLFont.zh(TLFont.rowSub))
             .foregroundStyle(TLColor.neutral500)
             .padding(.horizontal, TLSpace.page)
-            .padding(.top, 2)
+            .padding(.top, TLSpace.titleSubGap)
     }
 
     /// 第一顆固定是「未設定 N」——這頁最高頻的任務就是把沒設定的補完。
     /// 沒有任何動作的器材降到 45% 並停用，避免點了得到空清單。
     private var filterChips: some View {
         ScrollView(.horizontal, showsIndicators: false) {
-            HStack(spacing: 8) {
+            HStack(spacing: TLSpace.gapS) {
                 unsetChip
                 ForEach(Equipment.allCases, id: \.self) { equipment in
                     let enabled = viewModel.hasExercises(for: equipment)
-                    MuscleTag(
+                    TLMuscleTag(
                         equipment.displayName(locale),
                         isSelected: viewModel.filter == .equipment(equipment),
                         onTap: enabled ? { toggle(.equipment(equipment)) } : nil
@@ -95,7 +96,7 @@ public struct AbilityListView: View {
                     .disabled(!enabled)
                 }
             }
-            .padding(.horizontal, 2)
+            .padding(.horizontal, TLSpace.titleSubGap)
         }
     }
 
@@ -127,9 +128,9 @@ public struct AbilityListView: View {
     private var rowsGroup: some View {
         TLGroup {
             ForEach(viewModel.visibleRows(locale: locale)) { row in
-                // trailing 要具名傳：ListRow 的 leading 排在 trailing 前面，
+                // trailing 要具名傳：TLListRow 的 leading 排在 trailing 前面，
                 // 用尾隨閉包會綁到 leading，值就跑到列的左邊去。
-                ListRow(
+                TLListRow(
                     title: Text(verbatim: row.exerciseName),
                     subtitle: subtitle(for: row),
                     equipment: row.equipment.displayName(locale),
@@ -145,12 +146,12 @@ public struct AbilityListView: View {
     @ViewBuilder
     private func valueDisplay(for row: AbilityListViewModel.Row) -> some View {
         if let value = row.current?.value {
-            HStack(alignment: .firstTextBaseline, spacing: 4) {
+            HStack(alignment: .firstTextBaseline, spacing: TLSpace.valueUnitGap) {
                 Text(verbatim: TLNumberField.format(value.value))
                     .font(TLFont.display(20))
                     .foregroundStyle(TLColor.text)
                 Text(verbatim: value.unit.rawValue)
-                    .font(TLFont.zh(11.5))
+                    .font(TLFont.zh(TLFont.rowSub))
                     .foregroundStyle(TLColor.neutral500)
             }
         } else {
@@ -218,10 +219,10 @@ private struct AbilityEditSheet: View {
     private var topBar: some View {
         HStack {
             Button { dismiss() } label: { localText("ability.cancel") }
-                .font(TLFont.zh(15.5, .medium))
+                .font(TLFont.zh(TLFont.buttonLabel, .medium))
                 .foregroundStyle(TLColor.neutral600)
             Spacer()
-            ExerciseNameWithEquipment(
+            TLTitleWithTag(
                 name: row.exerciseName,
                 equipment: row.equipment.displayName(locale)
             )
@@ -231,43 +232,42 @@ private struct AbilityEditSheet: View {
             } label: {
                 localText("ability.done")
             }
-            .font(TLFont.zh(15.5, .semibold))
+            .font(TLFont.zh(TLFont.buttonLabel, .semibold))
             .foregroundStyle(TLColor.accent700)
         }
     }
 
     private var valueCard: some View {
-        VStack(spacing: TLSpace.gapM) {
-            HStack {
-                localText("ability.kicker")
-                    .font(TLFont.zh(TLFont.kicker, .semibold))
-                    .tracking(TLFont.kickerTracking)
-                    .textCase(.uppercase)
+        TLCard {
+            VStack(spacing: TLSpace.gapM) {
+                HStack {
+                    localText("ability.kicker")
+                        .font(TLFont.zh(TLFont.kicker, .semibold))
+                        .tracking(TLFont.kickerTracking)
+                        .textCase(.uppercase)
+                        .foregroundStyle(TLColor.neutral500)
+                    Spacer()
+                }
+                TLNumberField(
+                    value: $value,
+                    unitLabel: unit.rawValue,
+                    doneLabel: Text("ability.done", bundle: .module)
+                )
+                localText("ability.tapToType")
+                    .font(TLFont.zh(TLFont.rowSub))
                     .foregroundStyle(TLColor.neutral500)
-                Spacer()
+                TLRulerSlider(
+                    value: $value,
+                    step: weightStep,
+                    range: 0...WeightRange.upperBound(for: unit)
+                )
+                stepButtons
+                localText("ability.stepHint")
+                    .font(TLFont.zh(TLFont.rowSub))
+                    .foregroundStyle(TLColor.neutral500)
+                    .multilineTextAlignment(.center)
             }
-            TLNumberField(
-                value: $value,
-                unitLabel: unit.rawValue,
-                doneLabel: Text("ability.done", bundle: .module)
-            )
-            localText("ability.tapToType")
-                .font(TLFont.zh(TLFont.rowSub))
-                .foregroundStyle(TLColor.neutral500)
-            TLRulerSlider(
-                value: $value,
-                step: weightStep,
-                range: 0...WeightRange.upperBound(for: unit)
-            )
-            stepButtons
-            localText("ability.stepHint")
-                .font(TLFont.zh(11.5))
-                .foregroundStyle(TLColor.neutral500)
-                .multilineTextAlignment(.center)
         }
-        .padding(TLSpace.rowInset)
-        .background(TLColor.neutral100)
-        .clipShape(RoundedRectangle(cornerRadius: TLRadius.container, style: .continuous))
     }
 
     private var stepButtons: some View {
@@ -287,7 +287,7 @@ private struct AbilityEditSheet: View {
                 .font(TLFont.zh(TLFont.rowTitle, .semibold))
                 .foregroundStyle(TLColor.accent700)
                 .frame(maxWidth: .infinity)
-                .padding(.vertical, 14)
+                .padding(.vertical, TLSpace.fieldPadV)
                 .background(Capsule().fill(TLColor.neutral100))
                 .overlay(Capsule().strokeBorder(TLColor.text.opacity(0.10), lineWidth: 1))
         }
@@ -317,36 +317,35 @@ private struct AbilityEditSheet: View {
 
     /// 建議值改成可以直接按的套用鍵，不再是一段要自己照著滾的文字。
     private func applyRow(_ suggestion: Weight) -> some View {
-        HStack {
-            (localText("ability.lastPerformed")
-                + Text(verbatim: " \(TLNumberField.format(row.lastWeight.value)) \(row.lastWeight.unit.rawValue) × \(row.lastReps)"))
-                .font(TLFont.zh(TLFont.rowSub))
-                .foregroundStyle(TLColor.text)
-            Spacer(minLength: TLSpace.gapS)
-            Button {
-                value = suggestion.value
-            } label: {
-                Text(verbatim: String(
-                    format: localString("ability.apply %@", locale),
-                    TLNumberField.format(suggestion.value)
-                ))
-                .font(TLFont.zh(TLFont.rowSub, .semibold))
-                .foregroundStyle(TLColor.bg)
-                .padding(.vertical, 8)
-                .padding(.horizontal, 14)
-                .background(Capsule().fill(TLColor.accent))
+        TLCard(fill: TLColor.accent200) {
+            HStack {
+                (localText("ability.lastPerformed")
+                    + Text(verbatim: " \(TLNumberField.format(row.lastWeight.value)) \(row.lastWeight.unit.rawValue) × \(row.lastReps)"))
+                    .font(TLFont.zh(TLFont.rowSub))
+                    .foregroundStyle(TLColor.text)
+                Spacer(minLength: TLSpace.gapS)
+                Button {
+                    value = suggestion.value
+                } label: {
+                    Text(verbatim: String(
+                        format: localString("ability.apply %@", locale),
+                        TLNumberField.format(suggestion.value)
+                    ))
+                    .font(TLFont.zh(TLFont.rowSub, .semibold))
+                    .foregroundStyle(TLColor.bg)
+                    .padding(.vertical, 8)
+                    .padding(.horizontal, 14)
+                    .background(Capsule().fill(TLColor.accent))
+                }
+                .buttonStyle(.plain)
             }
-            .buttonStyle(.plain)
         }
-        .padding(TLSpace.rowInset)
-        .background(TLColor.accent200)
-        .clipShape(RoundedRectangle(cornerRadius: TLRadius.container, style: .continuous))
     }
 
     private var lockNotice: some View {
-        HStack(alignment: .top, spacing: 6) {
+        HStack(alignment: .top, spacing: TLSpace.labelGap) {
             Image(systemName: "info.circle")
-                .font(.system(size: 12))
+                .font(.system(size: TLIcon.inline))
                 .foregroundStyle(TLColor.neutral500)
             localText("ability.editNote")
                 .font(TLFont.zh(TLFont.rowSub))

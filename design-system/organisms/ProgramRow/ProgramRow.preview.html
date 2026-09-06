@@ -1,0 +1,102 @@
+<!-- @dsCard group="Organisms" name="ProgramRow" subtitle="長期課表清單的一列" -->
+<!doctype html>
+<meta charset="utf-8">
+<title>ProgramRow</title>
+<link rel="stylesheet" href="../../tokens/tokens.css">
+<link rel="stylesheet" href="../../preview.css">
+<link rel="stylesheet" href="../../components.preview.css">
+<h1>ProgramRow</h1>
+<p class="note">
+  L3 有機體。長期課表清單的一列。<b>啟用態不是一列而是一張卡</b> ——
+  這是四個 L3 裡唯一有自己樣式的一個。
+</p>
+
+<div class="kicker">狀態</div>
+<div class="tl-program-card" data-state="active">
+  <div class="tl-row-content">
+    <span class="tl-badge tl-badge--accent">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round"
+        stroke-linejoin="round"><path d="M4 20V10"/><path d="M10 20V4"/><path d="M16 20v-6"/></svg>
+    </span>
+    <span class="tl-row-content__text">
+      <span class="tl-row-content__title">進行中的項目</span>
+      <span class="tl-row-content__sub">內容一、內容二、內容三</span>
+    </span>
+    <svg class="tl-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg>
+  </div>
+  <div class="tl-program-card__meta">
+    <span><span class="tl-program-card__day">12</span><span
+      class="tl-program-card__unit">/ 30 天</span></span>
+    <span class="tl-program-card__today">今天：內容二</span>
+  </div>
+  <div class="tl-progress-bar"><i style="width:40%"></i></div>
+</div>
+
+<div class="group">
+  <div class="tl-program-row--inactive" data-state="inactive">
+    <span class="tl-badge tl-badge--neutral">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round"
+        stroke-linejoin="round"><path d="M4 20V10"/><path d="M10 20V4"/><path d="M16 20v-6"/></svg>
+    </span>
+    <span class="tl-row-content__text">
+      <span class="tl-row-content__title">未啟用的項目</span>
+      <span class="tl-row-content__sub">內容一、內容二</span>
+    </span>
+    <span class="tl-list-row__pill">啟用</span>
+  </div>
+</div>
+<p class="note">
+  未啟用態<b>不是 <code>TLListRow</code></b>：右側那顆鈕要獨立可點，
+  所以左右兩個點擊區各自獨立，列的內距與最小高度由它自己補。
+</p>
+
+<div class="kicker">為什麼上半是 TLRowContent 而不是 TLListRow</div>
+<p class="note">
+  卡片自己有內距、只有上半可點 —— 列的外框（內距、最小高度、整列 Button）<b>全都不適用</b>。
+  綁在一起的時候，這張卡只能手工重畫一份列，然後就漂了。
+  <b>這一個就是階段 2 的答案：分層是對的，錯的是那個分子的介面。</b>
+</p>
+
+<div class="kicker">軌道色為什麼是 prop</div>
+<p class="note">
+  這張卡是淺底，用預設軌道就夠對比。<b>詳情頁那張卡是深底</b>，軌道要往更淺的方向換 ——
+  方向不是固定的，所以它不能寫死。
+</p>
+
+<div class="kicker">主題</div>
+<div class="themes">
+  <div class="pane" data-theme="light">
+    <div class="kicker">light</div>
+    <div class="tl-program-card">
+      <div class="tl-row-content">
+        <span class="tl-badge tl-badge--accent"></span>
+        <span class="tl-row-content__text">
+          <span class="tl-row-content__title">進行中的項目</span>
+          <span class="tl-row-content__sub">內容一、內容二</span>
+        </span>
+      </div>
+      <div class="tl-progress-bar"><i style="width:40%"></i></div>
+    </div>
+  </div>
+  <div class="pane" data-theme="dark">
+    <div class="kicker">dark（目前是 light 的複製）</div>
+    <div class="tl-program-card">
+      <div class="tl-row-content">
+        <span class="tl-badge tl-badge--accent"></span>
+        <span class="tl-row-content__text">
+          <span class="tl-row-content__title">進行中的項目</span>
+          <span class="tl-row-content__sub">內容一、內容二</span>
+        </span>
+      </div>
+      <div class="tl-progress-bar"><i style="width:40%"></i></div>
+    </div>
+  </div>
+</div>
+
+<div class="kicker">不適用的狀態</div>
+<p class="note">
+  整列 pressed —— 可點的是<b>區塊</b>不是整列。<br>
+  disabled／selected —— 未啟用是形態不是停用；這份清單不做選取。<br>
+  今天沒有排課時顯示「—」，那是<b>內容</b>不是狀態。
+</p>

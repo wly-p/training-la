@@ -1,0 +1,237 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>TLEquipmentTag</title>
+<link rel="stylesheet" href="../../tokens/tokens.css">
+<link rel="stylesheet" href="../../preview.css">
+<style>
+  body { max-width: 62rem; line-height: 1.7; }
+  h1, h2, h3 { font-family: var(--font-page-title-family); line-height: 1.35; }
+  h1 { font-size: var(--font-page-title); margin: 0 0 var(--space-gap-l); }
+  h2 { font-size: var(--font-card-title); margin: var(--space-section) 0 var(--space-gap-m);
+       padding-top: var(--space-gap-m); border-top: 1px solid var(--border-subtle); }
+  h3 { font-size: var(--font-row-title); margin: var(--space-gap-l) 0 var(--space-gap-s); }
+  a { color: var(--accent-on-surface); }
+  table { border-collapse: collapse; width: 100%; margin: var(--space-gap-m) 0;
+          display: block; overflow-x: auto; }
+  th, td { text-align: left; padding: var(--space-gap-s) var(--space-gap-m);
+           border-bottom: 1px solid var(--border-subtle); vertical-align: top; }
+  th { font-size: var(--font-kicker); letter-spacing: var(--font-kicker-tracking);
+       text-transform: uppercase; color: var(--text-tertiary); }
+  pre { background: var(--surface-raised); border-radius: var(--radius-inner);
+        padding: var(--space-gap-m); overflow-x: auto; }
+  pre code { background: none; padding: 0; }
+  blockquote { margin: var(--space-gap-m) 0; padding-left: var(--space-gap-m);
+               border-left: 3px solid var(--border-subtle); color: var(--text-secondary); }
+  .back { font-size: var(--font-row-sub); margin-bottom: var(--space-gap-l); display: block; }
+</style>
+<a class="back" href="../../index.html">← 元件庫索引</a>
+<h1>TLEquipmentTag</h1>
+<h2>1 身分</h2>
+<table>
+<thead>
+<tr>
+<th></th>
+<th></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>層級</td>
+<td>L2 分子</td>
+</tr>
+<tr>
+<td>職責</td>
+<td>列尾欄的分類標籤（器材或肌群）</td>
+</tr>
+<tr>
+<td>原型 id</td>
+<td><code>18b</code> <code>19a</code></td>
+</tr>
+<tr>
+<td>獨立使用</td>
+<td><strong>否 —— 放在列的 trailing</strong></td>
+</tr>
+<tr>
+<td>容器責任</td>
+<td>與相鄰元素的間距、尾欄寬度由列負責</td>
+</tr>
+<tr>
+<td>實作</td>
+<td><code>Packages/DesignSystem/Sources/DesignSystem/Components/TLEquipmentTag.swift</code></td>
+</tr>
+<tr>
+<td>Preview</td>
+<td><code>design-system/molecules/TLEquipmentTag/TLEquipmentTag.preview.html</code></td>
+</tr>
+<tr>
+<td>Preview CSS</td>
+<td><code>components.preview.css</code> §TLEquipmentTag</td>
+</tr>
+</tbody>
+</table>
+<p><strong>組成</strong>：不由其他 <code>TL*</code> 元件組成（文字 ＋ capsule 底）</p>
+<h2>2 介面 ★</h2>
+<p><strong>Props</strong></p>
+<table>
+<thead>
+<tr>
+<th>名稱</th>
+<th>型別</th>
+<th>值域</th>
+<th>必填</th>
+<th>預設</th>
+<th>說明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>label</code></td>
+<td><code>String</code></td>
+<td></td>
+<td>是</td>
+<td>—</td>
+<td>標籤文字</td>
+</tr>
+<tr>
+<td><code>identifier</code></td>
+<td><code>String</code></td>
+<td><code>equipmentTag</code> / <code>muscleTag</code></td>
+<td>否</td>
+<td><code>equipmentTag</code></td>
+<td>測試定位鍵。<strong>尾欄放什麼由呼叫端決定</strong>，測試要分得出這一列標的是哪一種</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Slots</strong> — N/A
+<strong>事件</strong> — N/A（唯讀標示）</p>
+<h2>3 變體 variants</h2>
+<p>無。<strong>它只有一種樣子</strong> —— 分類色是固定的（鼠尾草綠）。</p>
+<p>⚠ 見第 8 節：專案裡還有四種幾何不同的膠囊，那是待收斂的狀態。</p>
+<h2>4 狀態 states ★</h2>
+<!-- states: default -->
+<!-- themes: light, dark -->
+
+<table>
+<thead>
+<tr>
+<th>類別</th>
+<th>狀態</th>
+<th>這個元件</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>互動</td>
+<td>default / pressed / disabled / focused</td>
+<td><strong>不可互動</strong>，純標示</td>
+</tr>
+<tr>
+<td>選取</td>
+<td>selected / unselected / indeterminate</td>
+<td>N/A —— 那是 <code>TLMuscleTag</code> 的事（可選的 chip）</td>
+</tr>
+<tr>
+<td>資料</td>
+<td>empty / loading / error</td>
+<td>N/A —— 沒有分類就不要放這個元件</td>
+</tr>
+<tr>
+<td>內容極值</td>
+<td>最短 / 最長 / 溢出</td>
+<td><strong>永不縮小、永不換行</strong>（<code>fixedSize</code>）。空間不足時該被截斷的是動作名</td>
+</tr>
+<tr>
+<td>主題</td>
+<td>light / dark</td>
+<td>兩者都有</td>
+</tr>
+<tr>
+<td>語言</td>
+<td>中文 / 英文</td>
+<td>英文器材名（<code>Barbell</code>／<code>Bodyweight</code>）比中文長，是尾欄寬度的決定因素</td>
+</tr>
+</tbody>
+</table>
+<h2>5 度量與行為</h2>
+<table>
+<thead>
+<tr>
+<th></th>
+<th></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>字級</td>
+<td><code>type.kicker</code> ＋ <code>semibold</code></td>
+</tr>
+<tr>
+<td>內距</td>
+<td>上下 <code>space.tagPadV</code>、左右 <code>space.tagPadH</code></td>
+</tr>
+<tr>
+<td>圓角</td>
+<td><code>radius.pill</code></td>
+</tr>
+</tbody>
+</table>
+<h3>文字與溢出</h3>
+<p><code>fixedSize()</code> —— 永不縮小、永不換行。這是刻意的：
+<strong>空間不足時該被 truncate 的是動作名，不是分類標籤</strong>（標籤短、資訊密度高）。</p>
+<h3>動態</h3>
+<p>無轉場。</p>
+<h2>6 配色 ★</h2>
+<table>
+<thead>
+<tr>
+<th>用途</th>
+<th>token</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>文字</td>
+<td><code>sage-900</code></td>
+</tr>
+<tr>
+<td>底</td>
+<td><code>sage-200</code></td>
+</tr>
+</tbody>
+</table>
+<p><strong>分類色是鼠尾草綠不是赭紅</strong> —— 赭紅保留給「可操作的東西」，這是標示不是動作。</p>
+<h2>7 用法與禁用法</h2>
+<p><strong>用它</strong>：列的尾欄要標一個分類時。</p>
+<p><strong>易混淆</strong>：<code>TLMuscleTag</code> —— 那個<strong>可選取</strong>（chip，有選中／未選狀態、可點）；
+這個是<strong>唯讀標示</strong>。判準：點得下去嗎？點得下去用 <code>TLMuscleTag</code>。</p>
+<p><strong>不要用它</strong>：
+- 表達狀態（進行中／已完成）—— 那是狀態膠囊，用色與語意都不同
+- 放長句 —— 它 <code>fixedSize</code>，長句會把整列撐爛
+- 一列放兩個 —— 尾欄只有一欄</p>
+<h2>8 變更紀錄</h2>
+<table>
+<thead>
+<tr>
+<th>日期</th>
+<th>改動</th>
+<th>原因</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>2026-08-31</td>
+<td>補上規格</td>
+<td>抽 <code>ExerciseRow</code> 時檢查 11 要求它的組成元件要有規格</td>
+</tr>
+<tr>
+<td>2026-08-31</td>
+<td>字級 <code>10.5</code> 與內距 <code>5</code>／<code>9</code> 改成 token</td>
+<td>元件內部的字面值也是字面值</td>
+</tr>
+<tr>
+<td>2026-08-31</td>
+<td><strong>記錄膠囊幾何未收斂</strong></td>
+<td>專案裡有 5 種膠囊形狀的東西，幾何全不一樣：這個 <code>5/9</code>、<code>TLMuscleTag</code> <code>5/12</code>、進度膠囊 <code>5/10</code>、詳情頁膠囊 <code>7/14</code>、表單按鈕 <code>10/滿寬</code>。設計文件說 <code>TLTag</code> 是「capsule 5×12、11.5pt semibold、6 種 style」—— <strong>也就是設計意圖是一個標籤六種顏色，實作卻在幾何上各自漂了</strong>。統一是設計決策，已列進待問清單</td>
+</tr>
+</tbody>
+</table>

@@ -1,0 +1,318 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>TLCard</title>
+<link rel="stylesheet" href="../../tokens/tokens.css">
+<link rel="stylesheet" href="../../preview.css">
+<style>
+  body { max-width: 62rem; line-height: 1.7; }
+  h1, h2, h3 { font-family: var(--font-page-title-family); line-height: 1.35; }
+  h1 { font-size: var(--font-page-title); margin: 0 0 var(--space-gap-l); }
+  h2 { font-size: var(--font-card-title); margin: var(--space-section) 0 var(--space-gap-m);
+       padding-top: var(--space-gap-m); border-top: 1px solid var(--border-subtle); }
+  h3 { font-size: var(--font-row-title); margin: var(--space-gap-l) 0 var(--space-gap-s); }
+  a { color: var(--accent-on-surface); }
+  table { border-collapse: collapse; width: 100%; margin: var(--space-gap-m) 0;
+          display: block; overflow-x: auto; }
+  th, td { text-align: left; padding: var(--space-gap-s) var(--space-gap-m);
+           border-bottom: 1px solid var(--border-subtle); vertical-align: top; }
+  th { font-size: var(--font-kicker); letter-spacing: var(--font-kicker-tracking);
+       text-transform: uppercase; color: var(--text-tertiary); }
+  pre { background: var(--surface-raised); border-radius: var(--radius-inner);
+        padding: var(--space-gap-m); overflow-x: auto; }
+  pre code { background: none; padding: 0; }
+  blockquote { margin: var(--space-gap-m) 0; padding-left: var(--space-gap-m);
+               border-left: 3px solid var(--border-subtle); color: var(--text-secondary); }
+  .back { font-size: var(--font-row-sub); margin-bottom: var(--space-gap-l); display: block; }
+</style>
+<a class="back" href="../../index.html">← 元件庫索引</a>
+<h1>TLCard</h1>
+<h2>1 身分</h2>
+<table>
+<thead>
+<tr>
+<th></th>
+<th></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>層級</td>
+<td>L2 分子</td>
+</tr>
+<tr>
+<td>職責</td>
+<td>內容卡：圓角容器 ＋ 底色 ＋ 內距</td>
+</tr>
+<tr>
+<td>原型 id</td>
+<td><code>7c</code> <code>8a</code> <code>13a</code></td>
+</tr>
+<tr>
+<td>獨立使用</td>
+<td>是</td>
+</tr>
+<tr>
+<td>容器責任</td>
+<td>自己就是容器</td>
+</tr>
+<tr>
+<td>實作</td>
+<td><code>Packages/DesignSystem/Sources/DesignSystem/Molecules/TLCard.swift</code></td>
+</tr>
+<tr>
+<td>Preview</td>
+<td><code>design-system/molecules/TLCard/TLCard.preview.html</code></td>
+</tr>
+<tr>
+<td>Preview CSS</td>
+<td><code>components.preview.css</code> §TLCard</td>
+</tr>
+</tbody>
+</table>
+<p><strong>組成</strong>：不由其他 <code>TL*</code> 元件組成。</p>
+<h2>2 介面 ★</h2>
+<p><strong>Props</strong></p>
+<table>
+<thead>
+<tr>
+<th>名稱</th>
+<th>型別</th>
+<th>值域</th>
+<th>必填</th>
+<th>預設</th>
+<th>說明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>radius</code></td>
+<td><code>Radius</code></td>
+<td><code>container</code> / <code>inner</code></td>
+<td>否</td>
+<td><code>container</code></td>
+<td>圓角。<strong>卡中的區塊要換小圓角</strong>，見第 3 節</td>
+</tr>
+<tr>
+<td><code>fill</code></td>
+<td><code>Color</code></td>
+<td>只吃語意 token 或卡底色階</td>
+<td>否</td>
+<td><code>surfaceRaised</code></td>
+<td>卡底。見第 6 節：全 app 有兩階卡底</td>
+</tr>
+<tr>
+<td><code>border</code></td>
+<td><code>Color?</code></td>
+<td></td>
+<td>否</td>
+<td><code>nil</code></td>
+<td>描邊色。<code>nil</code> ＝ 無描邊。用來標「進行中」</td>
+</tr>
+<tr>
+<td><code>padding</code></td>
+<td><code>Padding</code></td>
+<td><code>standard</code> / <code>roomy</code></td>
+<td>否</td>
+<td><code>standard</code></td>
+<td>見第 3 節</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Slots</strong> — <code>content</code>（卡裡放什麼都可以）
+<strong>事件</strong> — 無。<strong>卡本身不可點</strong> —— 要可點的話由呼叫端包 <code>Button</code> 或 <code>NavigationLink</code>，
+因為可點的常常只是卡的一部分（長期課表那張卡只有上半可點）。</p>
+<h2>3 變體 variants</h2>
+<h3>圓角：兩階，規則是「巢狀就換小的」</h3>
+<table>
+<thead>
+<tr>
+<th><code>radius</code></th>
+<th>值</th>
+<th>用在哪</th>
+<th>處數</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>container</code></td>
+<td><code>radius.container</code> 28</td>
+<td><strong>外層卡</strong>：直接坐在頁面底上的</td>
+<td>15</td>
+</tr>
+<tr>
+<td><code>inner</code></td>
+<td><code>radius.inner</code> 20</td>
+<td><strong>卡中的區塊</strong>：坐在另一張卡或群組裡的</td>
+<td>9</td>
+</tr>
+</tbody>
+</table>
+<p>兩層 28 疊在一起，內圈的圓角看起來會是壞的 —— 這不是偏好，是視覺上的必然。</p>
+<h3>內距：三種</h3>
+<table>
+<thead>
+<tr>
+<th><code>padding</code></th>
+<th>值</th>
+<th>用在哪</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>standard</code></td>
+<td><code>space.rowInset</code> 四邊</td>
+<td>常態。資訊卡、圖表卡、摘要卡、卡中的區塊</td>
+</tr>
+<tr>
+<td><code>roomy</code></td>
+<td>左右 <code>space.page</code>、上下 <code>space.section</code></td>
+<td>「一大塊留白」的說明卡、休息日回顧</td>
+</tr>
+<tr>
+<td><code>page</code></td>
+<td><code>space.page</code> 四邊</td>
+<td>整頁級的大卡（訓練首頁的續練卡）</td>
+</tr>
+</tbody>
+</table>
+<h2>4 狀態 states ★</h2>
+<!-- states: plain, bordered, roomy, inner -->
+<!-- themes: light, dark -->
+
+<table>
+<thead>
+<tr>
+<th>類別</th>
+<th>狀態</th>
+<th>這個元件</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>互動</td>
+<td>default / pressed / disabled / focused</td>
+<td><strong>一個都沒有</strong>，它不可點</td>
+</tr>
+<tr>
+<td>選取</td>
+<td>selected / unselected / indeterminate</td>
+<td>用 <code>border</code> 表達「進行中」，那不是選取</td>
+</tr>
+<tr>
+<td>資料</td>
+<td>empty / loading / error</td>
+<td>N/A —— 空的是內容不是卡</td>
+</tr>
+<tr>
+<td>內容極值</td>
+<td>最短 / 最長 / 溢出</td>
+<td>高度跟著內容；<strong>不切內容</strong>（<code>clipShape</code> 只作用在圓角）</td>
+</tr>
+<tr>
+<td>主題</td>
+<td>light / dark</td>
+<td>兩者都有</td>
+</tr>
+<tr>
+<td>語言</td>
+<td>中文 / 英文</td>
+<td>無關</td>
+</tr>
+</tbody>
+</table>
+<h2>5 度量與行為</h2>
+<table>
+<thead>
+<tr>
+<th></th>
+<th></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>圓角</td>
+<td><code>radius.container</code></td>
+</tr>
+<tr>
+<td>內距</td>
+<td>見第 3 節</td>
+</tr>
+<tr>
+<td>描邊</td>
+<td><code>size.hairlineThick</code>，畫在外緣（<code>strokeBorder</code>）</td>
+</tr>
+</tbody>
+</table>
+<h3>動態</h3>
+<p>無。</p>
+<h2>6 配色 ★</h2>
+<table>
+<thead>
+<tr>
+<th>用途</th>
+<th>token</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>底（預設）</td>
+<td><code>surfaceRaised</code></td>
+</tr>
+<tr>
+<td>描邊</td>
+<td>呼叫端給，目前只有 <code>accent-300</code></td>
+</tr>
+</tbody>
+</table>
+<h3>⚠ 全 app 有兩階卡底，只有一階有語意名字</h3>
+<pre><code>neutral-100  ＝ surfaceRaised   淺卡：圖表卡、能力值卡、動作表單卡…      9 處
+neutral-300  （沒有語意名字）    深卡：達成摘要、長期詳情、循環詳情…      5 處
+accent-200   ＝（沒有語意名字）  強調卡：訓練中的當前組、能力值的當前值    2 處
+</code></pre>
+<p>第二、三階目前直接用原始色階。<code>neutral-300</code> 在語意層是 <code>surfaceInput</code>（輸入色帶），
+拿它當卡底是<strong>借用</strong>，不是那個角色的意思。命名是設計決策，已列進待問清單。</p>
+<h2>7 用法與禁用法</h2>
+<p><strong>用它</strong>：一塊內容需要自己的底色與圓角時。</p>
+<p><strong>易混淆</strong>：<code>TLGroup</code> —— 那個是<strong>列的容器</strong>，負責列與列之間的分隔線並切掉溢出。
+判準：<strong>裡面是一串列就用 <code>TLGroup</code>，是一塊內容就用這個。</strong></p>
+<p><strong>不要用它</strong>：
+- 包一串列 —— 那是 <code>TLGroup</code>，而且它會少掉分隔線
+- 把整張卡做成可點 —— 可點的常常只是卡的一部分，包 <code>Button</code> 的位置由呼叫端決定
+- 卡中卡<strong>用同一個圓角</strong> —— 巢狀的那一層要 <code>radius: .inner</code></p>
+<h2>8 變更紀錄</h2>
+<table>
+<thead>
+<tr>
+<th>日期</th>
+<th>改動</th>
+<th>原因</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>2026-08-31</td>
+<td>新增</td>
+<td>階段 3 的下行拆解量到：<strong>應用層有 17 處手工重建這張卡</strong>（<code>padding</code> ＋ <code>background</code> ＋ <code>clipShape(RoundedRectangle(container))</code>），跨 6 個 package。<strong>這是目前為止最大的一筆重複</strong> —— 比 <code>TLInlineEmptyState</code>（4 處）大四倍</td>
+</tr>
+<tr>
+<td>2026-08-31</td>
+<td>底色開成 prop 而不是變體</td>
+<td>三種底色（<code>neutral-100</code>／<code>neutral-300</code>／<code>accent-200</code>）裡有兩種還沒有語意名字。做成 <code>enum</code> 等於現在就替設計端命名，那不是我的決定</td>
+</tr>
+<tr>
+<td>2026-08-31</td>
+<td>新增 <code>radius</code>（<code>container</code> / <code>inner</code>），並<strong>推翻上一版寫的「不要卡中卡」</strong></td>
+<td>全面遷移時實測到 <strong>9 處卡中卡</strong>，它們早就在用 <code>radius.inner</code>。app 的實際規則不是「不要巢狀」而是「<strong>巢狀要換小圓角</strong>」。上一版的禁令是我只看了 17 處外層卡就下的結論 —— 量到 26 處才看見全貌</td>
+</tr>
+<tr>
+<td>2026-08-31</td>
+<td>新增 <code>padding: .page</code></td>
+<td>訓練首頁的續練卡是整頁級的大卡，四邊 <code>space.page</code></td>
+</tr>
+<tr>
+<td>2026-08-31</td>
+<td><strong>26 處全部遷移完成</strong></td>
+<td>三處內距就近併到既有變體（使用者拍板）：休息日回顧 26/22→26/26、範本值方塊 18/12→18/18、訓練組表列 18/14 或 11→18/18</td>
+</tr>
+</tbody>
+</table>

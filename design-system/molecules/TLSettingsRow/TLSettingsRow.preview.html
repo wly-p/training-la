@@ -1,0 +1,68 @@
+<!-- @dsCard group="Molecules" name="TLSettingsRow" subtitle="設定頁的一列" -->
+<!doctype html>
+<meta charset="utf-8">
+<title>TLSettingsRow</title>
+<link rel="stylesheet" href="../../tokens/tokens.css">
+<link rel="stylesheet" href="../../preview.css">
+<link rel="stylesheet" href="../../components.preview.css">
+<style>
+stroke-width: var(--icon-stroke); }
+         border-radius: var(--radius-pill); padding: var(--space-hairline, 2px); }
+              font-size: var(--font-row-sub); color: var(--text-secondary); }
+</style>
+<h1>TLSettingsRow</h1>
+<p class="note">
+  L2 分子。設定頁的一列：名稱、目前的值、可能通往下一層。<br>
+  列高是 <b>minHeight 不是固定值</b> —— 分段控制之類的 trailing 比文字高時列會跟著長。
+</p>
+
+<div class="kicker">狀態</div>
+<div class="group">
+  <div class="row" data-state="default"><span class="label">主題</span>
+    <span class="tl-settings-value">深色</span><svg class="tl-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg></div>
+  <div class="row tl-settings-row--pressed" data-state="pressed"><span class="label">按下 —— 底色淡入，不縮放</span>
+    <span class="tl-settings-value">深色</span><svg class="tl-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg></div>
+  <div class="row" data-state="tappable"><span class="label">可點（有 chevron）</span>
+    <svg class="tl-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg></div>
+  <div class="row" data-state="static"><span class="label">不可點（就地切換）</span>
+    <span class="tl-segmented-control"><span class="is-on">kg</span><span>lb</span></span></div>
+</div>
+
+<div class="kicker">變體</div>
+<div class="group">
+  <div class="row"><span class="label">normal</span><span class="tl-settings-value">值</span></div>
+  <div class="row"><span class="label tl-settings-row--destructive"><span class="tl-settings-row__icon">🗑</span>刪除所有資料</span></div>
+</div>
+<p class="note">
+  destructive <b>沒有 chevron</b> —— 它就地執行，不通往任何地方。
+</p>
+
+<div class="kicker">hint（標題後方的小字）</div>
+<div class="group">
+  <div class="row"><span class="label">聲音 <span class="tl-settings-row__hint">含震動</span></span>
+    <span class="tl-settings-value">開</span></div>
+</div>
+
+<div class="kicker">主題</div>
+<div class="themes">
+  <div class="pane" data-theme="light">
+    <div class="kicker">light</div>
+    <div class="group"><div class="row"><span class="label">主題</span><span class="tl-settings-value">深色</span></div></div>
+  </div>
+  <div class="pane" data-theme="dark">
+    <div class="kicker">dark（目前是 light 的複製）</div>
+    <div class="group"><div class="row"><span class="label">主題</span><span class="tl-settings-value">深色</span></div></div>
+  </div>
+</div>
+
+<div class="kicker">不適用的狀態</div>
+<p class="note">
+  <b>disabled</b> —— 目前設定頁沒有「暫時不能改」的列。真要做要先補設計：
+  灰掉的列跟不可點的列看起來會一樣，那是問題。<br>
+  focused —— 沒有鍵盤導航情境。<br>
+  selected —— 選取是 <code>TLListRow</code> ＋ <code>TLCheckCircle</code> 的事。<br>
+  empty／loading／error —— 沒有資料輸入。
+</p>

@@ -1,10 +1,11 @@
+import DesignControls
 import DesignSystem
 import PlanDomain
 import SharedKernel
 import SwiftUI
 
-/// 長期課表編輯（設計稿 9c/12b）：套 `EditScaffold`。每天指派一個範本或「休息」——透過共用
-/// `PickerSheet` 單選，不再是自由拼裝內容（`WorkoutSpecFormView` 已移除）。
+/// 長期課表編輯（設計稿 9c/12b）：套 `TLEditScaffold`。每天指派一個範本或「休息」——透過共用
+/// `TLPickerSheet` 單選，不再是自由拼裝內容（`WorkoutSpecFormView` 已移除）。
 /// 直接吃 `Program` 物件（同 `RotationEditorView`/`TemplateFormView` precedent），不用 id 非同步查。
 ///
 /// **新增模式的三態**（12b，僅 `.create` 才有）：格子分「已指派」／「已設休息」／「未指派」——
@@ -111,7 +112,7 @@ public struct ProgramEditorView: View {
     }
 
     public var body: some View {
-        EditScaffold(
+        TLEditScaffold(
             title: $draftName,
             titlePrompt: localText("program.name.placeholder"),
             canSave: canSave,
@@ -138,7 +139,7 @@ public struct ProgramEditorView: View {
         }
         .sheet(item: $pickingDay) { editing in
             let index = editing.index
-            PickerSheet(
+            TLPickerSheet(
                 title: Text("program.picker.title", bundle: .module),
                 searchPrompt: localText("rotation.picker.searchPrompt"),
                 allItems: dayPickerItems,
@@ -183,10 +184,10 @@ public struct ProgramEditorView: View {
     // MARK: - 總長度（畫面用，決定預覽格畫幾輪，不進 Domain）
 
     private var totalLengthSection: some View {
-        EditSection(localText("program.totalLength.section")) {
-            FlowLayout(spacing: 8, lineSpacing: 8) {
+        TLEditSection(localText("program.totalLength.section")) {
+            TLFlowLayout(spacing: TLSpace.gapS, lineSpacing: TLSpace.gapS) {
                 ForEach([10, 14, 28], id: \.self) { preset in
-                    SelectableChip(
+                    TLSelectableChip(
                         totalLengthLabel(preset),
                         isSelected: !isCustomTotalLength && previewTotalLength == preset,
                         selectedFill: TLColor.accent,
@@ -197,7 +198,7 @@ public struct ProgramEditorView: View {
                         }
                     )
                 }
-                SelectableChip(
+                TLSelectableChip(
                     customTotalLengthLabel,
                     isSelected: isCustomTotalLength,
                     selectedFill: TLColor.accent,
@@ -230,8 +231,8 @@ public struct ProgramEditorView: View {
     // MARK: - 週期（真正的 Domain 欄位：cycleLength／days）
 
     private var cycleSection: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            SectionHeader(
+        VStack(alignment: .leading, spacing: TLSpace.gapS) {
+            TLSectionHeader(
                 localText("program.cycle.header \(draftCycleLength)"),
                 actionLabel: localText("program.cycle.changeLength"),
                 action: { showCycleLengthEditor.toggle() }
@@ -245,7 +246,7 @@ public struct ProgramEditorView: View {
                     }
                 }
                 .padding(.horizontal, TLSpace.rowInset)
-                .padding(.bottom, 8)
+                .padding(.bottom, TLSpace.gapS)
             }
             TLGroup {
                 ForEach(Array(0..<draftCycleLength), id: \.self) { index in
@@ -268,7 +269,7 @@ public struct ProgramEditorView: View {
         let spec = draftDays[index]
         let state = cellState(index)
         let isNext = index == nextUntouchedDay
-        return ListRow(
+        return TLListRow(
             title: rowTitle(state: state, isNext: isNext, spec: spec),
             subtitle: spec.map { Text(PlanFormatting.exerciseNamesSummary($0, name: name)) },
             showChevron: true,
@@ -277,7 +278,7 @@ public struct ProgramEditorView: View {
             trailing: {
                 // 休息日沒有重量可算，強度覆寫膠囊只在指派了範本的天顯示（14b）。
                 if state == .assigned {
-                    IntensityOverridePill(
+                    TLIntensityOverridePill(
                         factor: spec?.intensityFactor,
                         baselineLabel: localString("rotation.intensity.baseline", locale),
                         onTap: { overridingDay = index }
@@ -311,7 +312,7 @@ public struct ProgramEditorView: View {
             }
             .frame(width: TLSize.badge, height: TLSize.badge)
         } else {
-            CircleBadge(fill: isNext ? TLColor.accent : (state == .rest ? TLColor.neutral200 : TLColor.accent200)) {
+            TLBadge(fill: isNext ? TLColor.accent : (state == .rest ? TLColor.neutral200 : TLColor.accent200)) {
                 Text(verbatim: "\(n)")
                     .font(TLFont.display(15))
                     .foregroundStyle(isNext ? TLColor.bg : (state == .rest ? TLColor.neutral500 : TLColor.accent800))
@@ -330,24 +331,23 @@ public struct ProgramEditorView: View {
     }
 
     private var previewSection: some View {
-        EditSection(localText("program.preview.section")) {
-            VStack(alignment: .leading, spacing: TLSpace.gapM) {
-                previewGrid
-                previewSummary
-                    .font(TLFont.zh(TLFont.rowSub, .semibold))
-                    .foregroundStyle(TLColor.neutral700)
+        TLEditSection(localText("program.preview.section")) {
+            TLCard(fill: TLColor.neutral300) {
+                VStack(alignment: .leading, spacing: TLSpace.gapM) {
+                    previewGrid
+                    previewSummary
+                        .font(TLFont.zh(TLFont.rowSub, .semibold))
+                        .foregroundStyle(TLColor.neutral700)
+                }
+                .frame(maxWidth: .infinity, alignment: .leading)
             }
-            .padding(TLSpace.rowInset)
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .background(TLColor.neutral300)
-            .clipShape(RoundedRectangle(cornerRadius: TLRadius.container, style: .continuous))
         }
     }
 
     private var previewGrid: some View {
-        HStack(spacing: 4) {
+        HStack(spacing: TLSpace.gridGap) {
             ForEach(0..<draftCycleLength, id: \.self) { day in
-                VStack(spacing: 4) {
+                VStack(spacing: TLSpace.gridGap) {
                     ForEach(0..<rounds, id: \.self) { _ in
                         previewCell(cellState(day))
                     }
@@ -360,17 +360,17 @@ public struct ProgramEditorView: View {
     private func previewCell(_ state: DayCellState) -> some View {
         switch state {
         case .assigned:
-            RoundedRectangle(cornerRadius: 5, style: .continuous)
+            RoundedRectangle(cornerRadius: TLRadius.gridCell, style: .continuous)
                 .fill(TLColor.accent)
-                .frame(width: 18, height: 18)
+                .frame(width: TLSize.gridCell, height: TLSize.gridCell)
         case .rest:
-            RoundedRectangle(cornerRadius: 5, style: .continuous)
+            RoundedRectangle(cornerRadius: TLRadius.gridCell, style: .continuous)
                 .fill(TLColor.neutral100)
-                .frame(width: 18, height: 18)
+                .frame(width: TLSize.gridCell, height: TLSize.gridCell)
         case .unassigned:
-            RoundedRectangle(cornerRadius: 5, style: .continuous)
+            RoundedRectangle(cornerRadius: TLRadius.gridCell, style: .continuous)
                 .strokeBorder(TLColor.text.opacity(0.22), style: StrokeStyle(lineWidth: 1, dash: [2, 2]))
-                .frame(width: 18, height: 18)
+                .frame(width: TLSize.gridCell, height: TLSize.gridCell)
         }
     }
 
@@ -393,7 +393,7 @@ public struct ProgramEditorView: View {
     // MARK: - 強度基準（14b）
 
     /// 「套用後」試算：拿目前週期裡第一個已指派的範本、它的第一組當代表動作。
-    private var intensityPreviewLines: [IntensityFactorGroup.PreviewLine] {
+    private var intensityPreviewLines: [TLIntensityFactorGroup.PreviewLine] {
         guard let firstSet = draftDays.values.first?.sets.first else { return [] }
         // 帶著單位一起算：使用者可能用 lb，寫死 kg 會標錯。
         let baseWeight = firstSet.targetWeight?.resolvedWeight ?? Weight(value: 60, unit: .kg)
@@ -401,7 +401,7 @@ public struct ProgramEditorView: View {
         // 跟投影收斂用同一個取整（WeightRange.steppedDown），否則預覽與實際排出來的數字會兜不攏。
         let result = WeightRange.steppedDown(base * draftIntensityFactor, step: weightStep)
         return [
-            IntensityFactorGroup.PreviewLine(
+            TLIntensityFactorGroup.PreviewLine(
                 label: Text(verbatim: "\(name(firstSet.exerciseId)) ") + localText("template.setNumber \(firstSet.setIndex + 1)"),
                 expression: Text(verbatim: String(
                     format: "%@ × %.0f%%", baseWeight.displayString(in: displayUnit), draftIntensityFactor * 100
@@ -412,8 +412,8 @@ public struct ProgramEditorView: View {
     }
 
     private var intensitySection: some View {
-        EditSection(localText("rotation.intensity.section"), footer: localText("program.intensity.footer")) {
-            IntensityFactorGroup(
+        TLEditSection(localText("rotation.intensity.section"), footer: localText("program.intensity.footer")) {
+            TLIntensityFactorGroup(
                 factor: $draftIntensityFactor,
                 customLabel: localString("rotation.intensity.custom", locale),
                 previewLines: intensityPreviewLines
@@ -421,7 +421,7 @@ public struct ProgramEditorView: View {
         }
     }
 
-    /// 點某一天的強度膠囊：ValuePicker 選 0.5–1.2，或「使用基準」清掉覆寫。
+    /// 點某一天的強度膠囊：TLValuePicker 選 0.5–1.2，或「使用基準」清掉覆寫。
     private func intensityOverrideSheet(for day: Int) -> some View {
         IntensityOverrideSheet(
             baseline: draftIntensityFactor,
@@ -442,7 +442,7 @@ public struct ProgramEditorView: View {
 
     private var deleteSection: some View {
         TLGroup {
-            SettingsRow(
+            TLSettingsRow(
                 localText("program.delete.thisProgram"),
                 role: .destructive,
                 onTap: { showDeleteConfirm = true }

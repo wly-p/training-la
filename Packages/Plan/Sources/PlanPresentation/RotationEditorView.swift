@@ -1,10 +1,11 @@
+import DesignControls
 import DesignSystem
 import PlanDomain
 import SharedKernel
 import SwiftUI
 import UniformTypeIdentifiers
 
-/// 循環課表編輯（設計稿 12a）：套 `EditScaffold`，跟 9b 完全同骨架，只有列內容不同——
+/// 循環課表編輯（設計稿 12a）：套 `TLEditScaffold`，跟 9b 完全同骨架，只有列內容不同——
 /// 這裡的列是「範本 ＋ 序號圓章 ＋ 右側組數」，不是動作。**沒有**總長度、沒有休息列、沒有日期。
 /// 新增內容只有一個路徑：從範本庫多選匯入（copy 快照），不再支援現場拼一個新 workout。
 /// 直接吃 `Rotation` 物件（跟 `TemplateFormView` 同precedent）：清單已經載入過，不用再依 id 非同步查一次
@@ -91,7 +92,7 @@ public struct RotationEditorView: View {
     }
 
     public var body: some View {
-        EditScaffold(
+        TLEditScaffold(
             title: $draftName,
             titlePrompt: localText("rotation.name.placeholder"),
             canSave: canSave,
@@ -116,7 +117,7 @@ public struct RotationEditorView: View {
             }
         }
         .sheet(isPresented: $pickingTemplates) {
-            PickerSheet(
+            TLPickerSheet(
                 title: Text("rotation.picker.title", bundle: .module),
                 searchPrompt: localText("rotation.picker.searchPrompt"),
                 allItems: templates.map { TemplatePickerItem(template: $0, name: name) },
@@ -177,7 +178,7 @@ public struct RotationEditorView: View {
     // MARK: - 範本順序
 
     private var workoutsSection: some View {
-        EditSection(localText("rotation.workouts.section")) {
+        TLEditSection(localText("rotation.workouts.section")) {
             TLGroup {
                 ForEach(Array(draftWorkouts.enumerated()), id: \.element.id) { index, spec in
                     row(index, spec)
@@ -188,13 +189,13 @@ public struct RotationEditorView: View {
     }
 
     private func row(_ index: Int, _ spec: WorkoutSpec) -> some View {
-        ListRow(
+        TLListRow(
             title: Text(verbatim: spec.name),
             subtitle: Text(PlanFormatting.exerciseNamesSummary(spec, name: name)),
             leading: {
-                HStack(spacing: 8) {
+                HStack(spacing: TLSpace.gapS) {
                     dragHandle
-                    CircleBadge(fill: TLColor.accent200) {
+                    TLBadge(fill: TLColor.accent200) {
                         Text(verbatim: "\(index + 1)")
                             .font(TLFont.display(15))
                             .foregroundStyle(TLColor.accent800)
@@ -202,10 +203,10 @@ public struct RotationEditorView: View {
                 }
             },
             trailing: {
-                HStack(spacing: 8) {
-                    RowValue("\(spec.sets.count)", unit: localString("rotation.setsUnit", locale))
+                HStack(spacing: TLSpace.gapS) {
+                    TLRowValue("\(spec.sets.count)", unit: localString("rotation.setsUnit", locale))
                     // 14b：這一格的強度覆寫（未覆寫＝線框「基準」，已覆寫＝accent 實心 ×N%）。
-                    IntensityOverridePill(
+                    TLIntensityOverridePill(
                         factor: spec.intensityFactor,
                         baselineLabel: localString("rotation.intensity.baseline", locale),
                         onTap: { overridingWorkoutId = spec.id }
@@ -242,15 +243,15 @@ public struct RotationEditorView: View {
 
     private var dragHandle: some View {
         Image(systemName: "line.3.horizontal")
-            .font(.system(size: 14, weight: .semibold))
+            .font(.system(size: TLIcon.inline, weight: .semibold))
             .foregroundStyle(TLColor.neutral400)
     }
 
     private var addRow: some View {
-        ListRow(
+        TLListRow(
             title: localText("rotation.addTemplate"),
             onTap: { pickingTemplates = true },
-            leading: { CircleBadge(icon: "plus", fill: TLColor.neutral200, tint: TLColor.neutral600) }
+            leading: { TLBadge(icon: "plus", fill: TLColor.neutral200, tint: TLColor.neutral600) }
         )
         .accessibilityIdentifier("rotationEditor.addTemplate")
     }
@@ -266,7 +267,7 @@ public struct RotationEditorView: View {
 
     /// 「套用後」試算：拿目前循環裡的第一個範本、它的第一組當代表動作。
     /// 只給百分比沒人算得出槓上要放幾片，這是這個群組存在的理由（03-schedule.md B 節）。
-    private var intensityPreviewLines: [IntensityFactorGroup.PreviewLine] {
+    private var intensityPreviewLines: [TLIntensityFactorGroup.PreviewLine] {
         guard let firstSet = draftWorkouts.first?.sets.first else { return [] }
         // 帶著單位一起算：使用者可能用 lb，寫死 kg 會標錯。
         let baseWeight = firstSet.targetWeight?.resolvedWeight ?? Weight(value: 60, unit: .kg)
@@ -274,7 +275,7 @@ public struct RotationEditorView: View {
         // 跟投影收斂用同一個取整（WeightRange.steppedDown），否則預覽與實際排出來的數字會兜不攏。
         let result = WeightRange.steppedDown(base * draftIntensityFactor, step: weightStep)
         return [
-            IntensityFactorGroup.PreviewLine(
+            TLIntensityFactorGroup.PreviewLine(
                 label: Text(verbatim: "\(name(firstSet.exerciseId)) ")
                     + localText("template.setNumber \(firstSet.setIndex + 1)"),
                 expression: Text(verbatim: String(
@@ -286,8 +287,8 @@ public struct RotationEditorView: View {
     }
 
     private var intensitySection: some View {
-        EditSection(localText("rotation.intensity.section"), footer: localText("rotation.intensity.footer")) {
-            IntensityFactorGroup(
+        TLEditSection(localText("rotation.intensity.section"), footer: localText("rotation.intensity.footer")) {
+            TLIntensityFactorGroup(
                 factor: $draftIntensityFactor,
                 customLabel: localString("rotation.intensity.custom", locale),
                 previewLines: intensityPreviewLines
@@ -295,7 +296,7 @@ public struct RotationEditorView: View {
         }
     }
 
-    /// 點某一格的強度膠囊：ValuePicker 選 0.5–1.2，或「使用基準」清掉覆寫。
+    /// 點某一格的強度膠囊：TLValuePicker 選 0.5–1.2，或「使用基準」清掉覆寫。
     /// 「取消」不寫回——覆寫值只在按「完成」時才真的存進 `draftWorkouts`。
     private func intensityOverrideSheet(for workoutId: UUID) -> some View {
         let baseline = draftIntensityFactor
@@ -322,18 +323,18 @@ public struct RotationEditorView: View {
     // MARK: - 建立後（僅新增模式）
 
     private var createdAfterSection: some View {
-        EditSection(localText("rotation.createdAfter.section"), footer: localText("rotation.createdAfter.footer")) {
+        TLEditSection(localText("rotation.createdAfter.section"), footer: localText("rotation.createdAfter.footer")) {
             TLGroup {
-                ListRow(
+                TLListRow(
                     title: localText("rotation.createdAfter.activateNow"),
                     trailing: {
                         Toggle("", isOn: $isActiveOnCreate).labelsHidden().toggleStyle(.tlSwitch)
                     }
                 )
-                ListRow(
+                TLListRow(
                     title: localText("rotation.createdAfter.startDay"),
                     onTap: { showStartDayEditor.toggle() },
-                    trailing: { RowValue("\(startAtDay)") }
+                    trailing: { TLRowValue("\(startAtDay)") }
                 )
             }
             if showStartDayEditor {
@@ -345,7 +346,7 @@ public struct RotationEditorView: View {
                     }
                 }
                 .padding(.horizontal, TLSpace.rowInset)
-                .padding(.top, 8)
+                .padding(.top, TLSpace.gapS)
             }
         }
     }
@@ -354,7 +355,7 @@ public struct RotationEditorView: View {
 
     private var deleteSection: some View {
         TLGroup {
-            SettingsRow(
+            TLSettingsRow(
                 localText("rotation.delete.thisRotation"),
                 role: .destructive,
                 onTap: { showDeleteConfirm = true }
@@ -409,7 +410,7 @@ private struct RotationWorkoutTransfer: Codable, Transferable {
 
 /// 14b 週期格子的強度覆寫編輯 sheet：循環（12a）與長期（9c）共用，故不是 `private`
 /// （同一個 PlanPresentation module 內共用，不用為兩個呼叫端拉出去 DesignSystem）。
-/// 「取消」不寫回；「使用基準」清掉覆寫（nil）；「完成」把 ValuePicker 選的值寫回。
+/// 「取消」不寫回；「使用基準」清掉覆寫（nil）；「完成」把 TLValuePicker 選的值寫回。
 struct IntensityOverrideSheet: View {
     /// 目前語言：`localString` 要靠它才能查到 app 設定的語言（而非手機語系）。
     @Environment(\.locale) private var locale
@@ -439,7 +440,7 @@ struct IntensityOverrideSheet: View {
         VStack(alignment: .leading, spacing: TLSpace.gapL) {
             HStack {
                 Button(action: onCancel) { localText("plan.cancel") }
-                    .font(TLFont.zh(15.5, .medium))
+                    .font(TLFont.zh(TLFont.buttonLabel, .medium))
                     .foregroundStyle(TLColor.neutral600)
                 Spacer()
                 Button(action: onUseBaseline) { localText("rotation.intensity.useBaseline") }
@@ -447,10 +448,10 @@ struct IntensityOverrideSheet: View {
                     .foregroundStyle(TLColor.neutral600)
                 Spacer()
                 Button { onCommit(value) } label: { localText("plan.done") }
-                    .font(TLFont.zh(15.5, .bold))
+                    .font(TLFont.zh(TLFont.buttonLabel, .bold))
                     .foregroundStyle(TLColor.accent700)
             }
-            ValuePicker(
+            TLValuePicker(
                 value: $value,
                 values: values,
                 kicker: localString("rotation.intensity.custom", locale),

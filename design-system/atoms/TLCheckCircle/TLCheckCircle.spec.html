@@ -1,0 +1,232 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>TLCheckCircle</title>
+<link rel="stylesheet" href="../../tokens/tokens.css">
+<link rel="stylesheet" href="../../preview.css">
+<style>
+  body { max-width: 62rem; line-height: 1.7; }
+  h1, h2, h3 { font-family: var(--font-page-title-family); line-height: 1.35; }
+  h1 { font-size: var(--font-page-title); margin: 0 0 var(--space-gap-l); }
+  h2 { font-size: var(--font-card-title); margin: var(--space-section) 0 var(--space-gap-m);
+       padding-top: var(--space-gap-m); border-top: 1px solid var(--border-subtle); }
+  h3 { font-size: var(--font-row-title); margin: var(--space-gap-l) 0 var(--space-gap-s); }
+  a { color: var(--accent-on-surface); }
+  table { border-collapse: collapse; width: 100%; margin: var(--space-gap-m) 0;
+          display: block; overflow-x: auto; }
+  th, td { text-align: left; padding: var(--space-gap-s) var(--space-gap-m);
+           border-bottom: 1px solid var(--border-subtle); vertical-align: top; }
+  th { font-size: var(--font-kicker); letter-spacing: var(--font-kicker-tracking);
+       text-transform: uppercase; color: var(--text-tertiary); }
+  pre { background: var(--surface-raised); border-radius: var(--radius-inner);
+        padding: var(--space-gap-m); overflow-x: auto; }
+  pre code { background: none; padding: 0; }
+  blockquote { margin: var(--space-gap-m) 0; padding-left: var(--space-gap-m);
+               border-left: 3px solid var(--border-subtle); color: var(--text-secondary); }
+  .back { font-size: var(--font-row-sub); margin-bottom: var(--space-gap-l); display: block; }
+</style>
+<a class="back" href="../../index.html">← 元件庫索引</a>
+<h1>TLCheckCircle</h1>
+<h2>1 身分</h2>
+<table>
+<thead>
+<tr>
+<th></th>
+<th></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>層級</td>
+<td>L1 原子</td>
+</tr>
+<tr>
+<td>職責</td>
+<td>可勾選的列右側，表達「這一項被選了」</td>
+</tr>
+<tr>
+<td>原型 id</td>
+<td><code>12c</code> <code>12d</code>；也用在設定的選擇子頁</td>
+</tr>
+<tr>
+<td>獨立使用</td>
+<td><strong>否 —— 必須置於列之內（<code>TLListRow</code>）</strong></td>
+</tr>
+<tr>
+<td>容器責任</td>
+<td>位置與間距由列負責</td>
+</tr>
+<tr>
+<td>實作</td>
+<td><code>Packages/DesignSystem/Sources/DesignSystem/Atoms/TLCheckCircle.swift</code></td>
+</tr>
+<tr>
+<td>Preview</td>
+<td><code>design-system/atoms/TLCheckCircle/TLCheckCircle.preview.html</code></td>
+</tr>
+<tr>
+<td>Preview CSS</td>
+<td><code>components.preview.css</code> §TLCheckCircle</td>
+</tr>
+</tbody>
+</table>
+<h2>2 介面 ★</h2>
+<p><strong>Props</strong></p>
+<table>
+<thead>
+<tr>
+<th>名稱</th>
+<th>型別</th>
+<th>值域</th>
+<th>必填</th>
+<th>預設</th>
+<th>說明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>isChecked</code></td>
+<td><code>Bool</code></td>
+<td></td>
+<td>是</td>
+<td>—</td>
+<td>選中與否</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Slots</strong> — N/A
+<strong>事件</strong> — N/A（點擊由整列承接 —— 觸控目標是列，不是這個 22pt 的圓）</p>
+<h2>3 變體 variants</h2>
+<p>無。選中與否是<strong>狀態</strong>不是變體 —— 同一個元件的兩個樣子，由 <code>isChecked</code> 決定。</p>
+<h2>4 狀態 states ★</h2>
+<!-- states: unselected, selected -->
+<!-- themes: light, dark -->
+
+<table>
+<thead>
+<tr>
+<th>類別</th>
+<th>狀態</th>
+<th>這個元件</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>互動</td>
+<td>default / pressed / disabled / focused</td>
+<td>按下態由整列表現，這個元件不變</td>
+</tr>
+<tr>
+<td>選取</td>
+<td>selected / unselected / indeterminate</td>
+<td><strong>selected 與 unselected 是它的全部意義。</strong> 沒有 indeterminate —— 目前沒有「部分選取」的情境；真要做要先補設計</td>
+</tr>
+<tr>
+<td>資料</td>
+<td>empty / loading / error</td>
+<td>N/A</td>
+</tr>
+<tr>
+<td>內容極值</td>
+<td>最短 / 最長 / 溢出</td>
+<td>N/A —— 固定尺寸</td>
+</tr>
+<tr>
+<td>主題</td>
+<td>light / dark</td>
+<td>兩者都有</td>
+</tr>
+<tr>
+<td>語言</td>
+<td>中文 / 英文</td>
+<td>N/A —— 無文字</td>
+</tr>
+</tbody>
+</table>
+<h2>5 度量與行為</h2>
+<table>
+<thead>
+<tr>
+<th></th>
+<th></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>直徑</td>
+<td><code>size.checkCircle</code></td>
+</tr>
+<tr>
+<td>空心圈線寬</td>
+<td><code>size.hairlineThick</code> —— 比 <code>hairline</code> 粗，<strong>1px 在圓弧上會斷斷續續</strong></td>
+</tr>
+<tr>
+<td>勾號</td>
+<td><code>icon.inCheckCircle</code> ＋ <code>bold</code></td>
+</tr>
+<tr>
+<td>最小寬度</td>
+<td>固定，不壓縮</td>
+</tr>
+</tbody>
+</table>
+<p><strong>觸控目標是列不是這個圓</strong>：22pt 遠小於 44pt 的最小觸控。列必須整條可點。</p>
+<h3>文字與溢出</h3>
+<p>無文字。<strong>Dynamic Type</strong>：不跟隨（它是圖示）。</p>
+<h3>動態</h3>
+<p>目前無轉場。<strong>已知缺口</strong>：selected 與 unselected 之間直接切換沒有動畫，
+在清單裡連點兩項會顯得突兀。要補的話用 <code>motion.fast</code>。</p>
+<h2>6 配色 ★</h2>
+<table>
+<thead>
+<tr>
+<th>狀態</th>
+<th>底</th>
+<th>圈線</th>
+<th>勾號</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>selected</td>
+<td><code>actionPrimary</code></td>
+<td>無</td>
+<td><code>surfaceBase</code></td>
+</tr>
+<tr>
+<td>unselected</td>
+<td>透明</td>
+<td><code>neutral-400</code></td>
+<td>無</td>
+</tr>
+</tbody>
+</table>
+<h2>7 用法與禁用法</h2>
+<p><strong>用它</strong>：清單裡「選一個／選多個」，而且選完不離開這一頁時。</p>
+<p><strong>易混淆</strong>：<code>TLChevron</code>（可進入的列）—— 這個表示<strong>選取</strong>，那個表示<strong>進入下一層</strong>。
+同一列不該同時出現兩者：那會讓人不知道點下去是選還是進去。</p>
+<p><strong>不要用它</strong>：
+- 當可點的按鈕 —— 22pt 不是合法觸控目標，要整列可點
+- 跟 chevron 並存
+- 表達「完成」之類的狀態 —— 它表達的是「被選中」，語意不同</p>
+<h2>8 變更紀錄</h2>
+<table>
+<thead>
+<tr>
+<th>日期</th>
+<th>改動</th>
+<th>原因</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>2026-08-30</td>
+<td>從 <code>TLListRow.swift</code> 拆成獨立檔</td>
+<td>那個檔有 4 個 public 元件</td>
+</tr>
+<tr>
+<td>2026-08-30</td>
+<td>內部字面值 <code>22</code>／<code>1.5</code>／<code>11</code> 改成 token</td>
+<td>元件內部的字面值也是字面值。順帶新增 <code>size.hairlineThick</code> —— 圓弧上的線需要比 1px 粗</td>
+</tr>
+</tbody>
+</table>

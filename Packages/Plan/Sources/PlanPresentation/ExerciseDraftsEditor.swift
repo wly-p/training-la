@@ -1,3 +1,4 @@
+import DesignControls
 import PlanDomain
 import SharedKernel
 
@@ -5,7 +6,7 @@ import SharedKernel
 /// `.relativeToLast` 會被當成空白待填，這條路徑本來就不會產生它）。
 ///
 /// 舊的 `ExerciseDraftsEditor`／`PlanExercisePickerView`（原生 Form/List）已被
-/// `PlanWorkoutFormView` 改用 `EditScaffold`＋`PickerSheet` 取代，只留這個轉換函式。
+/// `PlanWorkoutFormView` 改用 `TLEditScaffold`＋`TLPickerSheet` 取代，只留這個轉換函式。
 func draftsFromBlocks(_ blocks: [PlanBlock]) -> [ExerciseTargetDraft] {
     blocks.map { block in
         let first = block.sets[0]

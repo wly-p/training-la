@@ -1,0 +1,1184 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>元件庫變更紀錄</title>
+<link rel="stylesheet" href="tokens/tokens.css">
+<link rel="stylesheet" href="preview.css">
+<style>
+  body { max-width: 62rem; line-height: 1.7; }
+  h1, h2, h3 { font-family: var(--font-page-title-family); line-height: 1.35; }
+  h1 { font-size: var(--font-page-title); margin: 0 0 var(--space-gap-l); }
+  h2 { font-size: var(--font-card-title); margin: var(--space-section) 0 var(--space-gap-m);
+       padding-top: var(--space-gap-m); border-top: 1px solid var(--border-subtle); }
+  h3 { font-size: var(--font-row-title); margin: var(--space-gap-l) 0 var(--space-gap-s); }
+  a { color: var(--accent-on-surface); }
+  table { border-collapse: collapse; width: 100%; margin: var(--space-gap-m) 0;
+          display: block; overflow-x: auto; }
+  th, td { text-align: left; padding: var(--space-gap-s) var(--space-gap-m);
+           border-bottom: 1px solid var(--border-subtle); vertical-align: top; }
+  th { font-size: var(--font-kicker); letter-spacing: var(--font-kicker-tracking);
+       text-transform: uppercase; color: var(--text-tertiary); }
+  pre { background: var(--surface-raised); border-radius: var(--radius-inner);
+        padding: var(--space-gap-m); overflow-x: auto; }
+  pre code { background: none; padding: 0; }
+  blockquote { margin: var(--space-gap-m) 0; padding-left: var(--space-gap-m);
+               border-left: 3px solid var(--border-subtle); color: var(--text-secondary); }
+  .back { font-size: var(--font-row-sub); margin-bottom: var(--space-gap-l); display: block; }
+</style>
+<a class="back" href="index.html">← 元件庫索引</a>
+<h1>元件庫變更紀錄</h1>
+<p>元件自身的改動記在各自 spec 的第 12 節。<strong>token 與契約層級的改動記這裡</strong> ——
+那些改動不屬於任何單一元件，但會影響每一個元件，之前沒有地方可以記。</p>
+<p>刪一個 token 是設計決策，不是清理。所以刪除也要記，而且要寫清楚是哪一種情況：
+角色不需要了／只是改名／被別的 token 吸收。</p>
+<hr />
+<h2>2026-08-30 · 第二輪設計端審閱後</h2>
+<h3>token</h3>
+<ul>
+<li>
+<p><strong>刪除語意 token <code>surfaceSunken</code></strong>（原本指向 <code>sand.raised</code> <code>#EBDDC5</code>，職責「頁面上的表面色塊」）。
+  <strong>屬於「角色不需要了」</strong>：查證 <code>TLColor.surface</code> 全專案 <strong>0 處使用</strong>，
+  它是 0a 建立語意層時，我幫一個從未被用過的色票發明的角色 —— 為沒有用途的顏色發明語意名，
+  正是取錯名字的來源。舊名 alias <code>surface</code> 一併移除。
+  <strong>沒有任何畫面的顏色因此改變。</strong>
+  色階層的 <code>sand.raised</code> <strong>保留</strong>：它是原始色票的一員，只是目前沒有語意角色指向它。
+  之後若有畫面需要「頁面上的表面色塊」，在那時依實際用途命名，不要現在預先發明。</p>
+</li>
+<li>
+<p>新增 <code>icon</code>（<code>s</code>/<code>m</code>/<code>l</code>／<code>weight</code>／<code>strokeWeb</code>）與 <code>motion</code>（<code>fast</code>/<code>base</code>/<code>curve</code>）兩組。
+  <code>motion</code> 的值取自程式碼現況（easeOut 0.2／0.18／0.15），不是憑空定的三階；
+  <code>0.18</code> 是落單值，收斂前不要新增第四個值。</p>
+</li>
+<li>
+<p>語意色改名：<code>accentOnLight</code> → <code>accentOnSurface</code>、<code>dangerOnLight</code> → <code>dangerOnSurface</code>。
+  違反 §5「語意 token 名不得帶外觀」—— <code>OnLight</code> 預設了底色是淺的，深色接上時會直接說謊。</p>
+</li>
+<li>
+<p><code>--icon-stroke</code> 的 <code>2.75</code> 原本是生成器裡的字面值，不是從 <code>tokens.json</code> 來的。
+  補 <code>icon.strokeWeb</code> 當來源 —— 單一來源在這裡漏了一個洞。</p>
+</li>
+</ul>
+<h3>契約</h3>
+<ul>
+<li>§7.3 加上<strong>展示骨架的豁免</strong>：色票方塊、示意方塊的尺寸可以用字面值（「色票要畫多大」跟設計系統無關），
+  但<strong>字面色值永遠不豁免</strong>。不寫的話，第一次跑 lint 就會有人為了過檢查把 <code>46px</code> 塞成 token，汙染 token 表。</li>
+<li>§8 的檢查表改成<strong>從 <code>check-design-system.py</code> 的 <code>CHECKS</code> 生成</strong>。
+  <code>scripts/</code> 不進交付包，README 是設計端唯一看得到「實際擋了什麼」的地方；
+  手寫一定會過期，然後審閱會針對一份虛構的清單提意見（第二輪就發生了兩次）。</li>
+</ul>
+<h3>preview</h3>
+<ul>
+<li>共用外殼 <code>preview.css</code> 的<strong>列間分隔線原本橫跨整列寬，是錯的</strong>。
+  app 的 <code>TLDivider</code> 有 <code>.padding(.leading, TLSpace.rowInset)</code>，分隔線左內縮 18。
+  改用 <code>::after</code> 定位。錯在共用外殼裡，所有元件會一起錯。</li>
+</ul>
+<h3>新增檢查</h3>
+<ul>
+<li><strong>10</strong> preview 用到的字都要在子集字型裡。內嵌中文子集換來 preview 自足，
+  代價是「改了文案沒重生子集就靜默缺字」。</li>
+<li><strong>12</strong> 文件裡提到的 token 名都要真的存在。抓「token 被刪／改名，文件還在講它」。</li>
+</ul>
+<hr />
+<h2>2026-09-04 · 檢查 18（元件庫零邏輯）＋ 階段 5（訓練）</h2>
+<h3>ratchet 的第三個洞：系統字級</h3>
+<p><code>.font(.footnote)</code> / <code>.caption</code> / <code>.headline</code> 這類<strong>系統字級連數字都沒有</strong>，
+前兩版的 regex 完全看不到它們。全 app <strong>25 處，Training 佔 22</strong>。</p>
+<p>它們比字面值更麻煩：<strong>系統字級跟著 Dynamic Type 縮放，我們的固定值不會。</strong>
+換掉等於把那 25 處從「會縮放」變成「不會縮放」—— 這是一個行為改變，記在下面。</p>
+<p>對照表（照設計端的判準就近併，位移都 ≤1px）：</p>
+<table>
+<thead>
+<tr>
+<th>系統字級</th>
+<th>預設點數</th>
+<th>換成</th>
+<th>位移</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>.footnote</code></td>
+<td>13</td>
+<td><code>caption</code>(12.5)</td>
+<td>−0.5</td>
+</tr>
+<tr>
+<td><code>.footnote.semibold</code>（膠囊鈕）</td>
+<td>13</td>
+<td><code>buttonLabelSmall</code>(13)</td>
+<td>0</td>
+</tr>
+<tr>
+<td><code>.caption</code></td>
+<td>12</td>
+<td><code>badgeText</code>(12)</td>
+<td>0</td>
+</tr>
+<tr>
+<td><code>.caption.bold</code>（圓章數字）</td>
+<td>12</td>
+<td><code>badgeText</code>(12)</td>
+<td>0</td>
+</tr>
+<tr>
+<td><code>.caption2</code></td>
+<td>11</td>
+<td><code>rowSub</code>(11.5)</td>
+<td>+0.5</td>
+</tr>
+<tr>
+<td><code>.caption2.semibold</code>（表頭、大寫）</td>
+<td>11</td>
+<td><code>kicker</code>(10.5)</td>
+<td>−0.5</td>
+</tr>
+<tr>
+<td><code>.subheadline.semibold</code></td>
+<td>15</td>
+<td><code>rowTitle</code>(15)</td>
+<td>0</td>
+</tr>
+<tr>
+<td><code>.headline</code></td>
+<td>17</td>
+<td><code>emptyTitle</code>(16)</td>
+<td>−1</td>
+</tr>
+<tr>
+<td><code>.title2</code>（套在 SF Symbol 上）</td>
+<td>22</td>
+<td><code>icon.standalone</code>(22)</td>
+<td>0</td>
+</tr>
+</tbody>
+</table>
+<p><code>.headline</code> 那一處是唯一有疑慮的：17 在我們的尺度裡沒有位置（16 與 21 之間是空的），
+一處使用撐不起一個新階（<code>icon.l</code> 那次的原則），所以併進 16。
+<strong>但 <code>emptyTitle</code> 這個名字對它是錯的</strong> —— 那是「休息全螢幕裡下一個動作的名字」。
+名字該改成通用的小標題，跟 <code>emptyHint</code>→<code>caption</code> 同一型，列進待問清單。</p>
+<h3>檢查 18：零邏輯終於有人守</h3>
+<p>「元件不得有邏輯」寫在正典 §4 規則二之二，但<strong>17 條檢查裡沒有一條看它</strong>。
+這一輪已經證明過兩次「沒有檢查在擋的規則會漂」，所以補上：</p>
+<table>
+<thead>
+<tr>
+<th>擋什麼</th>
+<th>結果</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>@State</code> / <code>@FocusState</code> / <code>@StateObject</code> / <code>@Observable</code> / <code>ObservableObject</code></td>
+<td><strong>零違規</strong></td>
+</tr>
+<tr>
+<td><code>String(format:</code> / <code>DateFormatter</code> / <code>NumberFormatter</code> / <code>Calendar(</code> / <code>.formatted(</code></td>
+<td><strong>零違規</strong></td>
+</tr>
+<tr>
+<td><code>GeometryReader</code></td>
+<td>一處：<code>TLProgressBar</code>，走登記制</td>
+</tr>
+</tbody>
+</table>
+<p><code>TLProgressBar</code> 那一處不該被判違規也不該靜默放行：<strong>把 <code>ratio</code> 映射成寬度就是進度條的
+呈現本身</strong>，那是佈局不是業務邏輯。所以照檢查 17 的做法登記在
+<code>design-system/logic-exceptions.json</code>，每跑一次印一次。</p>
+<p>正典 §規則二之二 補上界線：<strong>「不得計算」指的是不得從資料算出設計值，依可用空間做比例佈局不算。</strong></p>
+<p>三種違規都反向測過會擋。</p>
+<h3>階段 5 抽出的兩個元件，都是「兩份實作」</h3>
+<table>
+<thead>
+<tr>
+<th></th>
+<th>問題</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>TLPillButton</code>（L1）</td>
+<td><code>ActiveWorkoutView</code> 裡有 <code>restPill</code> 與 <code>quickPill</code> <strong>兩份實作</strong>，只差 2px 內距與一階文字色</td>
+</tr>
+<tr>
+<td><code>TLStat</code>（L2）</td>
+<td><code>TrainingHomeView</code> 與 <code>FinishWorkoutSheet</code> <strong>各有一份一模一樣的 <code>statNumber</code></strong>。跨檔的重複比同檔的更難發現——讀任何一邊都看不出來</td>
+</tr>
+</tbody>
+</table>
+<p>膠囊那兩個內距（8／10）<strong>沒有自己收</strong>：收成一個是視覺決定，屬於膠囊幾何那組待決問題。
+我只收實作，不收像素。</p>
+<h3>第四根手工重建的進度條</h3>
+<p><code>FinishWorkoutSheet:172</code> 又有一份 <code>GeometryReader</code> ＋ 兩個 <code>Capsule</code>。
+階段 2 抽 <code>TLProgressBar</code> 時說「兩處各手工重建」——<strong>當時漏數了這一處</strong>，
+因為它藏在一個 <code>if targetVolume &gt; 0</code> 裡面。已改用元件。</p>
+<h3>進度</h3>
+<p>元件 32 → <strong>34</strong>。字面樣式 153 → <strong>66</strong>（其中 34 是 display 字級、22 是膠囊幾何，
+都等設計端第二批；4 處是 UITest 的 0×0 幽靈錨點，那是測試鉤子不是樣式）。</p>
+<p>Ability 的 14 處也一併做完（它不在五個階段裡，但它是最後一個非零的檔）。</p>
+<hr />
+<h2>2026-08-31 · TLCard 全面遷移（26 處）＋ 階段 4（課表）</h2>
+<h3>「不要卡中卡」是錯的 —— 被 26 處實測推翻</h3>
+<p>抽 <code>TLCard</code> 時我在規格第 7 節寫了「不要卡中卡：兩層 <code>radius.container</code> 疊在一起，
+內圈的圓角會看起來是壞的」。全面遷移時才發現 app 裡有 <strong>9 處卡中卡</strong>，
+而且它們<strong>早就在用 <code>radius.inner</code>(20)</strong>。</p>
+<p><strong>app 的實際規則不是「不要巢狀」而是「巢狀要換小圓角」。</strong>
+上一版的禁令是我只看了 17 處外層卡就下的結論 —— 量到 26 處才看見全貌。</p>
+<p><code>TLCard</code> 因此多一個 <code>radius</code> 維度：</p>
+<pre><code>container 28  外層卡：直接坐在頁面底上的        15 處
+inner     20  卡中的區塊：坐在另一張卡或群組裡的   9 處
+</code></pre>
+<p>規則從「人要記得」變成「元件強制」。</p>
+<h3>三處內距就近併（使用者拍板的視覺位移）</h3>
+<table>
+<thead>
+<tr>
+<th>位置</th>
+<th>現值</th>
+<th>併成</th>
+<th>位移</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>休息日回顧卡</td>
+<td>26/22</td>
+<td><code>.roomy</code> 26/26</td>
+<td>+4px</td>
+</tr>
+<tr>
+<td>範本編輯的值方塊</td>
+<td>18/12</td>
+<td><code>.standard</code> 18/18</td>
+<td>+6px</td>
+</tr>
+<tr>
+<td>訓練中的組表列</td>
+<td>18/14 或 11</td>
+<td><code>.standard</code> 18/18</td>
+<td>+4／+7px</td>
+</tr>
+</tbody>
+</table>
+<p>⚠ 第三項要留意：<code>current</code> 列原本比其他列高 3px，那是<strong>第三個狀態訊號</strong>
+（另兩個是 <code>neutral-300</code> 底與 <code>upcoming</code> 的 0.6 透明度）。併掉之後只剩顏色，
+而且整張組表每列都變高。這是使用者拍板的取捨，記在這裡免得日後被當成 bug。</p>
+<h3><code>TLGroup</code> 的描邊</h3>
+<p><code>RotationListView</code> 要標「這一區是進行中的」，但 <code>TLGroup</code> 不收描邊，
+於是呼叫端自己在外面疊了一個 <code>strokeBorder</code> overlay —— 同一件事的第二份實作。
+補上 <code>border: Color?</code>。<strong>這是這一輪第三個同型的介面缺口</strong>
+（前兩個是 <code>TLBadge(count:)</code> 的顏色、<code>TLSectionHeader</code> 的右側）。</p>
+<h3><code>TLCircleIcon</code> —— 又一個「視覺與互動綁在一起」</h3>
+<p>課表頁的 <code>+</code> 是 <strong><code>Menu</code> 的 label 不是 <code>Button</code></strong>，而 <code>TLCircleIconButton</code> 自己擁有
+<code>Button</code>，所以那裡用不了它 —— 只能手工重畫一份圓。<code>ActiveWorkoutView</code> 也有一份
+（那個更冤：它本來就是 Button，只是沒人知道有元件）。</p>
+<p><strong>跟 <code>TLRowContent</code> 之於 <code>TLListRow</code> 是同一個錯誤。</strong> 拆出 L1 <code>TLCircleIcon</code>
+（純視覺）之後，<code>TLCircleIconButton</code> ＝ <code>Button</code> ＋ 它，兩處手工重建都消失。</p>
+<h3>階段 4（課表）</h3>
+<p><code>PlanScheduleView</code> ＋ <code>PlanWorkoutFormView</code>，字面樣式 12 → <strong>3</strong>（剩下全是 display 尺度）。</p>
+<p>兩個 L3：<code>PlanWorkoutRow</code>（已排定，圓章同時是序號與狀態）、
+<code>ProjectedWorkoutRow</code>（投影未落地，整列不可點）。<strong>兩個都是純組合，零缺口。</strong></p>
+<h3>進度</h3>
+<p>元件 29 → <strong>32</strong>。基線 140 → <strong>128</strong>。手工重建的卡 <strong>26 → 0</strong>。</p>
+<hr />
+<h2>2026-08-31 · 階段 3（歷史）· 找到全 app 最大的一筆重複</h2>
+<h3><code>TLCard</code> 缺席 —— 17 處手工重建，跨 6 個 package</h3>
+<p>下行拆解時量的，不是猜的：</p>
+<pre><code>padding(rowInset) ＋ background(...) ＋ clipShape(RoundedRectangle(container))
+</code></pre>
+<table>
+<thead>
+<tr>
+<th>底色</th>
+<th>處數</th>
+<th>例子</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>neutral-100</code>（＝ <code>surfaceRaised</code>）</td>
+<td>9</td>
+<td>趨勢圖卡、能力值卡、動作表單卡、長期「進行中」卡</td>
+</tr>
+<tr>
+<td><code>neutral-300</code>（<strong>沒有語意名字</strong>）</td>
+<td>5</td>
+<td>達成摘要、長期詳情、循環詳情、完成摘要</td>
+</tr>
+<tr>
+<td><code>accent-200</code>（<strong>沒有語意名字</strong>）</td>
+<td>2</td>
+<td>訓練中的當前組、能力值的當前值</td>
+</tr>
+<tr>
+<td>只有描邊</td>
+<td>1</td>
+<td>循環清單的進行中框</td>
+</tr>
+</tbody>
+</table>
+<p><strong>比 <code>TLInlineEmptyState</code>（4 處）大四倍</strong>，是目前為止最大的一筆。</p>
+<p>底色做成 <strong>prop 而不是 enum</strong>：三階裡有兩階還沒有語意名字，做成 <code>enum</code> 等於
+現在就替設計端命名 —— 那不是我的決定。<code>neutral-300</code> 在語意層叫 <code>surfaceInput</code>
+（輸入色帶），拿它當卡底是<strong>借用</strong>。命名已列進待問清單。</p>
+<h3><code>TLSectionHeader</code> 的右側只開放給按鈕</h3>
+<p>歷史的月份區塊要「共 N 小時」這種<strong>唯讀文字</strong>，但那個元件的右側只收 <code>actionLabel</code>＋<code>action</code>。
+於是 <code>HistoryView</code> 自己重畫了一次 kicker（字級、字距、顏色、下方間距全部重寫一遍）。</p>
+<p><strong>跟 <code>TLBadge(count:)</code> 顏色寫死是同一型：介面少開一個口，呼叫端就會繞過整個元件。</strong>
+補上 <code>trailing: Text?</code> 之後那段手寫消失。</p>
+<h3>抽出 <code>WorkoutHistoryRow</code>（L3）</h3>
+<p>歷史清單的一列。左件是<strong>日期柱</strong>：日數 ＋ 星期兩行堆疊、固定寬 40。
+固定寬是為了讓整個月的日期左緣對齊 —— 跟著內容走的話 10 號與 9 號會差一個字寬。</p>
+<p>⚠ 順帶量到：<strong>「列首固定欄」有三種寬度</strong> —— <code>40</code>（日期柱）、<code>44</code>（逐組列的組序）、
+<code>48</code>（範本編輯的組序）。<strong>後兩者是同一個角色的兩個值</strong>，跟膠囊幾何同型。已列進待問清單。</p>
+<h3>進度</h3>
+<p>History 38 → 15。剩下的全部有記錄：display 尺度 8、單位字級 3、膠囊幾何 4。
+基線 163 → 140。</p>
+<p>新 token：<code>space.statGap</code> 28 · <code>space.cardSectionGap</code> 16 · <code>space.dateStackGap</code> 1 ·
+<code>size.chart</code> 200 · <code>size.legendDot</code> 8 · <code>size.dateColumn</code> 40 · <code>size.setIndexColumn</code> 44。</p>
+<hr />
+<h2>2026-08-31 · 動作庫的字面樣式清到剩「有理由的 17 處」</h2>
+<p>45 處遷移。<strong><code>Spec</code> 歸零</strong>，<code>Plan</code> 71 → 29（其中 12 處屬於課表分頁，不是這一階段的）。</p>
+<h3>新 token 6 個</h3>
+<table>
+<thead>
+<tr>
+<th>token</th>
+<th>值</th>
+<th>用在哪</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>size.gridCell</code> · <code>radius.gridCell</code> · <code>space.gridGap</code></td>
+<td>18 · 5 · 4</td>
+<td>長期課表編輯頁的格狀預覽。格子小，圓角要跟著小（比 <code>iconThumb</code> 7 更方）</td>
+</tr>
+<tr>
+<td><code>size.rowLeadColumn</code></td>
+<td>48</td>
+<td>列首的固定欄（序號）。<strong>與既有的 <code>rowTailColumn</code> 80 對稱</strong></td>
+</tr>
+<tr>
+<td><code>space.fieldPadV</code></td>
+<td>12</td>
+<td>可點的值方塊（重量／次數）上下內距</td>
+</tr>
+<tr>
+<td><code>space.sheetBarTop</code></td>
+<td>14</td>
+<td>整頁 sheet 頂端關閉列的上緣。不是 <code>TLCompactSheet</code>（那個用 <code>gapL</code>）</td>
+</tr>
+</tbody>
+</table>
+<h3>兩處刻意的 −1px</h3>
+<p><code>ProgramListView</code> 的提示卡標題／說明間距 <code>3</code> → <code>space.titleSubGap</code>(2)。
+理由與字級同一條：<strong>同一個關係只該有一個值</strong>，3 與 2 表達的是同一件事（標題與其下的說明）。</p>
+<p><code>ProgramListView</code> 的燒瓶圖示 <code>13</code> → <code>icon.inline</code>(14)，+1px。同理。</p>
+<h3>剩下的 17 處，每一處都有記錄</h3>
+<table>
+<thead>
+<tr>
+<th>剩下</th>
+<th>數量</th>
+<th>為什麼</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>TLFont.display(N)</code></td>
+<td>8</td>
+<td>第二批（display 尺度）</td>
+</tr>
+<tr>
+<td>膠囊幾何（<code>7/14</code>、<code>10/5</code>、<code>10/滿寬</code>）</td>
+<td>5</td>
+<td>第二批（膠囊三分法）</td>
+</tr>
+<tr>
+<td>詳情頁自寫返回列的 <code>.padding(.top, 12)</code></td>
+<td>2</td>
+<td>已知缺口：改用 <code>TLBackBar</code> 之後會變成 8，那是階段 4 的視覺改動</td>
+</tr>
+</tbody>
+</table>
+<p><strong>不是「清不完」，是「清到剩下的都在等別人拍板」。</strong></p>
+<hr />
+<h2>2026-08-31 · 中文字級收斂（設計端第一批拍板）＋ 三個檢查漏洞</h2>
+<h3>17 個字面值 → 13 個角色，52 處遷移</h3>
+<p>設計端立了一條判準，它決定了四題裡的三題：</p>
+<blockquote>
+<p><strong>併不併看「未來會不會分開走」，不是「現在差幾 px」。</strong>
+兩個角色同值、但各自有獨立的未來 → 兩個 token，值可以一樣。
+<strong>同值的兩個 token 不會製造漂移，字面值才會。</strong></p>
+</blockquote>
+<p>這也解釋了為什麼結論跟上一輪的 <code>textBody</code> 不同：<code>textBody</code> 與 <code>textSecondary</code>
+是同一件事的兩個名字，按鈕與列標題不是。</p>
+<table>
+<thead>
+<tr>
+<th>角色</th>
+<th>值</th>
+<th>來源</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>sheetTitle</code></td>
+<td>30</td>
+<td>新。sheet 的大標比 page 小一階是刻意的——sheet 是次級表面</td>
+</tr>
+<tr>
+<td><code>buttonLabel</code></td>
+<td>15</td>
+<td>新。取代 15 處的 <code>15.5</code>（−0.5px）。與 <code>rowTitle</code> 同值但各有各的未來：按鈕受 44pt 觸控區約束、列標題受 56pt 列高約束</td>
+</tr>
+<tr>
+<td><code>buttonLabelSmall</code></td>
+<td>13</td>
+<td>新。<code>buttonLabel</code> 的<strong>配對值</strong>，照 icon <code>inXxx</code> 的模式，不算尺度階</td>
+</tr>
+<tr>
+<td><code>caption</code></td>
+<td>12.5</td>
+<td>原 <code>emptyHint</code>。名字綁死在空狀態會讓人不敢拿它放編輯頁說明文字，然後又寫一個 13</td>
+</tr>
+<tr>
+<td><code>cardTitle</code></td>
+<td>21</td>
+<td>併入 <code>20</code>（對話框、區塊標題）與 <code>19</code>（月曆標題）</td>
+</tr>
+<tr>
+<td><code>detailTitle</code></td>
+<td>26</td>
+<td>新。歷史詳情那個 <code>26</code> <strong>不是漂移，是頁標題住在卡裡</strong></td>
+</tr>
+</tbody>
+</table>
+<p><code>0.5px</code> 沒有立場留下：尺寸差 0.5 在螢幕上不存在，「按鈕要比列標題重一點」該由<strong>字重</strong>做。</p>
+<h3><code>26</code> 那一題：先查位置，結論才翻過來</h3>
+<p>設計端的反問是「歷史詳情是 sheet 還是頁」，兩條路都是併掉。<strong>但兩條路都不對</strong> ——
+查到的位置是 <code>WorkoutDetailView.swift:132</code>，那不是頁標題也不是 sheet 標題：</p>
+<pre><code>歷史詳情頁
+├ 導覽列          系統畫的 inline 日期        ← 頁面沒有 pageTitle(34)
+├ kicker         10.5
+└ 達成摘要卡
+   ├ 訓練名稱     26  ← 問題中的值。整頁最大的中文字
+   ├ 副行／備註   rowSub 11.5
+   └ 統計數字     display 28                 ← 卡裡沒有 cardTitle 可作對照
+</code></pre>
+<p>所以它是<strong>頁標題住在卡裡</strong>：導覽列只承載日期，真正的標題在內容區第一張卡。
+設計端據此改判 —— 保留 26 並命名 <code>detailTitle</code>，理由是它<strong>描述得出一個職責</strong>
+（任何「導覽列不承載標題」的詳情頁都是它），這也是它跟 <code>icon.l</code>(20) 的差別：
+那個是找不到職責的剩餘值。<strong>一處使用撐不起一個階，一個說得出來的職責撐得起。</strong></p>
+<p>若照原本的兩條路併進 <code>cardTitle</code>(21)，那一頁最大的中文字會比它下面的統計數字小 7px ——
+現在層級沒有反，併了才反。</p>
+<p><strong>教訓與 icon 那次同型</strong>：我上一份清單只寫了畫面名（「26 → 歷史詳情」），
+沒寫它在畫面裡的<strong>哪個位置</strong>，所以對方只能猜它是標題，兩個選項都建立在錯的前提上。
+使用清單要給位置，不是給畫面。</p>
+<h3><code>rowIcon: 17</code> 根本不是字級</h3>
+<p>它住在 <code>type.roles</code> 裡，但它是 <code>TLSettingsRow</code> 左側 SF Symbol 的點數。
+<strong>因為住在字級群組，它躲過了上一輪的 icon 收斂</strong>（那次把五個特設值收成兩組四個）。</p>
+<p>已搬到 <code>icon.inRow</code>（值不變）。⚠ 若嚴格照設計端自己的判準「跟文字並排 → <code>icon.inline</code>」，
+它該是 14 —— 那是 −3px、動到每一列設定的視覺改動，留給設計端拍板。</p>
+<h3>檢查 7 有個大洞：<code>TLFont.zh(15.5)</code> 從來沒被算過</h3>
+<p>ratchet 只認 <code>.font(.system(size: N))</code> 與 <code>.font(.custom(…, size: N))</code>。
+<code>TLFont.zh(15.5)</code> 長得像吃了 token，其實是<strong>字面字級</strong> —— 於是 59 處字面字級
+一路躲過了 ratchet。</p>
+<p><strong>「設定頁字面樣式 0」被宣告的那一刻，<code>SettingsView</code> 裡就有一個 13。</strong>
+那句話是錯的，錯在量的東西漏了一整類。</p>
+<p>已補進 <code>LITERAL_STYLE</code>，基線跟著重設：167 → <strong>209</strong>（多出來的 42 就是原本看不見的字級字面值，
+其中 36 個是 display 家族，等第二批）。</p>
+<h3>檢查 9 也有洞：CSS 檔裡打錯的 var 名字沒人管</h3>
+<p>檢查 9 只掃 <code>preview.html</code>，不掃 CSS 檔本身。而 CSS 裡 <code>var(--icon-in-check-circle)</code>
+打錯名字是<strong>靜默失效</strong>（渲染成無效值）。</p>
+<p>實際抓到兩個壞掉的：</p>
+<pre><code>components.preview.css   var(--icon-in-check-circle)   ← 正確是 --icon-inCheckCircle
+components.preview.css   var(--icon-in-icon-button)    ← 正確是 --icon-inIconButton
+</code></pre>
+<p><strong>設計端這幾輪看到的勾號與圓鈕圖示一直是自動尺寸，不是 token 尺寸。</strong>
+根因是兩邊的比對規則都只認小寫，而 icon 的 token 是 camelCase（<code>--icon-inCheckCircle</code>）——
+所以定義端與使用端<strong>同時</strong>被跳過，兩個錯誤互相掩護。已改成大小寫都認，並把檢查 9 延伸到 CSS 檔。</p>
+<h3>新增檢查 17：字級尺度的最小間距</h3>
+<p>設計端拍板的規則：</p>
+<blockquote>
+<p>同一個家族內，兩個<strong>不同</strong>的值差距不得小於 1。同值的兩個角色是允許的。</p>
+</blockquote>
+<p><strong>這條規則一寫出來就擋到設計端自己批准的表</strong>：<code>rowSub</code> 11.5 / <code>badgeText</code>·<code>segCompact</code> 12 /
+<code>caption</code> 12.5 —— 三個角色擠在 1px 內。</p>
+<p>原因是我上一份使用清單把「已命名角色」與「還是字面值的」分成兩張表，
+所以四個角色擠在一起這件事沒有顯示出來。<strong>清單的排版方式決定了對方看不看得見問題。</strong></p>
+<p>沒有靜默放行：兩筆例外登記在 <code>tokens.json</code> 的 <code>_scaleExceptions</code>，每跑一次檢查就印一次，
+未登記的違規是硬錯。<code>paired</code> 的角色（<code>buttonLabelSmall</code>）不算尺度階。</p>
+<h3>不做 token 化的三處</h3>
+<p><code>10</code>（週進度列）、<code>9.5</code>（歷史清單）——設計端判定<strong>低於可讀下限</strong>，
+不併進 <code>kicker</code>(10.5)，要連同 kicker 的對比度一起檢視。三處都留著字面值，
+已進已知缺口。這是設計改動不是收斂。</p>
+<h3>留給第二批</h3>
+<p><code>26</code>（歷史詳情）、display 家族 13 個值 36 處、單位字級（<code>13</code>×3、<code>15</code>×1）、
+膠囊幾何 11 種。單位跟著旁邊的 display 數字走，不由中文字級決定。</p>
+<hr />
+<h2>2026-08-31 · 階段 2 續：L3 規格補齊、生成器修好</h2>
+<h3>交付給設計端的 <code>components.json</code> 少了三個欄位而沒有人報錯</h3>
+<p>規格從十二節收成八節時，<code>gen-design-index.py</code> 沒跟上：它還在找
+<code>## 10 用法與禁用法</code> 與 <code>## 11 組成 ★</code>。兩個標題都不存在了，
+<code>sect()</code> 找不到就回空字串 —— 於是 <code>composedOf</code>／<code>confusableWith</code>／<code>dontUseFor</code>
+<strong>靜默變成空的</strong>。</p>
+<p>設計端拿到的 <code>components.json</code> 裡，22 個元件全部 <code>composedOf: null</code>。
+<strong>「元件由什麼組成」是這份 JSON 最有價值的欄位之一，而它空了不知道幾輪。</strong></p>
+<p>修好之後：組成從第 1 節讀、易混淆的比對也認 L3（原本只抓 <code>TL\w+</code>，
+<code>TemplateRow</code> 這種不以 TL 開頭的名字整組漏掉）。</p>
+<h3>補上五份規格</h3>
+<table>
+<thead>
+<tr>
+<th></th>
+<th></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>TLRowContent</code>（L2）</td>
+<td><strong>階段 2 最重要的那個修正</strong>，之前只有程式碼沒有規格</td>
+</tr>
+<tr>
+<td><code>TLTitleWithTag</code>（L2）</td>
+<td>從 <code>TLEquipmentTag.swift</code> 拆出、去掉名字裡的 domain 詞彙</td>
+</tr>
+<tr>
+<td><code>TemplateRow</code>／<code>RotationRow</code>／<code>ProgramRow</code>（L3）</td>
+<td>只有 <code>ExerciseRow</code> 有規格，另外三個沒有</td>
+</tr>
+<tr>
+<td><code>TLSwipeToRevealRow</code>（控制項）</td>
+<td>L3 的組成宣告指得到它才有意義</td>
+</tr>
+</tbody>
+</table>
+<p>檢查 11 現在也認 <code>_controls/</code> 的元件 —— 否則 L3 的組成只能寫得含糊，
+而那正是這條檢查要擋的東西。檢查 16 的段落比對也認 L3（原本只認 <code>TL</code> 開頭）。</p>
+<h3>順手抓到的兩個實作／鏡像不一致</h3>
+<p><strong>副標的顏色</strong>：<code>TLRowContent</code> 用 <code>neutral-500</code>，CSS 鏡像寫 <code>text-secondary</code>(neutral-700)。
+文字階合併後 Swift 端還有九十幾處沒遷移。<strong>鏡像改成跟著實作走</strong> ——
+鏡像的用途是讓設計端看到 app 現在長什麼樣，不是長什麼樣才對。遷移列進已知缺口。</p>
+<p><strong>進度條軌道的方向</strong>：規格寫「軌道要比所在的底稍深」，但實際上長期課表詳情那張卡是
+<code>neutral-300</code> 的深底，軌道傳的是<strong>更淺</strong>的 <code>neutral-100</code>。方向不是固定的 ——
+那才是 <code>track</code> 不能寫死的真正理由。規格、元件註解、CSS 註解三處都改了。</p>
+<p>順帶：<code>ProgramRow</code> 傳的 <code>neutral-200</code> 就是預設值 <code>surfaceTrack</code> 本身，拿掉了。</p>
+<h3>token</h3>
+<p><code>size.swipeAction</code> 88（左滑動作區寬，原本是控制項裡的字面值）。</p>
+<hr />
+<h2>2026-08-31 · 階段 2（動作庫）· 四個 L3 抽出，賭注有答案了</h2>
+<h3>核心問題：7 個 L3 能不能純由 L2 組成？</h3>
+<p><strong>答案：能，但有兩個分子的介面把兩件事綁死了，要先拆開。</strong></p>
+<p>跟階段 1 同型 —— 分子層的<strong>邊界</strong>是對的（沒有一個 L3 需要新的分子概念），
+不夠的是某些分子的<strong>介面</strong>。</p>
+<table>
+<thead>
+<tr>
+<th>L3</th>
+<th>結果</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>ExerciseRow</code></td>
+<td>✅ 純由 L2 組成，零缺口</td>
+</tr>
+<tr>
+<td><code>TemplateRow</code></td>
+<td>⚠️ <code>TLBadge(count:)</code> 顏色寫死 sage，需要 neutral 的呼叫端只能繞過它手工建</td>
+</tr>
+<tr>
+<td><code>RotationRow</code></td>
+<td>✅ 純組合</td>
+</tr>
+<tr>
+<td><code>ProgramRow</code></td>
+<td>❌ <code>TLListRow</code> 把排版與外框綁死，卡片式版面用不了</td>
+</tr>
+</tbody>
+</table>
+<h3>失敗點一：<code>TLListRow</code> 用不了（最重要的一個）</h3>
+<p><code>ProgramListView</code> 的「進行中」卡<strong>手工重建了整個 <code>TLListRow</code></strong>（圓章＋主副標＋chevron）。
+查清楚原因不是偷懶，是<strong>用不了</strong>：</p>
+<p><code>TLListRow</code> 把兩件事放在同一個型別 ——
+<strong>內容排版</strong>（<code>HStack</code> ＋ 主副標 ＋ trailing ＋ chevron）
+與<strong>列的外框</strong>（<code>rowInset</code> padding、<code>minHeight</code>、整列包成 <code>Button</code>）。</p>
+<p>那張卡有自己的 padding、只有上半可點、下半是進度條 —— <strong>外框全部不適用</strong>，
+所以只能重畫一份，然後就漂了。</p>
+<p><strong>解法：拆成 <code>TLRowContent</code>（只有排版）＋ <code>TLListRow</code>（＝ <code>TLRowContent</code> ＋ 外框）。</strong>
+兩個呼叫端改用 <code>TLRowContent</code> 之後，手工重建消失。</p>
+<p>這跟整個重構的原則是同一條：<strong>把綁在一起的兩件事分開</strong>。</p>
+<h3>失敗點二：<code>TLBadge(count:)</code> 顏色寫死</h3>
+<p>同一個檔裡 <code>init(icon:fill:tint:)</code> 已經把顏色開成 prop，<code>init(count:)</code> 卻寫死 sage200/sage800。
+所以需要 neutral 圓章的 <code>TemplateRow</code> 只能繞過便利建構子手工建一份。</p>
+<p><strong>介面不一致本身就是缺口</strong> —— 兩個 init 做同一類事，一個開放一個不開放。已補齊。</p>
+<h3>順帶收掉的三個重複</h3>
+<table>
+<thead>
+<tr>
+<th></th>
+<th></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>TLProgressBar</code>（L1）</td>
+<td>兩處各手工重建（<code>GeometryReader</code> ＋ 兩個 <code>Capsule</code>），只差軌道色。<strong>設計文件的 L1 清單本來就有它，只是實作沒有</strong></td>
+</tr>
+<tr>
+<td><code>TLInlineEmptyState</code>（L2）</td>
+<td>四個清單頁各一份<strong>一字不差</strong>的實作</td>
+</tr>
+<tr>
+<td><code>TLTitleWithTag</code></td>
+<td>原名 <code>TLExerciseNameWithEquipment</code> —— 名字帶 domain 詞彙，階段 0c 就標記了。順便從 <code>TLEquipmentTag.swift</code> 拆出來（一檔兩元件）</td>
+</tr>
+</tbody>
+</table>
+<h3>檢查器要認得 L3</h3>
+<p>L3 住在各自 package 的 <code>Presentation/Components/</code>，<strong>不需要 <code>public</code></strong>（沒有跨 package 使用），
+而且多半用 memberwise init。檢查 2／3 原本是為 L1／L2 寫的，會誤報。</p>
+<p>放寬成：<code>organisms</code> 層允許非 public 的頂層型別；沒有顯式 init 時用 stored property 當 props
+（<code>var body: some View</code> 是 computed，排除）。</p>
+<h3>⚠ 第三次撞到同型問題：膠囊幾何未收斂</h3>
+<p>專案裡有 <strong>5 種膠囊形狀的東西，內距全不一樣</strong>：</p>
+<pre><code>TLEquipmentTag  5/9      TLMuscleTag  5/12     進度膠囊  5/10
+詳情頁膠囊       7/14     表單按鈕     10/滿寬
+</code></pre>
+<p>設計文件說 <code>TLTag</code> 是「capsule 5×12、11.5pt semibold、<strong>6 種 style</strong>」——
+<strong>意圖是一個標籤六種顏色，實作卻在幾何上各自漂了</strong>。</p>
+<p>這是繼 icon 尺度、字級尺度之後第三次撞到同型問題。統一是設計決策，
+會跟字級尺度一起產使用清單問設計端，<strong>不自己決定</strong>。</p>
+<h3>token</h3>
+<p><code>size.progressBar</code> 6 · <code>size.rowTailColumn</code> 80 · <code>type.emptyTitle</code> 16 ·
+<code>type.emptyHint</code> 12.5 · <code>type.cardNumber</code> 26 · <code>space.emptyStateGap</code> 8 ·
+<code>space.emptyStatePadV</code> 40 · <code>space.numberUnitGap</code> 4 · <code>space.tagPadV</code> 5 · <code>space.tagPadH</code> 9</p>
+<h3>進度</h3>
+<p>元件 20 → 22（含第一個 L3）。動作庫字面樣式 66 → 53（Spec 5→3、Plan 61→50）。
+剩下的集中在編輯頁（<code>ProgramEditorView</code> 11、<code>TemplateFormView</code> 8、<code>RotationDetailView</code> 8）。</p>
+<hr />
+<h2>2026-08-30 · 元件庫只留純呈現，控制項分出 DesignControls</h2>
+<h3>起因：範圍檢討</h3>
+<p>問到「是否有過度考量的地方」，量了一下比例：</p>
+<pre><code>元件本體      981 行
+周邊         5,879 行   ≈ 6 倍（規格 2073 · scripts 1248 · preview 1281 · 文件 967 · css 310）
+進度         5 個階段做完 1 個
+</code></pre>
+<p>同時確認了兩件之前沒對齊的事：</p>
+<ol>
+<li><strong>這個專案不做無障礙</strong>（<code>ARCHITECTURE.md:221</code> 白紙黑字），但我在 19 份規格裡
+   寫了 §9、把 VoiceOver 當要求、還排了「無障礙缺口」的優先度 —— 那整條線是我加的範圍</li>
+<li><strong>元件庫不該包含邏輯</strong>，純粹元件</li>
+</ol>
+<h3>判準</h3>
+<blockquote>
+<p><strong>元件不得持有或改變自己的狀態</strong>（<code>@State</code> / <code>@FocusState</code>），
+<strong>不得計算</strong>（格式化、日期、幾何）。
+<code>@Binding</code> 與 closure prop 是<strong>資料通道</strong>，可以留。</p>
+</blockquote>
+<p>量出來的分佈很乾淨：19 個已抽的元件裡只有 3 個有真邏輯，其餘已經是純的。</p>
+<h3>分家</h3>
+<p>新增 <strong><code>DesignControls</code></strong> package，相依 <code>DesignControls → DesignSystem</code>（單向）。</p>
+<table>
+<thead>
+<tr>
+<th>留在 <code>DesignSystem</code>（純呈現）</th>
+<th>移到 <code>DesignControls</code>（有狀態或計算）</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Atoms 9 · Molecules 9 · Components 7 · Support 2</td>
+<td>12 個檔</td>
+</tr>
+</tbody>
+</table>
+<p>移出的與原因：</p>
+<table>
+<thead>
+<tr>
+<th>元件</th>
+<th>為什麼</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>TLWheelColumn</code></td>
+<td>2 state · 4 gesture · <strong>8 計算</strong>（滾輪幾何）</td>
+</tr>
+<tr>
+<td><code>TLMonthDateStrip</code></td>
+<td>3 gesture · <strong>7 計算</strong>（日期 ＋ 格線）</td>
+</tr>
+<tr>
+<td><code>TLNumberField</code></td>
+<td>state ＋ focus ＋ 字串↔數字轉換</td>
+</tr>
+<tr>
+<td><code>TLValuePicker</code> <code>TLDualValuePicker</code> <code>TLRulerSlider</code> <code>TLIntensityFactorGroup</code></td>
+<td>由滾輪組成，或自帶 state</td>
+</tr>
+<tr>
+<td><code>TLPickerSheet</code></td>
+<td>2 state（搜尋、篩選）</td>
+</tr>
+<tr>
+<td><code>TLSwipeToRevealRow</code> <code>TLCompactSheet</code> <code>TLEditScaffold</code></td>
+<td>state ／ focus ／ gesture</td>
+</tr>
+<tr>
+<td><code>CalendarStripGeometry</code></td>
+<td>純計算檔</td>
+</tr>
+</tbody>
+</table>
+<p><strong>相依圖是封閉的</strong> —— 這 12 個彼此互相引用，但沒有一個被留下的元件用到，所以能整批搬。
+搬完 <code>DesignSystem</code> 與 <code>DesignControls</code> 都一次編過。</p>
+<p><code>WheelGeometry</code>（在 <code>TLWheelColumn</code> 檔內）與兩支幾何測試跟著搬。</p>
+<p><strong>這是刻意選了嚴格版本。</strong> 討論時提過兩條路：把「元件自己的排版數學」算成元件的一部分
+（滾輪與月曆留下），或元件庫零計算（它們整批移出）。選後者 ——
+代價是元件庫少掉幾個最常用的東西，好處是「元件庫裡沒有邏輯」變成一句沒有例外的話。</p>
+<h3>一個共用 helper 的處置</h3>
+<p><code>OptionalIdentifier</code>（有值才套 <code>accessibilityIdentifier</code> 的 modifier）原本是
+<code>TLConfirmationDialog.swift</code> 裡的 internal 型別，但搬走的 <code>TLPickerSheet</code> 也用它。
+抽成 <code>Support/OptionalIdentifier.swift</code> 並開放。</p>
+<p>它留在 <code>DesignSystem</code> 而不是刪掉，因為 <strong><code>accessibilityIdentifier</code> 是測試定位不是無障礙</strong>。</p>
+<h3>無障礙移除</h3>
+<p>程式碼 23 處（<code>accessibilityLabel</code> 10、<code>accessibilityValue</code> 10、
+<code>addTraits</code>／<code>Hidden</code>／<code>Element</code> 3）。<strong><code>accessibilityIdentifier</code> 22 處全部保留。</strong></p>
+<p>兩個 prop 也拿掉：<code>TLBackBar.accessibilityLabel</code>（拿掉後它變成零 prop 的元件）、
+<code>TLSettingsRow.accessibilityValue</code>（5 個呼叫端跟著改）。</p>
+<p>先查證過 UITest 全部靠 identifier 定位，沒有一處靠 label。
+<code>TLSettingsToggleRow</code> 那句「UITest 用 <code>switches["聲音"]</code> 查得到」的註解已經過時 ——
+<code>check-i18n</code> 的規則 5 本來就擋中文字面值查找。</p>
+<h3>規格十二節 → 八節</h3>
+<p>砍 §9 無障礙；§7 文字行為與 §8 動態併進 §5（改名「度量與行為」）；
+§11 組成併進 §1（那是「這個元件是什麼」的一部分）。</p>
+<p>樣板加兩句判準：
+- 「這個專案不做無障礙」寫在開頭
+- §2 加「<strong>元件不得有邏輯</strong>」—— 看到 <code>format: (Double) -&gt; String</code> 這種先問它為什麼在這裡</p>
+<p>規格 2073 → 1890 行。<strong>這次省得不多</strong>（§7/§8 是合併不是刪除），
+真正的省在後面 33 個元件，每個少寫四節。</p>
+<hr />
+<h2>2026-08-30 · icon 尺度收斂（設計端拍板）</h2>
+<h3>一個真的錯誤：<code>--icon-m</code> 的矛盾</h3>
+<p>審閱交叉比對 <code>components.preview.css</code> 與使用清單，抓到一個<strong>我的 CSS 鏡像畫錯了</strong>：</p>
+<pre><code>Swift  TLBadge 圖示建構子 → TLFont.rowTitle (15)
+CSS    .tl-badge svg      → var(--icon-m)  (16)
+</code></pre>
+<p><code>--icon-m</code> 全專案唯一的使用者就是那一行錯的 CSS。</p>
+<p><strong>這正是檢查 16 擋不到的那種漂移</strong> —— 它擋孤兒與遺漏，但<strong>兩份實作的值不一致擋不了</strong>
+（那要跨語言比對）。契約裡寫過這個限制，這次它真的發生了，而且是被人眼交叉比對抓到的。
+記在這裡當作那條限制的實例。</p>
+<h3>拍板的四項</h3>
+<table>
+<thead>
+<tr>
+<th></th>
+<th>決定</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>icon.l</code>(20)</td>
+<td>刪除（0 處引用）</td>
+</tr>
+<tr>
+<td><code>13</code>／<code>14</code>／<code>15</code></td>
+<td>收成一個值 <strong>14</strong>，改名 <strong><code>icon.inline</code></strong>。±1px 位移可接受</td>
+</tr>
+<tr>
+<td>容器內圖示</td>
+<td>用<strong>固定配對值</strong>不用比例；<code>TLCircleIconButton.iconSize</code> <strong>不開成 prop</strong></td>
+</tr>
+<tr>
+<td><code>22</code> 兩處</td>
+<td>先共用 <strong><code>icon.standalone</code></strong></td>
+</tr>
+</tbody>
+</table>
+<p>收斂後 <code>icon</code> 從五個特設值變成<strong>兩組四個</strong>：</p>
+<pre><code>inline 14      standalone 22       ← 真的尺度刻度
+inCheckCircle 11  inIconButton 18  ← 裝在固定容器裡的配對值，跟著容器直徑走
+</code></pre>
+<p>命名刻意分成 <code>inXxx</code> —— <strong>那些不是刻度</strong>，拿它們去跟 <code>inline</code>／<code>standalone</code> 比較沒有意義。</p>
+<p><code>tokens.json</code> 的 <code>_note</code> 加了一條防再犯的判準（採納審閱建議）：</p>
+<blockquote>
+<p>新增圖示尺寸前先問：它是跟文字並排、獨立擺放、還是裝在某個容器裡？
+前兩者用既有的兩階；第三者才新增一個 <code>inXxx</code> 配對值。</p>
+</blockquote>
+<p>順帶把四個尚未榨取的元件的字面 SF Symbol 字級一起收進來
+（<code>TLEmptyState</code> 22、<code>TLTabBar</code> 22、<code>TLSearchField</code> 15×2、<code>TLSwipeToRevealRow</code> 15）。</p>
+<h3>生成器的一個修正</h3>
+<p>多行的 <code>_note</code> 生成出來的 Swift 註解只有第一行有 <code>//</code>，直接語法錯誤。
+改成每一行都加 —— <strong>token 的說明值得寫成多行，壓成一行會沒人讀</strong>。</p>
+<hr />
+<h2>2026-08-30 · 階段 1 交付審閱後</h2>
+<h3><code>preview.css</code> 分家（審閱 A）</h3>
+<p>審閱指出：<code>preview.css</code> 已經從「展示骨架」變成<strong>元件的第二份實作</strong> ——
+<code>.thumb</code> 有 <code>linear-gradient</code> 與 <code>--size-icon-thumb</code>，那是元件的樣子不是骨架。
+<code>TLBackBar</code> 因此有兩份實作（Swift 一份、CSS 一份）而<strong>沒有東西檢查它們一致</strong>。
+19 個元件時看得住，40 個時會長成一份沒有規格、沒有狀態窮舉的平行設計系統。</p>
+<p><strong>不退回去</strong>（每份 preview 各自寫會更糟），改成<strong>顯性化並可計數</strong>：</p>
+<ul>
+<li><code>preview.css</code> 只留骨架（<code>.group</code> <code>.row</code> <code>.kicker</code> <code>.pane</code> <code>.screen</code> <code>.note</code>）</li>
+<li>元件的 CSS 鏡像進 <strong><code>components.preview.css</code></strong>，一元件一段、順序同 <code>components.json</code></li>
+<li>選擇器一律 <code>.tl-&lt;kebab-name&gt;</code>。原本的 <code>.btn</code> <code>.check</code> <code>.thumb</code> 是通用名，
+  等 <code>TLButton</code>／<code>TLTag</code> 進來一定撞；靠 <code>.backbar .btn</code> 這種後代選擇器閃避撐不到 40 個元件</li>
+<li>規格第 1 節多一列 <code>Preview CSS</code> —— <strong>三件套變四件套，因為事實上已經是了</strong></li>
+<li><strong>新增檢查 16</strong>：每個元件有且僅有一段對應的 <code>.tl-&lt;name&gt;</code>，反向也擋（孤兒段落）</li>
+</ul>
+<p>一致性仍然沒人擋（那要跨語言比對，不值得做），但<strong>孤兒與遺漏</strong>擋得了 ——
+而那是實際會發生的兩種漂移。加上檢查後立刻抓到一個孤兒（<code>.tl-over</code>，
+那是 <code>TLBadge</code> preview 特有的溢出示意，不是元件的一部分，已改成本地 class）。</p>
+<h3>文字階合併與下移（審閱 B）</h3>
+<p>審閱：<strong>兩個 token 同值就是一個 token。</strong> <code>textBody</code> 與建議中的 <code>textSecondary</code>
+都是 <code>neutral.700</code>，所以合併。同時整階下移一階：</p>
+<table>
+<thead>
+<tr>
+<th>token</th>
+<th>原本</th>
+<th>現在</th>
+<th>對 <code>surfaceRaised</code></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>textPrimary</code></td>
+<td>ink.900</td>
+<td>ink.900</td>
+<td>15.2:1</td>
+</tr>
+<tr>
+<td><code>textSecondary</code></td>
+<td>neutral.600</td>
+<td><strong>neutral.700</strong></td>
+<td><strong>6.0:1</strong>（原 3.9）</td>
+</tr>
+<tr>
+<td><code>textTertiary</code></td>
+<td>neutral.500</td>
+<td><strong>neutral.600</strong></td>
+<td><strong>3.9:1</strong>（原 2.6）</td>
+</tr>
+<tr>
+<td>~~<code>textBody</code>~~</td>
+<td>neutral.700</td>
+<td>刪除</td>
+<td>併入 <code>textSecondary</code></td>
+</tr>
+</tbody>
+</table>
+<p><strong>分界的判準</strong>（審閱給的，值得記住）：</p>
+<blockquote>
+<p>要讀完的<strong>句子</strong>用 <code>textSecondary</code>，掃視就過的<strong>標示</strong>用 <code>textTertiary</code>。
+不是「重要程度」，是「會不會被逐字讀」。</p>
+</blockquote>
+<p><code>textTertiary</code> 的 3.9:1 過得了大字與圖示的 3:1、過不了正文的 4.5:1，
+所以它的用途被限定成「圖示 ＋ ≥13pt 的非句子文字」。
+順帶把 <code>preview.css</code> 的 <code>.kicker</code> 從 tertiary 改成 secondary —— 10.5px 的小字
+配低對比會讀不動。</p>
+<p><strong>視覺影響現在很小</strong>：Swift 端還在直接用 <code>neutral500</code>(91 處)／<code>neutral600</code>(64 處)，
+只有 2 處走語意層。所以這是改<strong>定義</strong>，效果會在後續階段逐步遷移時才落地 ——
+<code>TLChevron</code> 是唯一立刻變的（2.6:1 → 3.9:1，變深，是修正）。</p>
+<h3>icon 尺度（審閱 C）</h3>
+<p>清單產出在 <code>temp/icon-scale-usage.md</code>。<strong>產清單時發現兩個值從來沒被用過</strong>：</p>
+<p><code>icon.m</code>(16) 與 <code>icon.l</code>(20) 是第一輪建立 <code>icon</code> token 時憑空造的三階，
+全專案 0 處引用。<strong>這跟 <code>surfaceSunken</code> 是同一個錯誤</strong> —— 為沒有用途的值發明名字。
+已在清單裡建議刪除，等設計端確認。</p>
+<p>清單同時指出一個可能的分法：跟文字並排的圖示（13/14/15，差異全在 ±1px 內）
+與裝在固定容器裡的圖示（11 在 22pt 圓裡＝50%、18 在 44pt 圓裡＝41%）
+<strong>可能不是同一個尺度上的刻度</strong>，後者是容器的比例。等設計端回覆。</p>
+<hr />
+<h2>2026-08-30 · 階段 1（設定頁榨取）· 完成</h2>
+<h3>階段 1 的核心問題：「設定頁完全由 L2 組成」成立嗎？</h3>
+<p>設計文件 <code>11-component-inventory.md</code> 寫「Settings 無 L3，完全由 L2 組成 ——
+<strong>這是驗證元件庫是否夠用的最佳起點</strong>」。這一階段就是去驗那句話。</p>
+<p><strong>答案：分層假設成立，但當時的元件庫不夠用。</strong></p>
+<p>分層那半是對的 —— 設定頁的三個畫面<strong>完全不需要任何 L3</strong>，
+沒有一個地方需要認識 domain 型別。這是好消息，代表 L1/L2/L3 的分界是真的。</p>
+<p>但「由 L2 組成」在當時<strong>只是一個描述，不是事實</strong>：那些 L2 有一半不在元件庫裡。</p>
+<table>
+<thead>
+<tr>
+<th>缺口</th>
+<th>實際狀況</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>兩個元件內聯在畫面裡</strong></td>
+<td><code>TLIconThumbnail</code>（兩個畫面各寫一份，尺寸還不一樣）、<code>TLBackBar</code>（同上）</td>
+</tr>
+<tr>
+<td><strong>五個元件沒有地址</strong></td>
+<td><code>TLBadge</code>／<code>TLCheckCircle</code>／<code>TLChevron</code>／<code>TLRowValue</code> 埋在 <code>TLListRow.swift</code>；<code>TLSettingsValue</code> 埋在 <code>TLSettingsRow.swift</code></td>
+</tr>
+<tr>
+<td><strong>三個元件放錯層</strong></td>
+<td><code>TLCircleIconButton</code> 與 8 個 <code>ButtonStyle</code> 同檔、<code>TLToggle</code> 在 <code>Components/</code>、<code>TLDivider</code> 與 <code>TLDividedVStack</code> 同檔</td>
+</tr>
+<tr>
+<td><strong>分層只存在於文件裡</strong></td>
+<td>程式碼沒有 <code>Atoms/</code>／<code>Molecules/</code> 目錄，L1 與 L2 混在同一個 <code>Components/</code></td>
+</tr>
+</tbody>
+</table>
+<p><strong>所以那句話的正確版本是</strong>：設定頁需要的東西<strong>全部屬於 L2 以下</strong>，
+但要真的「只做排列堆疊」，得先把 9 個元件從畫面與大檔裡挖出來、給它們地址。</p>
+<h3>邊界撞在哪裡</h3>
+<p>設計端要求「如果假設不成立，我想看到的是不成立的那個點」。撞到的點有兩個，
+都不是分層錯，而是<strong>介面不夠</strong>：</p>
+<p><strong>1. <code>TLListRow</code> 不知道自己被選中。</strong>
+選取狀態是靠 <code>leading</code> 裡放 <code>TLCheckCircle</code> 還是 <code>TLBadge</code> 決定的，
+所以列本身無法自動加無障礙的 selected trait —— 那要呼叫端補，而呼叫端會忘。</p>
+<p>考慮過的做法：(a) 加 <code>isSelected: Bool?</code> prop 讓元件自己決定放什麼、
+(b) 加一個 <code>TLSelectableRow</code> 分子、(c) 維持現狀由呼叫端負責。
+<strong>選 (c) 但記錄下來</strong>，因為 (a) 動所有呼叫端、(b) 會多一個跟 <code>TLListRow</code> 九成像的元件，
+兩者都該在有更多樣本時決定。階段 2 有四個選取清單，那時才看得出哪個對。</p>
+<p><strong>2. <code>TLSettingsToggleRow</code> 沒有 disabled。</strong>
+通知授權被拒後，設定裡的開關<strong>仍然顯示開著</strong> —— 體檢 P1-3 記的「會說謊的設定」。
+要修那個，元件需要 disabled 態或「被系統擋住」的表達。
+這不是榨取能解決的，已有 UI 設計票在排。</p>
+<p><strong>兩個都是「介面不夠」而不是「分層錯」</strong> —— 這對架構是好消息：
+分子層的<strong>邊界</strong>畫對了，只是有些分子的<strong>介面</strong>還沒長全。</p>
+<h3>設計端拍板的三題</h3>
+<p>抽取時撞到兩個「同一個東西在兩個地方長得不一樣」，查證後發現根因是<strong>那兩個 drill-in 子頁
+從來沒有設計稿</strong>（程式碼註解自己記著「設計稿未畫這層 → 用 DesignSystem 風格自建」）。
+送問題給設計端，全部拍板：</p>
+<ul>
+<li><strong>App 圖示縮圖統一成 <code>28×28 / r7</code>，不做變體。</strong> 2px 的差異在螢幕上看不出來，
+  所以它不是變體、是雜訊。日後真要讓圖示當主角，正確做法是跳一個看得出來的級距
+  （44×44 ＋ 加高列），不是把 28 調成 30。</li>
+<li><strong>圓角 9 → 7，主畫面跟著改。</strong> 這是對設計值的更正：iOS App 圖示圓角約邊長 22.4%，
+  28/r9 是 32%，已經接近「圓角方塊」而不是「圖示」。當初從 30 縮到 28 時只改尺寸沒回頭
+  看圓角，比例就跑掉了。<strong><code>handoff-20</code> §B 應更正為「28×28 圓角 7 預覽方塊」。</strong></li>
+<li><strong>返回列上邊距統一成 <code>space.gapS</code>，不做變體。</strong> 12 沒有任何文件來源、8 剛好是 <code>gapS</code>，
+  所以這題其實是「要不要為了 12 新增一個 token」，答案是不要。</li>
+</ul>
+<h3>⚠ 三處刻意的視覺改變</h3>
+<p>「抽取時視覺不變」這一輪<strong>有三個經設計端拍板的例外</strong>，記在這裡以便對照 <code>20a</code>／<code>20b</code> 時
+知道哪些差異是預期的：</p>
+<table>
+<thead>
+<tr>
+<th>畫面</th>
+<th>改變</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>設定頁主畫面</td>
+<td>圖示縮圖圓角 <code>9 → 7</code></td>
+</tr>
+<tr>
+<td>圖示選擇頁</td>
+<td>圖示縮圖 <code>30/r7 → 28/r7</code></td>
+</tr>
+<tr>
+<td>主題／語言／圖示選擇頁</td>
+<td>返回列上邊距 <code>12 → 8</code></td>
+</tr>
+</tbody>
+</table>
+<p>除這三處之外，視覺應與榨取前完全相同。</p>
+<h3>新增 <code>examples/</code>（設計端提議）</h3>
+<p>元件規格教的是零件，但「這個畫面長什麼樣」整包裡從沒講過。
+兩個沒有設計稿的子頁進 <code>examples/</code>，用元件庫組出來、零字面值 ——
+<strong>那兩份 example 就是那兩頁的規格</strong>，而不是再畫一張圖產生第三份真相。
+機器檢查第 15 條管它們（同元件 preview 的約束）。</p>
+<p><code>settings-selection.example.html</code> 目前是<strong>零本地樣式</strong>的純組合，可以當後續 example 的樣板。</p>
+<h3>新增／抽出的元件</h3>
+<table>
+<thead>
+<tr>
+<th>元件</th>
+<th>來源</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>TLIconThumbnail</code>（L1）</td>
+<td>內聯在兩個畫面裡各寫一份，尺寸還不一樣</td>
+</tr>
+<tr>
+<td><code>TLBackBar</code>（L2）</td>
+<td>同上。<strong>加了 <code>trailing</code> slot</strong> —— 抽的時候查到 <code>RotationDetailView</code>／<code>ProgramDetailView</code> 有同樣的返回列但右側多一個「編輯」，不先留位置的話階段 4 會回頭改它</td>
+</tr>
+<tr>
+<td><code>TLCircleIconButton</code>（L1）</td>
+<td>從 <code>Support/ButtonStyles.swift</code> 抽出。它是 View 卻和 8 個 <code>ButtonStyle</code> 住同一個檔，第一輪就記進已知缺口了</td>
+</tr>
+</tbody>
+</table>
+<h3>機器檢查的兩個修正</h3>
+<ul>
+<li><strong>檢查 7 的正則量錯了東西。</strong> 原本只看 <code>.font(.system</code> 這種 API 形狀，所以
+  <code>.font(.system(size: TLIcon.sm))</code>（已經吃 token）也被算成違規。改成每一條都要求後面接數字
+  —— <strong>ratchet 量的是字面值，不是 API 用法</strong>。</li>
+<li><strong>檢查 7 漏了 <code>spacing:</code>。</strong> 那明確是樣式，全專案 Presentation 有 110 處沒被計數。
+  補上（<code>spacing: 0</code> 除外 —— 那是「不要間距、讓子項自己決定」的結構選擇，不是設計值）。</li>
+</ul>
+<p>兩者合計讓基線重算：<code>Ability 12 / History 27 / Plan 70 / Spec 5 / Training 66</code>。
+<strong>這是量測方式改變，不是程式碼退步</strong> —— Settings 已從 13 歸零，不在基線裡。</p>
+<h3>新增 token</h3>
+<p><code>space.pageBottom</code> / <code>space.groupGap</code> / <code>space.cardGap</code> / <code>space.labelGap</code> /
+<code>size.iconThumb</code> / <code>size.stepField</code> / <code>size.hairline</code> / <code>radius.iconThumb</code> /
+<code>icon.sm</code> / <code>icon.button</code></p>
+<p>順帶把生成器裡寫死的<strong>註解搬進 <code>tokens.json</code> 的 <code>_notes</code></strong> —— 原本加一個新 token 會讓
+生成器 <code>KeyError</code>，那是「資料放在生成器裡」的同一類問題（跟 <code>--icon-stroke</code> 那次一樣）。</p>
+<hr />
+<h2>2026-08-30 · 第三輪設計端審閱後</h2>
+<p>審閱結論是可以往下走階段 1。這輪主要是回答五個提問，順帶修四個新發現。</p>
+<h3>契約</h3>
+<ul>
+<li><strong>展示骨架的豁免從判斷題改成路徑白名單。</strong> 原本寫「不代表任何元件的展示骨架可以用字面值」，
+  那需要人判斷，而人在趕的時候會判成「這個 46px 也不代表元件啊」。
+  現在豁免<strong>只</strong>適用 <code>tokens/tokens.preview.html</code> 與未來的 <code>foundations/*.html</code>；
+  元件 preview 一律不豁免，字面色值在所有檔案都不豁免。lint 看路徑就知道，不必判斷語意。</li>
+<li><strong>§8 的編號是永久 id，只增不重排、刪除的號碼不回收。</strong> <code>CHANGELOG</code> 與 README 正文都用編號指稱。
+  生成時依 id 排序（原本照宣告順序輸出，表格看起來像壞掉的）。</li>
+</ul>
+<h3>規格樣板</h3>
+<p>三格新欄位，都是組畫面時真的會卡住的：</p>
+<ul>
+<li>第 1 節「<strong>獨立使用</strong>／<strong>容器責任</strong>」—— L1 原子幾乎都自己不完整，必須放在容器裡才成立。
+  不寫的話組畫面的人會直接把它擺在畫面上，然後間距全錯。這兩格進 <code>components.json</code>
+  （<code>standalone</code> / <code>requiresContainer</code>），<code>index.html</code> 也標記出來。</li>
+<li>第 5 節「<strong>最小寬度／壓縮行為</strong>」—— 元件的橫向極限。跟第 7 節的多語系文字寬度不同，
+  那講的是文字，這講的是元件的佔位。</li>
+<li>第 10 節「<strong>易混淆</strong>」—— 固定一行對照，<strong>兩邊的規格都要寫</strong>。
+  會搞混的時候人看的是其中一份，不是兩份。</li>
+</ul>
+<h3>components.json</h3>
+<ul>
+<li><code>props</code> 帶<strong>值域</strong>（<code>kind</code> / <code>values</code>），不只型別名。<code>style: TLTagStyle</code> 的資訊量是零 ——
+  要的是那 6 種 style 分別叫什麼。沒有值域只能猜，猜錯就硬編。</li>
+<li><code>variants</code> 改成物件（<code>name</code> + <code>note</code>），因為要寫得下「變體之間哪些狀態不通用」。</li>
+<li><code>dontUseFor</code> 的粒度維持不變（審閱確認現在是對的）。<strong>每個元件 3–4 條是上限</strong> ——
+  超過代表職責混了，那時該拆元件不是加禁令。這是軟訊號，不做成檢查。</li>
+</ul>
+<h3>新增檢查</h3>
+<ul>
+<li><strong>13</strong> L1／L2 的 preview 不得出現 domain 詞彙。到了階段 1 的分子，preview 需要假資料，
+  而最順手的假資料就是真的運動名稱 ——「臥推 60kg × 8」寫起來毫不費力，
+  但那一刻 L2 就認識 domain 了。詞表在 <code>scripts/</code>，隨階段成長。</li>
+<li><strong>14</strong> 元件 preview 不得有字面尺寸。原本契約寫「零字面樣式值」，但檢查只擋色值，
+  <strong>尺寸從來沒被擋過</strong>。白名單讓它變得可執行。</li>
+</ul>
+<h3>tokens 參考頁</h3>
+<p>文字類 token 改成「<strong>壓在它該壓的底上</strong>」呈現，並標出對比度 —— 看色票方塊永遠判斷不出
+「三級文字在這個底上會不會太淡」。三份層級 README 改成從共用骨架生成（手寫三份已開始分岔）。</p>
+<h3>交付包</h3>
+<ul>
+<li><strong>每份 markdown 加生成 <code>.html</code></strong>（<code>make doc-html</code>）。第二輪的 D2 當時判為「可接受」而沒做，
+  但那個顧慮是實的：設計端從 <code>index.html</code> 點到 <code>.md</code>，瀏覽器會當純文字開或直接下載 ——
+  規則書、變更紀錄、規格全是 markdown，等於寫了但對方讀不到。
+  <code>.md</code> 仍是來源，<code>.html</code> 是生成物，連結一併改寫。
+  代價：中文子集從 313 字長到 843 字（102KB → 255KB），因為文件也要用同一支字型。</li>
+</ul>
+<hr />
+<h2>已知缺口（留給榨取階段）</h2>
+<p>不是 bug，是 token 化尚未覆蓋到的地方。記在這裡免得每個階段重新發現一次。</p>
+<table>
+<thead>
+<tr>
+<th>缺口</th>
+<th>規模</th>
+<th>何時處理</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>neutral700</code> 被用 <strong>16 處</strong>，但沒有任何語意角色（<code>textSecondary</code> 是 neutral600、比它淺）</td>
+<td>跨 Plan／Training／DesignSystem</td>
+<td>撞到它的第一個階段順手命名</td>
+</tr>
+<tr>
+<td><code>TLFont.display(N)</code> 用了 <strong>13 種字面字級、36 處</strong>（15×14／20×4／34·30·28 各 3／60·56 各 1…），只有 3 個有角色名。<code>15</code> 比已命名的 <code>rowNumber</code>(16) 還常用</td>
+<td>全 app</td>
+<td>第二批已送出使用清單，等設計端</td>
+</tr>
+<tr>
+<td>Presentation 層 <strong>209 處</strong>字面樣式（2026-08-31 起 ratchet 也算 <code>TLFont.zh/display</code> 的字面字級，所以數字比上一輪大——多出來的 42 是原本看不見的）</td>
+<td>見 <code>.presentation-baseline.json</code></td>
+<td>每階段往下推，階段 5 結束歸零</td>
+</tr>
+<tr>
+<td>~~<code>textSecondary</code> 3.9:1、<code>textTertiary</code> 2.6:1~~</td>
+<td>—</td>
+<td>✅ 已修（整階下移一階，見上方 2026-08-30 交付審閱後）</td>
+</tr>
+<tr>
+<td>~~<code>TLExerciseNameWithEquipment</code> 名字帶 domain 詞彙~~</td>
+<td>—</td>
+<td>✅ 階段 2 已改名 <code>TLTitleWithTag</code> 並拆成獨立檔</td>
+</tr>
+<tr>
+<td><strong><code>10</code> 與 <code>9.5</code> 低於可讀下限</strong> —— 設計端判定不該 token 化，要連同 <code>kicker</code>(10.5) 的字級與對比度一起檢視（×1.08 之後是 10.8／10.26，仍然太小）</td>
+<td><code>WeekProgressRow:20</code>、<code>HistoryView:141</code></td>
+<td>設計改動，不是收斂。等設計端排</td>
+</tr>
+<tr>
+<td><strong>字級單位（<code>13</code>×3、<code>15</code>×1）</strong> —— 單位跟著旁邊的 display 數字走，尺寸不由中文字級決定</td>
+<td><code>WorkoutDetailView:187/191/205</code>、<code>ActiveWorkoutView:939</code></td>
+<td>第二批（display 尺度）</td>
+</tr>
+<tr>
+<td><strong>膠囊裡的文字 <code>11</code></strong> —— 屬於膠囊幾何那組，不是獨立字級</td>
+<td><code>TrainingHomeView:352</code></td>
+<td>第二批（膠囊三分法）</td>
+</tr>
+<tr>
+<td><strong><code>detailTitle</code>(26) 與統計數字 <code>display 28</code> 差 2px</strong> —— 兩種東西在爭同一張卡的最大字</td>
+<td><code>WorkoutDetailView</code></td>
+<td>第二批（28 有可能會動）</td>
+</tr>
+<tr>
+<td><strong>副標的顏色鏡像落差</strong> —— Swift 用 <code>neutral-500</code>、語意層意圖是 <code>textSecondary</code>(neutral-700)，全 app 九十幾處未遷移。CSS 鏡像目前跟著實作走</td>
+<td>90+ 處</td>
+<td>視覺改動，要單獨一輪</td>
+</tr>
+<tr>
+<td><strong>設定列的「目前值」讀不到</strong> —— <code>717fb1d 移除無障礙</code> 拿掉了 <code>TLSettingsRow.accessibilityValue</code>，而 UITest 是靠它讀值。文字型的列還能從 Button 合併後的 label 讀（「Language, English」），但 <strong>App 圖示列的右件是一張圖</strong>（<code>TLIconThumbnail</code>），沒有文字可折進 label —— 那一題只剩流程驗證</td>
+<td>1 個測試的 1 條斷言</td>
+<td>等它有測試用的讀取管道（identifier 之類）再補</td>
+</tr>
+<tr>
+<td><strong><code>icon.inRow</code>(17) 的值本身</strong> —— 已從字級群組搬進 icon 群組，但若嚴格照「跟文字並排 → <code>icon.inline</code>」的判準它該是 14（−3px，動到每一列設定）</td>
+<td>1 處（<code>TLSettingsRow</code>）</td>
+<td>等設計端拍板</td>
+</tr>
+<tr>
+<td>~~<code>TLCircleIconButton</code> 是 View 卻住在 <code>Support/ButtonStyles.swift</code>~~</td>
+<td>—</td>
+<td>✅ 階段 1 已抽出</td>
+</tr>
+<tr>
+<td>~~<code>icon</code> 不是一個尺度~~</td>
+<td>—</td>
+<td>✅ 已收斂成兩組四個（見上方 icon 尺度收斂）</td>
+</tr>
+<tr>
+<td><strong>空狀態圖示日後若要放大，要開新階、不要動 <code>standalone</code></strong> —— 分頁列與空狀態目前共用 22，那是「先共用」不是「確認同性質」</td>
+<td>2 處</td>
+<td>撞到空狀態設計時</td>
+</tr>
+<tr>
+<td><code>AbilityListView.swift:349</code> 有一個零星的 <code>.font(.system(size: 12))</code> —— 是文字不是圖示，但沒有對應的字級角色</td>
+<td>1 處</td>
+<td>階段 3／4 撞到 Ability 時</td>
+</tr>
+<tr>
+<td><code>RotationDetailView</code> / <code>ProgramDetailView</code> 仍各自寫返回列（字面 <code>12</code>）。改用 <code>TLBackBar</code> 之後會變成 <code>8</code></td>
+<td>2 處</td>
+<td>階段 4（那是 Plan 的視覺改變，不屬於這一輪）</td>
+</tr>
+<tr>
+<td><code>TLCircleIconButton.init(systemImage:filled:)</code> 是標了「舊呼叫端相容」的 shim</td>
+<td>3 處呼叫端</td>
+<td>各階段順手換成 <code>style:</code></td>
+</tr>
+</tbody>
+</table>

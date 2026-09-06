@@ -1,0 +1,23 @@
+{
+  "_note": "原型 id ↔ 畫面。給 index.html 的「按畫面找」分組用。手維護——來源是設計交付包 v14 的 10-architecture.md L4 表。新畫面進來時補一行。",
+  "screens": [
+    { "name": "訓練首頁",     "package": "Training", "ids": ["6b", "13f"] },
+    { "name": "訓練預覽",     "package": "Training", "ids": ["14c"] },
+    { "name": "訓練中",       "package": "Training", "ids": ["11c"] },
+    { "name": "休息",         "package": "Training", "ids": ["13c"] },
+    { "name": "訓練中 sheet", "package": "Training", "ids": ["13e"] },
+    { "name": "完成摘要",     "package": "Training", "ids": ["13a"] },
+    { "name": "繼續訓練確認", "package": "Training", "ids": ["13b"] },
+    { "name": "動作庫",       "package": "Spec",     "ids": ["4c", "5b", "5c", "5d"] },
+    { "name": "動作編輯",     "package": "Spec",     "ids": ["9a"] },
+    { "name": "範本編輯",     "package": "Spec",     "ids": ["9b", "14a"] },
+    { "name": "長期編輯",     "package": "Spec",     "ids": ["9c", "12b"] },
+    { "name": "循環編輯",     "package": "Spec",     "ids": ["12a", "14b"] },
+    { "name": "課表詳情",     "package": "Spec",     "ids": ["8a"] },
+    { "name": "新增選單",     "package": "Spec",     "ids": ["10a"] },
+    { "name": "課表",         "package": "Plan",     "ids": ["4d"] },
+    { "name": "歷史",         "package": "History",  "ids": ["7b"] },
+    { "name": "單場詳情",     "package": "History",  "ids": ["11d"] },
+    { "name": "設定",         "package": "Settings", "ids": ["4b"] }
+  ]
+}

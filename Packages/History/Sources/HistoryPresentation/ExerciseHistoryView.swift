@@ -31,12 +31,12 @@ public struct ExerciseHistoryView: View {
     public var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 0) {
-                PageHeader(Text(verbatim: option.name))
+                TLPageHeader(Text(verbatim: option.name))
 
                 if !hasLoaded {
-                    ProgressView().padding(.top, 40).frame(maxWidth: .infinity)
+                    ProgressView().padding(.top, TLSpace.pageBottom).frame(maxWidth: .infinity)
                 } else if points.isEmpty {
-                    EmptyState(
+                    TLEmptyState(
                         systemImage: "chart.line.uptrend.xyaxis",
                         title: localString("history.exerciseTrend.empty.title", locale),
                         message: localString("history.exerciseTrend.empty.message", locale)
@@ -52,7 +52,7 @@ public struct ExerciseHistoryView: View {
                     .padding(.top, TLSpace.section)
                 }
             }
-            .padding(.bottom, 40)
+            .padding(.bottom, TLSpace.pageBottom)
         }
         .background(TLColor.bg.ignoresSafeArea())
         .task {
@@ -77,29 +77,28 @@ public struct ExerciseHistoryView: View {
     }
 
     private var trendChart: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            SectionHeader(localText("history.exerciseTrend.section"))
-            Chart(points) { point in
-                LineMark(
-                    x: .value(AxisID.day, point.day.chartDate),
-                    // 換算成偏好單位再畫，否則混單位時同一張圖會出現兩種尺度。
-                    y: .value(AxisID.weight, point.weight.converted(to: weightUnit).value)
-                )
-                .foregroundStyle(TLColor.accent700)
-                .interpolationMethod(.monotone)
-                PointMark(
-                    x: .value(AxisID.day, point.day.chartDate),
-                    y: .value(AxisID.weight, point.weight.converted(to: weightUnit).value)
-                )
-                .foregroundStyle(point.isPersonalRecord ? TLColor.sage : TLColor.accent700)
-                .symbolSize(point.isPersonalRecord ? 90 : 32)
+        VStack(alignment: .leading, spacing: TLSpace.gapS) {
+            TLSectionHeader(localText("history.exerciseTrend.section"))
+            TLCard {
+                Chart(points) { point in
+                    LineMark(
+                        x: .value(AxisID.day, point.day.chartDate),
+                        // 換算成偏好單位再畫，否則混單位時同一張圖會出現兩種尺度。
+                        y: .value(AxisID.weight, point.weight.converted(to: weightUnit).value)
+                    )
+                    .foregroundStyle(TLColor.accent700)
+                    .interpolationMethod(.monotone)
+                    PointMark(
+                        x: .value(AxisID.day, point.day.chartDate),
+                        y: .value(AxisID.weight, point.weight.converted(to: weightUnit).value)
+                    )
+                    .foregroundStyle(point.isPersonalRecord ? TLColor.sage : TLColor.accent700)
+                    .symbolSize(point.isPersonalRecord ? 90 : 32)
+                }
+                .frame(height: TLSize.chart)
             }
-            .frame(height: 200)
-            .padding(TLSpace.rowInset)
-            .background(TLColor.neutral100)
-            .clipShape(RoundedRectangle(cornerRadius: TLRadius.container, style: .continuous))
-            HStack(spacing: 6) {
-                Circle().fill(TLColor.sage).frame(width: 8, height: 8)
+            HStack(spacing: TLSpace.labelGap) {
+                Circle().fill(TLColor.sage).frame(width: TLSize.legendDot, height: TLSize.legendDot)
                 localText("history.exerciseTrend.prLegend")
                     .font(TLFont.zh(TLFont.rowSub, .regular))
                     .foregroundStyle(TLColor.neutral500)
@@ -111,17 +110,17 @@ public struct ExerciseHistoryView: View {
 
     private var sessionSection: some View {
         VStack(alignment: .leading, spacing: 0) {
-            SectionHeader(localText("history.exerciseTrend.sessions \(sessions.count)"))
+            TLSectionHeader(localText("history.exerciseTrend.sessions \(sessions.count)"))
             TLGroup {
                 ForEach(sessions) { session in
-                    ListRow(
+                    TLListRow(
                         title: Text(HistoryFormatting.dayLabel(session.day, locale: locale)),
                         subtitle: Text(HistoryFormatting.summary(of: session.sets, in: weightUnit)),
                         leading: {
                             if prSessionIds.contains(session.id) {
-                                CircleBadge(icon: "trophy.fill", fill: TLColor.sage200, tint: TLColor.sage700)
+                                TLBadge(icon: "trophy.fill", fill: TLColor.sage200, tint: TLColor.sage700)
                             } else {
-                                CircleBadge(fill: TLColor.neutral200) {
+                                TLBadge(fill: TLColor.neutral200) {
                                     Text(verbatim: "\(session.day.day)")
                                         .font(TLFont.display(14))
                                         .foregroundStyle(TLColor.neutral600)

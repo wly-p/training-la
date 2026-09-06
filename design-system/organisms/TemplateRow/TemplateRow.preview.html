@@ -1,0 +1,82 @@
+<!-- @dsCard group="Organisms" name="TemplateRow" subtitle="範本清單的一列" -->
+<!doctype html>
+<meta charset="utf-8">
+<title>TemplateRow</title>
+<link rel="stylesheet" href="../../tokens/tokens.css">
+<link rel="stylesheet" href="../../preview.css">
+<link rel="stylesheet" href="../../components.preview.css">
+<h1>TemplateRow</h1>
+<p class="note">
+  L3 有機體。範本清單的一列。<b>純由 L2／L1 組成</b> ——
+  <code>TLSwipeToRevealRow</code> ＋ <code>TLListRow</code> ＋ <code>TLBadge</code>。
+</p>
+
+<div class="kicker">狀態</div>
+<div class="group">
+  <div class="row tl-list-row--with-sub" data-state="default">
+    <span class="tl-badge tl-badge--neutral num">3</span>
+    <span class="tl-row-content__text">
+      <span class="tl-row-content__title">項目甲</span>
+      <span class="tl-row-content__sub">內容一、內容二、內容三</span>
+    </span>
+    <svg class="tl-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg>
+  </div>
+  <div class="row tl-list-row--with-sub tl-list-row--pressed" data-state="swiped">
+    <span class="tl-badge tl-badge--neutral num">5</span>
+    <span class="tl-row-content__text">
+      <span class="tl-row-content__title">左滑露出「複製」</span>
+      <span class="tl-row-content__sub">露出的動作寬度固定，內容整條往左移</span>
+    </span>
+  </div>
+</div>
+<p class="note">
+  兩個操作入口對應不同頻率：<b>左滑露出複製</b>（常用、單手可及）、
+  <b>長按出刪除</b>（低頻、需要更明確的意圖）。
+</p>
+
+<div class="kicker">圓章為什麼是灰的</div>
+<p class="note">
+  那個數字是「含幾項」，是<b>資訊不是狀態</b>。赭紅保留給進行中的東西
+  —— 見 <code>RotationRow</code> 與 <code>ProgramRow</code>。
+</p>
+
+<div class="kicker">內容極值</div>
+<div class="group">
+  <div class="row tl-list-row--with-sub">
+    <span class="tl-badge tl-badge--neutral num">12</span>
+    <span class="tl-row-content__text">
+      <span class="tl-row-content__title">很長很長很長很長很長很長很長很長的名稱會截斷</span>
+      <span class="tl-row-content__sub">很長很長很長很長很長很長很長很長的摘要也會截斷</span>
+    </span>
+  </div>
+</div>
+
+<div class="kicker">主題</div>
+<div class="themes">
+  <div class="pane" data-theme="light">
+    <div class="kicker">light</div>
+    <div class="group"><div class="row tl-list-row--with-sub">
+      <span class="tl-badge tl-badge--neutral num">3</span>
+      <span class="tl-row-content__text">
+        <span class="tl-row-content__title">項目甲</span>
+        <span class="tl-row-content__sub">內容一、內容二</span>
+      </span></div></div>
+  </div>
+  <div class="pane" data-theme="dark">
+    <div class="kicker">dark（目前是 light 的複製）</div>
+    <div class="group"><div class="row tl-list-row--with-sub">
+      <span class="tl-badge tl-badge--neutral num">3</span>
+      <span class="tl-row-content__text">
+        <span class="tl-row-content__title">項目甲</span>
+        <span class="tl-row-content__sub">內容一、內容二</span>
+      </span></div></div>
+  </div>
+</div>
+
+<div class="kicker">不適用的狀態</div>
+<p class="note">
+  disabled —— 沒有「不能編輯」的範本。<br>
+  selected —— 這份清單不做選取。<br>
+  empty —— 空清單是 <code>TLInlineEmptyState</code> 的事，不是這一列的。
+</p>

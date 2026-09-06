@@ -1,0 +1,61 @@
+<!-- @dsCard group="Atoms" name="TLProgressBar" subtitle="水平進度條" -->
+<!doctype html>
+<meta charset="utf-8">
+<title>TLProgressBar</title>
+<link rel="stylesheet" href="../../tokens/tokens.css">
+<link rel="stylesheet" href="../../preview.css">
+<link rel="stylesheet" href="../../components.preview.css">
+<style>
+  .bar { flex: 1; max-width: 12rem; }
+  .card { background: var(--surface-base); border-radius: var(--radius-container);
+          padding: var(--space-row-inset); margin-top: var(--space-gap-m);
+          display: flex; flex-direction: column; gap: var(--space-gap-m); }
+</style>
+<h1>TLProgressBar</h1>
+<p class="note">
+  L1 原子。表達「N 之於總數」的完成度。<br>
+  <b>軌道色是 prop</b> —— 它會疊在不同底色上，軌道要比所在的底稍深才看得出來。
+</p>
+
+<div class="kicker">狀態</div>
+<div class="group">
+  <div class="row" data-state="empty"><span class="label">0</span>
+    <span class="bar"><span class="tl-progress-bar"><i style="width:0%"></i></span></span></div>
+  <div class="row" data-state="partial"><span class="label">進行中</span>
+    <span class="bar"><span class="tl-progress-bar"><i style="width:45%"></i></span></span></div>
+  <div class="row" data-state="full"><span class="label">1</span>
+    <span class="bar"><span class="tl-progress-bar"><i style="width:100%"></i></span></span></div>
+</div>
+<p class="note">超出 0–1 會被<b>夾住</b> —— 進度算錯時寧可畫滿也不要畫出容器。</p>
+
+<div class="kicker">軌道色</div>
+<div class="group">
+  <div class="row"><span class="label">在群組容器上（預設）</span>
+    <span class="bar"><span class="tl-progress-bar"><i style="width:60%"></i></span></span></div>
+</div>
+<div class="card">
+  <span class="label">在更淺的卡片上 —— 軌道跟著換一階</span>
+  <span class="tl-progress-bar tl-progress-bar--on-card"><i style="width:60%"></i></span>
+</div>
+
+<div class="kicker">主題</div>
+<div class="themes">
+  <div class="pane" data-theme="light">
+    <div class="kicker">light</div>
+    <div class="group"><div class="row"><span class="label">進度</span>
+      <span class="bar"><span class="tl-progress-bar"><i style="width:45%"></i></span></span></div></div>
+  </div>
+  <div class="pane" data-theme="dark">
+    <div class="kicker">dark（目前是 light 的複製）</div>
+    <div class="group"><div class="row"><span class="label">進度</span>
+      <span class="bar"><span class="tl-progress-bar"><i style="width:45%"></i></span></span></div></div>
+  </div>
+</div>
+
+<div class="kicker">不適用的狀態</div>
+<p class="note">
+  pressed／disabled／focused —— 不可互動。<br>
+  selected —— 它不表達選取。<br>
+  loading／error —— 要不要顯示這個元件由呼叫端決定。<br>
+  語言 —— 無文字。
+</p>

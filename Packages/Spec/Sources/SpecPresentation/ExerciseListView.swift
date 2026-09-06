@@ -50,7 +50,7 @@ public struct ExerciseListView: View {
                         ForEach(sections, id: \.id) { section in
                             VStack(alignment: .leading, spacing: 0) {
                                 if let header = section.header {
-                                    SectionHeader(header)
+                                    TLSectionHeader(header)
                                 }
                                 TLGroup {
                                     ForEach(section.exercises) { exercise in
@@ -62,7 +62,7 @@ public struct ExerciseListView: View {
                     }
                     .padding(.horizontal, TLSpace.page)
                     .padding(.top, TLSpace.gapS)
-                    .padding(.bottom, 40)
+                    .padding(.bottom, TLSpace.pageBottom)
                 }
             }
         }
@@ -119,36 +119,17 @@ public struct ExerciseListView: View {
         }
     }
 
-    @ViewBuilder
     private func row(for exercise: Exercise) -> some View {
-        // 內建動作（OfficialExerciseCatalog）唯讀：不進編輯表單、沒有刪除選單，
-        // 也不顯示 chevron——留著箭頭卻點不動比沒有箭頭更難懂。
-        let isOfficial = exercise.source == .official
-        ListRow(
-            title: Text(verbatim: exercise.name),
-            showChevron: !isOfficial,
-            onTap: isOfficial ? nil : { editingTarget = .edit(exercise) },
-            trailing: {
-                // 18b：唯一的彩色元素，固定尾欄靠右。
-                // 80pt 是「槓鈴」「機械」那些兩字標籤的欄寬，但「自體重量」比它寬——用 minWidth
-                // 讓長標往左長、右緣仍然對齊；寫死 width 會把長標壓成兩行。
-                let tail = tailTag(for: exercise)
-                EquipmentTag(tail.label, identifier: tail.identifier)
-                    .frame(minWidth: 80, alignment: .trailing)
-            }
+        let tail = tailTag(for: exercise)
+        return ExerciseRow(
+            name: exercise.name,
+            isOfficial: exercise.source == .official,
+            tailLabel: tail.label,
+            tailIdentifier: tail.identifier,
+            deleteLabel: localText("spec.delete"),
+            onEdit: { editingTarget = .edit(exercise) },
+            onDelete: { Task { await viewModel.remove(id: exercise.id) } }
         )
-        // 內建動作的名稱會跟著 app 語言換，測試沒辦法用名字找到它——改認這個 id。
-        // 使用者自建的動作名是測試自己輸入的資料，照舊用文字定位。
-        .accessibilityIdentifier(isOfficial ? "exerciseList.officialRow" : "exerciseList.row")
-        // 整個 modifier 拿掉、而不是留一個空的 menu：空 menu 長按仍會有抬起動畫卻沒有選項。
-        .contextMenu(isOfficial ? nil : ContextMenu {
-            Button(role: .destructive) {
-                Task { await viewModel.remove(id: exercise.id) }
-            } label: {
-                Label { localText("spec.delete") } icon: { Image(systemName: "trash") }
-            }
-            .accessibilityIdentifier("exerciseList.delete")
-        })
     }
 
     /// 內建動作清單常駐之後，動作庫幾乎不可能真的空——會空的是另外兩種情況，
@@ -165,17 +146,10 @@ public struct ExerciseListView: View {
     }
 
     private var emptyState: some View {
-        VStack(spacing: 8) {
-            localText(emptyStateKey.title)
-                .font(TLFont.zh(16, .bold))
-                .foregroundStyle(TLColor.text)
-            localText(emptyStateKey.hint)
-                .font(TLFont.zh(12.5, .regular))
-                .foregroundStyle(TLColor.neutral600)
-                .multilineTextAlignment(.center)
-        }
-        .frame(maxWidth: .infinity)
-        .padding(.vertical, 40)
+        TLInlineEmptyState(
+            title: localText(emptyStateKey.title),
+            hint: localText(emptyStateKey.hint)
+        )
         // 兩種文案共用一個 id：測試要驗的是「空狀態出現了」，文案本身歸 unit test。
         .accessibilityIdentifier("exerciseList.empty")
     }

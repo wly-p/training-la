@@ -39,7 +39,7 @@ public struct TLTabBar<Value: Hashable>: View {
                 } label: {
                     VStack(spacing: 4) {
                         Image(systemName: item.systemImage)
-                            .font(.system(size: 22, weight: .regular))
+                            .font(.system(size: TLIcon.standalone, weight: .regular))
                         item.label
                             .font(TLFont.zh(TLFont.kicker, isSelected ? .bold : .regular))
                         Capsule()

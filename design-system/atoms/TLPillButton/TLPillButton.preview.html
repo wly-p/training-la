@@ -1,0 +1,62 @@
+<!-- @dsCard group="Atoms" name="TLPillButton" subtitle="填色的小膠囊鈕" -->
+<!doctype html>
+<meta charset="utf-8">
+<title>TLPillButton</title>
+<link rel="stylesheet" href="../../tokens/tokens.css">
+<link rel="stylesheet" href="../../preview.css">
+<link rel="stylesheet" href="../../components.preview.css">
+<h1>TLPillButton</h1>
+<p class="note">
+  L1 原子。填色的小膠囊鈕。<br>
+  跟 <code>.tlSecondarySmall</code>（線框）的判準：<b>它坐在什麼上面？</b>
+  坐在頁面底上用線框，坐在色塊上用這個。
+</p>
+
+<div class="kicker">變體</div>
+<div class="tl-card tl-card--accent">
+  <div class="tl-pill-row">
+    <span class="tl-pill-button" data-state="hug">選項一</span>
+    <span class="tl-pill-button">選項二</span>
+    <span class="tl-pill-button">選項三</span>
+  </div>
+</div>
+<p class="note">hug —— 跟著內容寬，上下內距 8。</p>
+
+<div class="tl-card tl-card--accent">
+  <div class="tl-pill-grid">
+    <span class="tl-pill-button tl-pill-button--fill" data-state="fill">30</span>
+    <span class="tl-pill-button tl-pill-button--fill">60</span>
+    <span class="tl-pill-button tl-pill-button--fill">90</span>
+  </div>
+</div>
+<p class="note">
+  fill —— 撐滿等分，上下內距 10。<br>
+  <b>⚠ 兩者差 2px</b>：同一顆鈕的兩種寬度該不該有不同的高度，是膠囊幾何那組待決問題。
+</p>
+
+<div class="kicker">為什麼沒有按下態</div>
+<p class="note">
+  它坐在有色底上，再加一層底色回饋會糊掉。
+</p>
+
+<div class="kicker">主題</div>
+<div class="themes">
+  <div class="pane" data-theme="light">
+    <div class="kicker">light</div>
+    <div class="tl-card tl-card--accent"><div class="tl-pill-row">
+      <span class="tl-pill-button">選項一</span><span class="tl-pill-button">選項二</span>
+    </div></div>
+  </div>
+  <div class="pane" data-theme="dark">
+    <div class="kicker">dark（目前是 light 的複製）</div>
+    <div class="tl-card tl-card--accent"><div class="tl-pill-row">
+      <span class="tl-pill-button">選項一</span><span class="tl-pill-button">選項二</span>
+    </div></div>
+  </div>
+</div>
+
+<div class="kicker">不適用的狀態</div>
+<p class="note">
+  disabled／selected —— 它是動作不是選項，沒有停用的情境。<br>
+  empty／loading／error —— 沒有內容就不會有這顆鈕。
+</p>

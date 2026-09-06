@@ -1,0 +1,64 @@
+<!-- @dsCard group="Molecules" name="TLSegmentedControl" subtitle="就地切換檢視" -->
+<!doctype html>
+<meta charset="utf-8">
+<title>TLSegmentedControl</title>
+<link rel="stylesheet" href="../../tokens/tokens.css">
+<link rel="stylesheet" href="../../preview.css">
+<link rel="stylesheet" href="../../components.preview.css">
+<style>
+border-radius: var(--radius-pill); }
+              font-weight: 500; text-align: center; }
+                font-size: var(--font-seg-compact); }
+                font-size: var(--font-row-title); }
+</style>
+<h1>TLSegmentedControl</h1>
+<p class="note">
+  L2 分子。就地切換「檢視」，或在 2–3 個值之間選一個。<br>
+  切換時選中膠囊<b>滑動</b>過去而不是淡入 —— 滑動讓人看得到「從哪換到哪」。
+</p>
+
+<div class="kicker">狀態</div>
+<div class="group">
+  <div class="row" data-state="default"><span class="label">未選的段</span>
+    <span class="tl-segmented-control tl-segmented-control--compact"><span>kg</span><span class="is-on">lb</span></span></div>
+  <div class="row" data-state="selected"><span class="label">選中的段</span>
+    <span class="tl-segmented-control tl-segmented-control--compact"><span class="is-on">kg</span><span>lb</span></span></div>
+</div>
+<p class="note">永遠恰好一個被選中，沒有 indeterminate。沒有獨立的 pressed —— 點下去就是選中。</p>
+
+<div class="kicker">變體</div>
+<div class="tl-segmented-control tl-segmented-control--regular"><span class="is-on">依日期</span><span>依動作</span></div>
+<p class="note"><code>regular</code> —— 全寬平分，選中項有陰影。</p>
+<div class="group" style="margin-top: var(--space-gap-m)">
+  <div class="row"><span class="label">重量單位</span>
+    <span class="tl-segmented-control tl-segmented-control--compact"><span class="is-on">kg</span><span>lb</span></span></div>
+</div>
+<p class="note">
+  <code>compact</code> —— 依內容寬，<b>選中項沒有陰影</b>。
+  每個數值都比 regular 小，目的是不撐高列。
+  <code>handoff-20</code> §B 加這個變體，就是因為「重量單位那一列因為分段控制而明顯較高，
+  且是全頁最亮的元素，視覺重量與重要性不符」。
+</p>
+
+<div class="kicker">內容極值</div>
+<div class="tl-segmented-control tl-segmented-control--regular"><span class="is-on">全部</span><span>胸</span><span>背</span><span>腿</span></div>
+<p class="note">2–3 段最好。<b>4 段以上在 compact 會擠</b>，那時該改用 drill-in 選擇頁。</p>
+
+<div class="kicker">主題</div>
+<div class="themes">
+  <div class="pane" data-theme="light">
+    <div class="kicker">light</div>
+    <div class="tl-segmented-control tl-segmented-control--regular"><span class="is-on">依日期</span><span>依動作</span></div>
+  </div>
+  <div class="pane" data-theme="dark">
+    <div class="kicker">dark（目前是 light 的複製）</div>
+    <div class="tl-segmented-control tl-segmented-control--regular"><span class="is-on">依日期</span><span>依動作</span></div>
+  </div>
+</div>
+
+<div class="kicker">不適用的狀態</div>
+<p class="note">
+  disabled —— 目前沒有「這個檢視暫時不能選」的情境。<br>
+  focused —— 沒有鍵盤導航情境。<br>
+  empty／loading／error —— 選項是靜態的。
+</p>
