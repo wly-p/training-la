@@ -5,6 +5,9 @@ import SwiftUI
 public struct SettingsView: View {
     /// 目前語言：`localString` 要靠它才能查到 app 設定的語言（而非手機語系）。
     @Environment(\.locale) private var locale
+    /// 使用者可能離開這頁去系統設定改了通知授權才回來——`.task` 只在畫面首次出現時跑一次，
+    /// 靠這個在回到前景時重查，開關狀態才不會一直顯示過期的結果。
+    @Environment(\.scenePhase) private var scenePhase
     @Bindable private var viewModel: SettingsViewModel
     /// App 版號顯示字串（例："1.0.0 (1)"）；nil＝不顯示。
     private let appVersion: String?
@@ -14,6 +17,7 @@ public struct SettingsView: View {
 
     @State private var showEraseConfirm = false
     @State private var showPrivacyPolicy = false
+    @State private var showExportOptions = false
     @State private var route: SettingsRoute?
     /// 「我的能力值」畫面住在 Ability package（Presentation-to-Presentation 不互相 import，
     /// 靠 App 層組裝時注入這個 view builder，型別抹成 AnyView）。nil＝不顯示這一列
@@ -84,6 +88,28 @@ public struct SettingsView: View {
                 }
             }
             #endif
+            // 原生 confirmationDialog：三個選項（JSON／CSV／取消）超出 TLConfirmationDialog
+            // 的二元確認/取消設計，用系統元件而不是為此擴充自訂元件。
+            .confirmationDialog(
+                localText("settings.export.title"),
+                isPresented: $showExportOptions,
+                titleVisibility: .visible
+            ) {
+                Button { Task { await viewModel.exportJSON() } } label: { localText("settings.export.json") }
+                Button { Task { await viewModel.exportCSV() } } label: { localText("settings.export.csv") }
+                Button(role: .cancel) {} label: { localText("settings.common.cancel") }
+            }
+            #if os(iOS)
+            .sheet(item: $viewModel.exportedFile) { file in
+                ActivityShareSheet(items: [file.url])
+            }
+            #endif
+            .alert(
+                localText("settings.export.failed.title"),
+                isPresented: $viewModel.exportFailed
+            ) {
+                Button(role: .cancel) {} label: { localText("settings.common.ok") }
+            }
         }
     }
 
@@ -193,13 +219,35 @@ public struct SettingsView: View {
                 .accessibilityIdentifier("settings.toggle.sound")
                 // 說明原本是整組下方的獨立段落，會讓人分不清它在解釋整組還是最後一列；
                 // 改成這一列自己的副標（同「聲音／含震動」的歸屬，只是句子長、排第二行）。
+                // 系統已拒絕授權時，開關顯示開著也完全不會生效——換成警示文案，
+                // 不能讓這顆開關繼續說謊。
                 TLSettingsToggleRow(
                     localText("settings.restReminder.background.toggle"),
-                    subtitle: localText("settings.restReminder.background.hint"),
+                    subtitle: viewModel.notificationAuthorizationDenied
+                        ? localText("settings.restReminder.background.deniedHint")
+                        : localText("settings.restReminder.background.hint"),
                     isOn: $viewModel.restReminder.backgroundNotification
                 )
                 .accessibilityIdentifier("settings.toggle.background")
+                // 通知已在系統設定被拒絕：app 內部的開關無法重新授權，只能導去系統設定。
+                if viewModel.notificationAuthorizationDenied {
+                    TLSettingsRow(
+                        localText("settings.restReminder.background.openSettings"),
+                        showChevron: true,
+                        onTap: {
+                            #if canImport(UIKit)
+                            SystemSettingsOpener.open()
+                            #endif
+                        }
+                    ) { EmptyView() }
+                    .accessibilityIdentifier("settings.row.openNotificationSettings")
+                }
             }
+        }
+        .task { await viewModel.refreshNotificationAuthorization() }
+        .onChange(of: scenePhase) { _, newPhase in
+            guard newPhase == .active else { return }
+            Task { await viewModel.refreshNotificationAuthorization() }
         }
     }
 
@@ -237,18 +285,16 @@ public struct SettingsView: View {
         }
     }
 
-    /// 匯出資料＝佔位、停用（Domain/Data 尚未實作）。
-    /// 不能只用灰字表示——純灰字會被讀成壞掉；整列降透明度（設計系統的 disabled 規則）、
-    /// 拿掉 chevron（沒有下一頁）、右側明說「尚未開放」。
+    /// 點擊跳出格式選單（JSON／CSV），匯出中顯示 spinner 並鎖住觸控避免重複觸發。
     private var exportRow: some View {
-        TLSettingsRow(localText("settings.export.title")) {
-            localText("settings.export.unavailable")
-                .font(TLFont.zh(TLFont.caption))
-                .foregroundStyle(TLColor.neutral600)
+        TLSettingsRow(
+            localText("settings.export.title"),
+            showChevron: !viewModel.isExporting,
+            onTap: { if !viewModel.isExporting { showExportOptions = true } }
+        ) {
+            if viewModel.isExporting { ProgressView() }
         }
         .accessibilityIdentifier("settings.row.export")
-        .opacity(0.45)
-        .allowsHitTesting(false)
     }
 
     /// 政策頁是線上的單一來源，App 不打包副本——所以開的是網址，離線就是 Safari 的錯誤頁。

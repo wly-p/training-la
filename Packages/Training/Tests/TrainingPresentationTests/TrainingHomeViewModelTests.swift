@@ -44,17 +44,23 @@ private actor MockPlannedProvider: PlannedWorkoutProvider {
     private(set) var activeRestDayCallCount = 0
     /// 呼叫紀錄：驗證「把明天的腿日挪到今天」有真的打到 Plan 那一側。
     private(set) var moveNextWorkoutCallCount = 0
+    /// 「重複上次」材料化出來的排課；nil＝模擬 provider 沒接這個能力（退化成自由訓練）。
+    var repeatWorkoutResult: PlannedWorkoutBlueprint?
+    /// 呼叫紀錄：驗證 `startRepeatingLast()` 傳入的動作序列是不是 `recentFinished.first` 那一場的。
+    private(set) var repeatWorkoutCalledWith: [RepeatWorkoutExercise]?
 
     init(
         plan: PlannedWorkoutBlueprint?,
         templateList: [PlannedTemplateSummary] = [],
         rotationList: [PlannedRotationSummary] = [],
-        restDay: RestDayInfo? = nil
+        restDay: RestDayInfo? = nil,
+        repeatWorkoutResult: PlannedWorkoutBlueprint? = nil
     ) {
         self.plan = plan
         self.templateList = templateList
         self.rotationList = rotationList
         self.restDay = restDay
+        self.repeatWorkoutResult = repeatWorkoutResult
     }
 
     func todaysPlan() async throws -> PlannedWorkoutBlueprint? { plan }
@@ -77,6 +83,10 @@ private actor MockPlannedProvider: PlannedWorkoutProvider {
     func moveNextWorkoutToToday() async throws {
         moveNextWorkoutCallCount += 1
         restDay = nil
+    }
+    func repeatWorkout(exercises: [RepeatWorkoutExercise]) async throws -> PlannedWorkoutBlueprint? {
+        repeatWorkoutCalledWith = exercises
+        return repeatWorkoutResult
     }
 }
 
@@ -650,5 +660,54 @@ struct TrainingHomeWeekSummaryTests {
 
         #expect(await provider.moveNextWorkoutCallCount == 1)
         #expect(vm.restDay == nil)
+    }
+
+    /// 「重複上次」要傳最近一場（`recentFinished.first`）的動作序列給 provider，
+    /// 並用它材料化出來的藍圖開練——不是開一場空白自由訓練。
+    @Test func startRepeatingLastPassesLastSessionSequenceAndStartsFromBlueprint() async {
+        let repo = MockHomeWorkoutRepo()
+        let benchPress = UUID()
+        let squat = UUID()
+        var last = Workout(id: UUID(), day: DayDate(year: 2026, month: 7, day: 20))
+        last.appendSet(exerciseId: benchPress, measurement: .weightReps(weight: Weight(value: 60, unit: .kg), reps: 8))
+        last.appendSet(exerciseId: benchPress, measurement: .weightReps(weight: Weight(value: 60, unit: .kg), reps: 8), isWarmup: true)
+        last.appendSet(exerciseId: squat, measurement: .weightReps(weight: Weight(value: 80, unit: .kg), reps: 5))
+        await repo.setFinished([last])
+
+        let repeatedBlueprint = PlannedWorkoutBlueprint(planWorkoutId: UUID(), name: nil, targets: [])
+        let provider = MockPlannedProvider(plan: nil, repeatWorkoutResult: repeatedBlueprint)
+        let vm = TrainingHomeViewModel(
+            startWorkout: StartWorkout(repository: repo),
+            resumeWorkout: ResumeWorkout(repository: repo),
+            recentWorkouts: RecentWorkouts(repository: repo),
+            plannedProvider: provider
+        )
+        await vm.refresh()
+
+        await vm.startRepeatingLast()
+
+        let calledWith = await provider.repeatWorkoutCalledWith
+        #expect(calledWith == last.repeatSequence)
+        #expect(vm.recording?.planWorkoutId == repeatedBlueprint.planWorkoutId)
+    }
+
+    /// 沒有任何歷史紀錄時退化成自由訓練，不能整個沒反應。
+    @Test func startRepeatingLastFallsBackToFreeWorkoutWhenNoHistory() async {
+        let repo = MockHomeWorkoutRepo()
+        let provider = MockPlannedProvider(plan: nil)
+        let vm = TrainingHomeViewModel(
+            startWorkout: StartWorkout(repository: repo),
+            resumeWorkout: ResumeWorkout(repository: repo),
+            recentWorkouts: RecentWorkouts(repository: repo),
+            plannedProvider: provider
+        )
+        await vm.refresh()
+
+        await vm.startRepeatingLast()
+
+        let calledWith = await provider.repeatWorkoutCalledWith
+        #expect(calledWith == nil)
+        #expect(vm.recording?.planWorkoutId == nil)
+        #expect(vm.recording != nil)
     }
 }

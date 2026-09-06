@@ -110,4 +110,29 @@ struct RestEndReminderTests {
         let reminder = makeReminder(pref)
         #expect(reminder.preference == pref)
     }
+
+    /// 提前請求授權（訓練開始時呼叫）：偏好開才問，這樣才不會在還沒打算排通知時就跳系統彈窗。
+    @Test func prepareAuthorizationRequestsWhenBackgroundNotificationOn() async {
+        let notifs = SpyNotifications()
+        let reminder = makeReminder(
+            .init(popup: true, sound: true, backgroundNotification: true),
+            notifications: notifs
+        )
+
+        await reminder.prepareNotificationAuthorization()
+
+        #expect(await notifs.authCount == 1)
+    }
+
+    @Test func prepareAuthorizationSkipsWhenBackgroundNotificationOff() async {
+        let notifs = SpyNotifications()
+        let reminder = makeReminder(
+            .init(popup: true, sound: true, backgroundNotification: false),
+            notifications: notifs
+        )
+
+        await reminder.prepareNotificationAuthorization()
+
+        #expect(await notifs.authCount == 0)
+    }
 }

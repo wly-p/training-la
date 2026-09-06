@@ -19,6 +19,7 @@ struct PlanProviderAdapter: PlannedWorkoutProvider {
     let startRotationUseCase: StartRotation
     let getActiveRestDay: GetActiveRestDay
     let moveNextWorkout: MoveNextWorkoutToToday
+    let createPlanWorkout: CreatePlanWorkout
     let today: @Sendable () -> DayDate
     let listExercises: ListExercises
     /// 目前的 app 語言。這裡是 composition root、拿不到 SwiftUI Environment，
@@ -95,6 +96,18 @@ struct PlanProviderAdapter: PlannedWorkoutProvider {
         try await moveNextWorkout(assignmentId: info.assignmentId)
     }
 
+    /// 「重複上次」：材料化一筆一次性排課，只帶動作序列與組數，不含重量/次數
+    /// （`ExerciseTargetDraft.targetWeight/targetReps` 皆 nil，練習時重新輸入）。
+    /// origin 標記 `.repeatLast`，捨棄整場後由 `DiscardOrphanPlanWorkout` 徹底清除，不留卡片。
+    func repeatWorkout(exercises: [RepeatWorkoutExercise]) async throws -> PlannedWorkoutBlueprint? {
+        guard !exercises.isEmpty else { return nil }
+        let drafts = exercises.map {
+            ExerciseTargetDraft(exerciseId: $0.exerciseId, setCount: $0.setCount, targetWeight: nil, targetReps: nil)
+        }
+        let plan = try await createPlanWorkout(name: nil, date: today(), drafts: drafts, origin: .repeatLast)
+        return try await blueprint(from: plan)
+    }
+
     private func blueprint(from plan: PlanWorkout, kicker: String? = nil) async throws -> PlannedWorkoutBlueprint {
         // 帶整個 Exercise：預覽要顯示器材小標，同名動作靠它分辨。
         let catalog = Dictionary(uniqueKeysWithValues:
@@ -142,7 +155,7 @@ struct PlanProviderAdapter: PlannedWorkoutProvider {
 /// Training 的「標記排課完成」port ← Plan 的 MarkPlanWorkoutDone。
 struct PlanProgressAdapter: PlanProgressRecorder {
     let markDone: MarkPlanWorkoutDone
-    let discardRotationPlan: DiscardRotationPlanWorkout
+    let discardRotationPlan: DiscardOrphanPlanWorkout
 
     func markDone(planWorkoutId: UUID) async throws {
         try await markDone(id: planWorkoutId)

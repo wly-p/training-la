@@ -241,6 +241,61 @@ struct WorkoutUseCaseTests {
     }
 }
 
+struct WorkoutRepeatSequenceTests {
+    private let kg60 = Weight(value: 60, unit: .kg)
+
+    @Test func ordersByExerciseIndexAndCountsNonWarmupSets() {
+        var workout = Workout(id: UUID(), day: DayDate(year: 2026, month: 7, day: 20))
+        let benchPress = UUID()
+        let squat = UUID()
+        workout.appendSet(exerciseId: benchPress, measurement: .weightReps(weight: kg60, reps: 8), isWarmup: true)
+        workout.appendSet(exerciseId: benchPress, measurement: .weightReps(weight: kg60, reps: 8))
+        workout.appendSet(exerciseId: benchPress, measurement: .weightReps(weight: kg60, reps: 6))
+        workout.appendSet(exerciseId: squat, measurement: .weightReps(weight: kg60, reps: 5))
+
+        let sequence = workout.repeatSequence
+
+        #expect(sequence.map(\.exerciseId) == [benchPress, squat])
+        #expect(sequence.map(\.setCount) == [2, 1])  // 熱身組不計入
+    }
+
+    @Test func warmupOnlyExerciseStillCountsAtLeastOneSet() {
+        var workout = Workout(id: UUID(), day: DayDate(year: 2026, month: 7, day: 20))
+        let benchPress = UUID()
+        workout.appendSet(exerciseId: benchPress, measurement: .weightReps(weight: kg60, reps: 8), isWarmup: true)
+
+        #expect(workout.repeatSequence == [RepeatWorkoutExercise(exerciseId: benchPress, setCount: 1)])
+    }
+
+    @Test func emptyWorkoutHasEmptySequence() {
+        let workout = Workout(id: UUID(), day: DayDate(year: 2026, month: 7, day: 20))
+        #expect(workout.repeatSequence.isEmpty)
+    }
+
+    /// 「跳過這個動作」把剩下的組記成 `.skipped`（`ActiveWorkoutViewModel.skipRemainingSets`）——
+    /// 那些不算「真的做了」，不該被算進「重複上次」的組數。
+    @Test func skippedSetsDoNotCountTowardSetCount() {
+        var workout = Workout(id: UUID(), day: DayDate(year: 2026, month: 7, day: 20))
+        let benchPress = UUID()
+        workout.appendSet(exerciseId: benchPress, measurement: .weightReps(weight: kg60, reps: 8), status: .done)
+        workout.appendSet(exerciseId: benchPress, measurement: .weightReps(weight: kg60, reps: 8), status: .skipped)
+        workout.appendSet(exerciseId: benchPress, measurement: .weightReps(weight: kg60, reps: 8), status: .skipped)
+
+        #expect(workout.repeatSequence == [RepeatWorkoutExercise(exerciseId: benchPress, setCount: 1)])
+    }
+
+    /// 一個動作全部組都被跳過（沒有一組 `.done`）：動作仍出現在序列裡（讓使用者決定要不要練），
+    /// 但組數退回最小值 1，不是 0。
+    @Test func fullySkippedExerciseStillAppearsWithAtLeastOneSet() {
+        var workout = Workout(id: UUID(), day: DayDate(year: 2026, month: 7, day: 20))
+        let benchPress = UUID()
+        workout.appendSet(exerciseId: benchPress, measurement: .weightReps(weight: kg60, reps: 8), status: .skipped)
+        workout.appendSet(exerciseId: benchPress, measurement: .weightReps(weight: kg60, reps: 8), status: .skipped)
+
+        #expect(workout.repeatSequence == [RepeatWorkoutExercise(exerciseId: benchPress, setCount: 1)])
+    }
+}
+
 struct DayDateTests {
     @Test func isoStringRoundTrips() {
         let day = DayDate(year: 2026, month: 7, day: 9)

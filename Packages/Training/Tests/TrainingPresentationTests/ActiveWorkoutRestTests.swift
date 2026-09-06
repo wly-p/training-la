@@ -339,12 +339,14 @@ private actor SpyReminder: RestEndReminding {
     private(set) var scheduledDates: [Date] = []
     private(set) var cancelCount = 0
     private(set) var foregroundCount = 0
+    private(set) var prepareAuthCount = 0
 
     init(preference: RestReminderPreference = .default) { self.preference = preference }
 
     func schedule(at endDate: Date) async { scheduledDates.append(endDate) }
     func cancel() async { cancelCount += 1 }
     func deliverForeground() async { foregroundCount += 1 }
+    func prepareNotificationAuthorization() async { prepareAuthCount += 1 }
 }
 
 /// 模擬「單一 pending 槽」的通知中心，且第一次排程故意變慢：
@@ -424,6 +426,17 @@ struct ActiveWorkoutBackgroundRestTests {
         await vm.pendingRestNotify?.value
 
         #expect(await spy.scheduledDates == [Date(timeIntervalSince1970: 1060)])
+    }
+
+    /// 授權請求要提前到「進入訓練畫面」（onAppear），而不是等到第一次休息才彈系統彈窗。
+    @Test func onAppearPreparesNotificationAuthorization() async {
+        let spy = SpyReminder()
+        let vm = makeViewModel(now: { Date(timeIntervalSince1970: 1000) }, reminder: spy)
+
+        await vm.onAppear()
+        await vm.pendingAuthPrepare?.value
+
+        #expect(await spy.prepareAuthCount == 1)
     }
 
     @Test func adjustRestMovesEndAndReschedules() async {

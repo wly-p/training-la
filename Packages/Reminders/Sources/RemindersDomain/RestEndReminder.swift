@@ -46,4 +46,9 @@ public struct RestEndReminder: RestEndReminding {
         let pref = store.load()
         if pref.sound { await sound.play() }
     }
+
+    public func prepareNotificationAuthorization() async {
+        guard store.load().backgroundNotification else { return }
+        await notifications.requestAuthorization()
+    }
 }

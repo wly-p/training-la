@@ -37,7 +37,8 @@ public struct CreatePlanWorkout: Sendable {
     public func callAsFunction(
         name: String?,
         date: DayDate,
-        drafts: [ExerciseTargetDraft]
+        drafts: [ExerciseTargetDraft],
+        origin: PlanOrigin = .manual
     ) async throws -> PlanWorkout {
         guard !drafts.isEmpty else { throw PlanWorkoutValidationError.empty }
         let orderIndex = (try await repository.onDate(date).map(\.orderIndex).max() ?? -1) + 1
@@ -47,6 +48,7 @@ public struct CreatePlanWorkout: Sendable {
             date: date,
             status: .notStarted,
             templateId: nil,
+            origin: origin,
             orderIndex: orderIndex,
             sets: PlanSet.make(from: drafts, makeID: makeID)
         )
@@ -137,20 +139,21 @@ public struct MarkPlanWorkoutDone: Sendable {
     }
 }
 
-/// 捨棄整場訓練時，清掉循環課表落地留下的孤兒排課。
+/// 捨棄整場訓練時，清掉「按下開始那一刻才生出來、沒有別人引用」的孤兒排課。
 ///
-/// 循環的排課是「按下開始」那一刻才由 `StartRotation` 生出來的，除了那場訓練沒有別人引用它；
-/// 訓練被捨棄之後它就是一張沒人會做的孤兒，留在當天只會擋路。
+/// 循環課表的排課由 `StartRotation` 生出來、「重複上次」的排課由 `CreatePlanWorkout(origin: .repeatLast)`
+/// 生出來，兩者都是那一刻才建立、除了那場訓練沒有別人引用它；訓練被捨棄之後它就是一張
+/// 沒人會做的孤兒，留在當天只會擋路。
 ///
-/// **只刪 `origin == .rotation`**：手動／範本／長期課表的排課是使用者（或投影）事先排好的，
-/// 捨棄訓練後要留著讓他重來，刪掉等於幫他把課表改了。
-public struct DiscardRotationPlanWorkout: Sendable {
+/// **只刪 `origin == .rotation` 或 `.repeatLast`**：手動／範本／長期課表的排課是使用者（或投影）
+/// 事先排好的，捨棄訓練後要留著讓他重來，刪掉等於幫他把課表改了。
+public struct DiscardOrphanPlanWorkout: Sendable {
     private let repository: any PlanWorkoutRepository
     public init(repository: any PlanWorkoutRepository) { self.repository = repository }
 
     public func callAsFunction(id: UUID) async throws {
         guard let planWorkout = try await repository.get(id: id),
-              planWorkout.origin == .rotation else { return }
+              planWorkout.origin == .rotation || planWorkout.origin == .repeatLast else { return }
         try await repository.delete(id: id)
     }
 }

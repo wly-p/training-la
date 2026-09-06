@@ -7,6 +7,10 @@ public enum PlanOrigin: String, Codable, Sendable {
     case template   // 從課表範本實例化
     case program    // 多週長期課表投影落地
     case rotation   // 循環課表落地
+    /// 「重複上次」產生的一次性排課：只複製動作序列與組數，不含重量/次數。
+    /// 跟 `.rotation` 一樣是「按下當下才生出來、沒有別人引用」的排課——
+    /// 捨棄整場訓練後應徹底清除，見 `DiscardOrphanPlanWorkout`。
+    case repeatLast
 }
 
 /// 一次排課（個人層 plan_workout）：一定綁定某一天，由課表範本實例化或手動建立。
