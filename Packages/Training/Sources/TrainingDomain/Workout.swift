@@ -38,12 +38,13 @@ public struct Workout: Identifiable, Equatable, Sendable {
 
     public var isFinished: Bool { endedAt != nil }
 
-    /// 「重複上次」用：依 exerciseIndex 順序的動作序列與各自組數（熱身不計入組數）。
+    /// 「重複上次」用：依 exerciseIndex 順序的動作序列與各自組數（熱身、跳過的組都不計入組數——
+    /// 只算真的做完的，跟「上次紀錄」的既有判斷慣例一致，見 `WorkoutUseCases.swift`）。
     public var repeatSequence: [RepeatWorkoutExercise] {
         blocks.map { block in
             RepeatWorkoutExercise(
                 exerciseId: block.exerciseId,
-                setCount: max(1, block.sets.filter { !$0.isWarmup }.count)
+                setCount: max(1, block.sets.filter { $0.status == .done && !$0.isWarmup }.count)
             )
         }
     }

@@ -60,6 +60,7 @@ public struct AbilityListView: View {
             AbilityEditSheet(
                 row: row,
                 weightStep: weightStep,
+                weightDisplayUnit: weightDisplayUnit,
                 onSave: { value in
                     Task {
                         await viewModel.setValue(exerciseId: row.exerciseId, value: value)
@@ -192,27 +193,33 @@ private struct AbilityEditSheet: View {
     let row: AbilityListViewModel.Row
     /// 使用者的重量級距偏好；± 與刻度尺跟隨它（G 節：不寫死）。
     let weightStep: Double
+    /// 全域重量顯示偏好；整個編輯情境（大數字、刻度尺、上次紀錄、套用建議值）都用這個單位，
+    /// 才會跟清單列的換算顯示一致——不然清單顯示 132lb、點進來卻看到 60kg。
+    /// 存檔 `onSave` 送出的 `Weight` 因此也是這個單位，但 `Weight` 換算等價，不影響其他邏輯。
+    let weightDisplayUnit: WeightUnit
     let onSave: (Weight) -> Void
 
     @Environment(\.dismiss) private var dismiss
     @State private var value: Double
 
-    init(row: AbilityListViewModel.Row, weightStep: Double, onSave: @escaping (Weight) -> Void) {
+    init(row: AbilityListViewModel.Row, weightStep: Double, weightDisplayUnit: WeightUnit, onSave: @escaping (Weight) -> Void) {
         self.row = row
         self.weightStep = weightStep
+        self.weightDisplayUnit = weightDisplayUnit
         self.onSave = onSave
         // 沒設定過就從建議值起跳，使用者多半直接按儲存就好。
-        _value = State(initialValue: row.current?.value.value ?? row.suggestion?.value ?? 60)
+        let source = row.current?.value ?? row.suggestion
+        _value = State(initialValue: source?.converted(to: weightDisplayUnit).value ?? 60)
     }
 
-    private var unit: WeightUnit { row.current?.value.unit ?? row.suggestion?.unit ?? .kg }
+    private var unit: WeightUnit { weightDisplayUnit }
 
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: TLSpace.gapL) {
                 topBar
                 valueCard
-                if let suggestion = row.suggestion { applyRow(suggestion) }
+                if let suggestion = row.suggestion { applyRow(suggestion.converted(to: weightDisplayUnit)) }
                 lockNotice
             }
             .padding(TLSpace.page)
@@ -320,11 +327,14 @@ private struct AbilityEditSheet: View {
     }
 
     /// 建議值改成可以直接按的套用鍵，不再是一段要自己照著滾的文字。
+    /// `suggestion` 呼叫端已換算成 `weightDisplayUnit`；`lastWeight` 在這裡換算，
+    /// 整張卡片（上次紀錄、套用鍵）才會是同一個單位。
     private func applyRow(_ suggestion: Weight) -> some View {
-        TLCard(fill: TLColor.accent200) {
+        let lastWeight = row.lastWeight.converted(to: weightDisplayUnit)
+        return TLCard(fill: TLColor.accent200) {
             HStack {
                 (localText("ability.lastPerformed")
-                    + Text(verbatim: " \(TLNumberField.format(row.lastWeight.value)) \(row.lastWeight.unit.rawValue) × \(row.lastReps)"))
+                    + Text(verbatim: " \(TLNumberField.format(lastWeight.value)) \(lastWeight.unit.rawValue) × \(row.lastReps)"))
                     .font(TLFont.zh(TLFont.rowSub))
                     .foregroundStyle(TLColor.text)
                 Spacer(minLength: TLSpace.gapS)

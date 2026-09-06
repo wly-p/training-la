@@ -10,13 +10,22 @@ struct WorkoutExportAdapter: WorkoutHistoryExporting {
     let listExercises: ListExercises
 
     func exportJSON() async throws -> URL {
-        try await write(WorkoutHistoryExporter.json(from: try await workouts(), exerciseNames: try await nameLookup()),
-                         filename: "training-history.json")
+        // 兩者互不依賴，平行抓取縮短匯出等待時間。
+        async let workoutsResult = workouts()
+        async let namesResult = nameLookup()
+        return try write(
+            WorkoutHistoryExporter.json(from: try await workoutsResult, exerciseNames: try await namesResult),
+            filename: "training-history.json"
+        )
     }
 
     func exportCSV() async throws -> URL {
-        try await write(WorkoutHistoryExporter.csv(from: try await workouts(), exerciseNames: try await nameLookup()),
-                         filename: "training-history.csv")
+        async let workoutsResult = workouts()
+        async let namesResult = nameLookup()
+        return try write(
+            WorkoutHistoryExporter.csv(from: try await workoutsResult, exerciseNames: try await namesResult),
+            filename: "training-history.csv"
+        )
     }
 
     private func workouts() async throws -> [Workout] {

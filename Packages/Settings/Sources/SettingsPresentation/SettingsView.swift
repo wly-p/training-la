@@ -5,6 +5,9 @@ import SwiftUI
 public struct SettingsView: View {
     /// 目前語言：`localString` 要靠它才能查到 app 設定的語言（而非手機語系）。
     @Environment(\.locale) private var locale
+    /// 使用者可能離開這頁去系統設定改了通知授權才回來——`.task` 只在畫面首次出現時跑一次，
+    /// 靠這個在回到前景時重查，開關狀態才不會一直顯示過期的結果。
+    @Environment(\.scenePhase) private var scenePhase
     @Bindable private var viewModel: SettingsViewModel
     /// App 版號顯示字串（例："1.0.0 (1)"）；nil＝不顯示。
     private let appVersion: String?
@@ -242,6 +245,10 @@ public struct SettingsView: View {
             }
         }
         .task { await viewModel.refreshNotificationAuthorization() }
+        .onChange(of: scenePhase) { _, newPhase in
+            guard newPhase == .active else { return }
+            Task { await viewModel.refreshNotificationAuthorization() }
+        }
     }
 
     // MARK: - 資料 ＋ 刪除

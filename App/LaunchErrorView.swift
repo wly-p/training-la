@@ -23,9 +23,15 @@ struct LaunchErrorView: View {
                         .font(.system(size: 18, weight: .semibold))
                         .foregroundStyle(TLColor.text)
 
-                    Text(error.localizedDescription)
+                    Text(LocalizedStringKey("launch.error.message"))
                         .font(.system(size: 14))
                         .foregroundStyle(TLColor.textSecondary)
+                        .multilineTextAlignment(.center)
+
+                    // 技術性錯誤內容降級成次要說明，不完全捨棄除錯資訊。
+                    Text(verbatim: error.localizedDescription)
+                        .font(.system(size: 12))
+                        .foregroundStyle(TLColor.textSecondary.opacity(0.7))
                         .multilineTextAlignment(.center)
                 }
                 .frame(maxWidth: .infinity)
