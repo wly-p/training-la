@@ -104,6 +104,16 @@ targets:
           APP_ENV: prod
           APP_DISPLAY_NAME: "Training La"
         Release-Prod: *envProd
+  AppTests:
+    type: bundle.unit-test
+    platform: iOS
+    sources: [AppTests]
+    dependencies:
+      - target: TrainingLa
+    settings:
+      base:
+        GENERATE_INFOPLIST_FILE: YES
+        SWIFT_VERSION: "6.0"
   TrainingLaUITests:
     type: bundle.ui-testing
     platform: iOS

@@ -109,6 +109,13 @@
         "identifier" : "SettingsPresentationTests",
         "name" : "SettingsPresentationTests"
       }
+    },
+    {
+      "target" : {
+        "containerPath" : "container:TrainingLa.xcodeproj",
+        "identifier" : "AppTests",
+        "name" : "AppTests"
+      }
     }
   ],
   "version" : 1
