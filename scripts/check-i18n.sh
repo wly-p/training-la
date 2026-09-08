@@ -11,6 +11,11 @@
 # 規則 2：禁止 Sources 裡出現中文字串字面值
 #   代表這段文字根本沒進 String Catalog，切成英文一定露餡。
 #
+# 規則 6：String Catalog 裡不准有「不是文案」的 key
+#   空字串、純格式指示符（%lld）、圖表軸識別（day/weight）這類東西，是 SwiftUI 的字串
+#   自動抽取誤把非文案的字面量當成 LocalizedStringKey 收進去的。它們永遠不會被翻譯，
+#   卻會一直出現在待翻譯清單裡，久了就沒人分得清哪些是真的漏翻。
+#
 # 用法：./scripts/check-i18n.sh（或 make lint）。有違規回傳 1。
 
 set -uo pipefail
@@ -36,10 +41,12 @@ fi
 # 允許清單：非 UI 的字串（log／診斷訊息／資料值），以及 catalog 本身。
 # 有正當理由要留中文的話加進這裡，並在該行寫明原因。
 # AppLanguage.nativeName 刻意不翻譯：語言選單要用各語言的母語名，這樣不論目前介面是哪一種語言，
-# 使用者都認得自己的選項。PlanUseCases 的「· 副本」是寫進資料的名稱（資料值，非 UI 文案）。
+# 使用者都認得自己的選項。
 # OfficialExerciseCatalog 只有一句 assertionFailure 的診斷訊息；它是 domain 層的資料載入器，
 # 本來就不該有 UI 文案（內建動作的名稱全在它讀的 String Catalog 裡）。
-allow_han='Localizable\.xcstrings|FontRegistration\.swift|TrainingLaApp\.swift|PlanUseCases\.swift|AppLanguage\.swift|OfficialExerciseCatalog\.swift'
+# 2026-08：PlanUseCases 退出白名單——「· 副本」原本硬寫在 Domain（英文介面也會拿到中文），
+# 已改由呼叫端傳入本地化後的後綴（體檢 E2），這個豁免不再需要。
+allow_han='Localizable\.xcstrings|FontRegistration\.swift|TrainingLaApp\.swift|AppLanguage\.swift|OfficialExerciseCatalog\.swift'
 
 # 先砍掉行尾註解（`sed 's|//.*||'` 會連 URL 一起砍，但這裡只用來判斷有無違規，夠用），
 # 註解裡出現中文是正常的，不該當違規。
@@ -261,6 +268,54 @@ PY
 if [ -n "$uitest" ]; then
     echo "✘ UITest 還在用中文查元素——請改用 accessibilityIdentifier（見 ARCHITECTURE.md）："
     echo "$uitest" | sed 's/^/    /'
+    fail=1
+fi
+
+# --- 規則 6 ------------------------------------------------------------------
+# String Catalog 裡不准出現「不是文案」的 key。
+#
+# 為什麼要機器擋：這種 key 是 build 時自動抽取產生的，人手清掉之後**下次 build 會再長回來**，
+# 除非把來源一起修掉。2026-08 就發生過一次——清了 day/weight/%lld，但空字串 key 在
+# 下一次 build 又出現，因為真正的來源（`Text(errorMessage ?? "")`、`DatePicker("")`）沒被發現。
+# 只看檔案內容是抓不到的，得靠這條規則在每次 lint 時重新確認。
+#
+# 常見來源與正確寫法：
+#   Text(optional ?? "")            → if let x { Text(x) }
+#   TextField("", text:)            → TextField(text:) { Text(verbatim: "") }
+#   DatePicker("", selection:)      → DatePicker(selection:) { Text(verbatim: "") }
+#   Text("\(someInt)")              → Text(verbatim: "\(someInt)")
+#   Chart 的 .value("day", …)       → 傳 String 常數，選 StringProtocol 那個 overload
+
+catalog=$(python3 - <<'PY'
+import json, pathlib, re
+
+# 不是文案的 key：空字串、純格式指示符、純小寫英文識別字（圖表軸之類）。
+FORMAT_ONLY = re.compile(r'^[%@\dlld\s]*$')
+
+bad = []
+for path in sorted(pathlib.Path('.').glob('Packages/*/Sources/*/Localizable.xcstrings')):
+    data = json.loads(path.read_text(encoding='utf-8'))
+    for key, entry in data.get('strings', {}).items():
+        reason = None
+        if key.strip() == '':
+            reason = '空字串'
+        elif FORMAT_ONLY.match(key):
+            reason = '只有格式指示符'
+        else:
+            # 沒有任何翻譯、也沒有 extractionState 的純小寫英文單字＝自動抽取的識別字
+            locs = entry.get('localizations', {})
+            has_value = any(l.get('stringUnit', {}).get('value') for l in locs.values())
+            if not has_value and re.fullmatch(r'[a-z][a-zA-Z]*', key):
+                reason = '無翻譯的識別字（疑似圖表/元件標籤）'
+        if reason:
+            bad.append(f'{path}: {key!r} — {reason}')
+print('\n'.join(bad))
+PY
+)
+
+if [ -n "$catalog" ]; then
+    echo "✘ String Catalog 有非文案的 key（自動抽取產生，要修來源而不是刪 key）："
+    echo "$catalog" | sed 's/^/    /'
     fail=1
 fi
 

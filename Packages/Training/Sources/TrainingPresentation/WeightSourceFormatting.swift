@@ -1,3 +1,4 @@
+import SharedKernel
 import Foundation
 import TrainingDomain
 
@@ -9,7 +10,9 @@ import TrainingDomain
 enum WeightSourceFormatting {
     /// 算式文字（`accent-700`，列在動作名下方）。回 nil＝這列不值得多解釋
     /// （沒設表達式、或單純絕對值又沒套強度倍率——右側數字本身已經說明一切）。
-    static func algebraText(_ source: TargetWeightSource?, locale: Locale) -> String? {
+    /// `unit`：呼叫端傳 `@Environment(\.weightDisplayUnit)`。算式裡的重量也要換算——
+    /// 全 app 顯示 lb 而算式寫 kg 是最刺眼的一種不一致。
+    static func algebraText(_ source: TargetWeightSource?, locale: Locale, in unit: WeightUnit) -> String? {
         guard let source else { return nil }
         let factorSuffix = source.intensityFactor == 1.0 ? "" : " · × \(percentString(source.intensityFactor))"
         switch source.kind {
@@ -17,16 +20,16 @@ enum WeightSourceFormatting {
             return nil
         case .absolute:
             guard source.intensityFactor != 1.0, let base = source.base else { return nil }
-            return "\(base.displayString) × \(percentString(source.intensityFactor))"
+            return "\(base.displayString(in: unit)) × \(percentString(source.intensityFactor))"
         case .percentOfMax:
             guard let percent = source.percent, let ability = source.abilityValue else { return nil }
             let label = localString("training.weightSource.maxWeightLabel", locale)
-            return "\(percentString(percent / 100))\(factorSuffix) · \(label) \(ability.displayString)"
+            return "\(percentString(percent / 100))\(factorSuffix) · \(label) \(ability.displayString(in: unit))"
         case .relativeToLast:
             guard let last = source.lastWeight, let delta = source.delta else { return nil }
             let sign = delta.value >= 0 ? "+" : ""
             let label = localString("training.weightSource.lastLabel", locale)
-            return "\(label) \(last.displayString) \(sign)\(delta.displayString)\(factorSuffix)"
+            return "\(label) \(last.displayString(in: unit)) \(sign)\(delta.displayString(in: unit))\(factorSuffix)"
         }
     }
 

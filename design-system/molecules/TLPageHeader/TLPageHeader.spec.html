@@ -1,0 +1,273 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>TLPageHeader</title>
+<link rel="stylesheet" href="../../tokens/tokens.css">
+<link rel="stylesheet" href="../../preview.css">
+<style>
+  body { max-width: 62rem; line-height: 1.7; }
+  h1, h2, h3 { font-family: var(--font-page-title-family); line-height: 1.35; }
+  h1 { font-size: var(--font-page-title); margin: 0 0 var(--space-gap-l); }
+  h2 { font-size: var(--font-card-title); margin: var(--space-section) 0 var(--space-gap-m);
+       padding-top: var(--space-gap-m); border-top: 1px solid var(--border-subtle); }
+  h3 { font-size: var(--font-row-title); margin: var(--space-gap-l) 0 var(--space-gap-s); }
+  a { color: var(--accent-on-surface); }
+  table { border-collapse: collapse; width: 100%; margin: var(--space-gap-m) 0;
+          display: block; overflow-x: auto; }
+  th, td { text-align: left; padding: var(--space-gap-s) var(--space-gap-m);
+           border-bottom: 1px solid var(--border-subtle); vertical-align: top; }
+  th { font-size: var(--font-kicker); letter-spacing: var(--font-kicker-tracking);
+       text-transform: uppercase; color: var(--text-tertiary); }
+  pre { background: var(--surface-raised); border-radius: var(--radius-inner);
+        padding: var(--space-gap-m); overflow-x: auto; }
+  pre code { background: none; padding: 0; }
+  blockquote { margin: var(--space-gap-m) 0; padding-left: var(--space-gap-m);
+               border-left: 3px solid var(--border-subtle); color: var(--text-secondary); }
+  .back { font-size: var(--font-row-sub); margin-bottom: var(--space-gap-l); display: block; }
+</style>
+<a class="back" href="../../index.html">← 元件庫索引</a>
+<h1>TLPageHeader</h1>
+<h2>1 身分</h2>
+<table>
+<thead>
+<tr>
+<th></th>
+<th></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>層級</td>
+<td>L2 分子</td>
+</tr>
+<tr>
+<td>職責</td>
+<td>頁面主標，回答「這是哪裡」</td>
+</tr>
+<tr>
+<td>原型 id</td>
+<td>每一頁</td>
+</tr>
+<tr>
+<td>獨立使用</td>
+<td>是</td>
+</tr>
+<tr>
+<td>容器責任</td>
+<td>自己負責上邊距；<strong>左右邊距由畫面給</strong></td>
+</tr>
+<tr>
+<td>實作</td>
+<td><code>Packages/DesignSystem/Sources/DesignSystem/Molecules/TLPageHeader.swift</code></td>
+</tr>
+<tr>
+<td>Preview</td>
+<td><code>design-system/molecules/TLPageHeader/TLPageHeader.preview.html</code></td>
+</tr>
+<tr>
+<td>Preview CSS</td>
+<td><code>components.preview.css</code> §TLPageHeader</td>
+</tr>
+</tbody>
+</table>
+<p><strong>組成</strong>：不由其他 <code>TL*</code> 元件組成（純文字排版）。<code>accessory</code> 通常由呼叫端放 <code>TLCircleIconButton</code>。</p>
+<h2>2 介面 ★</h2>
+<p><strong>Props</strong></p>
+<table>
+<thead>
+<tr>
+<th>名稱</th>
+<th>型別</th>
+<th>值域</th>
+<th>必填</th>
+<th>預設</th>
+<th>說明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>title</code></td>
+<td><code>Text</code></td>
+<td></td>
+<td>是</td>
+<td>—</td>
+<td>主標。允許兩行</td>
+</tr>
+<tr>
+<td><code>kicker</code></td>
+<td><code>Text?</code></td>
+<td></td>
+<td>否</td>
+<td><code>nil</code></td>
+<td>主標上方的小標。<code>nil</code> ＝ 不顯示</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Slots</strong> — <code>accessory</code>：主標右側的操作，預設空。通常放一顆 <code>TLCircleIconButton</code>。
+<strong>事件</strong> — N/A（互動歸 accessory 自己）</p>
+<h2>3 變體 variants</h2>
+<p>無變體，但<strong>有三種填法</strong>（同一個 API）：</p>
+<table>
+<thead>
+<tr>
+<th>填法</th>
+<th>說明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>純標題</td>
+<td>只傳 <code>title</code></td>
+</tr>
+<tr>
+<td>標題 ＋ 右側圓鈕</td>
+<td>傳 <code>accessory</code></td>
+</tr>
+<tr>
+<td>標題 ＋ 上方 kicker</td>
+<td>傳 <code>kicker</code></td>
+</tr>
+</tbody>
+</table>
+<h2>4 狀態 states ★</h2>
+<!-- states: default -->
+<!-- themes: light, dark -->
+
+<table>
+<thead>
+<tr>
+<th>類別</th>
+<th>狀態</th>
+<th>這個元件</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>互動</td>
+<td>default / pressed / disabled / focused</td>
+<td><strong>只有 default。</strong> 標題不可互動；accessory 的按下態由它自己處理</td>
+</tr>
+<tr>
+<td>選取</td>
+<td>selected / unselected / indeterminate</td>
+<td>N/A</td>
+</tr>
+<tr>
+<td>資料</td>
+<td>empty / loading / error</td>
+<td>N/A —— 標題是必填</td>
+</tr>
+<tr>
+<td>內容極值</td>
+<td>最短 / 最長 / 溢出</td>
+<td><strong>主標允許兩行</strong>（<code>lineLimit(2)</code>），超過就截斷。accessory 永遠不被壓縮</td>
+</tr>
+<tr>
+<td>主題</td>
+<td>light / dark</td>
+<td>兩者都有</td>
+</tr>
+<tr>
+<td>語言</td>
+<td>中文 / 英文</td>
+<td>英文主標較長，兩行的情況比中文常見 —— 設計時要用最長的英文標題檢查</td>
+</tr>
+</tbody>
+</table>
+<h2>5 度量與行為</h2>
+<table>
+<thead>
+<tr>
+<th></th>
+<th></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>主標字級</td>
+<td><code>type.pageTitle</code> ＋ <code>bold</code>，字距 <code>-0.02em</code></td>
+</tr>
+<tr>
+<td>kicker 字級</td>
+<td><code>type.kicker</code> ＋ <code>semibold</code>，大寫，字距 <code>type.kickerTracking</code></td>
+</tr>
+<tr>
+<td>上邊距</td>
+<td><code>space.headerTop</code></td>
+</tr>
+<tr>
+<td>kicker 與主標之間</td>
+<td><code>space.kickerGap</code></td>
+</tr>
+<tr>
+<td>主標與 accessory 之間</td>
+<td><code>space.gapM</code>，baseline 對齊</td>
+</tr>
+<tr>
+<td>最小寬度</td>
+<td>主標可壓到單字換行；accessory 不縮</td>
+</tr>
+<tr>
+<td>壓縮行為</td>
+<td><strong>主標先讓</strong>（換行→截斷），accessory 保持原尺寸</td>
+</tr>
+</tbody>
+</table>
+<h3>文字與溢出</h3>
+<p><strong>溢出</strong>：主標兩行後截斷；<code>fixedSize(vertical:)</code> 確保第二行不被壓掉。</p>
+<p><strong>多語系寬度</strong>：英文主標普遍較長。有 accessory 時可用空間更少，
+要用「最長英文標題 ＋ accessory」這個組合檢查。</p>
+<p><strong>Dynamic Type</strong>：應跟隨。目前固定，等 C7a。34pt 的主標是全 app 最大的文字，
+放大後最容易爆版，屆時要優先驗它。</p>
+<h3>動態</h3>
+<p>無轉場。</p>
+<h2>6 配色 ★</h2>
+<table>
+<thead>
+<tr>
+<th>用途</th>
+<th>token</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>主標</td>
+<td><code>textPrimary</code></td>
+</tr>
+<tr>
+<td>kicker</td>
+<td><code>actionPressed</code></td>
+</tr>
+</tbody>
+</table>
+<p><strong>kicker 用 accent 而不是灰</strong>：它在這裡的作用是「這一頁屬於哪個脈絡」，
+是有意義的資訊而不是裝飾。這也是它跟 <code>TLSectionHeader</code> 的差異（那個預設是灰的）。</p>
+<h2>7 用法與禁用法</h2>
+<p><strong>用它</strong>：每一頁的開頭。</p>
+<p><strong>易混淆</strong>：<code>TLBackBar</code>（返回列）—— 這個回答「這是哪裡」，那個回答「怎麼回去」。
+兩者常上下相鄰，drill-in 子頁通常兩個都有。</p>
+<p><strong>不要用它</strong>：
+- 一頁放兩個 —— 主標只有一個，第二層用 <code>TLSectionHeader</code>
+- 把返回鈕塞進 accessory —— 返回是 <code>TLBackBar</code> 的事，位置也不同
+- 用它當區塊標題 —— 字級差太多（34 vs 10.5）</p>
+<h2>8 變更紀錄</h2>
+<table>
+<thead>
+<tr>
+<th>日期</th>
+<th>改動</th>
+<th>原因</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>2026-08-30</td>
+<td>從 <code>Components/</code> 移到 <code>Molecules/</code></td>
+<td>分層落地</td>
+</tr>
+<tr>
+<td>2026-08-30</td>
+<td>上邊距 <code>22</code>、kicker 間距 <code>8</code> 改成 token</td>
+<td>元件內部的字面值也是字面值</td>
+</tr>
+</tbody>
+</table>

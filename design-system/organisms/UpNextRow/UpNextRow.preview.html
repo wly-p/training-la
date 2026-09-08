@@ -1,0 +1,55 @@
+<!-- @dsCard group="Organisms" name="UpNextRow" subtitle="訓練中「接下來」的一列" -->
+<!doctype html>
+<meta charset="utf-8">
+<title>UpNextRow</title>
+<link rel="stylesheet" href="../../tokens/tokens.css">
+<link rel="stylesheet" href="../../preview.css">
+<link rel="stylesheet" href="../../components.preview.css">
+<h1>UpNextRow</h1>
+<p class="note">
+  L3 有機體。訓練中「接下來」的一列。<br>
+  <b>刻意不套 <code>TLGroup</code></b>：設計稿是直接排在頁面底色上、只用細線分隔 ——
+  卡片底會讓它看起來跟上面的組表同一個層級，但它只是待辦清單。
+</p>
+
+<div class="kicker">狀態</div>
+<div class="tl-upnext">
+  <div class="tl-upnext__row tl-upnext__row--current" data-state="current">
+    <span class="tl-upnext__name">目前這個動作</span>
+    <span class="tl-upnext__target num">3 × 10 · 24</span>
+  </div>
+  <div class="tl-upnext__row" data-state="normal">
+    <span class="tl-upnext__name">下一個動作</span>
+    <span class="tl-upnext__target num">4 × 8 · 60</span>
+  </div>
+  <div class="tl-upnext__row" data-state="noTarget">
+    <span class="tl-upnext__name">臨時加練的動作（沒有目標）</span>
+  </div>
+</div>
+<p class="note">
+  <b>沒有按下態的底色</b> —— 它沒有卡片底，加底色會變成另一種元件。<br>
+  長按任一列開中途改課。
+</p>
+
+<div class="kicker">主題</div>
+<div class="themes">
+  <div class="pane" data-theme="light">
+    <div class="kicker">light</div>
+    <div class="tl-upnext"><div class="tl-upnext__row">
+      <span class="tl-upnext__name">動作名</span>
+      <span class="tl-upnext__target num">3 × 10</span></div></div>
+  </div>
+  <div class="pane" data-theme="dark">
+    <div class="kicker">dark（目前是 light 的複製）</div>
+    <div class="tl-upnext"><div class="tl-upnext__row">
+      <span class="tl-upnext__name">動作名</span>
+      <span class="tl-upnext__target num">3 × 10</span></div></div>
+  </div>
+</div>
+
+<div class="kicker">不適用的狀態</div>
+<p class="note">
+  disabled —— 任何一列都切得過去。<br>
+  selected —— <code>current</code> 是「現在在做的」不是選取。<br>
+  empty／loading／error —— 空清單不會有這一列。
+</p>

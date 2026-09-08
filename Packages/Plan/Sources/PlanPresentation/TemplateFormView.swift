@@ -1,15 +1,19 @@
+import DesignControls
 import DesignSystem
 import PlanDomain
 import SharedKernel
 import SwiftUI
 import UniformTypeIdentifiers
 
-/// 課表範本編輯（設計稿 9b/11b/19a）：套 `EditScaffold`。逐組編輯——每個動作收起顯示兩行摘要
+/// 課表範本編輯（設計稿 9b/11b/19a）：套 `TLEditScaffold`。逐組編輯——每個動作收起顯示兩行摘要
 /// （主行「名稱 ＋ 組數 × 次數」、細節行「器材 pill ＋ 重量」），點整列展開才逐組編輯
 /// （組N／重量表達式／次數）。
 struct TemplateFormView: View {
     /// 目前語言：`localString` 要靠它才能查到 app 設定的語言（而非手機語系）。
     @Environment(\.locale) private var locale
+    /// 偏好的顯示單位（根部注入）。跟本檔的 `weightUnit`（這筆紀錄自己的單位，給選擇器用）
+    /// 是兩件事，刻意取不同名字避免混淆。
+    @Environment(\.weightDisplayUnit) private var displayUnit
     enum Target {
         case create
         case edit(WorkoutTemplate)
@@ -75,7 +79,7 @@ struct TemplateFormView: View {
     }
 
     var body: some View {
-        EditScaffold(
+        TLEditScaffold(
             title: $name,
             titlePrompt: localText("template.name.placeholder"),
             canSave: canSave,
@@ -100,12 +104,12 @@ struct TemplateFormView: View {
             }
         }
         .sheet(isPresented: $pickingExercise) {
-            PickerSheet(
+            TLPickerSheet(
                 title: Text("plan.addExercise", bundle: .module),
                 searchPrompt: localText("plan.searchExercises"),
                 allItems: catalog.map { ExercisePickerItem(exercise: $0, locale: locale) },
                 recentItemIds: recentExerciseIds,
-                filters: MuscleGroup.allCases.map { PickerSheetFilterChip(id: $0.rawValue, label: $0.displayName(locale)) },
+                filters: MuscleGroup.allCases.map { TLPickerSheetFilterChip(id: $0.rawValue, label: $0.displayName(locale)) },
                 matchesFilter: { item, filter in item.exercise.muscleGroup.rawValue == filter.id },
                 selection: .multiple(
                     selectedIds: $selectedExerciseIds,
@@ -178,7 +182,7 @@ struct TemplateFormView: View {
     // MARK: - 動作清單
 
     private var exercisesSection: some View {
-        EditSection(localText("template.exercises.section")) {
+        TLEditSection(localText("template.exercises.section")) {
             TLGroup {
                 ForEach(blocks) { block in
                     blockView(block)
@@ -210,7 +214,7 @@ struct TemplateFormView: View {
     /// 19a：主行「名稱靠左 ＋ 規格靠右」兩個元素兩條線；器材退到細節行、與名稱共用左緣。
     /// 舊排法把把手、名稱、器材、規格四個元素塞進同一行，三條垂直線在 345pt 裡互相爭。
     private func collapsedRow(_ block: PlanBlock) -> some View {
-        ListRow(
+        TLListRow(
             title: Text(verbatim: name(for: block.exerciseId)),
             onTap: { expandedExerciseIndex = block.exerciseIndex },
             leading: { dragHandle },
@@ -230,9 +234,9 @@ struct TemplateFormView: View {
     /// 細節行：器材 pill ＋（有設重量時）重量。日後要接別的技術欄位也在這一行往後加。
     @ViewBuilder
     private func detailLine(for block: PlanBlock) -> some View {
-        HStack(spacing: 6) {
-            EquipmentTag(equipmentName(for: block.exerciseId))
-            if let weight = PlanFormatting.blockWeight(sets: block.sets, language: AppLanguage(locale: locale)) {
+        HStack(spacing: TLSpace.labelGap) {
+            TLEquipmentTag(equipmentName(for: block.exerciseId))
+            if let weight = PlanFormatting.blockWeight(sets: block.sets, language: AppLanguage(locale: locale), in: displayUnit) {
                 Text(verbatim: "· \(weight)")
                     .font(TLFont.zh(TLFont.rowSub, .regular))
                     .foregroundStyle(TLColor.neutral600)
@@ -244,7 +248,7 @@ struct TemplateFormView: View {
 
     private var dragHandle: some View {
         Image(systemName: "line.3.horizontal")
-            .font(.system(size: 14, weight: .semibold))
+            .font(.system(size: TLIcon.inline, weight: .semibold))
             .foregroundStyle(TLColor.neutral400)
     }
 
@@ -273,30 +277,29 @@ struct TemplateFormView: View {
     // MARK: - 展開的動作區塊
 
     private func expandedBlock(_ block: PlanBlock) -> some View {
-        VStack(alignment: .leading, spacing: TLSpace.gapM) {
-            HStack {
-                ExerciseNameWithEquipment(
-                    title: Text(verbatim: name(for: block.exerciseId))
-                        .font(TLFont.zh(TLFont.cardTitle, .bold))
-                        .foregroundColor(TLColor.text),
-                    equipment: equipmentName(for: block.exerciseId)
-                )
-                Spacer()
-                Button {
-                    expandedExerciseIndex = nil
-                } label: {
-                    localText("template.collapse")
+        TLCard(radius: .inner, fill: TLColor.neutral200) {
+            VStack(alignment: .leading, spacing: TLSpace.gapM) {
+                HStack {
+                    TLTitleWithTag(
+                        title: Text(verbatim: name(for: block.exerciseId))
+                            .font(TLFont.zh(TLFont.cardTitle, .bold))
+                            .foregroundColor(TLColor.text),
+                        equipment: equipmentName(for: block.exerciseId)
+                    )
+                    Spacer()
+                    Button {
+                        expandedExerciseIndex = nil
+                    } label: {
+                        localText("template.collapse")
+                    }
+                    .buttonStyle(.tlText)
                 }
-                .buttonStyle(.tlText)
+                ForEach(block.sets) { set in
+                    setRow(set, exerciseId: block.exerciseId)
+                }
+                shortcutRow(block)
             }
-            ForEach(block.sets) { set in
-                setRow(set, exerciseId: block.exerciseId)
-            }
-            shortcutRow(block)
         }
-        .padding(TLSpace.rowInset)
-        .background(TLColor.neutral200)
-        .clipShape(RoundedRectangle(cornerRadius: TLRadius.inner, style: .continuous))
         .contextMenu { blockMenu(block) }
     }
 
@@ -305,23 +308,21 @@ struct TemplateFormView: View {
             localText("template.setNumber \(set.setIndex + 1)")
                 .font(TLFont.zh(TLFont.rowSub, .semibold))
                 .foregroundStyle(TLColor.neutral600)
-                .frame(width: 48, alignment: .leading)
+                .frame(width: TLSize.rowLeadColumn, alignment: .leading)
             Button {
                 editingSet = EditingSet(exerciseId: exerciseId, setId: set.id, setNumber: set.setIndex + 1)
             } label: {
-                HStack(spacing: 4) {
-                    Text(verbatim: weightLabel(for: set.targetWeight))
-                        .font(TLFont.display(16))
-                        .foregroundStyle(TLColor.text)
-                    Spacer()
-                    Text(verbatim: "× \(set.targetReps ?? 0)")
-                        .font(TLFont.zh(TLFont.rowTitle, .semibold))
-                        .foregroundStyle(TLColor.neutral700)
+                TLCard(radius: .inner, fill: TLColor.bg) {
+                    HStack(spacing: TLSpace.valueUnitGap) {
+                        Text(verbatim: weightLabel(for: set.targetWeight))
+                            .font(TLFont.display(16))
+                            .foregroundStyle(TLColor.text)
+                        Spacer()
+                        Text(verbatim: "× \(set.targetReps ?? 0)")
+                            .font(TLFont.zh(TLFont.rowTitle, .semibold))
+                            .foregroundStyle(TLColor.neutral700)
+                    }
                 }
-                .padding(.horizontal, TLSpace.rowInset)
-                .padding(.vertical, 12)
-                .background(TLColor.bg)
-                .clipShape(RoundedRectangle(cornerRadius: TLRadius.inner, style: .continuous))
             }
             .buttonStyle(.plain)
         }
@@ -335,7 +336,7 @@ struct TemplateFormView: View {
     }
 
     private func shortcutRow(_ block: PlanBlock) -> some View {
-        HStack(spacing: 8) {
+        HStack(spacing: TLSpace.gapS) {
             shortcutButton(localText("template.shortcut.same")) { applySameForAll(exerciseIndex: block.exerciseIndex) }
             shortcutButton(localText("template.shortcut.progressive")) {
                 applyProgressive(exerciseIndex: block.exerciseIndex, step: weightStep)
@@ -357,10 +358,10 @@ struct TemplateFormView: View {
     }
 
     private var addExerciseRow: some View {
-        ListRow(
+        TLListRow(
             title: localText("template.addExercise"),
             onTap: { pickingExercise = true },
-            leading: { CircleBadge(icon: "plus", fill: TLColor.neutral200, tint: TLColor.neutral600) }
+            leading: { TLBadge(icon: "plus", fill: TLColor.neutral200, tint: TLColor.neutral600) }
         )
         .accessibilityIdentifier("templateForm.addExercise")
     }
@@ -369,7 +370,7 @@ struct TemplateFormView: View {
 
     private var deleteSection: some View {
         TLGroup {
-            SettingsRow(
+            TLSettingsRow(
                 localText("template.delete.thisTemplate"),
                 role: .destructive,
                 onTap: { showDeleteConfirm = true }
@@ -484,9 +485,9 @@ struct TemplateFormView: View {
     private func weightLabel(for expression: WeightExpression?) -> String {
         switch expression {
         case nil: "—"
-        case .absolute(let w): w.displayString
+        case .absolute(let w): w.displayString(in: displayUnit)
         case .relativeToLast(let delta):
-            String(format: localString("plan.weight.relativeToLast %@", locale), signedDelta(delta))
+            String(format: localString("plan.weight.relativeToLast %@", locale), signedDelta(delta, in: displayUnit))
         case .percentOfMax(let percent):
             String(format: localString("plan.weight.percentOfMax %@", locale), "\(formatNumber(percent))%")
         }
@@ -499,8 +500,8 @@ struct TemplateFormView: View {
 }
 
 /// 增減量帶正負號（「+2.5kg」／「-2.5kg」），給「上次%@」這類 format 當參數。
-private func signedDelta(_ delta: Weight) -> String {
-    (delta.value >= 0 ? "+" : "") + delta.displayString
+private func signedDelta(_ delta: Weight, in unit: WeightUnit) -> String {
+    (delta.value >= 0 ? "+" : "") + delta.displayString(in: unit)
 }
 
 private func formatNumber(_ v: Double) -> String {
@@ -522,12 +523,15 @@ private struct TemplateBlockTransfer: Codable, Transferable {
     }
 }
 
-/// 逐組編輯：單組的重量表達式（絕對值／相對上次）＋次數。用 `ValuePicker` 選值。
-/// 逐組編輯（設計稿 4a「08 · 數值選擇器」）：重量／次數並排在同一個 `DualValuePicker`，
+/// 逐組編輯：單組的重量表達式（絕對值／相對上次）＋次數。用 `TLValuePicker` 選值。
+/// 逐組編輯（設計稿 4a「08 · 數值選擇器」）：重量／次數並排在同一個 `TLDualValuePicker`，
 /// 共用一排快捷（-step/+step/同上組）。「同上組」複製前一組的重量與次數，第一組沒有上一組故不顯示。
 private struct SetEditSheet: View {
     /// 目前語言：`localString` 要靠它才能查到 app 設定的語言（而非手機語系）。
     @Environment(\.locale) private var locale
+    /// 偏好的顯示單位（根部注入）。跟本檔的 `weightUnit`（這筆紀錄自己的單位，給選擇器用）
+    /// 是兩件事，刻意取不同名字避免混淆。
+    @Environment(\.weightDisplayUnit) private var displayUnit
     let exerciseName: String
     let setNumber: Int
     let weightStep: Double
@@ -601,8 +605,8 @@ private struct SetEditSheet: View {
 
     private var repsValues: [Double] { Array(stride(from: 1, through: 30, by: 1)) }
 
-    private var quickActions: [DualValuePicker.QuickAction] {
-        var actions: [DualValuePicker.QuickAction] = [
+    private var quickActions: [TLDualValuePicker.QuickAction] {
+        var actions: [TLDualValuePicker.QuickAction] = [
             .init("-\(formatNumber(quickStep))") {
                 weightValue = max(weightValues.first ?? 0, weightValue - quickStep)
             },
@@ -625,7 +629,7 @@ private struct SetEditSheet: View {
     }
 
     var body: some View {
-        CompactSheet(
+        TLCompactSheet(
             title: Text(verbatim: exerciseName) + Text(verbatim: " · ")
                 + localText("template.setNumber \(setNumber)"),
             cancelTitle: localText("plan.cancel"),
@@ -635,7 +639,7 @@ private struct SetEditSheet: View {
         ) {
             VStack(alignment: .leading, spacing: TLSpace.gapL) {
                 modeChips
-                DualValuePicker(
+                TLDualValuePicker(
                     primaryValue: $weightValue,
                     primaryValues: weightValues,
                     primaryKicker: primaryKicker,
@@ -670,18 +674,18 @@ private struct SetEditSheet: View {
     }
 
     private var modeChips: some View {
-        HStack(spacing: 8) {
-            SelectableChip(
+        HStack(spacing: TLSpace.gapS) {
+            TLSelectableChip(
                 localString("template.set.absolute", locale), isSelected: mode == .absolute,
                 selectedFill: TLColor.accent, selectedText: TLColor.bg,
                 onTap: { mode = .absolute }
             )
-            SelectableChip(
+            TLSelectableChip(
                 localString("template.set.relative", locale), isSelected: mode == .relativeToLast,
                 selectedFill: TLColor.accent, selectedText: TLColor.bg,
                 onTap: { mode = .relativeToLast }
             )
-            SelectableChip(
+            TLSelectableChip(
                 localString("template.set.percent", locale), isSelected: mode == .percentOfMax,
                 selectedFill: TLColor.accent, selectedText: TLColor.bg,
                 onTap: { mode = .percentOfMax }

@@ -19,6 +19,7 @@ struct PlanProviderAdapter: PlannedWorkoutProvider {
     let startRotationUseCase: StartRotation
     let getActiveRestDay: GetActiveRestDay
     let moveNextWorkout: MoveNextWorkoutToToday
+    let createPlanWorkout: CreatePlanWorkout
     let today: @Sendable () -> DayDate
     let listExercises: ListExercises
     /// 目前的 app 語言。這裡是 composition root、拿不到 SwiftUI Environment，
@@ -61,9 +62,9 @@ struct PlanProviderAdapter: PlannedWorkoutProvider {
     }
 
     func startRotation(id: UUID) async throws -> PlannedWorkoutBlueprint? {
-        // 先取定位再開始——StartRotation 會把游標往前推，定位必須反映「這一張」而非下一張。
-        let kicker = try await rotationKicker(id: id)
         guard let plan = try await startRotationUseCase(id: id, date: today()) else { return nil }
+        // 游標在「完成」時才推進（見 MarkPlanWorkoutDone），所以這裡的定位就是「這一張」。
+        let kicker = try await rotationKicker(id: id)
         return try await blueprint(from: plan, kicker: kicker)
     }
 
@@ -93,6 +94,18 @@ struct PlanProviderAdapter: PlannedWorkoutProvider {
     func moveNextWorkoutToToday() async throws {
         guard let info = try await getActiveRestDay() else { return }
         try await moveNextWorkout(assignmentId: info.assignmentId)
+    }
+
+    /// 「重複上次」：材料化一筆一次性排課，只帶動作序列與組數，不含重量/次數
+    /// （`ExerciseTargetDraft.targetWeight/targetReps` 皆 nil，練習時重新輸入）。
+    /// origin 標記 `.repeatLast`，捨棄整場後由 `DiscardOrphanPlanWorkout` 徹底清除，不留卡片。
+    func repeatWorkout(exercises: [RepeatWorkoutExercise]) async throws -> PlannedWorkoutBlueprint? {
+        guard !exercises.isEmpty else { return nil }
+        let drafts = exercises.map {
+            ExerciseTargetDraft(exerciseId: $0.exerciseId, setCount: $0.setCount, targetWeight: nil, targetReps: nil)
+        }
+        let plan = try await createPlanWorkout(name: nil, date: today(), drafts: drafts, origin: .repeatLast)
+        return try await blueprint(from: plan)
     }
 
     private func blueprint(from plan: PlanWorkout, kicker: String? = nil) async throws -> PlannedWorkoutBlueprint {
@@ -142,9 +155,14 @@ struct PlanProviderAdapter: PlannedWorkoutProvider {
 /// Training 的「標記排課完成」port ← Plan 的 MarkPlanWorkoutDone。
 struct PlanProgressAdapter: PlanProgressRecorder {
     let markDone: MarkPlanWorkoutDone
+    let discardRotationPlan: DiscardOrphanPlanWorkout
 
     func markDone(planWorkoutId: UUID) async throws {
         try await markDone(id: planWorkoutId)
+    }
+
+    func discardOrphanPlan(planWorkoutId: UUID) async throws {
+        try await discardRotationPlan(id: planWorkoutId)
     }
 }
 
@@ -156,8 +174,15 @@ struct LastPerformedWeightLookupAdapter: LastPerformedWeightLookup {
 
     func lastPerformedWeight(exerciseId: UUID) async throws -> LastPerformedSet? {
         let sets = try await workoutRepository.lastPerformance(exerciseId: exerciseId, excludingWorkout: nil)
+        // 「相對上次」是重量表達式，只有帶重量的模式回答得了；其餘模式回 nil
+        // 讓表達式收斂時走它既有的「查不到歷史」路徑。
         // 用 Weight 比（已換算單位）；拿 .value 比在混單位時會挑錯那一組。
-        guard let best = sets.max(by: { $0.weight < $1.weight }) else { return nil }
+        let weighted = sets.compactMap { set -> (weight: Weight, reps: Int, targetReps: Int?)? in
+            guard let w = set.measurement.displayWeight, let r = set.measurement.displayReps
+            else { return nil }
+            return (w, r, set.targetMeasurement?.displayReps)
+        }
+        guard let best = weighted.max(by: { $0.weight < $1.weight }) else { return nil }
         let metTarget = best.targetReps.map { best.reps >= $0 } ?? true
         return LastPerformedSet(weight: best.weight, metTarget: metTarget)
     }

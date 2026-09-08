@@ -1,0 +1,85 @@
+<!-- @dsCard group="Molecules" name="TLRowContent" subtitle="列的內容排版，不含外框" -->
+<!doctype html>
+<meta charset="utf-8">
+<title>TLRowContent</title>
+<link rel="stylesheet" href="../../tokens/tokens.css">
+<link rel="stylesheet" href="../../preview.css">
+<link rel="stylesheet" href="../../components.preview.css">
+<h1>TLRowContent</h1>
+<p class="note">
+  L2 分子。列的<b>內容排版</b> —— 左件 ＋ 主副標 ＋ 右件 ＋ 指向記號。<br>
+  <b>不含外框</b>：沒有左右內距、沒有最小高度、不可點。那三件事是 <code>TLListRow</code> 的。
+</p>
+
+<div class="kicker">三種填法（決定 preferredMinHeight）</div>
+<div class="group">
+  <div class="row" data-state="single">
+    <span class="tl-row-content__text"><span class="tl-row-content__title">只有主標</span></span>
+    <svg class="tl-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg>
+  </div>
+  <div class="row tl-list-row--with-sub" data-state="withSub">
+    <span class="tl-row-content__text">
+      <span class="tl-row-content__title">主標 ＋ 副標</span>
+      <span class="tl-row-content__sub">副標是這一項由什麼組成</span>
+    </span>
+  </div>
+  <div class="row tl-list-row--with-detail" data-state="withDetail">
+    <span class="tl-row-content__text">
+      <span class="tl-row-content__title">主標 ＋ 細節行</span>
+      <span><span class="tl-list-row__pill">細節甲</span><span class="tl-list-row__pill">細節乙</span></span>
+    </span>
+  </div>
+</div>
+<p class="note">
+  細節行與主標<b>共用同一條左緣</b> —— 標籤不再需要自己的欄，對齊問題自然消失。
+</p>
+
+<div class="kicker">沒有外框是什麼意思</div>
+<div class="group">
+  <div class="tl-row-content">
+    <span class="tl-row-content__text"><span class="tl-row-content__title">直接放進容器會貼邊</span></span>
+  </div>
+</div>
+<p class="note">
+  上面這一列<b>沒有經過 <code>TLListRow</code></b>：左右貼齊容器、高度只有內容那麼高。
+  那不是壞掉，是它本來的樣子 —— 外框由用它的人給。
+</p>
+
+<div class="kicker">內容極值</div>
+<div class="group">
+  <div class="row">
+    <span class="tl-row-content__text">
+      <span class="tl-row-content__title">很長很長很長很長很長很長很長很長很長的主標會截斷</span>
+      <span class="tl-row-content__sub">很長很長很長很長很長很長很長很長很長的副標也會截斷</span>
+    </span>
+    <span class="tl-equipment-tag">標籤</span>
+  </div>
+</div>
+<p class="note">兩側不縮，讓的是中間的文字。</p>
+
+<div class="kicker">主題</div>
+<div class="themes">
+  <div class="pane" data-theme="light">
+    <div class="kicker">light</div>
+    <div class="group"><div class="row">
+      <span class="tl-row-content__text">
+        <span class="tl-row-content__title">項目名稱</span>
+        <span class="tl-row-content__sub">副標</span>
+      </span></div></div>
+  </div>
+  <div class="pane" data-theme="dark">
+    <div class="kicker">dark（目前是 light 的複製）</div>
+    <div class="group"><div class="row">
+      <span class="tl-row-content__text">
+        <span class="tl-row-content__title">項目名稱</span>
+        <span class="tl-row-content__sub">副標</span>
+      </span></div></div>
+  </div>
+</div>
+
+<div class="kicker">不適用的狀態</div>
+<p class="note">
+  pressed／disabled／focused —— 它不可點。按下態在 <code>TLListRow</code>。<br>
+  empty／loading／error —— 沒有資料就不會有這一列。
+</p>

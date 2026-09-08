@@ -1,0 +1,284 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>RotationRow</title>
+<link rel="stylesheet" href="../../tokens/tokens.css">
+<link rel="stylesheet" href="../../preview.css">
+<style>
+  body { max-width: 62rem; line-height: 1.7; }
+  h1, h2, h3 { font-family: var(--font-page-title-family); line-height: 1.35; }
+  h1 { font-size: var(--font-page-title); margin: 0 0 var(--space-gap-l); }
+  h2 { font-size: var(--font-card-title); margin: var(--space-section) 0 var(--space-gap-m);
+       padding-top: var(--space-gap-m); border-top: 1px solid var(--border-subtle); }
+  h3 { font-size: var(--font-row-title); margin: var(--space-gap-l) 0 var(--space-gap-s); }
+  a { color: var(--accent-on-surface); }
+  table { border-collapse: collapse; width: 100%; margin: var(--space-gap-m) 0;
+          display: block; overflow-x: auto; }
+  th, td { text-align: left; padding: var(--space-gap-s) var(--space-gap-m);
+           border-bottom: 1px solid var(--border-subtle); vertical-align: top; }
+  th { font-size: var(--font-kicker); letter-spacing: var(--font-kicker-tracking);
+       text-transform: uppercase; color: var(--text-tertiary); }
+  pre { background: var(--surface-raised); border-radius: var(--radius-inner);
+        padding: var(--space-gap-m); overflow-x: auto; }
+  pre code { background: none; padding: 0; }
+  blockquote { margin: var(--space-gap-m) 0; padding-left: var(--space-gap-m);
+               border-left: 3px solid var(--border-subtle); color: var(--text-secondary); }
+  .back { font-size: var(--font-row-sub); margin-bottom: var(--space-gap-l); display: block; }
+</style>
+<a class="back" href="../../index.html">← 元件庫索引</a>
+<h1>RotationRow</h1>
+<h2>1 身分</h2>
+<table>
+<thead>
+<tr>
+<th></th>
+<th></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>層級</td>
+<td>L3 有機體</td>
+</tr>
+<tr>
+<td>職責</td>
+<td>循環清單的一列</td>
+</tr>
+<tr>
+<td>原型 id</td>
+<td><code>8b</code></td>
+</tr>
+<tr>
+<td>獨立使用</td>
+<td><strong>否 —— 必須置於 <code>TLGroup</code> 之內</strong></td>
+</tr>
+<tr>
+<td>容器責任</td>
+<td>圓角、底色、分隔線由 <code>TLGroup</code> 負責</td>
+</tr>
+<tr>
+<td>實作</td>
+<td><code>Packages/Plan/Sources/PlanPresentation/Components/RotationRow.swift</code></td>
+</tr>
+<tr>
+<td>Preview</td>
+<td><code>design-system/organisms/RotationRow/RotationRow.preview.html</code></td>
+</tr>
+<tr>
+<td>Preview CSS</td>
+<td>無自己的樣式（見 <code>components.preview.css</code> 的說明段）</td>
+</tr>
+</tbody>
+</table>
+<p><strong>組成</strong>：<code>TLSwipeToRevealRow</code>（控制項）＋ <code>TLListRow</code>（L2）＋ <code>TLBadge</code>（L1）。</p>
+<h2>2 介面 ★</h2>
+<p><strong>Props</strong></p>
+<table>
+<thead>
+<tr>
+<th>名稱</th>
+<th>型別</th>
+<th>值域</th>
+<th>必填</th>
+<th>預設</th>
+<th>說明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>mode</code></td>
+<td><code>Mode</code></td>
+<td><code>active</code> / <code>inactive</code></td>
+<td>是</td>
+<td>—</td>
+<td>兩種形態，差別不只是顏色，見第 3 節</td>
+</tr>
+<tr>
+<td><code>id</code></td>
+<td><code>UUID</code></td>
+<td></td>
+<td>是</td>
+<td>—</td>
+<td>drill-in 的目的地。<strong>只有 <code>active</code> 用得到</strong></td>
+</tr>
+<tr>
+<td><code>name</code></td>
+<td><code>String</code></td>
+<td></td>
+<td>是</td>
+<td>—</td>
+<td>循環名</td>
+</tr>
+<tr>
+<td><code>subtitle</code></td>
+<td><code>Text</code></td>
+<td></td>
+<td>是</td>
+<td>—</td>
+<td>副標＝組成摘要</td>
+</tr>
+<tr>
+<td><code>trailing</code></td>
+<td><code>AnyView</code></td>
+<td></td>
+<td>是</td>
+<td>—</td>
+<td>右側內容：啟用態是進度膠囊、未啟用態是「啟用」鈕。<strong>由呼叫端給</strong> —— 它才知道文案與行為</td>
+</tr>
+<tr>
+<td><code>deactivateLabel</code></td>
+<td><code>Text</code></td>
+<td></td>
+<td>是</td>
+<td>—</td>
+<td>左滑露出的「停用」文案</td>
+</tr>
+<tr>
+<td><code>onDeactivate</code></td>
+<td><code>() -&gt; Void</code></td>
+<td></td>
+<td>是</td>
+<td>—</td>
+<td>左滑停用</td>
+</tr>
+<tr>
+<td><code>menu</code></td>
+<td><code>AnyView</code></td>
+<td></td>
+<td>是</td>
+<td>—</td>
+<td>長按選單。兩種形態都有</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Slots</strong> — N/A（<code>trailing</code>／<code>menu</code> 是 <code>AnyView</code> 而不是 <code>@ViewBuilder</code>，見第 8 節）
+<strong>事件</strong> — <code>onDeactivate</code></p>
+<h2>3 變體 variants</h2>
+<table>
+<thead>
+<tr>
+<th>變體</th>
+<th>說明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>active</code> 啟用</td>
+<td>可 drill-in（有 chevron）、圓章是赭紅、右側是進度膠囊、左滑可停用</td>
+</tr>
+<tr>
+<td><code>inactive</code> 未啟用</td>
+<td><strong>不 drill-in</strong>（設計稿無 chevron）、圓章是灰、右側是 inline「啟用」鈕、不能左滑</td>
+</tr>
+</tbody>
+</table>
+<p><strong>未啟用為什麼不 drill-in</strong>：編輯未啟用的循環是低頻操作，路徑是「先啟用再進去」。
+留一個點得下去卻只是看的入口，會讓「啟用」那顆鈕看起來可有可無。</p>
+<h2>4 狀態 states ★</h2>
+<!-- states: active, inactive, swiped -->
+<!-- themes: light, dark -->
+
+<table>
+<thead>
+<tr>
+<th>類別</th>
+<th>狀態</th>
+<th>這個元件</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>互動</td>
+<td>default / pressed / disabled / focused</td>
+<td><code>active</code> 可點（按下態由 <code>TLListRow</code> 給）、<code>inactive</code> 整列不可點但右側鈕可點、<code>swiped</code> 只有 <code>active</code> 有。沒有 disabled —— 未啟用是一種形態不是停用</td>
+</tr>
+<tr>
+<td>選取</td>
+<td>selected / unselected / indeterminate</td>
+<td>N/A</td>
+</tr>
+<tr>
+<td>資料</td>
+<td>empty / loading / error</td>
+<td>N/A</td>
+</tr>
+<tr>
+<td>內容極值</td>
+<td>最短 / 最長 / 溢出</td>
+<td>名稱與摘要一行截斷；圓章與右側不縮</td>
+</tr>
+<tr>
+<td>主題</td>
+<td>light / dark</td>
+<td>兩者都有</td>
+</tr>
+<tr>
+<td>語言</td>
+<td>中文 / 英文</td>
+<td>右側的「啟用」在英文較長，是右欄寬度的決定因素</td>
+</tr>
+</tbody>
+</table>
+<h2>5 度量與行為</h2>
+<p>全部由 <code>TLListRow</code> 決定。左滑露出的動作寬 88pt。</p>
+<h3>文字與溢出</h3>
+<p>名稱一行截斷；摘要一行截斷。</p>
+<h3>動態</h3>
+<p>左滑 <code>motion.base</code> easeOut。</p>
+<h2>6 配色 ★</h2>
+<table>
+<thead>
+<tr>
+<th>用途</th>
+<th><code>active</code></th>
+<th><code>inactive</code></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>圓章底</td>
+<td><code>actionPrimary</code></td>
+<td><code>neutral-300</code></td>
+</tr>
+<tr>
+<td>圓章圖示</td>
+<td><code>surfaceBase</code></td>
+<td><code>neutral-600</code></td>
+</tr>
+</tbody>
+</table>
+<p><strong>左滑的「停用」是 <code>neutral-400</code> 不是紅的</strong> —— 停用可以再啟用，它不是破壞性操作。
+紅色留給真的刪掉的東西。</p>
+<h2>7 用法與禁用法</h2>
+<p><strong>用它</strong>：循環清單。</p>
+<p><strong>易混淆</strong>：<code>ProgramRow</code> —— 那個的啟用態是<strong>一張卡</strong>不是一列（多了進度區），
+而這個兩種形態都是列。判準：啟用後要不要顯示進度？要就是 <code>ProgramRow</code>。</p>
+<p><strong>不要用它</strong>：
+- 給 <code>inactive</code> 傳有意義的 <code>id</code> 期待它能點 —— 未啟用刻意不 drill-in
+- 把「啟用」鈕做成整列可點 —— 那會跟 drill-in 撞在一起</p>
+<h2>8 變更紀錄</h2>
+<table>
+<thead>
+<tr>
+<th>日期</th>
+<th>改動</th>
+<th>原因</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>2026-08-31</td>
+<td>從 <code>RotationListView</code> 抽出成 L3</td>
+<td>階段 2 的分層落地</td>
+</tr>
+<tr>
+<td>2026-08-31</td>
+<td><strong>驗證結果：純由 L2／L1 組成，零缺口</strong></td>
+<td>兩種形態都只是 <code>TLListRow</code> 換填法</td>
+</tr>
+<tr>
+<td>2026-08-31</td>
+<td><strong>記錄 <code>trailing</code>／<code>menu</code> 用 <code>AnyView</code> 的代價</strong></td>
+<td>它們是 stored property 不是 <code>@ViewBuilder</code>，所以型別被抹掉、SwiftUI 少了一次 diff 的機會。改成泛型 slot 會讓這個型別長出兩個泛型參數；目前清單短，先留著。<strong>若循環清單日後變長，這是第一個要看的地方</strong></td>
+</tr>
+</tbody>
+</table>

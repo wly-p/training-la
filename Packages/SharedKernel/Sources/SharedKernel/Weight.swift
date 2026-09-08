@@ -84,8 +84,19 @@ extension Weight {
 
 extension Weight {
     /// 60.0 → "60kg"、62.5 → "62.5kg"。單位照這筆自己的，不替呼叫端決定要不要換算。
+    ///
+    /// **顯示給使用者看的地方一律用 `displayString(in:)`**（吃偏好單位）。
+    /// 這一支只剩下「這筆自己的單位就是主題」的場合——例如 debug 輸出、
+    /// 或已經先 `converted(to:)` 過的值。在 View 裡看到它，通常是漏了換算。
     public var displayString: String {
         "\(Self.formatted(value))\(unit.rawValue)"
+    }
+
+    /// 換算成偏好單位再印："60kg" 在 lb 偏好下是 "132.3lb"。同單位時不動原值。
+    ///
+    /// View 端取偏好單位用 `@Environment(\.weightDisplayUnit)`，不要各自去讀 store。
+    public func displayString(in unit: WeightUnit) -> String {
+        converted(to: unit).displayString
     }
 
     /// 數字的顯示格式：60.0 → "60"、62.5 → "62.5"、99.96000000000001 → "99.96"。

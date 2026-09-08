@@ -1,0 +1,62 @@
+<!-- @dsCard group="Organisms" name="ExerciseCompleteBand" subtitle="動作／課表做完時的完成區" -->
+<!doctype html>
+<meta charset="utf-8">
+<title>ExerciseCompleteBand</title>
+<link rel="stylesheet" href="../../tokens/tokens.css">
+<link rel="stylesheet" href="../../preview.css">
+<link rel="stylesheet" href="../../components.preview.css">
+<h1>ExerciseCompleteBand</h1>
+<p class="note">
+  L3 有機體。動作或課表做完時的完成區。<br>
+  <b>不是彈窗</b>：就地把輸入色帶換成綠色完成區 —— 同一位置、同一形狀，只換底色與內容。
+  組表與最後一組的 ↩ 完全不動，誤按的人什麼都不用做就能復原。
+</p>
+
+<div class="kicker">狀態</div>
+<div class="tl-band" data-state="exerciseDone">
+  <div class="tl-band__title">✓ 這個動作做完了</div>
+  <div class="tl-band__message">還想練就加一組，不然往下一個動作走。</div>
+  <div class="tl-band__actions">
+    <span class="tl-band__outline">＋ 加一組</span>
+    <span class="tl-band__primary">下一個 →</span>
+  </div>
+</div>
+<div class="tl-band" data-state="planDone">
+  <div class="tl-band__title">⚑ 整份做完了</div>
+  <div class="tl-band__message">整場摘要一行（完整數據在完成頁）。</div>
+  <div class="tl-band__actions">
+    <span class="tl-band__outline">＋ 加一組</span>
+    <span class="tl-band__outline">＋ 加練</span>
+    <span class="tl-band__primary">結束 →</span>
+  </div>
+</div>
+<p class="note">
+  <b>「加一組」在兩張卡的位置與尺寸完全相同</b> —— 最後一個動作同時是「再一組」與「加練」的
+  最後機會，兩個層級都要在。副按鈕的最小寬就是為了這件事。
+</p>
+
+<div class="kicker">為什麼是不對稱的形狀</div>
+<p class="note">
+  左緣貼齊螢幕、右緣不到底 —— 它跟輸入色帶<b>同一位置、同一形狀</b>，
+  所以誤按的人不會覺得畫面跳掉。
+</p>
+
+<div class="kicker">主題</div>
+<div class="themes">
+  <div class="pane" data-theme="light">
+    <div class="kicker">light</div>
+    <div class="tl-band"><div class="tl-band__title">✓ 完成</div>
+      <div class="tl-band__message">說明句</div></div>
+  </div>
+  <div class="pane" data-theme="dark">
+    <div class="kicker">dark（目前是 light 的複製）</div>
+    <div class="tl-band"><div class="tl-band__title">✓ 完成</div>
+      <div class="tl-band__message">說明句</div></div>
+  </div>
+</div>
+
+<div class="kicker">不適用的狀態</div>
+<p class="note">
+  整條色帶 pressed／disabled —— 不可點，按下態在三顆按鈕上。<br>
+  empty／loading／error —— 沒做完就不會出現。
+</p>

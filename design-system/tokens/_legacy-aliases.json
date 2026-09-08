@@ -1,0 +1,6 @@
+{
+  "note": "遷移中：現行 Swift API 的舊名。各階段榨取時逐步換成語意名，全部換完就刪掉這個檔。不進交付包（設計端看到只會混淆）。",
+  "bg": "surfaceBase",
+  "text": "textPrimary",
+  "divider": "borderSubtle"
+}

@@ -34,7 +34,7 @@ public struct ProgramDetailView: View {
                 }
             }
             .padding(.horizontal, TLSpace.page)
-            .padding(.bottom, 40)
+            .padding(.bottom, TLSpace.pageBottom)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background(TLColor.bg)
@@ -67,9 +67,9 @@ public struct ProgramDetailView: View {
     }
 
     private func header(_ program: Program) -> some View {
-        VStack(alignment: .leading, spacing: 8) {
+        VStack(alignment: .leading, spacing: TLSpace.gapS) {
             HStack {
-                CircleIconButton(systemImage: "chevron.left", filled: false) { dismiss() }
+                TLCircleIconButton(systemImage: "chevron.left", filled: false) { dismiss() }
                     .accessibilityLabel(localText("plan.back"))
                 Spacer()
                 NavigationLink(value: ProgramEditRoute(id: program.id)) {
@@ -93,46 +93,35 @@ public struct ProgramDetailView: View {
     }
 
     private func progressCard(_ progress: ProgramProgress) -> some View {
-        VStack(spacing: TLSpace.gapM) {
-            HStack(alignment: .firstTextBaseline) {
-                HStack(alignment: .firstTextBaseline, spacing: 4) {
-                    Text(verbatim: "\(progress.day)")
-                        .font(TLFont.display(30))
-                        .foregroundStyle(TLColor.text)
-                    (Text(verbatim: "/ \(progress.totalDays) ") + localText("program.dayUnit"))
-                        .font(TLFont.zh(TLFont.rowSub))
-                        .foregroundStyle(TLColor.neutral500)
+        TLCard(fill: TLColor.neutral300) {
+            VStack(spacing: TLSpace.gapM) {
+                HStack(alignment: .firstTextBaseline) {
+                    HStack(alignment: .firstTextBaseline, spacing: TLSpace.numberUnitGap) {
+                        Text(verbatim: "\(progress.day)")
+                            .font(TLFont.display(30))
+                            .foregroundStyle(TLColor.text)
+                        (Text(verbatim: "/ \(progress.totalDays) ") + localText("program.dayUnit"))
+                            .font(TLFont.zh(TLFont.rowSub))
+                            .foregroundStyle(TLColor.neutral500)
+                    }
+                    Spacer()
+                    (localText("program.today") + Text(verbatim: "：\(progress.todayWorkoutName ?? "—")"))
+                        .font(TLFont.zh(TLFont.rowSub, .semibold))
+                        .foregroundStyle(TLColor.neutral700)
                 }
-                Spacer()
-                (localText("program.today") + Text(verbatim: "：\(progress.todayWorkoutName ?? "—")"))
-                    .font(TLFont.zh(TLFont.rowSub, .semibold))
-                    .foregroundStyle(TLColor.neutral700)
-            }
-            progressBar(Double(progress.day) / Double(max(1, progress.totalDays)))
-        }
-        .padding(TLSpace.rowInset)
-        .background(TLColor.neutral300)
-        .clipShape(RoundedRectangle(cornerRadius: TLRadius.container, style: .continuous))
-    }
-
-    private func progressBar(_ ratio: Double) -> some View {
-        GeometryReader { geo in
-            ZStack(alignment: .leading) {
-                Capsule().fill(TLColor.neutral100)
-                Capsule().fill(TLColor.accent)
-                    .frame(width: geo.size.width * min(1, max(0, ratio)))
+                TLProgressBar(ratio: Double(progress.day) / Double(max(1, progress.totalDays)),
+                              track: TLColor.neutral100)
             }
         }
-        .frame(height: 6)
     }
 
     private func schedule(_ program: Program) -> some View {
         VStack(alignment: .leading, spacing: 0) {
-            SectionHeader(localText("program.schedule.section"))
+            TLSectionHeader(localText("program.schedule.section"))
             TLGroup {
                 ForEach(0..<program.cycleLength, id: \.self) { dayIndex in
                     let spec = program.workout(dayIndex: dayIndex)
-                    ListRow(
+                    TLListRow(
                         title: spec.map { Text(verbatim: $0.name) } ?? localText("program.day.rest"),
                         leading: { indexBadge(dayIndex + 1, rest: spec == nil) }
                     )
@@ -142,7 +131,7 @@ public struct ProgramDetailView: View {
     }
 
     private func indexBadge(_ n: Int, rest: Bool) -> some View {
-        CircleBadge(fill: rest ? TLColor.neutral200 : TLColor.accent200) {
+        TLBadge(fill: rest ? TLColor.neutral200 : TLColor.accent200) {
             Text(verbatim: "\(n)")
                 .font(TLFont.display(15))
                 .foregroundStyle(rest ? TLColor.neutral500 : TLColor.accent800)
@@ -150,22 +139,22 @@ public struct ProgramDetailView: View {
     }
 
     private var manage: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            SectionHeader(localText("rotation.manage.section"))
+        VStack(alignment: .leading, spacing: TLSpace.gapS) {
+            TLSectionHeader(localText("rotation.manage.section"))
             TLGroup {
                 if viewModel.isActive {
-                    ListRow(
+                    TLListRow(
                         title: localText("program.manage.resetProgress"),
                         onTap: { Task { await viewModel.resetProgressToStart() } },
                         trailing: { rightText(localText("program.manage.resetProgress.hint")) }
                     )
-                    ListRow(
+                    TLListRow(
                         title: localText("program.manage.deactivate"),
                         onTap: { showDeactivateConfirm = true },
                         trailing: { rightText(localText("program.manage.deactivate.hint")) }
                     )
                 }
-                SettingsRow(
+                TLSettingsRow(
                     localText("program.manage.delete"),
                     role: .destructive,
                     onTap: { showDeleteConfirm = true }

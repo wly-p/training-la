@@ -1,3 +1,4 @@
+import Foundation
 import RemindersDomain
 import SharedKernel
 import Testing
@@ -39,21 +40,50 @@ private final class MockDataEraser: DataErasing, @unchecked Sendable {
     }
 }
 
+private struct StubNotificationAuthorizationChecking: NotificationAuthorizationChecking {
+    let status: NotificationAuthorizationStatus
+    func currentStatus() async -> NotificationAuthorizationStatus { status }
+}
+
+private final class MockHistoryExporter: WorkoutHistoryExporting, @unchecked Sendable {
+    var jsonURL: URL = URL(fileURLWithPath: "/tmp/history.json")
+    var csvURL: URL = URL(fileURLWithPath: "/tmp/history.csv")
+    var shouldFail = false
+    private(set) var exportJSONCallCount = 0
+    private(set) var exportCSVCallCount = 0
+
+    func exportJSON() async throws -> URL {
+        exportJSONCallCount += 1
+        if shouldFail { throw StubError.failure }
+        return jsonURL
+    }
+
+    func exportCSV() async throws -> URL {
+        exportCSVCallCount += 1
+        if shouldFail { throw StubError.failure }
+        return csvURL
+    }
+}
+
 @MainActor
 private func makeViewModel(
     theme: AppTheme = .system,
     iconSwitcher: MockIconSwitcher = MockIconSwitcher(),
+    notificationAuthorization: any NotificationAuthorizationChecking = NoopNotificationAuthorizationChecking(),
     languageStore: any LanguagePreferenceStoring = InMemoryLanguageStore(),
     systemPreferredLanguages: [String] = [],
     dataEraser: MockDataEraser = MockDataEraser(),
+    historyExporter: any WorkoutHistoryExporting = NoopWorkoutHistoryExporting(),
     onErased: @escaping @MainActor () -> Void = {}
 ) -> SettingsViewModel {
     SettingsViewModel(
         store: InMemoryThemeStore(initial: theme),
         iconSwitcher: iconSwitcher,
+        notificationAuthorization: notificationAuthorization,
         languageStore: languageStore,
         systemPreferredLanguages: systemPreferredLanguages,
         dataEraser: dataEraser,
+        historyExporter: historyExporter,
         onErased: onErased
     )
 }
@@ -191,5 +221,58 @@ struct SettingsViewModelTests {
 
         #expect(store.load().sound == false)
         #expect(store.load().backgroundNotification == false)
+    }
+
+    /// 開關不能說謊：系統實際拒絕了授權，`notificationAuthorizationDenied` 要反映出來，
+    /// 不管偏好本身還顯示開著。
+    @Test func refreshNotificationAuthorizationReflectsDeniedStatus() async {
+        let vm = makeViewModel(notificationAuthorization: StubNotificationAuthorizationChecking(status: .denied))
+        #expect(vm.notificationAuthorizationDenied == false) // 還沒查之前預設 false
+
+        await vm.refreshNotificationAuthorization()
+
+        #expect(vm.notificationAuthorizationDenied == true)
+    }
+
+    @Test func refreshNotificationAuthorizationReflectsAuthorizedStatus() async {
+        let vm = makeViewModel(notificationAuthorization: StubNotificationAuthorizationChecking(status: .authorized))
+
+        await vm.refreshNotificationAuthorization()
+
+        #expect(vm.notificationAuthorizationDenied == false)
+    }
+
+    @Test func exportJSONSucceedsSetsExportedFile() async {
+        let exporter = MockHistoryExporter()
+        let vm = makeViewModel(historyExporter: exporter)
+
+        await vm.exportJSON()
+
+        #expect(exporter.exportJSONCallCount == 1)
+        #expect(vm.exportedFile?.url == exporter.jsonURL)
+        #expect(vm.isExporting == false)
+        #expect(vm.exportFailed == false)
+    }
+
+    @Test func exportCSVSucceedsSetsExportedFile() async {
+        let exporter = MockHistoryExporter()
+        let vm = makeViewModel(historyExporter: exporter)
+
+        await vm.exportCSV()
+
+        #expect(exporter.exportCSVCallCount == 1)
+        #expect(vm.exportedFile?.url == exporter.csvURL)
+    }
+
+    @Test func exportFailureSurfacesErrorAndClearsExportingFlag() async {
+        let exporter = MockHistoryExporter()
+        exporter.shouldFail = true
+        let vm = makeViewModel(historyExporter: exporter)
+
+        await vm.exportJSON()
+
+        #expect(vm.exportFailed == true)
+        #expect(vm.exportedFile == nil)
+        #expect(vm.isExporting == false)
     }
 }

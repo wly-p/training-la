@@ -97,16 +97,30 @@ public struct FinishWorkout: Sendable {
     }
 }
 
-/// 放棄場次（沒記任何一組就退出時清掉空 workout）。
+/// 放棄場次：使用者主動捨棄整場，或沒記任何一組就退出時清掉空 workout。
+///
+/// 三條入口（`ActiveWorkoutViewModel.discardCurrentWorkout()` / `.leave()`、
+/// `TrainingHomeViewModel.discardResumable()`）都走這裡，所以孤兒排課的清理只要放這一處。
 public struct DiscardWorkout: Sendable {
     private let repository: any WorkoutRepository
+    private let planProgress: (any PlanProgressRecorder)?
 
-    public init(repository: any WorkoutRepository) {
+    public init(
+        repository: any WorkoutRepository,
+        planProgress: (any PlanProgressRecorder)? = nil
+    ) {
         self.repository = repository
+        self.planProgress = planProgress
     }
 
     public func callAsFunction(id: UUID) async throws {
+        // 先取排課關聯——workout 刪掉之後就查不到了。
+        let planWorkoutId = try await repository.get(id: id)?.planWorkoutId
         try await repository.delete(id: id)
+        if let planWorkoutId {
+            // 場次已經刪掉了；清孤兒排課失敗不該讓整個捨棄流程失敗。
+            try? await planProgress?.discardOrphanPlan(planWorkoutId: planWorkoutId)
+        }
     }
 }
 
@@ -123,40 +137,68 @@ public struct LastPerformance: Sendable {
     }
 }
 
-/// 已完成場次（新到舊）：訓練首頁「本週」統計＋「重複上次」用。
+/// 已完成場次（新到舊）：訓練首頁「本週」統計＋「最近練過」＋「和上次比」用。
+///
+/// 帶上限而不是全撈：這支在每次進訓練分頁時都會跑，而它要的只是「這週 ＋ 最近幾場」。
+/// 200 場的資料量下全撈實測 0.29s，且隨紀錄數線性成長——那是每次切到訓練分頁都要付的錢。
+///
+/// 上限的取捨：`lastComparison`（開練前預覽的「和上次比」）要找「最近一場做過這個主項的場次」，
+/// 若那一場落在上限之外就找不到，卡片不顯示——這是刻意的降級，不會出錯只是少一張卡。
 public struct RecentWorkouts: Sendable {
     private let repository: any WorkoutRepository
+    private let limit: Int?
 
-    public init(repository: any WorkoutRepository) {
+    /// - Parameter limit: 預設 60 場，約覆蓋週四練的四個月。傳 nil＝全部。
+    public init(repository: any WorkoutRepository, limit: Int? = 60) {
         self.repository = repository
+        self.limit = limit
     }
 
     public func callAsFunction() async throws -> [Workout] {
-        try await repository.finishedWorkouts()
+        try await repository.finishedWorkouts(limit: limit)
     }
 }
 
-/// 完成摘要（13a）的 PR 播報：這場某動作的代表組，跟這個動作先前所有場次比，
-/// 在「這個重量的次數」或「這個次數的重量」任一維度創新高。跟 91-weight-model.md／
-/// History 趨勢圖（Phase 4）同一套判定規則，因為兩個 package 不互相 import Presentation，
-/// 各自保留一份薄的純函式版本，不強行共用。
+/// 完成摘要（13a）的 PR 播報：這場某動作的代表組，跟這個動作先前所有場次比是否創新高。
+///
+/// 判定規則住在 `SharedKernel.PersonalRecordRule`——原本 Training 與 History 各留一份
+/// 「薄的純函式版本」，結果兩份悄悄長歪了（體檢 P4-4），現在收斂成同一支。
 public struct ExercisePRAnnouncement: Identifiable, Equatable, Sendable {
-    public enum Kind: Equatable, Sendable { case newRepsAtWeight, newWeightAtReps }
+    /// 對應 `PersonalRecordRule.Kind`，只是保留這一層讓 Training 的呼叫端不必 import 規則型別。
+    public enum Kind: Equatable, Sendable {
+        case newRepsAtWeight
+        case newWeightAtReps
+        case firstEver
+        /// 純次數模式做更多、時間模式撐更久、距離模式跑更遠。
+        case newReps
+        case newDuration
+        case newDistance
+
+        init(_ kind: PersonalRecordRule.Kind) {
+            switch kind {
+            case .newRepsAtWeight: self = .newRepsAtWeight
+            case .newWeight: self = .newWeightAtReps
+            case .firstEver: self = .firstEver
+            case .newReps: self = .newReps
+            case .newDuration: self = .newDuration
+            case .newDistance: self = .newDistance
+            }
+        }
+    }
     public let exerciseId: UUID
-    public let weight: Weight
-    public let reps: Int
+    /// 破紀錄的那一組做了什麼（各模式的數字都在這裡，呼叫端 switch 取用）。
+    public let measurement: SetMeasurement
     public let kind: Kind
     public var id: UUID { exerciseId }
 
-    public init(exerciseId: UUID, weight: Weight, reps: Int, kind: Kind) {
+    public init(exerciseId: UUID, measurement: SetMeasurement, kind: Kind) {
         self.exerciseId = exerciseId
-        self.weight = weight
-        self.reps = reps
+        self.measurement = measurement
         self.kind = kind
     }
 }
 
-/// 掃這場每個動作的代表組（最高重量，同重量比次數），跟這個動作先前的歷史比對出 PR。
+/// 掃這場每個動作的代表組，跟先前歷史比對出 PR。規則見 `PersonalRecordRule`。
 public struct DetectPersonalRecords: Sendable {
     private let repository: any WorkoutRepository
 
@@ -167,27 +209,17 @@ public struct DetectPersonalRecords: Sendable {
     public func callAsFunction(_ workout: Workout) async throws -> [ExercisePRAnnouncement] {
         var result: [ExercisePRAnnouncement] = []
         for block in workout.blocks {
-            let doneSets = block.sets.filter { $0.status == .done }
-            guard let best = doneSets.max(by: { ($0.weight, $0.reps) < ($1.weight, $1.reps) })
+            // 熱身組不參與 PR：破紀錄問的是你真的推了什麼。
+            let doneSets = block.sets.filter { $0.status == .done && !$0.isWarmup }
+            guard let best = PersonalRecordRule.representativeMeasurement(of: doneSets.map(\.measurement))
             else { continue }
             let history = try await repository.exerciseHistory(exerciseId: block.exerciseId)
-                .filter { $0.workoutId != workout.id }
-            // 只在「該重量／該次數以前真的出現過」時才算「創新高」——完全沒比較基準的維度
-            // 不能拿 0 當預設基準，否則隨便一組都會被誤判成「創新高」。
-            // 比較一律用 Weight 本身（已換算單位），不要退回 .value：
-            // 那會讓 100 lb 和 100 kg 被當成同一個重量，並互相判成創新高。
-            let bestRepsAtThisWeight = history
-                .filter { $0.set.weight == best.weight }.map(\.set.reps).max()
-            let bestWeightAtThisReps = history
-                .filter { $0.set.reps == best.reps }.map(\.set.weight).max()
-            if let bestReps = bestRepsAtThisWeight, best.reps > bestReps {
-                result.append(ExercisePRAnnouncement(exerciseId: block.exerciseId, weight: best.weight, reps: best.reps, kind: .newRepsAtWeight))
-            } else if let bestWeight = bestWeightAtThisReps, best.weight > bestWeight {
-                result.append(ExercisePRAnnouncement(exerciseId: block.exerciseId, weight: best.weight, reps: best.reps, kind: .newWeightAtReps))
-            } else if history.isEmpty {
-                // 這個動作完全沒有歷史紀錄——第一次練，任何一組都算創新高。
-                result.append(ExercisePRAnnouncement(exerciseId: block.exerciseId, weight: best.weight, reps: best.reps, kind: .newWeightAtReps))
-            }
+                .filter { $0.workoutId != workout.id && $0.set.status == .done && !$0.set.isWarmup }
+                .map(\.set.measurement)
+            guard let kind = PersonalRecordRule.evaluateMeasurement(best, against: history) else { continue }
+            result.append(ExercisePRAnnouncement(
+                exerciseId: block.exerciseId, measurement: best, kind: .init(kind)
+            ))
         }
         return result
     }

@@ -1,0 +1,33 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>L1 原子</title>
+<link rel="stylesheet" href="../tokens/tokens.css">
+<link rel="stylesheet" href="../preview.css">
+<style>
+  body { max-width: 62rem; line-height: 1.7; }
+  h1, h2, h3 { font-family: var(--font-page-title-family); line-height: 1.35; }
+  h1 { font-size: var(--font-page-title); margin: 0 0 var(--space-gap-l); }
+  h2 { font-size: var(--font-card-title); margin: var(--space-section) 0 var(--space-gap-m);
+       padding-top: var(--space-gap-m); border-top: 1px solid var(--border-subtle); }
+  h3 { font-size: var(--font-row-title); margin: var(--space-gap-l) 0 var(--space-gap-s); }
+  a { color: var(--accent-on-surface); }
+  table { border-collapse: collapse; width: 100%; margin: var(--space-gap-m) 0;
+          display: block; overflow-x: auto; }
+  th, td { text-align: left; padding: var(--space-gap-s) var(--space-gap-m);
+           border-bottom: 1px solid var(--border-subtle); vertical-align: top; }
+  th { font-size: var(--font-kicker); letter-spacing: var(--font-kicker-tracking);
+       text-transform: uppercase; color: var(--text-tertiary); }
+  pre { background: var(--surface-raised); border-radius: var(--radius-inner);
+        padding: var(--space-gap-m); overflow-x: auto; }
+  pre code { background: none; padding: 0; }
+  blockquote { margin: var(--space-gap-m) 0; padding-left: var(--space-gap-m);
+               border-left: 3px solid var(--border-subtle); color: var(--text-secondary); }
+  .back { font-size: var(--font-row-sub); margin-bottom: var(--space-gap-l); display: block; }
+</style>
+<a class="back" href="../index.html">← 元件庫索引</a>
+<h1>L1 原子</h1>
+<p>不可再分。只收 <code>String</code> / <code>Int</code> / <code>Bool</code> / closure。<strong>不得認識任何 domain 型別</strong>。住 <code>Packages/DesignSystem/Sources/DesignSystem/Atoms/</code>，一律 <code>TL</code> 前綴。</p>
+<p>每個元件一個目錄，含 <code>X.spec.md</code> 與 <code>X.preview.html</code>（實作檔的位置由 spec 第 1 節指出）。
+規格樣板見 <a href="../_template.spec.html"><code>../_template.spec.md</code></a>，規則見 <a href="../README.html"><code>../README.md</code></a>。</p>
+<p>原子沒有第 2 節的 slots、也沒有第 11 節組成；其餘各節都要填。</p>
+<p>原子幾乎都<strong>自己不完整</strong> —— 必須放在某個容器裡才成立。規格第 1 節的「獨立使用」與「容器責任」兩格就是為了這件事，一定要填。</p>

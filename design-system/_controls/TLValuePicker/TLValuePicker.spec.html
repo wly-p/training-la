@@ -1,0 +1,294 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>TLValuePicker</title>
+<link rel="stylesheet" href="../../tokens/tokens.css">
+<link rel="stylesheet" href="../../preview.css">
+<style>
+  body { max-width: 62rem; line-height: 1.7; }
+  h1, h2, h3 { font-family: var(--font-page-title-family); line-height: 1.35; }
+  h1 { font-size: var(--font-page-title); margin: 0 0 var(--space-gap-l); }
+  h2 { font-size: var(--font-card-title); margin: var(--space-section) 0 var(--space-gap-m);
+       padding-top: var(--space-gap-m); border-top: 1px solid var(--border-subtle); }
+  h3 { font-size: var(--font-row-title); margin: var(--space-gap-l) 0 var(--space-gap-s); }
+  a { color: var(--accent-on-surface); }
+  table { border-collapse: collapse; width: 100%; margin: var(--space-gap-m) 0;
+          display: block; overflow-x: auto; }
+  th, td { text-align: left; padding: var(--space-gap-s) var(--space-gap-m);
+           border-bottom: 1px solid var(--border-subtle); vertical-align: top; }
+  th { font-size: var(--font-kicker); letter-spacing: var(--font-kicker-tracking);
+       text-transform: uppercase; color: var(--text-tertiary); }
+  pre { background: var(--surface-raised); border-radius: var(--radius-inner);
+        padding: var(--space-gap-m); overflow-x: auto; }
+  pre code { background: none; padding: 0; }
+  blockquote { margin: var(--space-gap-m) 0; padding-left: var(--space-gap-m);
+               border-left: 3px solid var(--border-subtle); color: var(--text-secondary); }
+  .back { font-size: var(--font-row-sub); margin-bottom: var(--space-gap-l); display: block; }
+</style>
+<a class="back" href="../../index.html">← 元件庫索引</a>
+<h1>TLValuePicker</h1>
+<blockquote>
+<p>⚠ <strong>這不是元件庫的一部分。</strong> 它有內部狀態與排版計算（滾輪幾何），
+所以住 <code>DesignControls</code> 而不是 <code>DesignSystem</code>，也<strong>不進交付包</strong> ——
+對設計端來說控制項是「放進去就好」的黑盒，它的內部狀態不是設計要決定的。</p>
+<p>規格留在這裡是為了記錄它的視覺規則，不受元件庫的機器檢查管。</p>
+</blockquote>
+<h2>1 身分</h2>
+<table>
+<thead>
+<tr>
+<th></th>
+<th></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>層級</td>
+<td><strong>控制項</strong>（<code>DesignControls</code>，不是元件庫的一部分）</td>
+</tr>
+<tr>
+<td>職責</td>
+<td>從一組常用數值裡選一個（滾輪）</td>
+</tr>
+<tr>
+<td>原型 id</td>
+<td><code>13a</code> <code>14c</code>；級距設定子頁</td>
+</tr>
+<tr>
+<td>獨立使用</td>
+<td>是</td>
+</tr>
+<tr>
+<td>容器責任</td>
+<td>自己負責滾輪與快捷列的內部排版；外部間距由畫面給</td>
+</tr>
+<tr>
+<td>實作</td>
+<td><code>Packages/DesignControls/Sources/DesignControls/TLValuePicker.swift</code></td>
+</tr>
+<tr>
+<td>Preview</td>
+<td><code>design-system/molecules/TLValuePicker/TLValuePicker.preview.html</code></td>
+</tr>
+<tr>
+<td>Preview CSS</td>
+<td><code>components.preview.css</code> §TLValuePicker</td>
+</tr>
+</tbody>
+</table>
+<p><strong>組成</strong>：不由其他 <code>TL*</code> 元件組成（自繪滾輪 ＋ 快捷 chip）。</p>
+<h2>2 介面 ★</h2>
+<p><strong>Props</strong></p>
+<table>
+<thead>
+<tr>
+<th>名稱</th>
+<th>型別</th>
+<th>值域</th>
+<th>必填</th>
+<th>預設</th>
+<th>說明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>value</code></td>
+<td><code>Binding&lt;Double&gt;</code></td>
+<td></td>
+<td>是</td>
+<td>—</td>
+<td>目前的值</td>
+</tr>
+<tr>
+<td><code>values</code></td>
+<td><code>[Double]</code></td>
+<td></td>
+<td>是</td>
+<td>—</td>
+<td>可選的常用值。<strong>滾輪只放常用值</strong>，其餘靠呼叫端另外提供輸入</td>
+</tr>
+<tr>
+<td><code>kicker</code></td>
+<td><code>String?</code></td>
+<td></td>
+<td>否</td>
+<td><code>nil</code></td>
+<td>滾輪上方的小標，通常放單位</td>
+</tr>
+<tr>
+<td><code>format</code></td>
+<td><code>(Double) -&gt; String</code></td>
+<td></td>
+<td>否</td>
+<td>預設格式化</td>
+<td>怎麼把數字變成顯示字串</td>
+</tr>
+<tr>
+<td><code>quickActions</code></td>
+<td><code>[QuickAction]</code></td>
+<td></td>
+<td>否</td>
+<td><code>[]</code></td>
+<td>滾輪下方的快捷按鈕</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Slots</strong> — N/A
+<strong>事件</strong> — 透過 <code>value</code> binding 回寫；<code>QuickAction</code> 各自帶 <code>action</code></p>
+<h2>3 變體 variants</h2>
+<p>無變體，但<strong>有沒有 <code>quickActions</code> 會改變高度</strong>：有的話滾輪下方多一列
+<code>size.quickActionRow</code>。</p>
+<h2>4 狀態 states ★</h2>
+<!-- states: idle, dragging -->
+<!-- themes: light, dark -->
+
+<table>
+<thead>
+<tr>
+<th>類別</th>
+<th>狀態</th>
+<th>這個元件</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>互動</td>
+<td>default / pressed / disabled / focused</td>
+<td><strong>idle 與 dragging。</strong> 拖曳時中間那格跟著換值。沒有 disabled</td>
+</tr>
+<tr>
+<td>選取</td>
+<td>selected / unselected / indeterminate</td>
+<td><strong>中間那格永遠是選中的值</strong> —— 位置即選取，不需要額外記號</td>
+</tr>
+<tr>
+<td>資料</td>
+<td>empty / loading / error</td>
+<td>⚠ <code>values</code> 為空時滾輪是空的。呼叫端應保證非空</td>
+</tr>
+<tr>
+<td>內容極值</td>
+<td>最少 / 最多值</td>
+<td>值少於 5 個時上下會留白（滾輪固定顯示 5 格）；值很多時靠拖曳，沒有上限</td>
+</tr>
+<tr>
+<td>主題</td>
+<td>light / dark</td>
+<td>兩者都有</td>
+</tr>
+<tr>
+<td>語言</td>
+<td>中文 / 英文</td>
+<td>數字本身不變；<code>kicker</code> 與 <code>QuickAction</code> 的文案會變</td>
+</tr>
+</tbody>
+</table>
+<h2>5 度量與行為</h2>
+<table>
+<thead>
+<tr>
+<th></th>
+<th></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>滾輪與 kicker 之間</td>
+<td><code>space.pickerGap</code></td>
+</tr>
+<tr>
+<td>每一格高度</td>
+<td>由滾輪幾何決定（<code>WheelGeometry</code>）</td>
+</tr>
+<tr>
+<td>可見格數</td>
+<td>5（中間為選中）</td>
+</tr>
+<tr>
+<td>快捷列高度</td>
+<td><code>size.quickActionRow</code>（＝最小觸控）</td>
+</tr>
+<tr>
+<td>快捷 chip 內距</td>
+<td><code>space.chipPadV</code></td>
+</tr>
+<tr>
+<td>快捷 chip 外框</td>
+<td><code>size.hairline</code></td>
+</tr>
+</tbody>
+</table>
+<p><strong>滾輪的幾何是純函式</strong>（<code>Support/CalendarStripGeometry</code> 與 <code>WheelGeometry</code>），
+所以可以單獨單元測試 —— 這是元件庫裡少數測得動的部分。</p>
+<h3>文字與溢出</h3>
+<p>數字用 display 家族（Caprasimo）。<code>format</code> 由呼叫端決定小數位數 ——
+元件不做格式化，因為「幾位小數」是領域知識（重量 vs 秒數不同）。</p>
+<p><strong>Dynamic Type</strong>：滾輪的格高與字級綁在一起，放大需要重算幾何。<strong>這是階段 C7a 最難的一項。</strong></p>
+<h3>動態</h3>
+<p>拖曳結束後<strong>滾到最近的一格</strong>（settle），時長依距離遞增但有上限 ——
+那個曲線是 <code>WheelGeometry.settleDuration</code> 算的，有單元測試釘住。</p>
+<h2>6 配色 ★</h2>
+<table>
+<thead>
+<tr>
+<th>用途</th>
+<th>token</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>選中值</td>
+<td><code>textNumeric</code></td>
+</tr>
+<tr>
+<td>鄰近值</td>
+<td><code>textSecondary</code></td>
+</tr>
+<tr>
+<td>遠端值</td>
+<td><code>textTertiary</code>（並降低不透明度）</td>
+</tr>
+<tr>
+<td>kicker</td>
+<td><code>textTertiary</code></td>
+</tr>
+<tr>
+<td>快捷 chip 外框</td>
+<td><code>textPrimary</code> @ 10%</td>
+</tr>
+</tbody>
+</table>
+<h2>7 用法與禁用法</h2>
+<p><strong>用它</strong>：從一組<strong>常用</strong>數值裡選一個。</p>
+<p><strong>易混淆</strong>：<code>TLNumberField</code>（直接打字輸入）—— 滾輪適合「常用值就那幾個」，
+打字適合「任意值」。<strong>兩者常常要並存</strong> —— 級距設定頁就是滾輪 ＋ 自訂輸入列，
+因為實際器材的級距不一定落在常用值上。</p>
+<blockquote>
+<p>體檢 P1-4 指出訓練中記錄重量只有滾輪、沒有打字，2.5kg 級距從 20 滑到 140 要滑 48 格。
+那張票（<code>記錄畫面數值輸入改成打字為主</code>）就是要補這個。</p>
+</blockquote>
+<p><strong>不要用它</strong>：
+- 值域很大又連續 —— 滑不完，用打字
+- 只有 2–3 個選項 —— 用 <code>TLSegmentedControl</code>
+- 當唯一的輸入方式 —— 常用值以外的情況要有出口</p>
+<h2>8 變更紀錄</h2>
+<table>
+<thead>
+<tr>
+<th>日期</th>
+<th>改動</th>
+<th>原因</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>2026-08-30</td>
+<td>從 <code>Components/</code> 移到 <code>Molecules/</code></td>
+<td>分層落地</td>
+</tr>
+<tr>
+<td>2026-08-30</td>
+<td>內部字面值 <code>16</code>／<code>12</code>／<code>1</code>／<code>44</code> 改成 token</td>
+<td>元件內部的字面值也是字面值</td>
+</tr>
+</tbody>
+</table>

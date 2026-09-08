@@ -1,0 +1,244 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>TLSwipeToRevealRow</title>
+<link rel="stylesheet" href="../../tokens/tokens.css">
+<link rel="stylesheet" href="../../preview.css">
+<style>
+  body { max-width: 62rem; line-height: 1.7; }
+  h1, h2, h3 { font-family: var(--font-page-title-family); line-height: 1.35; }
+  h1 { font-size: var(--font-page-title); margin: 0 0 var(--space-gap-l); }
+  h2 { font-size: var(--font-card-title); margin: var(--space-section) 0 var(--space-gap-m);
+       padding-top: var(--space-gap-m); border-top: 1px solid var(--border-subtle); }
+  h3 { font-size: var(--font-row-title); margin: var(--space-gap-l) 0 var(--space-gap-s); }
+  a { color: var(--accent-on-surface); }
+  table { border-collapse: collapse; width: 100%; margin: var(--space-gap-m) 0;
+          display: block; overflow-x: auto; }
+  th, td { text-align: left; padding: var(--space-gap-s) var(--space-gap-m);
+           border-bottom: 1px solid var(--border-subtle); vertical-align: top; }
+  th { font-size: var(--font-kicker); letter-spacing: var(--font-kicker-tracking);
+       text-transform: uppercase; color: var(--text-tertiary); }
+  pre { background: var(--surface-raised); border-radius: var(--radius-inner);
+        padding: var(--space-gap-m); overflow-x: auto; }
+  pre code { background: none; padding: 0; }
+  blockquote { margin: var(--space-gap-m) 0; padding-left: var(--space-gap-m);
+               border-left: 3px solid var(--border-subtle); color: var(--text-secondary); }
+  .back { font-size: var(--font-row-sub); margin-bottom: var(--space-gap-l); display: block; }
+</style>
+<a class="back" href="../../index.html">← 元件庫索引</a>
+<h1>TLSwipeToRevealRow</h1>
+<blockquote>
+<p><strong>控制項，不進交付包。</strong> 它有狀態（拖曳位移）與手勢判斷，不是純呈現。
+放在這裡是因為 L3 組合得到它 —— 元件庫的規格要能解釋 L3 是由什麼組成的。</p>
+</blockquote>
+<h2>1 身分</h2>
+<table>
+<thead>
+<tr>
+<th></th>
+<th></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>層級</td>
+<td>控制項（<code>DesignControls</code>）</td>
+</tr>
+<tr>
+<td>職責</td>
+<td>左滑露出<strong>單一</strong>動作的列</td>
+</tr>
+<tr>
+<td>原型 id</td>
+<td><code>8b</code></td>
+</tr>
+<tr>
+<td>獨立使用</td>
+<td><strong>否 —— 包在它裡面的內容才是列</strong></td>
+</tr>
+<tr>
+<td>容器責任</td>
+<td>圓角與分隔線由 <code>TLGroup</code> 負責；它只負責露出與蓋住</td>
+</tr>
+<tr>
+<td>實作</td>
+<td><code>Packages/DesignControls/Sources/DesignControls/TLSwipeToRevealRow.swift</code></td>
+</tr>
+<tr>
+<td>Preview</td>
+<td><code>design-system/_controls/TLSwipeToRevealRow/TLSwipeToRevealRow.preview.html</code></td>
+</tr>
+<tr>
+<td>Preview CSS</td>
+<td><code>_controls/controls.preview.css</code> §TLSwipeToRevealRow</td>
+</tr>
+</tbody>
+</table>
+<p><strong>組成</strong>：內容由呼叫端給（通常是 <code>TLListRow</code>）。</p>
+<h2>2 介面 ★</h2>
+<p><strong>Props</strong></p>
+<table>
+<thead>
+<tr>
+<th>名稱</th>
+<th>型別</th>
+<th>值域</th>
+<th>必填</th>
+<th>預設</th>
+<th>說明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>actionLabel</code></td>
+<td><code>Text</code></td>
+<td></td>
+<td>是</td>
+<td>—</td>
+<td>露出的動作文案</td>
+</tr>
+<tr>
+<td><code>actionSystemImage</code></td>
+<td><code>String</code></td>
+<td></td>
+<td>是</td>
+<td>—</td>
+<td>露出的動作圖示（SF Symbol）</td>
+</tr>
+<tr>
+<td><code>actionTint</code></td>
+<td><code>Color</code></td>
+<td></td>
+<td>否</td>
+<td><code>neutral-400</code></td>
+<td>動作底色</td>
+</tr>
+<tr>
+<td><code>actionForeground</code></td>
+<td><code>Color</code></td>
+<td></td>
+<td>否</td>
+<td><code>surfaceBase</code></td>
+<td>動作前景色</td>
+</tr>
+<tr>
+<td><code>onAction</code></td>
+<td><code>() -&gt; Void</code></td>
+<td></td>
+<td>是</td>
+<td>—</td>
+<td>按下露出的動作</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Slots</strong> — <code>content</code>（被蓋住的那一列）
+<strong>事件</strong> — <code>onAction</code></p>
+<h2>3 變體 variants</h2>
+<p>無。<strong>一次只露出一個動作</strong> —— 兩個以上就變成需要記憶的選單，那是長按選單的工作。</p>
+<h2>4 狀態 states ★</h2>
+<!-- states: closed, open -->
+<!-- themes: light, dark -->
+
+<table>
+<thead>
+<tr>
+<th>類別</th>
+<th>狀態</th>
+<th>這個元件</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>互動</td>
+<td>closed / open / dragging</td>
+<td>三種。拖曳中位移跟手，放開時吸附到全開或全關（過半即開）</td>
+</tr>
+<tr>
+<td>內容極值</td>
+<td>—</td>
+<td>動作區固定 88pt 寬，不隨文案長度變</td>
+</tr>
+<tr>
+<td>主題</td>
+<td>light / dark</td>
+<td>兩者都有</td>
+</tr>
+</tbody>
+</table>
+<h2>5 度量與行為</h2>
+<table>
+<thead>
+<tr>
+<th></th>
+<th></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>動作區寬</td>
+<td>88pt</td>
+</tr>
+<tr>
+<td>觸發門檻</td>
+<td>拖曳 18pt 起算，且<strong>水平位移要大於垂直位移</strong></td>
+</tr>
+<tr>
+<td>吸附</td>
+<td>過半 → 全開；否則全關。<code>motion.base</code> easeOut</td>
+</tr>
+</tbody>
+</table>
+<p><strong>為什麼是普通 <code>.gesture</code> 而不是 <code>simultaneous</code>／<code>highPriority</code></strong>：
+垂直捲動要歸 <code>ScrollView</code>、水平拖曳歸這裡、點擊歸內層的 <code>NavigationLink</code>。
+搶優先權會把其中一個弄壞。</p>
+<p><strong>內容自帶不透明底</strong>：關閉時要完全蓋住底下的動作鈕，否則會透出一條色邊。</p>
+<h2>6 配色 ★</h2>
+<table>
+<thead>
+<tr>
+<th>用途</th>
+<th>token</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>動作底</td>
+<td><code>neutral-400</code>（預設）</td>
+</tr>
+<tr>
+<td>動作前景</td>
+<td><code>surfaceBase</code></td>
+</tr>
+</tbody>
+</table>
+<p><strong>預設是灰的不是紅的</strong>：這裡露出的是「停用」「複製」這類可回復的操作。
+紅色留給真的刪掉的東西，而那類操作走長按選單 —— 需要更明確的意圖。</p>
+<h2>7 用法與禁用法</h2>
+<p><strong>用它</strong>：清單列需要一個常用、單手可及的操作時。</p>
+<p><strong>易混淆</strong>：長按選單 —— 那個放低頻或破壞性的操作。
+判準：這個操作一天會做幾次？常做才放左滑。</p>
+<p><strong>不要用它</strong>：
+- 露出兩個以上的動作
+- 放刪除 —— 刪除走長按選單
+- 用在原生 <code>List</code> 裡 —— 那裡用 <code>.swipeActions</code>。這個是給 <code>TLGroup</code> 自訂容器用的</p>
+<h2>8 變更紀錄</h2>
+<table>
+<thead>
+<tr>
+<th>日期</th>
+<th>改動</th>
+<th>原因</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>2026-08-30</td>
+<td>移進 <code>DesignControls</code></td>
+<td>它有 <code>@State</code>（拖曳位移），不是純呈現</td>
+</tr>
+<tr>
+<td>2026-08-31</td>
+<td>補上規格</td>
+<td>階段 2 的 <code>TemplateRow</code>／<code>RotationRow</code> 組合到它，<strong>組成宣告要指得到一份規格</strong>，否則「L3 由什麼組成」這句話沒有落點</td>
+</tr>
+</tbody>
+</table>

@@ -39,7 +39,9 @@ public struct ExerciseListView: View {
             .padding(.bottom, TLSpace.gapM)
 
             ScrollView {
-                if viewModel.visibleExercises.isEmpty {
+                // 用 sections 而不是 visibleExercises 判斷：「常用」可能是空的
+                // （一場都沒練過）而動作庫本身有 80 筆內建動作，那時不該只留一片空白。
+                if sections.isEmpty {
                     emptyState
                         .padding(.horizontal, TLSpace.page)
                         .padding(.top, TLSpace.gapL)
@@ -48,7 +50,7 @@ public struct ExerciseListView: View {
                         ForEach(sections, id: \.id) { section in
                             VStack(alignment: .leading, spacing: 0) {
                                 if let header = section.header {
-                                    SectionHeader(header)
+                                    TLSectionHeader(header)
                                 }
                                 TLGroup {
                                     ForEach(section.exercises) { exercise in
@@ -60,7 +62,7 @@ public struct ExerciseListView: View {
                     }
                     .padding(.horizontal, TLSpace.page)
                     .padding(.top, TLSpace.gapS)
-                    .padding(.bottom, 40)
+                    .padding(.bottom, TLSpace.pageBottom)
                 }
             }
         }
@@ -97,7 +99,9 @@ public struct ExerciseListView: View {
             Button(role: .cancel) {} label: { localText("spec.ok") }
                 .accessibilityIdentifier("exerciseList.error.ok")
         } message: {
-            Text(viewModel.errorMessage ?? "")
+            // `?? ""` 會讓那個空字串變成可翻譯字面量，被抽進 String Catalog
+            // 變成一個永遠不會被翻譯的空 key（體檢 E11）。改成條件式。
+            if let message = viewModel.errorMessage { Text(message) }
         }
     }
 
@@ -115,52 +119,37 @@ public struct ExerciseListView: View {
         }
     }
 
-    @ViewBuilder
     private func row(for exercise: Exercise) -> some View {
-        // 內建動作（OfficialExerciseCatalog）唯讀：不進編輯表單、沒有刪除選單，
-        // 也不顯示 chevron——留著箭頭卻點不動比沒有箭頭更難懂。
-        let isOfficial = exercise.source == .official
-        ListRow(
-            title: Text(verbatim: exercise.name),
-            showChevron: !isOfficial,
-            onTap: isOfficial ? nil : { editingTarget = .edit(exercise) },
-            trailing: {
-                // 18b：唯一的彩色元素，固定尾欄靠右。
-                // 80pt 是「槓鈴」「機械」那些兩字標籤的欄寬，但「自體重量」比它寬——用 minWidth
-                // 讓長標往左長、右緣仍然對齊；寫死 width 會把長標壓成兩行。
-                let tail = tailTag(for: exercise)
-                EquipmentTag(tail.label, identifier: tail.identifier)
-                    .frame(minWidth: 80, alignment: .trailing)
-            }
+        let tail = tailTag(for: exercise)
+        return ExerciseRow(
+            name: exercise.name,
+            isOfficial: exercise.source == .official,
+            tailLabel: tail.label,
+            tailIdentifier: tail.identifier,
+            deleteLabel: localText("spec.delete"),
+            onEdit: { editingTarget = .edit(exercise) },
+            onDelete: { Task { await viewModel.remove(id: exercise.id) } }
         )
-        // 內建動作的名稱會跟著 app 語言換，測試沒辦法用名字找到它——改認這個 id。
-        // 使用者自建的動作名是測試自己輸入的資料，照舊用文字定位。
-        .accessibilityIdentifier(isOfficial ? "exerciseList.officialRow" : "exerciseList.row")
-        // 整個 modifier 拿掉、而不是留一個空的 menu：空 menu 長按仍會有抬起動畫卻沒有選項。
-        .contextMenu(isOfficial ? nil : ContextMenu {
-            Button(role: .destructive) {
-                Task { await viewModel.remove(id: exercise.id) }
-            } label: {
-                Label { localText("spec.delete") } icon: { Image(systemName: "trash") }
-            }
-            .accessibilityIdentifier("exerciseList.delete")
-        })
     }
 
-    /// 內建動作清單常駐之後，動作庫幾乎不可能真的空——唯一會空的是搜尋沒中，
-    /// 那時候「還沒有動作」是錯的文案，所以分成兩種。
-    private var emptyState: some View {
-        VStack(spacing: 8) {
-            localText(viewModel.searchText.isEmpty ? "spec.empty" : "spec.search.empty")
-                .font(TLFont.zh(16, .bold))
-                .foregroundStyle(TLColor.text)
-            localText(viewModel.searchText.isEmpty ? "spec.empty.hint" : "spec.search.empty.hint")
-                .font(TLFont.zh(12.5, .regular))
-                .foregroundStyle(TLColor.neutral600)
-                .multilineTextAlignment(.center)
+    /// 內建動作清單常駐之後，動作庫幾乎不可能真的空——會空的是另外兩種情況，
+    /// 而「還沒有動作」對它們都是錯的文案，所以分成三種：
+    /// 搜尋沒中 → 「找不到符合的動作」；「常用」還沒有資料 → 「還沒有常用動作」。
+    private var emptyStateKey: (title: LocalizedStringKey, hint: LocalizedStringKey) {
+        if !viewModel.searchText.isEmpty {
+            return ("spec.search.empty", "spec.search.empty.hint")
         }
-        .frame(maxWidth: .infinity)
-        .padding(.vertical, 40)
+        if grouping == .frequent {
+            return ("spec.frequent.empty", "spec.frequent.empty.hint")
+        }
+        return ("spec.empty", "spec.empty.hint")
+    }
+
+    private var emptyState: some View {
+        TLInlineEmptyState(
+            title: localText(emptyStateKey.title),
+            hint: localText(emptyStateKey.hint)
+        )
         // 兩種文案共用一個 id：測試要驗的是「空狀態出現了」，文案本身歸 unit test。
         .accessibilityIdentifier("exerciseList.empty")
     }
@@ -197,9 +186,10 @@ public struct ExerciseListView: View {
                 )
             }
         case .frequent:
-            // TODO 假資料：目前無「使用頻率」資料（Domain/Data 未實作），暫取清單前段當「常用」。
-            // 接上使用頻率統計後改成真正依次數排序。
-            let frequent = Array(items.prefix(8))
+            // 依實際練過的場次數排序，沒練過的不列入（見 ExerciseListViewModel.frequentExercises）。
+            // 一場都沒練過時這裡會是空的，交給 emptyState 呈現。
+            let frequent = viewModel.frequentExercises
+            guard !frequent.isEmpty else { return [] }
             return [Section(id: "frequent", header: nil, exercises: frequent)]
         case .all:
             return [Section(id: "all", header: nil, exercises: items)]

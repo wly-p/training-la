@@ -1,9 +1,6 @@
 {
   "sourceLanguage" : "zh-Hant",
   "strings" : {
-    "" : {
-
-    },
     "settings.ability.title" : {
       "localizations" : {
         "en" : {
@@ -16,6 +13,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "我的能力值"
+          }
+        }
+      }
+    },
+    "settings.appearance.section" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Appearance"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "外觀"
           }
         }
       }
@@ -164,22 +177,6 @@
         }
       }
     },
-    "settings.appearance.section" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Appearance"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "外觀"
-          }
-        }
-      }
-    },
     "settings.back" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -198,6 +195,7 @@
       }
     },
     "settings.common.back" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -357,18 +355,50 @@
         }
       }
     },
-    "settings.export.unavailable" : {
+    "settings.export.json" : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Not available yet"
+            "value" : "JSON"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "尚未開放"
+            "value" : "JSON"
+          }
+        }
+      }
+    },
+    "settings.export.csv" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "CSV"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "CSV"
+          }
+        }
+      }
+    },
+    "settings.export.failed.title" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Export Failed"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "匯出失敗"
           }
         }
       }
@@ -451,6 +481,38 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "App 不在前景時以系統通知提醒"
+          }
+        }
+      }
+    },
+    "settings.restReminder.background.deniedHint" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Notifications are turned off in system settings — this won't actually remind you"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已在系統設定關閉通知，開著也不會真的提醒"
+          }
+        }
+      }
+    },
+    "settings.restReminder.background.openSettings" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Open System Settings"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "前往系統設定開啟"
           }
         }
       }

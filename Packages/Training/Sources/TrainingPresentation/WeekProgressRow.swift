@@ -15,8 +15,11 @@ struct WeekProgressRow: View {
     var body: some View {
         HStack(spacing: 0) {
             ForEach(days) { day in
-                VStack(spacing: 6) {
+                VStack(spacing: TLSpace.labelGap) {
                     Text(weekdaySymbol(for: day.date))
+                        // ⚠ 10pt 低於可讀下限（×1.08 之後 10.8 仍太小）。設計端已判定要連同
+                        // kicker(10.5) 的字級與對比度一起檢視，那是設計改動不是收斂——
+                        // 所以這裡刻意留字面值，見 CHANGELOG 已知缺口。
                         .font(TLFont.zh(10, .semibold))
                         .textCase(.uppercase)
                         .foregroundStyle(TLColor.neutral500)
@@ -24,17 +27,17 @@ struct WeekProgressRow: View {
                         if day.completed {
                             Circle().fill(TLColor.accent)
                         } else if day.isToday {
-                            Circle().strokeBorder(TLColor.accent300, style: StrokeStyle(lineWidth: 1.5, dash: [3, 3]))
+                            Circle().strokeBorder(TLColor.accent300, style: StrokeStyle(lineWidth: TLSize.hairlineThick, dash: [3, 3]))
                         } else {
                             Circle().fill(TLColor.neutral200)
                         }
                         if day.completed {
                             Image(systemName: "checkmark")
-                                .font(.system(size: 13, weight: .bold))
+                                .font(.system(size: TLIcon.inDayCircle, weight: .bold))
                                 .foregroundStyle(TLColor.bg)
                         }
                     }
-                    .frame(width: 30, height: 30)
+                    .frame(width: TLSize.dayCircle, height: TLSize.dayCircle)
                 }
                 .frame(maxWidth: .infinity)
             }

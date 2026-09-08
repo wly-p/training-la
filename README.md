@@ -68,7 +68,7 @@ Training La follows **Clean Architecture**, split into one local Swift Package p
 (`Spec`, `Plan`, `Training`, `Ability`, `History`, `Settings`), each with its own `Domain` /
 `Data` / `Presentation` layers, alongside three shared packages (`SharedKernel` for cross-domain
 value types, `Reminders` for notification ports and their platform implementation, and
-`DesignSystem` for shared UI components). The domain layer is plain Swift with no framework
+`DesignSystem` as the component library — presentation layers compose from it and never define components or literal styles of their own; see `design-system/README.md`). The domain layer is plain Swift with no framework
 imports, so business logic can be unit-tested without SwiftUI, SwiftData, or a simulator. See
 [`ARCHITECTURE.md`](./ARCHITECTURE.md) for the full breakdown, including the data model and
 cross-domain boundaries.

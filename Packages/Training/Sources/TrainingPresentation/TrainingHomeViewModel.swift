@@ -191,13 +191,17 @@ public final class TrainingHomeViewModel {
         let finished = try await recentWorkouts?() ?? []
         recentFinished = finished
         weekSummary = Self.weekSummary(from: finished, today: today())
-        // 13f 右的「最近練過」只給兩列（設計稿如此）；自由訓練沒有名字、列不出東西，先濾掉。
+        // 13f 右的「最近練過」只給兩列（設計稿如此）。
+        // 自由訓練也要列進來——原本濾掉 planWorkoutId == nil，等於只做自由訓練的人
+        // 永遠看不到這個區塊，也就永遠拿不到「再練一次」這條最短的出路。
+        // 沒有名字的場次由 View 以本地化的「自由訓練」補上（name 為 nil）。
         var summaries: [RecentSessionSummary] = []
-        for workout in finished where workout.planWorkoutId != nil {
+        for workout in finished {
             guard summaries.count < Self.recentSessionLimit else { break }
-            guard let planWorkoutId = workout.planWorkoutId,
-                  let name = try await plannedProvider?.blueprint(planWorkoutId: planWorkoutId)?.name
-            else { continue }
+            var name: String?
+            if let planWorkoutId = workout.planWorkoutId {
+                name = try await plannedProvider?.blueprint(planWorkoutId: planWorkoutId)?.name
+            }
             summaries.append(Self.summary(for: workout, name: name))
         }
         recentSessions = summaries
@@ -225,11 +229,20 @@ public final class TrainingHomeViewModel {
         )
     }
 
-    /// 週一到週日 7 天，依 `finished`（已完成場次）標記完成日；`today` 落在哪天標 `isToday`。
-    static func weekSummary(from finished: [Workout], today: DayDate) -> WeekTrainingSummary {
-        let daysSinceMonday = (today.weekdayNumber + 5) % 7
-        let monday = today.adding(days: -daysSinceMonday)
-        let weekDates = (0..<7).map { monday.adding(days: $0) }
+    /// 一週 7 天，依 `finished`（已完成場次）標記完成日；`today` 落在哪天標 `isToday`。
+    ///
+    /// `firstWeekday` 用 `Calendar` 的慣例（1=週日…7=週六），預設跟隨裝置的**地區**設定。
+    /// 這裡刻意讀地區而不是 app 的語言設定——「一週從哪天開始」是地區慣例
+    /// （美國從週日、台灣從週一），跟介面顯示哪種語言無關。
+    /// 原本寫死 `(weekdayNumber + 5) % 7`＝永遠週一起算，對週日起算的地區會整排偏一天。
+    static func weekSummary(
+        from finished: [Workout],
+        today: DayDate,
+        firstWeekday: Int = Calendar.current.firstWeekday
+    ) -> WeekTrainingSummary {
+        let daysSinceStart = (today.weekdayNumber - firstWeekday + 7) % 7
+        let weekStart = today.adding(days: -daysSinceStart)
+        let weekDates = (0..<7).map { weekStart.adding(days: $0) }
         let doneDates = Set(finished.map(\.day)).intersection(weekDates)
         let thisWeek = finished.filter { weekDates.contains($0.day) }
         let totalMinutes = thisWeek.reduce(0) { sum, workout in
@@ -250,9 +263,22 @@ public final class TrainingHomeViewModel {
         await start(blueprint: nil)
     }
 
-    /// 重複上次：開一場新的自由訓練（沿用「上次」提示的既有機制，選動作時會自動帶上次紀錄預填）。
+    /// 重複上次：重放上次那場的動作序列與組數（不含重量/次數，練習時重新輸入）。
+    /// 沒有歷史紀錄、或無法材料化排課（provider 沒接這個能力）時退化成自由訓練。
     public func startRepeatingLast() async {
-        await start(blueprint: nil)
+        guard let last = recentFinished.first else {
+            await start(blueprint: nil)
+            return
+        }
+        do {
+            guard let blueprint = try await plannedProvider?.repeatWorkout(exercises: last.repeatSequence) else {
+                await start(blueprint: nil)
+                return
+            }
+            await start(blueprint: blueprint)
+        } catch {
+            errorMessage = .training("training.error.startFailed \(error.localizedDescription)")
+        }
     }
 
     /// 「最近練過 · 再練一次」（13f 右）：照那場當初的排課藍圖再開一場；
@@ -365,8 +391,10 @@ public final class TrainingHomeViewModel {
         // delta 的單位是公斤（見 mainLiftDeltaKg），兩邊都先換算再相減；
         // 取最重那組也用 Weight 比較，拿 .value 比在混單位時會挑錯組。
         let thisWeight = blueprint.targets.first { $0.exerciseId == mainExerciseId }?.targetWeight?.kilograms
+        // 熱身組排除：拿熱身的 20kg 當「上次」會算出一個假的大幅進步。
         let lastWeight = last.blocks.first { $0.exerciseId == mainExerciseId }?
-            .sets.filter { $0.status == .done }.map(\.weight).max()?.kilograms
+            .sets.filter { $0.status == .done && !$0.isWarmup }
+            .compactMap(\.measurement.displayWeight).max()?.kilograms
         let delta: Double? = if let thisWeight, let lastWeight { thisWeight - lastWeight } else { nil }
         return LastWorkoutComparison(date: last.day, achievedSets: counts.achieved,
                                      totalSets: counts.total, mainLiftDeltaKg: delta)

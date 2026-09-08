@@ -12,6 +12,8 @@ final class ExerciseModel {
     /// 預設值讓既有資料能做 SwiftData 輕量遷移（舊動作沒有器材 → other）。
     var equipmentRaw: String = Equipment.other.rawValue
     var detail: String?
+    /// 預設值讓既有資料能做 SwiftData 輕量遷移（舊動作一律是重量次數）。
+    var trackingModeRaw: String = TrackingMode.weightReps.rawValue
     /// 預設值讓既有資料能做 SwiftData 輕量遷移（舊動作視為自建）。
     var sourceRaw: String = ContentSource.user.rawValue
     var createdAt: Date
@@ -23,6 +25,7 @@ final class ExerciseModel {
         muscleGroupRaw: String,
         equipmentRaw: String,
         detail: String?,
+        trackingModeRaw: String = TrackingMode.weightReps.rawValue,
         sourceRaw: String,
         createdAt: Date,
         updatedAt: Date
@@ -32,6 +35,7 @@ final class ExerciseModel {
         self.muscleGroupRaw = muscleGroupRaw
         self.equipmentRaw = equipmentRaw
         self.detail = detail
+        self.trackingModeRaw = trackingModeRaw
         self.sourceRaw = sourceRaw
         self.createdAt = createdAt
         self.updatedAt = updatedAt
@@ -46,6 +50,7 @@ extension ExerciseModel {
             muscleGroupRaw: exercise.muscleGroup.rawValue,
             equipmentRaw: exercise.equipment.rawValue,
             detail: exercise.description,
+            trackingModeRaw: exercise.trackingMode.rawValue,
             sourceRaw: exercise.source.rawValue,
             createdAt: exercise.createdAt,
             updatedAt: exercise.updatedAt
@@ -59,6 +64,7 @@ extension ExerciseModel {
             muscleGroup: MuscleGroup(rawValue: muscleGroupRaw) ?? .other,
             equipment: Equipment(rawValue: equipmentRaw) ?? .other,
             description: detail,
+            trackingMode: TrackingMode(rawValue: trackingModeRaw) ?? .weightReps,
             source: ContentSource(rawValue: sourceRaw) ?? .user,
             createdAt: createdAt,
             updatedAt: updatedAt

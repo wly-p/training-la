@@ -72,3 +72,38 @@ struct ExerciseTrendTests {
         #expect(points.isEmpty)
     }
 }
+
+/// 熱身組不進趨勢圖也不進 PR 判定（B1）。
+struct ExerciseTrendWarmupTests {
+    private func line(weight: Double, reps: Int, isWarmup: Bool = false, setIndex: Int = 0) -> HistorySetLine {
+        HistorySetLine(id: UUID(), setIndex: setIndex, weight: Weight(value: weight, unit: .kg),
+                       reps: reps, status: .done, targetWeight: nil, targetReps: nil, isWarmup: isWarmup)
+    }
+
+    /// 熱身的 20kg 若被當成代表組，趨勢圖會出現一個往下的假谷。
+    @Test func trendPointUsesTheWorkingSetNotTheWarmup() {
+        let sessions = [
+            HistoryExerciseSession(id: UUID(), day: DayDate(year: 2026, month: 8, day: 26), sets: [
+                line(weight: 20, reps: 15, isWarmup: true),
+                line(weight: 100, reps: 5, setIndex: 1),
+            ])
+        ]
+
+        let points = HistoryFormatting.trendPoints(for: sessions)
+
+        #expect(points.count == 1)
+        #expect(points[0].weight == Weight(value: 100, unit: .kg))
+        #expect(points[0].reps == 5)
+    }
+
+    /// 一整場只有熱身組＝那天沒有可畫的資料點，不該畫一個 20kg 的點。
+    @Test func aWarmupOnlySessionProducesNoTrendPoint() {
+        let sessions = [
+            HistoryExerciseSession(id: UUID(), day: DayDate(year: 2026, month: 8, day: 26), sets: [
+                line(weight: 20, reps: 15, isWarmup: true),
+            ])
+        ]
+
+        #expect(HistoryFormatting.trendPoints(for: sessions).isEmpty)
+    }
+}

@@ -1,0 +1,274 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>ExerciseRow</title>
+<link rel="stylesheet" href="../../tokens/tokens.css">
+<link rel="stylesheet" href="../../preview.css">
+<style>
+  body { max-width: 62rem; line-height: 1.7; }
+  h1, h2, h3 { font-family: var(--font-page-title-family); line-height: 1.35; }
+  h1 { font-size: var(--font-page-title); margin: 0 0 var(--space-gap-l); }
+  h2 { font-size: var(--font-card-title); margin: var(--space-section) 0 var(--space-gap-m);
+       padding-top: var(--space-gap-m); border-top: 1px solid var(--border-subtle); }
+  h3 { font-size: var(--font-row-title); margin: var(--space-gap-l) 0 var(--space-gap-s); }
+  a { color: var(--accent-on-surface); }
+  table { border-collapse: collapse; width: 100%; margin: var(--space-gap-m) 0;
+          display: block; overflow-x: auto; }
+  th, td { text-align: left; padding: var(--space-gap-s) var(--space-gap-m);
+           border-bottom: 1px solid var(--border-subtle); vertical-align: top; }
+  th { font-size: var(--font-kicker); letter-spacing: var(--font-kicker-tracking);
+       text-transform: uppercase; color: var(--text-tertiary); }
+  pre { background: var(--surface-raised); border-radius: var(--radius-inner);
+        padding: var(--space-gap-m); overflow-x: auto; }
+  pre code { background: none; padding: 0; }
+  blockquote { margin: var(--space-gap-m) 0; padding-left: var(--space-gap-m);
+               border-left: 3px solid var(--border-subtle); color: var(--text-secondary); }
+  .back { font-size: var(--font-row-sub); margin-bottom: var(--space-gap-l); display: block; }
+</style>
+<a class="back" href="../../index.html">← 元件庫索引</a>
+<h1>ExerciseRow</h1>
+<h2>1 身分</h2>
+<table>
+<thead>
+<tr>
+<th></th>
+<th></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>層級</td>
+<td>L3 有機體</td>
+</tr>
+<tr>
+<td>職責</td>
+<td>動作清單的一列</td>
+</tr>
+<tr>
+<td>原型 id</td>
+<td><code>4c</code> <code>18b</code></td>
+</tr>
+<tr>
+<td>獨立使用</td>
+<td><strong>否 —— 必須置於 <code>TLGroup</code> 之內</strong></td>
+</tr>
+<tr>
+<td>容器責任</td>
+<td>圓角、底色、分隔線由 <code>TLGroup</code> 負責</td>
+</tr>
+<tr>
+<td>實作</td>
+<td><code>Packages/Spec/Sources/SpecPresentation/Components/ExerciseRow.swift</code></td>
+</tr>
+<tr>
+<td>Preview</td>
+<td><code>design-system/organisms/ExerciseRow/ExerciseRow.preview.html</code></td>
+</tr>
+<tr>
+<td>Preview CSS</td>
+<td><code>components.preview.css</code> §ExerciseRow</td>
+</tr>
+</tbody>
+</table>
+<p><strong>組成</strong>：<code>TLListRow</code>（L2）＋ <code>TLEquipmentTag</code>（L2）</p>
+<h2>2 介面 ★</h2>
+<p><strong>Props</strong></p>
+<table>
+<thead>
+<tr>
+<th>名稱</th>
+<th>型別</th>
+<th>值域</th>
+<th>必填</th>
+<th>預設</th>
+<th>說明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>name</code></td>
+<td><code>String</code></td>
+<td></td>
+<td>是</td>
+<td>—</td>
+<td>動作名</td>
+</tr>
+<tr>
+<td><code>isOfficial</code></td>
+<td><code>Bool</code></td>
+<td></td>
+<td>是</td>
+<td>—</td>
+<td>內建動作唯讀，見第 3 節</td>
+</tr>
+<tr>
+<td><code>tailLabel</code></td>
+<td><code>String</code></td>
+<td></td>
+<td>是</td>
+<td>—</td>
+<td>尾欄文字。<strong>呼叫端決定顯示肌群還是器材</strong>（它才知道目前分組）</td>
+</tr>
+<tr>
+<td><code>tailIdentifier</code></td>
+<td><code>String</code></td>
+<td><code>muscleTag</code> / <code>equipmentTag</code></td>
+<td>是</td>
+<td>—</td>
+<td>尾欄的測試定位鍵</td>
+</tr>
+<tr>
+<td><code>deleteLabel</code></td>
+<td><code>Text</code></td>
+<td></td>
+<td>是</td>
+<td>—</td>
+<td>刪除選單的文案</td>
+</tr>
+<tr>
+<td><code>onEdit</code></td>
+<td><code>() -&gt; Void</code></td>
+<td></td>
+<td>是</td>
+<td>—</td>
+<td>點列進編輯</td>
+</tr>
+<tr>
+<td><code>onDelete</code></td>
+<td><code>() -&gt; Void</code></td>
+<td></td>
+<td>是</td>
+<td>—</td>
+<td>選單刪除</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Slots</strong> — N/A
+<strong>事件</strong> — <code>onEdit</code> / <code>onDelete</code></p>
+<h2>3 變體 variants</h2>
+<table>
+<thead>
+<tr>
+<th>變體</th>
+<th>說明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>使用者自建</td>
+<td>可點進編輯、有 chevron、長按可刪</td>
+</tr>
+<tr>
+<td>內建（official）</td>
+<td><strong>唯讀</strong>：不進編輯、沒有刪除選單、<strong>也沒有 chevron</strong></td>
+</tr>
+</tbody>
+</table>
+<p><strong>為什麼內建的不顯示 chevron</strong>：留著箭頭卻點不動比沒有箭頭更難懂。
+而且刪除選單是整個 modifier 拿掉、不是留一個空的 —— 空 menu 長按仍會有抬起動畫卻沒有選項。</p>
+<h2>4 狀態 states ★</h2>
+<!-- states: editable, official -->
+<!-- themes: light, dark -->
+
+<table>
+<thead>
+<tr>
+<th>類別</th>
+<th>狀態</th>
+<th>這個元件</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>互動</td>
+<td>default / pressed / disabled / focused</td>
+<td>自建列可點（按下態由 <code>TLListRow</code> 給）；內建列不可點。<strong>沒有 disabled</strong> —— 內建列是「不可編輯」不是「暫時停用」，用「沒有 chevron」表達</td>
+</tr>
+<tr>
+<td>選取</td>
+<td>selected / unselected / indeterminate</td>
+<td>N/A —— 動作清單不做選取</td>
+</tr>
+<tr>
+<td>資料</td>
+<td>empty / loading / error</td>
+<td>N/A —— 沒有動作就不會有這一列</td>
+</tr>
+<tr>
+<td>內容極值</td>
+<td>最短 / 最長 / 溢出</td>
+<td>動作名長時<strong>先截斷名字</strong>，尾欄保持完整（尾欄是唯一的彩色元素，右緣要對齊）</td>
+</tr>
+<tr>
+<td>主題</td>
+<td>light / dark</td>
+<td>兩者都有</td>
+</tr>
+<tr>
+<td>語言</td>
+<td>中文 / 英文</td>
+<td>內建動作名會隨語言換 —— 所以測試靠 <code>identifier</code> 而不是文字</td>
+</tr>
+</tbody>
+</table>
+<h2>5 度量與行為</h2>
+<table>
+<thead>
+<tr>
+<th></th>
+<th></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>列高／內距</td>
+<td>由 <code>TLListRow</code> 決定</td>
+</tr>
+<tr>
+<td>尾欄最小寬度</td>
+<td><code>size.rowTailColumn</code></td>
+</tr>
+</tbody>
+</table>
+<p><strong>尾欄用 <code>minWidth</code> 不是 <code>width</code></strong>：兩字標籤（「槓鈴」「機械」）的欄寬是 80，
+但「自體重量」比它寬 —— <code>minWidth</code> 讓長標往左長、右緣仍然對齊；
+寫死 <code>width</code> 會把長標壓成兩行。</p>
+<h3>文字與溢出</h3>
+<p>動作名一行截斷。尾欄 <code>fixedSize()</code> 永不縮小、永不換行。</p>
+<h3>動態</h3>
+<p>無自己的轉場，按下態由 <code>TLListRow</code> 提供。</p>
+<h2>6 配色 ★</h2>
+<p>自己沒有顏色。尾欄的分類色由 <code>TLEquipmentTag</code> 決定。</p>
+<h2>7 用法與禁用法</h2>
+<p><strong>用它</strong>：動作庫的動作清單。</p>
+<p><strong>易混淆</strong>：<code>TemplateRow</code>（範本列）—— 那個左側有數字圓章、副標是組成摘要；
+這個沒有圓章、右側是分類標籤。</p>
+<p><strong>不要用它</strong>：
+- 顯示範本／循環／長期 —— 那三個各有自己的 L3
+- 自己判斷要顯示肌群還是器材 —— 那是分組狀態，屬於呼叫端</p>
+<h2>8 變更紀錄</h2>
+<table>
+<thead>
+<tr>
+<th>日期</th>
+<th>改動</th>
+<th>原因</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>2026-08-31</td>
+<td>從 <code>ExerciseListView</code> 抽出成 L3</td>
+<td>階段 2 的分層落地。<strong>這是第一個真正的 L3</strong></td>
+</tr>
+<tr>
+<td>2026-08-31</td>
+<td>尾欄寬度 <code>80</code> 改成 <code>size.rowTailColumn</code></td>
+<td>元件內部的字面值也是字面值</td>
+</tr>
+<tr>
+<td>2026-08-31</td>
+<td><strong>驗證結果：純由 L2 組成，沒有缺任何分子</strong></td>
+<td>架構賭注在這一個上成立</td>
+</tr>
+</tbody>
+</table>

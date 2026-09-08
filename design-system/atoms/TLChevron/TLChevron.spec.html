@@ -1,0 +1,239 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>TLChevron</title>
+<link rel="stylesheet" href="../../tokens/tokens.css">
+<link rel="stylesheet" href="../../preview.css">
+<style>
+  body { max-width: 62rem; line-height: 1.7; }
+  h1, h2, h3 { font-family: var(--font-page-title-family); line-height: 1.35; }
+  h1 { font-size: var(--font-page-title); margin: 0 0 var(--space-gap-l); }
+  h2 { font-size: var(--font-card-title); margin: var(--space-section) 0 var(--space-gap-m);
+       padding-top: var(--space-gap-m); border-top: 1px solid var(--border-subtle); }
+  h3 { font-size: var(--font-row-title); margin: var(--space-gap-l) 0 var(--space-gap-s); }
+  a { color: var(--accent-on-surface); }
+  table { border-collapse: collapse; width: 100%; margin: var(--space-gap-m) 0;
+          display: block; overflow-x: auto; }
+  th, td { text-align: left; padding: var(--space-gap-s) var(--space-gap-m);
+           border-bottom: 1px solid var(--border-subtle); vertical-align: top; }
+  th { font-size: var(--font-kicker); letter-spacing: var(--font-kicker-tracking);
+       text-transform: uppercase; color: var(--text-tertiary); }
+  pre { background: var(--surface-raised); border-radius: var(--radius-inner);
+        padding: var(--space-gap-m); overflow-x: auto; }
+  pre code { background: none; padding: 0; }
+  blockquote { margin: var(--space-gap-m) 0; padding-left: var(--space-gap-m);
+               border-left: 3px solid var(--border-subtle); color: var(--text-secondary); }
+  .back { font-size: var(--font-row-sub); margin-bottom: var(--space-gap-l); display: block; }
+</style>
+<a class="back" href="../../index.html">← 元件庫索引</a>
+<h1>TLChevron</h1>
+<h2>1 身分</h2>
+<table>
+<thead>
+<tr>
+<th></th>
+<th></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>層級</td>
+<td>L1 原子</td>
+</tr>
+<tr>
+<td>職責</td>
+<td>可進入的列右側的指向記號</td>
+</tr>
+<tr>
+<td>原型 id</td>
+<td>出現在所有可進入的列（<code>4b</code> <code>4c</code> <code>5b</code> <code>5c</code>）</td>
+</tr>
+<tr>
+<td>獨立使用</td>
+<td><strong>否 —— 必須置於可進入的列之內（<code>TLListRow</code> / <code>TLSettingsRow</code>）</strong></td>
+</tr>
+<tr>
+<td>容器責任</td>
+<td>間距與位置由列負責；按下態也由整列表現，這個元件本身不含 padding、不變樣子</td>
+</tr>
+<tr>
+<td>實作</td>
+<td><code>Packages/DesignSystem/Sources/DesignSystem/Atoms/TLChevron.swift</code></td>
+</tr>
+<tr>
+<td>Preview</td>
+<td><code>design-system/atoms/TLChevron/TLChevron.preview.html</code></td>
+</tr>
+<tr>
+<td>Preview CSS</td>
+<td><code>components.preview.css</code> §TLChevron</td>
+</tr>
+</tbody>
+</table>
+<h2>2 介面 ★</h2>
+<p><strong>Props</strong> — 無。</p>
+<table>
+<thead>
+<tr>
+<th>名稱</th>
+<th>型別</th>
+<th>值域</th>
+<th>必填</th>
+<th>預設</th>
+<th>說明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>（無）</td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<p>尺寸與顏色是固定的；<strong>位置與間距由使用它的列負責</strong>，不是這個元件的責任。
+<code>TLSettingsRow</code> 就是這樣做的：<code>TLChevron().padding(.leading, trailingGap)</code>。</p>
+<p><strong>Slots</strong> — N/A（原子沒有子內容）
+<strong>事件</strong> — N/A（不可互動；點擊由整列承接）</p>
+<h2>3 變體 variants</h2>
+<p>無。只有一種樣子。</p>
+<h2>4 狀態 states ★</h2>
+<!-- states: default -->
+<!-- themes: light, dark -->
+
+<table>
+<thead>
+<tr>
+<th>類別</th>
+<th>狀態</th>
+<th>這個元件</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>互動</td>
+<td>default / pressed / disabled / focused</td>
+<td><strong>只有 default。</strong> pressed 由整列表現（列有自己的按下態），chevron 本身不變</td>
+</tr>
+<tr>
+<td>選取</td>
+<td>selected / unselected / indeterminate</td>
+<td>N/A — 它不表達選取</td>
+</tr>
+<tr>
+<td>資料</td>
+<td>empty / loading / error</td>
+<td>N/A — 沒有資料輸入</td>
+</tr>
+<tr>
+<td>內容極值</td>
+<td>最短 / 最長 / 溢出 / 數字最大位數</td>
+<td>N/A — 固定圖示，無內容</td>
+</tr>
+<tr>
+<td>主題</td>
+<td>light / dark</td>
+<td><strong>兩者都有。</strong> 顏色走 <code>textTertiary</code>，深色接上時自動成立</td>
+</tr>
+<tr>
+<td>語言</td>
+<td>中文 / 英文</td>
+<td>N/A — 無文字。但<strong>方向</strong>受語系影響，見第 7 節</td>
+</tr>
+</tbody>
+</table>
+<h2>5 度量與行為</h2>
+<table>
+<thead>
+<tr>
+<th></th>
+<th></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>圖示尺寸</td>
+<td><code>icon.inline</code> ＋ <code>icon.weight</code></td>
+</tr>
+<tr>
+<td>外框</td>
+<td>由 SF Symbol 決定，不設 frame</td>
+</tr>
+<tr>
+<td>內距</td>
+<td>無 —— 由使用它的列給</td>
+</tr>
+<tr>
+<td>最小寬度</td>
+<td>N/A —— 固定圖示，不壓縮</td>
+</tr>
+<tr>
+<td>壓縮行為</td>
+<td>N/A —— 空間不夠時先讓的是列的主標，這個元件永遠保持原尺寸</td>
+</tr>
+</tbody>
+</table>
+<h3>文字與溢出</h3>
+<p>無文字。</p>
+<p><strong>方向性</strong>：SF Symbol 的 <code>chevron.right</code> 在 RTL 語系會自動鏡射。App 目前只有中／英（皆 LTR），
+所以不影響，但<strong>不要改用固定方向的自繪箭頭</strong>，那會讓未來加入 RTL 語系時默默壞掉。</p>
+<p><strong>Dynamic Type</strong>：目前固定 <code>icon.inline</code>，不跟隨。C7a 決定支援範圍時，它應該跟著 <code>rowTitle</code> 一起縮放
+（它是列的一部分，單獨縮放會和主標對不齊）。</p>
+<h3>動態</h3>
+<p>無轉場、無動畫、無觸覺回饋。整列的按下態由列自己處理。</p>
+<h2>6 配色 ★</h2>
+<table>
+<thead>
+<tr>
+<th>用途</th>
+<th>token</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>記號本身</td>
+<td><code>textTertiary</code></td>
+</tr>
+</tbody>
+</table>
+<h2>7 用法與禁用法</h2>
+<p><strong>用它</strong>：列可以進入下一層時。</p>
+<p><strong>易混淆</strong>：目前沒有 —— 展開／收合的記號還不存在。等它出現時，<strong>兩邊的規格都要補上這一行</strong>。</p>
+<p><strong>不要用它</strong>：
+- 表達展開／收合 —— 那要的是會旋轉的記號，不是這個
+- 當作裝飾放在不可進入的列上 —— 那會騙使用者
+- 自己加 padding 到元件裡 —— 間距是列的責任</p>
+<h2>8 變更紀錄</h2>
+<table>
+<thead>
+<tr>
+<th>日期</th>
+<th>改動</th>
+<th>原因</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>2026-08-30</td>
+<td>從 <code>TLListRow.swift</code> 抽出成獨立檔</td>
+<td>原本埋在分子檔裡，沒有地址，無法單獨交付給設計端</td>
+</tr>
+<tr>
+<td>2026-08-30</td>
+<td>顏色從 <code>neutral500</code> 改成 <code>textTertiary</code></td>
+<td>值相同（兩者都指向色階層的 <code>neutral.500</code>），改用語意層才有深色的位置</td>
+</tr>
+<tr>
+<td>2026-08-30</td>
+<td><strong>規格圖示尺寸訂為 <code>icon.inline</code>，不是 16</strong></td>
+<td>設計文件 <code>11-component-inventory.md</code> 與原本的 doc comment 都寫「16pt bold」，但程式碼從來都是 13pt semibold。以<strong>實作為準</strong>——16pt 在 15pt 的列主標旁邊會比主標還大，明顯不對。設計端的清單要更正。⚠ 後續：13 已隨 icon 尺度收斂併入 <code>icon.inline</code>(14)，±1px 位移經設計端拍板</td>
+</tr>
+<tr>
+<td>2026-08-30</td>
+<td>主題從 states 拆到 themes；尺寸改用 <code>icon.*</code> token；外殼樣式移到共用 <code>preview.css</code></td>
+<td>設計端審閱指出：主題是維度不是狀態，把它放進 states 會讓機器檢查通過得沒有意義；而每份 preview 各自重寫外殼會讓交付包自己變成漂移來源</td>
+</tr>
+</tbody>
+</table>

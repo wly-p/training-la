@@ -1,0 +1,241 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>TLRowValue</title>
+<link rel="stylesheet" href="../../tokens/tokens.css">
+<link rel="stylesheet" href="../../preview.css">
+<style>
+  body { max-width: 62rem; line-height: 1.7; }
+  h1, h2, h3 { font-family: var(--font-page-title-family); line-height: 1.35; }
+  h1 { font-size: var(--font-page-title); margin: 0 0 var(--space-gap-l); }
+  h2 { font-size: var(--font-card-title); margin: var(--space-section) 0 var(--space-gap-m);
+       padding-top: var(--space-gap-m); border-top: 1px solid var(--border-subtle); }
+  h3 { font-size: var(--font-row-title); margin: var(--space-gap-l) 0 var(--space-gap-s); }
+  a { color: var(--accent-on-surface); }
+  table { border-collapse: collapse; width: 100%; margin: var(--space-gap-m) 0;
+          display: block; overflow-x: auto; }
+  th, td { text-align: left; padding: var(--space-gap-s) var(--space-gap-m);
+           border-bottom: 1px solid var(--border-subtle); vertical-align: top; }
+  th { font-size: var(--font-kicker); letter-spacing: var(--font-kicker-tracking);
+       text-transform: uppercase; color: var(--text-tertiary); }
+  pre { background: var(--surface-raised); border-radius: var(--radius-inner);
+        padding: var(--space-gap-m); overflow-x: auto; }
+  pre code { background: none; padding: 0; }
+  blockquote { margin: var(--space-gap-m) 0; padding-left: var(--space-gap-m);
+               border-left: 3px solid var(--border-subtle); color: var(--text-secondary); }
+  .back { font-size: var(--font-row-sub); margin-bottom: var(--space-gap-l); display: block; }
+</style>
+<a class="back" href="../../index.html">← 元件庫索引</a>
+<h1>TLRowValue</h1>
+<h2>1 身分</h2>
+<table>
+<thead>
+<tr>
+<th></th>
+<th></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>層級</td>
+<td>L1 原子</td>
+</tr>
+<tr>
+<td>職責</td>
+<td>列表列右側的數值（可帶單位）</td>
+</tr>
+<tr>
+<td>原型 id</td>
+<td><code>4c</code> <code>5b</code> <code>14c</code></td>
+</tr>
+<tr>
+<td>獨立使用</td>
+<td><strong>否 —— 必須置於 <code>TLListRow</code> 的 trailing</strong></td>
+</tr>
+<tr>
+<td>容器責任</td>
+<td>與 chevron 的間距由列負責</td>
+</tr>
+<tr>
+<td>實作</td>
+<td><code>Packages/DesignSystem/Sources/DesignSystem/Atoms/TLRowValue.swift</code></td>
+</tr>
+<tr>
+<td>Preview</td>
+<td><code>design-system/atoms/TLRowValue/TLRowValue.preview.html</code></td>
+</tr>
+<tr>
+<td>Preview CSS</td>
+<td><code>components.preview.css</code> §TLRowValue</td>
+</tr>
+</tbody>
+</table>
+<h2>2 介面 ★</h2>
+<p><strong>Props</strong></p>
+<table>
+<thead>
+<tr>
+<th>名稱</th>
+<th>型別</th>
+<th>值域</th>
+<th>必填</th>
+<th>預設</th>
+<th>說明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>value</code></td>
+<td><code>String</code></td>
+<td></td>
+<td>是</td>
+<td>—</td>
+<td>數值本身。已格式化好的字串，元件不做格式化</td>
+</tr>
+<tr>
+<td><code>unit</code></td>
+<td><code>String?</code></td>
+<td></td>
+<td>否</td>
+<td><code>nil</code></td>
+<td>單位。<code>nil</code> ＝ 不顯示</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Slots</strong> — N/A
+<strong>事件</strong> — N/A（點擊由整列承接）</p>
+<h2>3 變體 variants</h2>
+<p>無。有沒有單位是<strong>有沒有傳 prop</strong>，不是變體。</p>
+<h2>4 狀態 states ★</h2>
+<!-- states: default -->
+<!-- themes: light, dark -->
+
+<table>
+<thead>
+<tr>
+<th>類別</th>
+<th>狀態</th>
+<th>這個元件</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>互動</td>
+<td>default / pressed / disabled / focused</td>
+<td><strong>只有 default。</strong> 按下態由整列表現</td>
+</tr>
+<tr>
+<td>選取</td>
+<td>selected / unselected / indeterminate</td>
+<td>N/A</td>
+</tr>
+<tr>
+<td>資料</td>
+<td>empty / loading / error</td>
+<td>N/A —— 沒有值就不要放這個元件</td>
+</tr>
+<tr>
+<td>內容極值</td>
+<td>最短 / 最長 / 溢出 / <strong>數字最大位數</strong></td>
+<td>最短是一位數；實務上最長是 <code>999.5</code> 這種四位含小數。<strong>不截斷</strong></td>
+</tr>
+<tr>
+<td>主題</td>
+<td>light / dark</td>
+<td>兩者都有</td>
+</tr>
+<tr>
+<td>語言</td>
+<td>中文 / 英文</td>
+<td>數字本身不變；單位可能是 <code>kg</code>／<code>下</code>／<code>次</code> 這種短詞，長度差異小</td>
+</tr>
+</tbody>
+</table>
+<h2>5 度量與行為</h2>
+<table>
+<thead>
+<tr>
+<th></th>
+<th></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>數字字級</td>
+<td><code>type.rowNumber</code>（display 家族 ＝ Caprasimo）</td>
+</tr>
+<tr>
+<td>單位字級</td>
+<td><code>type.rowTitle</code>（中文家族）</td>
+</tr>
+<tr>
+<td>兩者間距</td>
+<td><code>space.valueUnitGap</code></td>
+</tr>
+<tr>
+<td>對齊</td>
+<td>firstTextBaseline —— 數字與單位的基線對齊，不是置中</td>
+</tr>
+</tbody>
+</table>
+<p><strong>基線對齊很重要</strong>：數字用 Caprasimo、單位用中文字體，兩支字體的字身框高度不同，
+置中會讓單位看起來浮起來。</p>
+<h3>文字與溢出</h3>
+<p><strong>溢出</strong>：不截斷。空間不夠時是列的責任去壓縮標題。</p>
+<p><strong>Dynamic Type</strong>：應跟隨。目前固定，等 C7a。</p>
+<h3>動態</h3>
+<p>無轉場。</p>
+<h2>6 配色 ★</h2>
+<table>
+<thead>
+<tr>
+<th>用途</th>
+<th>token</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>數字</td>
+<td><code>textPrimary</code></td>
+</tr>
+<tr>
+<td>單位</td>
+<td><code>textSecondary</code></td>
+</tr>
+</tbody>
+</table>
+<p>單位比數字淡一階：數字是資訊，單位是脈絡。</p>
+<h2>7 用法與禁用法</h2>
+<p><strong>用它</strong>：列右側要顯示一個數值時。</p>
+<p><strong>易混淆</strong>：<code>TLSettingsValue</code>（設定列右側的值）—— 那個是<strong>文字</strong>（用中文字體），
+這個是<strong>數字</strong>（用 Caprasimo、可帶單位）。看到數字就用這個。</p>
+<p><strong>不要用它</strong>：
+- 放純文字 —— Caprasimo 是為數字設計的，中文字會很奇怪
+- 自己做格式化 —— 傳進來的應該是格式化好的字串，小數位數是呼叫端的決定
+- 放兩個以上的數值 —— 一列一個答案</p>
+<h2>8 變更紀錄</h2>
+<table>
+<thead>
+<tr>
+<th>日期</th>
+<th>改動</th>
+<th>原因</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>2026-08-30</td>
+<td>從 <code>TLListRow.swift</code> 拆成獨立檔</td>
+<td>那個檔有 4 個 public 元件</td>
+</tr>
+<tr>
+<td>2026-08-30</td>
+<td>字級 <code>display(16)</code> → <code>type.rowNumber</code>、間距 <code>4</code> → <code>space.valueUnitGap</code></td>
+<td>元件內部的字面值也是字面值</td>
+</tr>
+<tr>
+<td>2026-08-30</td>
+<td>單位色 <code>neutral700</code> → <code>textBody</code> → <strong><code>textSecondary</code></strong></td>
+<td><code>neutral700</code> 被用 16 處卻沒有語意角色，所以先命名為 <code>textBody</code>。設計端隨即指出<strong>兩個 token 同值就是一個 token</strong>，並把 <code>textSecondary</code> 本身移到 <code>neutral.700</code>（為了 4.5:1）。所以 <code>textBody</code> 併入 <code>textSecondary</code> 並刪除，值不變</td>
+</tr>
+</tbody>
+</table>

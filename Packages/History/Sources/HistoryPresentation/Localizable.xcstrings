@@ -1,12 +1,6 @@
 {
   "sourceLanguage" : "zh-Hant",
   "strings" : {
-    "" : {
-
-    },
-    "day" : {
-
-    },
     "history.achievedCount %lld %lld" : {
       "localizations" : {
         "en" : {
@@ -520,6 +514,22 @@
         }
       }
     },
+    "history.month %lld" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Month %lld"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld 月"
+          }
+        }
+      }
+    },
     "history.monthCount %lld" : {
       "localizations" : {
         "en" : {
@@ -873,25 +883,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "重量"
-          }
-        }
-      }
-    },
-    "weight" : {
-
-    },
-    "history.month %lld" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Month %lld"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%lld 月"
           }
         }
       }

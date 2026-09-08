@@ -1,0 +1,88 @@
+<!-- @dsCard group="Molecules" name="TLListRow" subtitle="資料清單的一列" -->
+<!doctype html>
+<meta charset="utf-8">
+<title>TLListRow</title>
+<link rel="stylesheet" href="../../tokens/tokens.css">
+<link rel="stylesheet" href="../../preview.css">
+<link rel="stylesheet" href="../../components.preview.css">
+<style>
+border-radius: var(--radius-pill); background: var(--sage-200);
+           color: var(--sage-800); font-size: var(--font-badge-text); font-weight: 600;
+           display: flex; align-items: center; justify-content: center; }
+         color: var(--text-primary); }
+          stroke-width: var(--icon-stroke); }
+            border-radius: var(--radius-pill); background: var(--action-primary);
+            color: var(--surface-base);
+            display: flex; align-items: center; justify-content: center; }
+          background: var(--surface-track); border-radius: var(--radius-pill);
+          padding: 0 var(--space-gap-s); margin-right: var(--space-gap-s); }
+</style>
+<h1>TLListRow</h1>
+<p class="note">
+  L2 分子。資料清單的一列。<br>
+  副標永遠是<b>組成摘要</b> —— 列出這一項由什麼組成。
+  這是階層關係唯一的傳達管道，所以<b>狀態一律放右側</b>，不要塞進副標。
+</p>
+
+<div class="kicker">狀態</div>
+<div class="group">
+  <div class="row" data-state="default">
+    <span class="tl-badge">甲</span>
+    <span class="label">項目名稱<br><span class="tl-list-row__sub">組成摘要 · 分類</span></span>
+    <span class="tl-row-value"><span class="tl-row-value__number">62.5</span><span class="tl-row-value__unit">kg</span></span>
+    <svg class="tl-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg>
+  </div>
+  <div class="row tl-settings-row--pressed" data-state="pressed">
+    <span class="tl-badge">乙</span>
+    <span class="label">按下 —— 底色淡入</span>
+    <svg class="tl-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg>
+  </div>
+  <div class="row" data-state="selectable">
+    <span class="tl-check-circle tl-check-circle--on"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg></span>
+    <span class="label">可勾選型 —— 沒有 chevron</span>
+  </div>
+  <div class="row tl-settings-toggle-row--tall" data-state="withDetail">
+    <span class="tl-badge">丙</span>
+    <span class="label">有細節行<br><span class="tl-list-row__pill">標籤甲</span><span class="tl-list-row__pill">標籤乙</span></span>
+  </div>
+</div>
+
+<div class="kicker">三種填法</div>
+<p class="note">
+  <b>圖示型</b>：圓章 ＋ 主副標 ＋ 右值 ＋ chevron<br>
+  <b>純文字型</b>：主標 ＋ 右值<br>
+  <b>可勾選型</b>：勾號 ＋ 主副標，沒有 chevron ——
+  chevron 與勾號並存會讓人不知道點下去是選還是進去
+</p>
+
+<div class="kicker">主題</div>
+<div class="themes">
+  <div class="pane" data-theme="light">
+    <div class="kicker">light</div>
+    <div class="group"><div class="row"><span class="tl-badge">甲</span>
+      <span class="label">項目名稱<br><span class="tl-list-row__sub">組成摘要 · 分類</span></span></div></div>
+  </div>
+  <div class="pane" data-theme="dark">
+    <div class="kicker">dark（目前是 light 的複製）</div>
+    <div class="group"><div class="row"><span class="tl-badge">甲</span>
+      <span class="label">項目名稱<br><span class="tl-list-row__sub">組成摘要 · 分類</span></span></div></div>
+  </div>
+</div>
+
+<div class="kicker">已知的介面缺口</div>
+<p class="note">
+  選取狀態由 <code>leading</code> 裡放什麼決定，所以<b>列自己不知道自己被選中</b>，
+  無障礙的 selected trait 要呼叫端補。<br>
+  比較好的介面是加一個 <code>isSelected</code> prop，讓元件自己決定放不放勾號、也能自動加 trait。
+  那會動到所有呼叫端，留給撞到它的階段。
+</p>
+
+<div class="kicker">不適用的狀態</div>
+<p class="note">
+  disabled —— 目前清單沒有「這一項不能選」的情境。<br>
+  focused —— 沒有鍵盤導航情境。<br>
+  empty／loading／error —— 沒有資料就不會有這一列。
+</p>

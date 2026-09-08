@@ -33,6 +33,11 @@ public struct UserNotificationRestScheduler: RestNotificationScheduling {
         content.title = language.localizedString("reminders.restOver.title", bundle: .module)
         content.body = language.localizedString("reminders.restOver.body", bundle: .module)
         content.sound = withSound ? .default : nil
+        // 組間休息結束是標準的時效性通知：晚 5 分鐘看到就沒有意義了。
+        // 不標的話健身房裡開專注模式的人會被系統直接吃掉——而那正是最需要它的場景。
+        // 需要 com.apple.developer.usernotifications.time-sensitive entitlement 才會真的生效；
+        // 沒有 entitlement 時系統靜默降級成 .active，行為等同現況，不會壞。
+        content.interruptionLevel = .timeSensitive
 
         let trigger = UNTimeIntervalNotificationTrigger(timeInterval: interval, repeats: false)
         let request = UNNotificationRequest(identifier: identifier, content: content, trigger: trigger)

@@ -66,12 +66,12 @@ struct TemplateBlockFormattingTests {
     // MARK: - 細節行：重量
 
     @Test func noWeightGivesNilSoTheDetailLineIsJustThePill() {
-        #expect(PlanFormatting.blockWeight(sets: sets(reps: [10, 10]), language: .zhHant) == nil)
+        #expect(PlanFormatting.blockWeight(sets: sets(reps: [10, 10]), language: .zhHant, in: .kg) == nil)
     }
 
     @Test func uniformAbsoluteWeightShowsItWithUnit() {
         let weight = WeightExpression.absolute(Weight(value: 60, unit: .kg))
-        let text = PlanFormatting.blockWeight(sets: sets(reps: [10, 10], weights: [weight, weight]), language: .zhHant)
+        let text = PlanFormatting.blockWeight(sets: sets(reps: [10, 10], weights: [weight, weight]), language: .zhHant, in: .kg)
         #expect(text == "60kg")
     }
 
@@ -83,7 +83,8 @@ struct TemplateBlockFormattingTests {
                 .absolute(Weight(value: 65, unit: .kg)),
                 .absolute(Weight(value: 70, unit: .kg)),
             ]),
-            language: .zhHant
+            language: .zhHant,
+            in: .kg
         )
         #expect(text == "60 → 70kg")
     }
@@ -95,7 +96,8 @@ struct TemplateBlockFormattingTests {
                 .percentOfMax(70),
                 .absolute(Weight(value: 85, unit: .kg)),
             ]),
-            language: .zhHant
+            language: .zhHant,
+            in: .kg
         ) ?? ""
         #expect(text.contains("70%"))
         #expect(text.contains("85kg"))
@@ -105,7 +107,8 @@ struct TemplateBlockFormattingTests {
     @Test func percentOfMaxKeepsItsOwnLabel() {
         let text = PlanFormatting.blockWeight(
             sets: sets(reps: [10], weights: [.percentOfMax(80)]),
-            language: .zhHant
+            language: .zhHant,
+            in: .kg
         ) ?? ""
         #expect(text.contains("percentOfMax"))
         #expect(text.contains("80%"))
@@ -114,7 +117,8 @@ struct TemplateBlockFormattingTests {
     @Test func relativeToLastKeepsItsSign() {
         let text = PlanFormatting.blockWeight(
             sets: sets(reps: [10], weights: [.relativeToLast(delta: Weight(value: 2.5, unit: .kg))]),
-            language: .zhHant
+            language: .zhHant,
+            in: .kg
         ) ?? ""
         #expect(text.contains("+2.5kg"))
     }
@@ -123,7 +127,8 @@ struct TemplateBlockFormattingTests {
     @Test func partiallySetWeightsIgnoreTheEmptyOnes() {
         let text = PlanFormatting.blockWeight(
             sets: sets(reps: [10, 10], weights: [nil, .absolute(Weight(value: 70, unit: .kg))]),
-            language: .zhHant
+            language: .zhHant,
+            in: .kg
         )
         #expect(text == "70kg")
     }

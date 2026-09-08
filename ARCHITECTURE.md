@@ -9,7 +9,7 @@
 ┌────────────────────────────┐        ┌──────────────────────────┐
 │  iOS App（主產物・現在做）    │        │  Go 後端（已部署・獨立 repo）│
 │  SwiftUI + SwiftData         │        │  Go + Postgres            │
-│  Clean Architecture 多模組    │        │  登入同步 / 公開分享        │
+│  Clean Architecture 多模組    │        │  剩餘角色待釐清 ⚠️          │
 └────────────┬───────────────┘        └────────────┬─────────────┘
              │                                        │
              │        OpenAPI 契約（真實來源在後端）      │
@@ -18,7 +18,11 @@
 
 - **兩端徹底切開**：不同語言、不同 repo、不同發行節奏、不同貢獻者。
 - **唯一介面 = API 契約**：後端維護一份 `openapi.yaml`，iOS 端據此**產生 Swift client**（打包成 SPM package 使用）。
-- **local-first**：App 不依賴後端也能完整運作；同步/分享是**可選、後加**的能力。
+- **local-first**：App 不依賴後端也能完整運作。
+- ⚠️ **使用者資料不進後端**（2026-08 定案）：訓練紀錄、課表、能力值只存在裝置上，
+  備份與跨裝置走 **iCloud**。後端在這個前提下還剩什麼角色尚未拍板
+  （見 `PROJECT_OVERVIEW.md` §8「後端的剩餘角色」）——**在那之前，本文件所有關於
+  後端與 OpenAPI 契約的敘述都應視為過期**，不要拿它當實作依據。
 
 ## 平台與技術棧
 
@@ -41,7 +45,7 @@
 ## 分層與依賴規則（依賴只准往內指）
 
 ```
-Presentation (SwiftUI View + ViewModel)
+Presentation (SwiftUI View + ViewModel)   ← 只組合元件庫，不自行定義樣式
         │  依賴
         ▼
 Domain  (純 Swift：Entity struct + UseCase + Repository「protocol」)  ← 不 import 任何框架
@@ -83,7 +87,11 @@ Packages/
     Sources/
       RemindersDomain/    ← 純邏輯：偏好、channel ports、dispatcher（可被任何 domain import）
       RemindersKit/       ← 平台實作：UN 本地通知、系統音、UserDefaults（只有 App 接線時 import）
-  DesignSystem/           ← 共用 UI 元件與 design token（無 domain 邏輯；Tests/ 只放純函式）
+  DesignSystem/           ← 元件庫（**純呈現**）：Atoms/ Molecules/ ＋ 由 token 來源生成的
+                          DesignTokens.swift。給 props 就畫，無 @State、無計算
+  DesignControls/         ← 互動控制項：有內部狀態、手勢、或排版計算的元件
+                          （滾輪、月曆條、數字輸入、可滑動列…）。相依 DesignSystem，反向不行
+                          （無 domain 邏輯；Tests/ 只放純函式。規格與 preview 在 design-system/）
 ```
 
 相依方向：`SpecData → SpecDomain`、`SpecPresentation → SpecDomain`、`SpecDomain → SharedKernel`。
@@ -92,6 +100,34 @@ Packages/
 例外是 `RemindersDomain`：它跟 SharedKernel 一樣是跨 domain 共用層（Training／Settings 都直接 import），
 但只含純 port 與偏好值型別；有副作用的實作全在 `RemindersKit`，僅 App 組裝時使用。
 未來要加新通知類型或 Apple Watch，是「換/加一組 channel 實作」，不動各 domain。
+
+## Presentation 層與元件庫
+
+UI 的定義權集中在元件庫，Presentation 只消費。完整定義見 **[`design-system/README.md`](design-system/README.md)**（正典）。
+
+```
+design ◄──sync & generate──► 元件庫(code) ──單向──► Presentation
+                                 ▲                      │
+                       唯一擁有定義權的樞紐      只能引入、排列、堆疊
+```
+
+三條不可違反的規則：
+
+1. **應用層不得定義新元件。** 畫面檔裡不得出現 hex、字級數字、硬編 padding／圓角／frame，
+   讀起來應該像一份組裝清單。真的需要新東西時走正典 §4 的出口判斷（能否由既有元件組成 →
+   需不需要 import domain model → 決定進元件庫還是該 package 的 `Presentation/Components/`），
+   **任何情況下都不准直接寫在畫面檔裡**。
+2. **元件必須窮舉狀態。** 規格要列完所有可能的樣子（互動／選取／資料／內容極值／主題／語言），
+   preview 要全部畫出來，不適用的**明確標記 N/A** 而不是省略——省略正是狀態遺失的方式。
+3. **L1／L2 不得認識 domain。** 元件庫裡沒有 `Exercise`／`Workout`／`Template`，元件只收
+   `String`／`Int`／`Bool`／closure。`DesignSystem` 不准 import 任何功能 package、不准 import SwiftData。
+   這是它能被五個 package 共用的前提，也是「改 A 頁不會弄壞 B 頁」的保證。
+
+分層與命名：L1 原子／L2 分子住 `DesignSystem`，一律 `TL` 前綴；L3 有機體綁自己 package 的 model，
+住各 package 的 `Presentation/Components/`，無前綴。**看名字就知道有沒有 domain 相依。**
+
+token 是生成物：唯一來源是 `design-system/tokens/tokens.json`，產出 `DesignTokens.swift` 與
+`tokens.css` 兩份，都不可手改。改一個顏色只改 json。
 
 ## 跨 domain 解耦（ports & adapters）
 
@@ -125,6 +161,36 @@ Training 的休息倒數不認識任何提醒手段，只呼叫 `RestEndRemindin
 
 1. **View 裡不要用 `@Query`**：它把 SwiftUI 直接綁死 SwiftData，破壞分層。改走 View→ViewModel→UseCase→Repo；要反應式就讓 Repo 對外吐 `AsyncStream`。
 2. **`@Model` 不准漏出 Data 層**：邊界一律轉成 Domain struct。
+
+## Schema 版本與遷移
+
+App 是 local-first，資料只存在裝置上。**任何一次模型變更都可能讓使用者的資料讀不出來，
+或讓 app 直接開不起來**——而且沒有第二份可以還原。
+
+版本基線與遷移計畫在 `App/AppSchema.swift`（Composition Root，容器本來就建在那裡）：
+
+- `AppModels.all`：全 App 的 model 清單，**唯一的一份**。Schema 與「清除所有資料」
+  （`SwiftDataEraser`）都吃它。兩邊分開寫的話，新增 model 只補其中一邊的症狀是
+  「清資料清不乾淨」或「存進去讀不出來」，而且都不會在 build 時報錯。
+- `AppSchemaV1`：目前的版本基線。
+- `AppMigrationPlan`：遷移計畫，目前沒有 stage。
+
+### 改模型的流程（每次都要走完）
+
+1. 開一個新的 `AppSchemaVn`，放改動後的 model 清單
+2. `AppMigrationPlan.schemas` 加上它，`stages` 加一個 `MigrationStage`
+   - 純加欄位，且是 optional 或有預設值 → `.lightweight`
+   - 要搬資料、改型別、拆合欄位 → `.custom`
+3. 補一支測試：舊版寫入的資料，用新版讀回來仍然完整
+
+**不要跳過第 2 步直接改既有的 `AppSchemaV1`。** 那等於謊報版本——裝了舊版的使用者
+升級時，會拿著 V1 的資料撞上同樣宣告成 V1 的新 schema，SwiftData 不會察覺有變。
+
+### 加欄位時的既有寫法
+
+宣告時給預設值（`var originRaw: String = PlanOrigin.manual.rawValue`）或用 optional，
+SwiftData 就能做輕量遷移。專案裡 `PlanWorkoutModel.originRaw`、`WorkoutSetModel.modeRaw`、
+`ExerciseModel.trackingModeRaw` 都是這個寫法，照抄即可。
 
 ---
 
@@ -162,6 +228,8 @@ UI test 原本一律靠中文標籤查元素（`app.buttons["儲存"]`）。那�
   `exerciseForm.save`、`activeWorkout.completeSet`、`tabBar.item.training`、`picker.confirm`。
   早期有一派 camelCase 寫法（`libraryAddButton`、`eraseConfirmButton`），逐步收斂掉，不要再新增。
 - **只給測試真的要定位的元件加**，不是全畫面掛滿。
+- **identifier 屬於元件規格的第 9 節，跟著元件走**（見 `design-system/README.md` §6）。
+  同一個元件在哪個畫面用，`element` 那半就固定是同一個，不在畫面層各自發明。
 - **測試自己輸入的資料照舊用文字定位**（動作名、課表名）——那是測試自己打進去的字串，
   本來就與介面語言無關。
 - **斷言動態內容時只驗「帶這個 id 的元件存在」**，內容正確性歸 unit test。

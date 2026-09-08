@@ -3,7 +3,9 @@
 # 9 個 SPM local package，各自跑 `swift test`（純邏輯 / in-memory SwiftData，秒級、免模擬器）。
 # DesignSystem 只測純函式（滾輪幾何 WheelGeometry、月曆格線 CalendarStripGeometry），
 # 元件本身是 View 測不動。
-PACKAGES := SharedKernel Spec Training Plan History Settings Reminders Ability DesignSystem
+# DesignSystem 不在清單裡：它是純呈現，沒有測得動的東西（View 測不動）。
+# 排版數學隨控制項一起搬到 DesignControls，測試也跟著過去了。
+PACKAGES := SharedKernel Spec Training Plan History Settings Reminders Ability DesignControls
 
 SCHEME := TrainingLa-Dev
 
@@ -117,9 +119,42 @@ ifeq ($(REPORT),true)
 	@$(MAKE) --no-print-directory report KIND=ui LANG_TAG=$(LANG_TAG)
 endif
 
-# i18n 迴歸防護：擋裸 String(localized:) 與寫死的中文字串（見 scripts/check-i18n.sh）。
+# 迴歸防護：
+#   1. i18n——擋裸 String(localized:) 與寫死的中文字串（見 scripts/check-i18n.sh）
+#   2. token——生成物與 design-system/tokens/tokens.json 不一致就擋（見 scripts/gen-tokens.py）
 lint:
 	@./scripts/check-i18n.sh
+	@python3 scripts/gen-tokens.py --check && echo "✔ token 生成物與 tokens.json 一致"
+	@python3 scripts/gen-design-index.py --check && echo "✔ components.json / index.html 與各元件 spec 一致"
+	@uv run --quiet --with markdown python3 scripts/gen-doc-html.py --check && echo "✔ 文件 HTML 與 markdown 一致"
+	@python3 scripts/check-design-system.py
+
+# 從 tokens.json 重生 DesignTokens.swift 與 tokens.css。改完 token 一定要跑這個。
+tokens:
+	@python3 scripts/gen-tokens.py
+	@python3 scripts/gen-design-index.py
+	@$(MAKE) --no-print-directory doc-html
+
+# design-system/ 底下的 markdown 渲染成瀏覽器讀得動的 HTML。
+# 設計端從 index.html 點過去時，.md 會被當純文字開或直接下載——等於寫了但對方讀不到。
+doc-html:
+	@uv run --quiet --with markdown python3 scripts/gen-doc-html.py
+
+# preview 的中文子集字型。只有在 preview 出現新的中文字時才需要重跑（會聯網下載原字型一次）。
+preview-font:
+	@uv run --quiet --with "fonttools[woff]" python3 scripts/gen-preview-font.py
+
+# 榨取階段把 Presentation 的字面樣式往下推之後，重設 lint 的 ratchet 基線。
+baseline:
+	@uv run --quiet --with markdown python3 scripts/gen-doc-html.py --check && echo "✔ 文件 HTML 與 markdown 一致"
+	@python3 scripts/check-design-system.py --update-baseline
+
+# 打包交付給設計端：規格書 ＋ token ＋ 字型 ＋ 每個元件的 spec 與 preview。
+# 這包要能直接餵進 Claude Design 組出新畫面——那是元件庫「拆得夠乾淨」的驗收。
+design-zip: lint
+	@rm -f design-system.zip
+	@cd design-system && zip -qr ../design-system.zip . -x '.presentation-baseline.json' 'tokens/_legacy-aliases.json' '_controls/*'
+	@du -h design-system.zip | awk '{print "✔ design-system.zip " $$1}'
 
 # 解析 test-reports/ 的產物並上傳 Notion。由 test-unit / test-uitest 在 REPORT=true 時呼叫，
 # 也可以自己跑。上傳失敗只印警告、不改變結束碼——測試結果才是 exit code 的來源。

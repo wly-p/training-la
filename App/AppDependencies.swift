@@ -36,6 +36,8 @@ struct AppDependencies {
     /// `onErased`：清除成功後由 App 層觸發整個畫面重建（回到全新初始狀態）。
     let makeSettingsViewModel: @MainActor (_ onErased: @escaping @MainActor () -> Void) -> SettingsViewModel
     let makeAbilityListViewModel: @MainActor () -> AbilityListViewModel
+    /// DEBUG 專用：`--debug-seed=` 帶到時產生假資料（見 `DebugSeeding`）。Release build 是 no-op。
+    var seedDebugDataIfRequested: @Sendable () async -> Void = {}
 
     /// UI 測試指定的 app 語言（`--uitest-language=en`）；沒帶或代碼不認得就回 nil。
     /// 只在 `inMemory` 模式下生效，正式啟動一律走使用者的持久化偏好。
@@ -63,11 +65,10 @@ struct AppDependencies {
     /// 正式組裝：SwiftData 落地儲存，各 domain 的 models 併進同一個 Schema。
     /// `inMemory`：UI 測試用，換成不落地的 store（每次啟動都是乾淨狀態）。
     static func live(inMemory: Bool = false) throws -> AppDependencies {
-        let allModels = SpecDataFactory.models + TrainingDataFactory.models + PlanDataFactory.models
-            + AbilityDataFactory.models
-        let schema = Schema(allModels)
+        let allModels = AppModels.all
         let container = try ModelContainer(
-            for: schema,
+            for: Schema(versionedSchema: AppSchemaV1.self),
+            migrationPlan: AppMigrationPlan.self,
             configurations: ModelConfiguration(isStoredInMemoryOnly: inMemory)
         )
         let workoutRepository = TrainingDataFactory.makeWorkoutRepository(container: container)
@@ -120,7 +121,12 @@ struct AppDependencies {
             : RestEndReminder(notifications: UserNotificationRestScheduler(languageStore: languageStore),
                               sound: SystemSoundReminderPlayer(),
                               store: reminderStore)
-        return assemble(
+        // UI 測試（in-memory）用 Noop：避免真的去查系統通知授權（模擬器上狀態不穩定，
+        // 且測試不該依賴真實系統彈窗狀態）。
+        let notificationAuthorization: any NotificationAuthorizationChecking = inMemory
+            ? NoopNotificationAuthorizationChecking()
+            : UserNotificationAuthorizationChecker()
+        var dependencies = assemble(
             exerciseRepository: SpecDataFactory.makeExerciseRepository(
                 container: container,
                 usageChecker: usageChecker,
@@ -137,12 +143,20 @@ struct AppDependencies {
             abilityValueRepository: abilityValueRepository,
             reminder: reminder,
             reminderStore: reminderStore,
+            notificationAuthorization: notificationAuthorization,
             languageStore: languageStore,
             weightUnitStore: weightUnitStore,
             trainingPreferences: trainingPreferences,
             today: today,
             dataEraser: SwiftDataEraser(container: container, modelTypes: allModels)
         )
+        #if DEBUG
+        dependencies.seedDebugDataIfRequested = {
+            guard let spec = DebugSeeding.requestedSpec() else { return }
+            await DebugSeeding.run(spec: spec, repository: workoutRepository, today: today())
+        }
+        #endif
+        return dependencies
     }
 
     /// 共用組裝邏輯：給定 repositories（真實或 mock）長出整張相依圖。
@@ -157,6 +171,7 @@ struct AppDependencies {
         abilityValueRepository: any AbilityValueRepository,
         reminder: any RestEndReminding,
         reminderStore: any RestReminderPreferenceStoring,
+        notificationAuthorization: any NotificationAuthorizationChecking = NoopNotificationAuthorizationChecking(),
         languageStore: any LanguagePreferenceStoring = InMemoryLanguageStore(),
         weightUnitStore: any WeightUnitPreferenceStoring = InMemoryWeightUnitStore(),
         trainingPreferences: any TrainingPreferenceStoring = InMemoryTrainingPreferenceStore(),
@@ -218,11 +233,19 @@ struct AppDependencies {
                 ),
                 today: today
             ),
+            createPlanWorkout: CreatePlanWorkout(repository: planRepository),
             today: today,
             listExercises: ListExercises(repository: exerciseRepository),
             currentLanguage: { languageStore.load() ?? .fallback }
         )
-        let planProgress = PlanProgressAdapter(markDone: MarkPlanWorkoutDone(repository: planRepository))
+        let planProgress = PlanProgressAdapter(
+            markDone: MarkPlanWorkoutDone(
+                repository: planRepository,
+                // 循環課表的游標在排課「完成」時才推進（E1）；沒接上這條就永遠停在第一張。
+                rotationRepository: rotationRepository
+            ),
+            discardRotationPlan: DiscardOrphanPlanWorkout(repository: planRepository)
+        )
 
         return AppDependencies(
             makeExerciseListViewModel: {
@@ -235,7 +258,8 @@ struct AppDependencies {
                         templateRepository: templateRepository,
                         rotationRepository: rotationRepository,
                         programRepository: programRepository
-                    )
+                    ),
+                    usageCounting: ExerciseUsageCountingAdapter(workoutRepository: workoutRepository)
                 )
             },
             makeTrainingHomeViewModel: {
@@ -244,7 +268,7 @@ struct AppDependencies {
                     resumeWorkout: ResumeWorkout(repository: workoutRepository),
                     recentWorkouts: RecentWorkouts(repository: workoutRepository),
                     finishWorkout: FinishWorkout(repository: workoutRepository, planProgress: planProgress),
-                    discardWorkout: DiscardWorkout(repository: workoutRepository),
+                    discardWorkout: DiscardWorkout(repository: workoutRepository, planProgress: planProgress),
                     plannedProvider: plannedProvider,
                     today: today
                 )
@@ -254,7 +278,7 @@ struct AppDependencies {
                     workout: workout,
                     saveProgress: SaveWorkoutProgress(repository: workoutRepository),
                     finishWorkout: FinishWorkout(repository: workoutRepository, planProgress: planProgress),
-                    discardWorkout: DiscardWorkout(repository: workoutRepository),
+                    discardWorkout: DiscardWorkout(repository: workoutRepository, planProgress: planProgress),
                     lastPerformance: LastPerformance(repository: workoutRepository),
                     detectPersonalRecords: DetectPersonalRecords(repository: workoutRepository),
                     exerciseCatalog: catalog,
@@ -386,10 +410,15 @@ struct AppDependencies {
                     store: UserDefaultsThemeStore(),
                     iconSwitcher: UIApplicationIconSwitcher(),
                     restReminderStore: reminderStore,
+                    notificationAuthorization: notificationAuthorization,
                     languageStore: languageStore,
                     weightUnitStore: weightUnitStore,
                     preferences: trainingPreferences,
                     dataEraser: dataEraser,
+                    historyExporter: WorkoutExportAdapter(
+                        exportHistory: ExportWorkoutHistory(repository: workoutRepository),
+                        listExercises: ListExercises(repository: exerciseRepository)
+                    ),
                     onErased: onErased
                 )
             },

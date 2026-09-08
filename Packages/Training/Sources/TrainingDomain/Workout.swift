@@ -37,6 +37,17 @@ public struct Workout: Identifiable, Equatable, Sendable {
     }
 
     public var isFinished: Bool { endedAt != nil }
+
+    /// 「重複上次」用：依 exerciseIndex 順序的動作序列與各自組數（熱身、跳過的組都不計入組數——
+    /// 只算真的做完的，跟「上次紀錄」的既有判斷慣例一致，見 `WorkoutUseCases.swift`）。
+    public var repeatSequence: [RepeatWorkoutExercise] {
+        blocks.map { block in
+            RepeatWorkoutExercise(
+                exerciseId: block.exerciseId,
+                setCount: max(1, block.sets.filter { $0.status == .done && !$0.isWarmup }.count)
+            )
+        }
+    }
 }
 
 /// 場次內的一組。exerciseIndex 相同＝同一個動作區塊；index 皆 0-based，由 app 指派。
@@ -45,37 +56,38 @@ public struct WorkoutSet: Identifiable, Equatable, Sendable {
     public var exerciseId: UUID
     public var exerciseIndex: Int
     public var setIndex: Int
-    public var weight: Weight
-    public var reps: Int
+    /// 這一組實際做了什麼。取代原本並排的 `weight` ＋ `reps`——
+    /// 型別上就不可能組出「時間模式卻帶重量」，見 `SetMeasurement`。
+    public var measurement: SetMeasurement
     public var status: WorkoutSetStatus
     /// 照課表哪一組做的；nil＝臨時加練。
     public var fromPlanSetId: UUID?
     /// 目標快照（完成當下複製；課表事後被改不影響已存紀錄）。
-    public var targetWeight: Weight?
-    public var targetReps: Int?
+    public var targetMeasurement: SetMeasurement?
+    /// 熱身組：仍然是一筆紀錄，但**不進任何統計**（總量、達標、PR、「上次」預填、能力值）。
+    /// 熱身的 20kg 混進「上次」會讓下一場預填成 20kg，混進總量會讓進步曲線失真。
+    public var isWarmup: Bool
 
     public init(
         id: UUID,
         exerciseId: UUID,
         exerciseIndex: Int,
         setIndex: Int,
-        weight: Weight,
-        reps: Int,
+        measurement: SetMeasurement,
         status: WorkoutSetStatus = .done,
         fromPlanSetId: UUID? = nil,
-        targetWeight: Weight? = nil,
-        targetReps: Int? = nil
+        targetMeasurement: SetMeasurement? = nil,
+        isWarmup: Bool = false
     ) {
         self.id = id
         self.exerciseId = exerciseId
         self.exerciseIndex = exerciseIndex
         self.setIndex = setIndex
-        self.weight = weight
-        self.reps = reps
+        self.measurement = measurement
         self.status = status
         self.fromPlanSetId = fromPlanSetId
-        self.targetWeight = targetWeight
-        self.targetReps = targetReps
+        self.targetMeasurement = targetMeasurement
+        self.isWarmup = isWarmup
     }
 }
 
@@ -108,12 +120,11 @@ extension Workout {
     public mutating func appendSet(
         id: UUID = UUID(),
         exerciseId: UUID,
-        weight: Weight,
-        reps: Int,
+        measurement: SetMeasurement,
         status: WorkoutSetStatus = .done,
         fromPlanSetId: UUID? = nil,
-        targetWeight: Weight? = nil,
-        targetReps: Int? = nil
+        targetMeasurement: SetMeasurement? = nil,
+        isWarmup: Bool = false
     ) {
         let exerciseIndex: Int
         let setIndex: Int
@@ -129,12 +140,11 @@ extension Workout {
             exerciseId: exerciseId,
             exerciseIndex: exerciseIndex,
             setIndex: setIndex,
-            weight: weight,
-            reps: reps,
+            measurement: measurement,
             status: status,
             fromPlanSetId: fromPlanSetId,
-            targetWeight: targetWeight,
-            targetReps: targetReps
+            targetMeasurement: targetMeasurement,
+            isWarmup: isWarmup
         ))
         sets.sort { ($0.exerciseIndex, $0.setIndex) < ($1.exerciseIndex, $1.setIndex) }
     }

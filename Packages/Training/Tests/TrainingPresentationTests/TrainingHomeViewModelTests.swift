@@ -24,7 +24,10 @@ private actor MockHomeWorkoutRepo: WorkoutRepository {
         return current
     }
     func lastPerformance(exerciseId: UUID, excludingWorkout: UUID?) async throws -> [WorkoutSet] { [] }
-    func finishedWorkouts() async throws -> [Workout] { finished }
+    func finishedWorkouts(limit: Int?) async throws -> [Workout] {
+        // 上限也要照做，否則 mock 會把「首頁只取最近 N 場」這個行為藏起來。
+        limit.map { Array(finished.prefix($0)) } ?? finished
+    }
     func exerciseHistory(exerciseId: UUID) async throws -> [ExerciseSetRecord] { [] }
     func usesExercise(_ exerciseId: UUID) async throws -> Bool { false }
 }
@@ -41,17 +44,23 @@ private actor MockPlannedProvider: PlannedWorkoutProvider {
     private(set) var activeRestDayCallCount = 0
     /// 呼叫紀錄：驗證「把明天的腿日挪到今天」有真的打到 Plan 那一側。
     private(set) var moveNextWorkoutCallCount = 0
+    /// 「重複上次」材料化出來的排課；nil＝模擬 provider 沒接這個能力（退化成自由訓練）。
+    var repeatWorkoutResult: PlannedWorkoutBlueprint?
+    /// 呼叫紀錄：驗證 `startRepeatingLast()` 傳入的動作序列是不是 `recentFinished.first` 那一場的。
+    private(set) var repeatWorkoutCalledWith: [RepeatWorkoutExercise]?
 
     init(
         plan: PlannedWorkoutBlueprint?,
         templateList: [PlannedTemplateSummary] = [],
         rotationList: [PlannedRotationSummary] = [],
-        restDay: RestDayInfo? = nil
+        restDay: RestDayInfo? = nil,
+        repeatWorkoutResult: PlannedWorkoutBlueprint? = nil
     ) {
         self.plan = plan
         self.templateList = templateList
         self.rotationList = rotationList
         self.restDay = restDay
+        self.repeatWorkoutResult = repeatWorkoutResult
     }
 
     func todaysPlan() async throws -> PlannedWorkoutBlueprint? { plan }
@@ -74,6 +83,10 @@ private actor MockPlannedProvider: PlannedWorkoutProvider {
     func moveNextWorkoutToToday() async throws {
         moveNextWorkoutCallCount += 1
         restDay = nil
+    }
+    func repeatWorkout(exercises: [RepeatWorkoutExercise]) async throws -> PlannedWorkoutBlueprint? {
+        repeatWorkoutCalledWith = exercises
+        return repeatWorkoutResult
     }
 }
 
@@ -396,7 +409,7 @@ struct TrainingHomeViewModelTests {
             id: UUID(), day: DayDate(year: 2026, month: 7, day: 27), planWorkoutId: planWorkoutId,
             startedAt: Date(),
             sets: [WorkoutSet(id: UUID(), exerciseId: exerciseId, exerciseIndex: 0, setIndex: 0,
-                              weight: Weight(value: 60, unit: .kg), reps: 8)]
+                              measurement: .weightReps(weight: Weight(value: 60, unit: .kg), reps: 8))]
         )
         await repo.setActive(active)
         let targets = (0..<3).map { i in
@@ -498,7 +511,7 @@ struct TrainingHomeWeekSummaryTests {
             workout(day: monday.adding(days: -1), minutes: 999),   // 上週日，不算
         ]
 
-        let summary = TrainingHomeViewModel.weekSummary(from: finished, today: today)
+        let summary = TrainingHomeViewModel.weekSummary(from: finished, today: today, firstWeekday: 2)
 
         #expect(summary.sessionCount == 2)
         #expect(summary.totalMinutes == 70)
@@ -507,10 +520,26 @@ struct TrainingHomeWeekSummaryTests {
         #expect(summary.days.last?.date == today)
     }
 
+    /// 週日起算的地區（美國等）：2026/7/26 本身就是週日，這一週應該是 7/26～8/1，
+    /// 上一支測試裡「這週的週一 7/20」在這個地區反而落在上一週。
+    @Test func weekSummaryRespectsSundayFirstWeekday() {
+        let finished = [
+            workout(day: today, minutes: 40),    // 7/26 週日＝這週第一天
+            workout(day: monday, minutes: 30),   // 7/20 週一＝上一週，不算
+        ]
+
+        let summary = TrainingHomeViewModel.weekSummary(from: finished, today: today, firstWeekday: 1)
+
+        #expect(summary.sessionCount == 1)
+        #expect(summary.totalMinutes == 40)
+        #expect(summary.days.first?.date == today)
+        #expect(summary.days.last?.date == DayDate(year: 2026, month: 8, day: 1))
+    }
+
     @Test func weekSummaryMarksCompletedAndTodayCorrectly() {
         let finished = [workout(day: monday, minutes: 10)]
 
-        let summary = TrainingHomeViewModel.weekSummary(from: finished, today: today)
+        let summary = TrainingHomeViewModel.weekSummary(from: finished, today: today, firstWeekday: 2)
 
         #expect(summary.days.first { $0.date == monday }?.completed == true)
         #expect(summary.days.first { $0.date == today }?.isToday == true)
@@ -554,7 +583,7 @@ struct TrainingHomeWeekSummaryTests {
     @Test func weekSummarySumsVolumeInKilogramsAcrossThisWeek() {
         func set(_ weight: Weight, reps: Int, status: WorkoutSetStatus = .done) -> WorkoutSet {
             WorkoutSet(id: UUID(), exerciseId: UUID(), exerciseIndex: 0, setIndex: 0,
-                       weight: weight, reps: reps, status: status)
+                       measurement: .weightReps(weight: weight, reps: reps), status: status)
         }
         let thisWeek = Workout(id: UUID(), day: monday, sets: [
             set(Weight(value: 100, unit: .kg), reps: 5),                     // 500
@@ -564,7 +593,7 @@ struct TrainingHomeWeekSummaryTests {
             set(Weight(value: 100, unit: .kg), reps: 10),                    // 上週，不算
         ])
 
-        let summary = TrainingHomeViewModel.weekSummary(from: [thisWeek, lastWeek], today: today)
+        let summary = TrainingHomeViewModel.weekSummary(from: [thisWeek, lastWeek], today: today, firstWeekday: 2)
 
         #expect(summary.totalVolume == 500)
     }
@@ -592,7 +621,9 @@ struct TrainingHomeWeekSummaryTests {
     }
 
     /// 自由訓練沒有名字，「最近練過」列不出東西，不該混進清單。
-    @Test func recentSessionsSkipsFreeTraining() async {
+    /// 自由訓練也要列進「最近練過」——只做自由訓練的人否則永遠看不到這個區塊，
+    /// 也就永遠拿不到「再練一次」這條最短的出路。名稱留 nil，由 View 補「自由訓練」。
+    @Test func recentSessionsIncludesFreeTraining() async {
         let repo = MockHomeWorkoutRepo()
         await repo.setFinished([Workout(id: UUID(), day: today, startedAt: Date(), endedAt: Date())])
         let vm = TrainingHomeViewModel(
@@ -604,7 +635,9 @@ struct TrainingHomeWeekSummaryTests {
 
         await vm.refresh()
 
-        #expect(vm.recentSessions.isEmpty)
+        #expect(vm.recentSessions.count == 1)
+        #expect(vm.recentSessions.first?.name == nil)
+        #expect(vm.recentSessions.first?.planWorkoutId == nil)
     }
 
     /// 挪課要真的打到 Plan 那一側，而且挪完會 refresh —— 今天不再是休息日。
@@ -627,5 +660,54 @@ struct TrainingHomeWeekSummaryTests {
 
         #expect(await provider.moveNextWorkoutCallCount == 1)
         #expect(vm.restDay == nil)
+    }
+
+    /// 「重複上次」要傳最近一場（`recentFinished.first`）的動作序列給 provider，
+    /// 並用它材料化出來的藍圖開練——不是開一場空白自由訓練。
+    @Test func startRepeatingLastPassesLastSessionSequenceAndStartsFromBlueprint() async {
+        let repo = MockHomeWorkoutRepo()
+        let benchPress = UUID()
+        let squat = UUID()
+        var last = Workout(id: UUID(), day: DayDate(year: 2026, month: 7, day: 20))
+        last.appendSet(exerciseId: benchPress, measurement: .weightReps(weight: Weight(value: 60, unit: .kg), reps: 8))
+        last.appendSet(exerciseId: benchPress, measurement: .weightReps(weight: Weight(value: 60, unit: .kg), reps: 8), isWarmup: true)
+        last.appendSet(exerciseId: squat, measurement: .weightReps(weight: Weight(value: 80, unit: .kg), reps: 5))
+        await repo.setFinished([last])
+
+        let repeatedBlueprint = PlannedWorkoutBlueprint(planWorkoutId: UUID(), name: nil, targets: [])
+        let provider = MockPlannedProvider(plan: nil, repeatWorkoutResult: repeatedBlueprint)
+        let vm = TrainingHomeViewModel(
+            startWorkout: StartWorkout(repository: repo),
+            resumeWorkout: ResumeWorkout(repository: repo),
+            recentWorkouts: RecentWorkouts(repository: repo),
+            plannedProvider: provider
+        )
+        await vm.refresh()
+
+        await vm.startRepeatingLast()
+
+        let calledWith = await provider.repeatWorkoutCalledWith
+        #expect(calledWith == last.repeatSequence)
+        #expect(vm.recording?.planWorkoutId == repeatedBlueprint.planWorkoutId)
+    }
+
+    /// 沒有任何歷史紀錄時退化成自由訓練，不能整個沒反應。
+    @Test func startRepeatingLastFallsBackToFreeWorkoutWhenNoHistory() async {
+        let repo = MockHomeWorkoutRepo()
+        let provider = MockPlannedProvider(plan: nil)
+        let vm = TrainingHomeViewModel(
+            startWorkout: StartWorkout(repository: repo),
+            resumeWorkout: ResumeWorkout(repository: repo),
+            recentWorkouts: RecentWorkouts(repository: repo),
+            plannedProvider: provider
+        )
+        await vm.refresh()
+
+        await vm.startRepeatingLast()
+
+        let calledWith = await provider.repeatWorkoutCalledWith
+        #expect(calledWith == nil)
+        #expect(vm.recording?.planWorkoutId == nil)
+        #expect(vm.recording != nil)
     }
 }

@@ -17,7 +17,7 @@ public struct HistoryView: View {
         NavigationStack {
             ScrollView {
                 VStack(alignment: .leading, spacing: 0) {
-                    PageHeader(localText("history.title"))
+                    TLPageHeader(localText("history.title"))
                     TLSegmentedControl(
                         selection: $viewModel.mode,
                         options: [
@@ -37,7 +37,7 @@ public struct HistoryView: View {
                     .padding(.top, TLSpace.section)
                 }
                 .padding(.horizontal, TLSpace.page)
-                .padding(.bottom, 40)
+                .padding(.bottom, TLSpace.pageBottom)
             }
             .background(TLColor.bg.ignoresSafeArea())
             #if os(iOS)
@@ -58,7 +58,9 @@ public struct HistoryView: View {
             ) {
                 Button(role: .cancel) {} label: { localText("history.ok") }
             } message: {
-                Text(viewModel.errorMessage ?? "")
+                // `?? ""` 會讓那個空字串變成可翻譯字面量，被抽進 String Catalog
+                // 變成一個永遠不會被翻譯的空 key（體檢 E11）。改成條件式。
+                if let message = viewModel.errorMessage { Text(message) }
             }
         }
     }
@@ -75,14 +77,21 @@ public struct HistoryView: View {
 
     @ViewBuilder private var byDate: some View {
         if viewModel.workouts.isEmpty {
-            EmptyState(
+            TLEmptyState(
                 systemImage: "calendar",
                 title: localString("history.empty", locale),
                 message: localString("history.empty.hint", locale)
             )
             .accessibilityIdentifier("history.empty")
         } else {
-            VStack(alignment: .leading, spacing: TLSpace.section) {
+            // 月份分組用 LazyVStack：練滿一年就有 12 個區塊、每區塊數十列，
+            // 用 VStack 的話進歷史分頁的當下要把每一列都建出來。
+            //
+            // 只有這一層 lazy 得起來——區塊內的列包在 `TLGroup` 裡，而它靠
+            // `_VariadicView` 解析全部子 View 才能在列與列之間插分隔線，
+            // 本質上就得展開。要讓列也 lazy 得先重新設計 TLGroup 的分隔線機制，
+            // 那是另一件事，不在這張票裡。
+            LazyVStack(alignment: .leading, spacing: TLSpace.section) {
                 TLSearchField(text: $viewModel.searchText,
                               placeholder: localText("history.search.placeholder"),
                               identifier: "history.search")
@@ -96,16 +105,11 @@ public struct HistoryView: View {
     private func monthSection(_ key: MonthKey, _ workouts: [HistoryWorkoutSummary]) -> some View {
         let totalMinutes = workouts.compactMap(\.durationMinutes).reduce(0, +)
         return VStack(alignment: .leading, spacing: 0) {
-            HStack(alignment: .firstTextBaseline) {
+            TLSectionHeader(
                 Text(HistoryFormatting.monthLabel(month: key.month, locale: locale) + " · ")
-                    + localText("history.monthCount \(workouts.count)")
-                Spacer()
-                localText("history.monthDuration \(totalMinutes / 60) \(totalMinutes % 60)")
-            }
-            .font(TLFont.zh(TLFont.kicker, .semibold))
-            .tracking(TLFont.kickerTracking)
-            .foregroundStyle(TLColor.neutral500)
-            .padding(.bottom, 8)
+                    + localText("history.monthCount \(workouts.count)"),
+                trailing: localText("history.monthDuration \(totalMinutes / 60) \(totalMinutes % 60)")
+            )
             TLGroup {
                 ForEach(workouts) { summary in
                     workoutRow(summary)
@@ -119,21 +123,11 @@ public struct HistoryView: View {
         NavigationLink {
             WorkoutDetailView(summary: summary, makeViewModel: viewModel.makeDetailViewModel(for: summary.id))
         } label: {
-            ListRow(
+            WorkoutHistoryRow(
+                day: "\(summary.day.day)",
+                weekday: HistoryFormatting.weekdayAbbrev(summary.day, locale: locale),
                 title: summary.name.map { Text(verbatim: $0) } ?? Text(verbatim: freeTrainingLabel),
-                subtitle: Text(daySummaryLine(summary)),
-                showChevron: true,
-                leading: {
-                    VStack(spacing: 1) {
-                        Text(verbatim: "\(summary.day.day)")
-                            .font(TLFont.display(19))
-                            .foregroundStyle(TLColor.text)
-                        Text(verbatim: HistoryFormatting.weekdayAbbrev(summary.day, locale: locale))
-                            .font(TLFont.zh(9.5, .medium))
-                            .foregroundStyle(TLColor.neutral500)
-                    }
-                    .frame(width: 40)
-                }
+                summary: Text(daySummaryLine(summary))
             )
         }
         .buttonStyle(.plain)
@@ -152,7 +146,7 @@ public struct HistoryView: View {
 
     @ViewBuilder private var byExercise: some View {
         if viewModel.exerciseOptions.isEmpty {
-            EmptyState(
+            TLEmptyState(
                 systemImage: "chart.line.uptrend.xyaxis",
                 title: localString("history.empty", locale),
                 message: localString("history.empty.hint", locale)
@@ -162,11 +156,11 @@ public struct HistoryView: View {
             TLGroup {
                 ForEach(viewModel.exerciseOptions) { option in
                     NavigationLink(value: option.id) {
-                        ListRow(
+                        TLListRow(
                             title: Text(verbatim: option.name),
                             subtitle: Text(verbatim: option.muscleGroup.displayName(locale)),
                             showChevron: true,
-                            leading: { CircleBadge(muscle: option.muscleGroup.badgeText(locale)) }
+                            leading: { TLBadge(muscle: option.muscleGroup.badgeText(locale)) }
                         )
                     }
                 }

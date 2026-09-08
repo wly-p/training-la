@@ -1,0 +1,222 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>ProjectedWorkoutRow</title>
+<link rel="stylesheet" href="../../tokens/tokens.css">
+<link rel="stylesheet" href="../../preview.css">
+<style>
+  body { max-width: 62rem; line-height: 1.7; }
+  h1, h2, h3 { font-family: var(--font-page-title-family); line-height: 1.35; }
+  h1 { font-size: var(--font-page-title); margin: 0 0 var(--space-gap-l); }
+  h2 { font-size: var(--font-card-title); margin: var(--space-section) 0 var(--space-gap-m);
+       padding-top: var(--space-gap-m); border-top: 1px solid var(--border-subtle); }
+  h3 { font-size: var(--font-row-title); margin: var(--space-gap-l) 0 var(--space-gap-s); }
+  a { color: var(--accent-on-surface); }
+  table { border-collapse: collapse; width: 100%; margin: var(--space-gap-m) 0;
+          display: block; overflow-x: auto; }
+  th, td { text-align: left; padding: var(--space-gap-s) var(--space-gap-m);
+           border-bottom: 1px solid var(--border-subtle); vertical-align: top; }
+  th { font-size: var(--font-kicker); letter-spacing: var(--font-kicker-tracking);
+       text-transform: uppercase; color: var(--text-tertiary); }
+  pre { background: var(--surface-raised); border-radius: var(--radius-inner);
+        padding: var(--space-gap-m); overflow-x: auto; }
+  pre code { background: none; padding: 0; }
+  blockquote { margin: var(--space-gap-m) 0; padding-left: var(--space-gap-m);
+               border-left: 3px solid var(--border-subtle); color: var(--text-secondary); }
+  .back { font-size: var(--font-row-sub); margin-bottom: var(--space-gap-l); display: block; }
+</style>
+<a class="back" href="../../index.html">← 元件庫索引</a>
+<h1>ProjectedWorkoutRow</h1>
+<h2>1 身分</h2>
+<table>
+<thead>
+<tr>
+<th></th>
+<th></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>層級</td>
+<td>L3 有機體</td>
+</tr>
+<tr>
+<td>職責</td>
+<td>課表某一天的一列 —— <strong>長期課表投影出來、還沒落地</strong>的訓練</td>
+</tr>
+<tr>
+<td>原型 id</td>
+<td><code>12d</code></td>
+</tr>
+<tr>
+<td>獨立使用</td>
+<td><strong>否 —— 必須置於 <code>TLGroup</code> 之內</strong></td>
+</tr>
+<tr>
+<td>容器責任</td>
+<td>圓角、底色、分隔線由 <code>TLGroup</code> 負責</td>
+</tr>
+<tr>
+<td>實作</td>
+<td><code>Packages/Plan/Sources/PlanPresentation/Components/ProjectedWorkoutRow.swift</code></td>
+</tr>
+<tr>
+<td>Preview</td>
+<td><code>design-system/organisms/ProjectedWorkoutRow/ProjectedWorkoutRow.preview.html</code></td>
+</tr>
+<tr>
+<td>Preview CSS</td>
+<td>無自己的樣式</td>
+</tr>
+</tbody>
+</table>
+<p><strong>組成</strong>：<code>TLListRow</code>（L2）＋ <code>TLBadge</code>（L1）。</p>
+<h2>2 介面 ★</h2>
+<p><strong>Props</strong></p>
+<table>
+<thead>
+<tr>
+<th>名稱</th>
+<th>型別</th>
+<th>值域</th>
+<th>必填</th>
+<th>預設</th>
+<th>說明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>title</code></td>
+<td><code>Text</code></td>
+<td></td>
+<td>是</td>
+<td>—</td>
+<td>名稱</td>
+</tr>
+<tr>
+<td><code>summary</code></td>
+<td><code>Text</code></td>
+<td></td>
+<td>是</td>
+<td>—</td>
+<td>副標＝組成摘要</td>
+</tr>
+<tr>
+<td><code>addLabel</code></td>
+<td><code>Text</code></td>
+<td></td>
+<td>是</td>
+<td>—</td>
+<td>「加入這天」的文案</td>
+</tr>
+<tr>
+<td><code>onAdd</code></td>
+<td><code>() -&gt; Void</code></td>
+<td></td>
+<td>是</td>
+<td>—</td>
+<td>把投影變成真實排課</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Slots</strong> — N/A
+<strong>事件</strong> — <code>onAdd</code></p>
+<h2>3 變體 variants</h2>
+<p>無。</p>
+<h2>4 狀態 states ★</h2>
+<!-- states: default -->
+<!-- themes: light, dark -->
+
+<table>
+<thead>
+<tr>
+<th>類別</th>
+<th>狀態</th>
+<th>這個元件</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>互動</td>
+<td>default / pressed / disabled / focused</td>
+<td><strong>整列不可點</strong>，只有右側的「加入這天」可按</td>
+</tr>
+<tr>
+<td>選取</td>
+<td>selected / unselected / indeterminate</td>
+<td>N/A</td>
+</tr>
+<tr>
+<td>資料</td>
+<td>empty / loading / error</td>
+<td>N/A</td>
+</tr>
+<tr>
+<td>內容極值</td>
+<td>最短 / 最長 / 溢出</td>
+<td>名稱與摘要一行截斷；右側按鈕不縮</td>
+</tr>
+<tr>
+<td>主題</td>
+<td>light / dark</td>
+<td>兩者都有</td>
+</tr>
+<tr>
+<td>語言</td>
+<td>中文 / 英文</td>
+<td>「加入這天」在英文較長，是右欄寬度的決定因素</td>
+</tr>
+</tbody>
+</table>
+<h2>5 度量與行為</h2>
+<p>全部由 <code>TLListRow</code> 決定。</p>
+<h3>動態</h3>
+<p>無。</p>
+<h2>6 配色 ★</h2>
+<table>
+<thead>
+<tr>
+<th>用途</th>
+<th>token</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>圓章底／圖示</td>
+<td><code>neutral-200</code> / <code>neutral-600</code></td>
+</tr>
+<tr>
+<td>「加入這天」</td>
+<td><code>accent-700</code></td>
+</tr>
+</tbody>
+</table>
+<p><strong>圓章刻意是灰的</strong> —— 這一列還不存在，用赭紅會讓它看起來已經排好了。</p>
+<h2>7 用法與禁用法</h2>
+<p><strong>用它</strong>：長期課表投影到某一天、但還沒落地的建議。</p>
+<p><strong>易混淆</strong>：<code>PlanWorkoutRow</code> —— 那個是<strong>已經存在</strong>的排課：圓章是序號或勾、整列可點。
+判準：這一筆已經存在了嗎？</p>
+<p><strong>不要用它</strong>：
+- 讓整列可點 —— 這一列還不是真的排課，不該點哪裡都觸發落地
+- 用序號圓章 —— 它還沒有序，落地之後才有</p>
+<h2>8 變更紀錄</h2>
+<table>
+<thead>
+<tr>
+<th>日期</th>
+<th>改動</th>
+<th>原因</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>2026-08-31</td>
+<td>從 <code>PlanScheduleView</code> 抽出成 L3</td>
+<td>階段 4 的分層落地</td>
+</tr>
+<tr>
+<td>2026-08-31</td>
+<td><strong>驗證結果：純由 L2／L1 組成，零缺口</strong></td>
+<td></td>
+</tr>
+</tbody>
+</table>

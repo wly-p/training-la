@@ -187,6 +187,17 @@ public struct RestDayInfo: Equatable, Sendable {
     }
 }
 
+/// 「重複上次」用：一個動作與它上次的組數（不含重量/次數，練習時重新輸入）。
+public struct RepeatWorkoutExercise: Equatable, Sendable {
+    public let exerciseId: UUID
+    public let setCount: Int
+
+    public init(exerciseId: UUID, setCount: Int) {
+        self.exerciseId = exerciseId
+        self.setCount = setCount
+    }
+}
+
 /// port：今天的排課（給訓練首頁的排課卡）＋ 依 id 找回藍圖（恢復進行中場次用）
 /// ＋ 課表範本清單／依範本實例化成當日排課藍圖（「選範本開始」用）。
 public protocol PlannedWorkoutProvider: Sendable {
@@ -207,9 +218,18 @@ public protocol PlannedWorkoutProvider: Sendable {
     /// 「把明天的腿日挪到今天」（13f 左）：跟 `activeRestDay()` 同一筆套用，把今天與下一個訓練日對調。
     /// 只影響那兩天，之後的節奏照舊。
     func moveNextWorkoutToToday() async throws
+    /// 「重複上次」：依指定動作序列材料化一份不含重量/次數目標的當日排課，回傳其藍圖；序列空＝nil。
+    func repeatWorkout(exercises: [RepeatWorkoutExercise]) async throws -> PlannedWorkoutBlueprint?
+}
+
+extension PlannedWorkoutProvider {
+    public func repeatWorkout(exercises: [RepeatWorkoutExercise]) async throws -> PlannedWorkoutBlueprint? { nil }
 }
 
 /// port：訓練結束時回報排課進度（App 接到 Plan domain 的標記完成）。
 public protocol PlanProgressRecorder: Sendable {
     func markDone(planWorkoutId: UUID) async throws
+    /// 捨棄整場時清掉循環課表落地留下的孤兒排課。
+    /// Plan 端只會刪 `origin == .rotation` 的——其餘來源的排課要留著讓使用者重來。
+    func discardOrphanPlan(planWorkoutId: UUID) async throws
 }

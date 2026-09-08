@@ -289,6 +289,54 @@
           }
         }
       }
+    },
+    "launch.error.title" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Unable to Initialize"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "無法初始化"
+          }
+        }
+      }
+    },
+    "launch.error.message" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Failed to initialize the data layer. Please try again."
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "無法初始化資料層，請重試。"
+          }
+        }
+      }
+    },
+    "launch.error.retry" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Retry"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "重試"
+          }
+        }
+      }
     }
   },
   "version" : "1.0"

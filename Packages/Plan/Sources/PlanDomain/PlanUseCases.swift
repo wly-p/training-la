@@ -37,7 +37,8 @@ public struct CreatePlanWorkout: Sendable {
     public func callAsFunction(
         name: String?,
         date: DayDate,
-        drafts: [ExerciseTargetDraft]
+        drafts: [ExerciseTargetDraft],
+        origin: PlanOrigin = .manual
     ) async throws -> PlanWorkout {
         guard !drafts.isEmpty else { throw PlanWorkoutValidationError.empty }
         let orderIndex = (try await repository.onDate(date).map(\.orderIndex).max() ?? -1) + 1
@@ -47,6 +48,7 @@ public struct CreatePlanWorkout: Sendable {
             date: date,
             status: .notStarted,
             templateId: nil,
+            origin: origin,
             orderIndex: orderIndex,
             sets: PlanSet.make(from: drafts, makeID: makeID)
         )
@@ -85,6 +87,10 @@ public struct UpdatePlanWorkout: Sendable {
             date: date,
             status: existing.status,
             templateId: existing.templateId,
+            // 沿用原本的來源標記，不要在編輯時被重設成 .manual。
+            // 註：`assignmentId` 與 `weightSource` 目前仍會在這裡遺失（體檢 P4-1），
+            // 那兩個跟長期課表的投影去重綁在一起，隨模型重做一起處理。
+            origin: existing.origin,
             orderIndex: existing.orderIndex,
             sets: PlanSet.make(from: drafts, makeID: makeID)
         )
@@ -102,16 +108,61 @@ public struct DeletePlanWorkout: Sendable {
 /// 標記排課完成（訓練結束時由 Training 透過 port 觸發）。
 public struct MarkPlanWorkoutDone: Sendable {
     private let repository: any PlanWorkoutRepository
-    public init(repository: any PlanWorkoutRepository) { self.repository = repository }
+    private let rotationRepository: (any RotationRepository)?
+
+    /// `rotationRepository`：循環課表落地的排課完成時要推它的游標。
+    /// 傳 nil＝不處理循環（測試與不涉及循環的呼叫端）。
+    public init(
+        repository: any PlanWorkoutRepository,
+        rotationRepository: (any RotationRepository)? = nil
+    ) {
+        self.repository = repository
+        self.rotationRepository = rotationRepository
+    }
 
     public func callAsFunction(id: UUID) async throws {
         guard var planWorkout = try await repository.get(id: id) else { return }
+        // 原本就已經是 done 的話不重複推進——重複標記完成不該讓循環連跳兩張。
+        let wasAlreadyDone = planWorkout.status == .done
         planWorkout.status = .done
         try await repository.save(planWorkout)
+
+        guard !wasAlreadyDone,
+              let rotationId = planWorkout.rotationId,
+              let rotationRepository,
+              let rotation = try await rotationRepository.get(id: rotationId) else { return }
+        // 做完一張＝次數 +1、游標往下（詳情頁「已完成 N 次訓練」「N 輪」由此累計）。
+        // 推進的時機是「完成」而不是「開始」：開始就推的話，中途捨棄整場會白跳一輪。
+        var next = rotation.advanced()
+        next.completedCount += 1
+        try await rotationRepository.save(next)
+    }
+}
+
+/// 捨棄整場訓練時，清掉「按下開始那一刻才生出來、沒有別人引用」的孤兒排課。
+///
+/// 循環課表的排課由 `StartRotation` 生出來、「重複上次」的排課由 `CreatePlanWorkout(origin: .repeatLast)`
+/// 生出來，兩者都是那一刻才建立、除了那場訓練沒有別人引用它；訓練被捨棄之後它就是一張
+/// 沒人會做的孤兒，留在當天只會擋路。
+///
+/// **只刪 `origin == .rotation` 或 `.repeatLast`**：手動／範本／長期課表的排課是使用者（或投影）
+/// 事先排好的，捨棄訓練後要留著讓他重來，刪掉等於幫他把課表改了。
+public struct DiscardOrphanPlanWorkout: Sendable {
+    private let repository: any PlanWorkoutRepository
+    public init(repository: any PlanWorkoutRepository) { self.repository = repository }
+
+    public func callAsFunction(id: UUID) async throws {
+        guard let planWorkout = try await repository.get(id: id),
+              planWorkout.origin == .rotation || planWorkout.origin == .repeatLast else { return }
+        try await repository.delete(id: id)
     }
 }
 
 /// 還原排課為未開始（刪除對應訓練場次、該排課已無完成紀錄時觸發）。
+///
+/// **刻意不回捲循環游標**：對稱地想，`MarkPlanWorkoutDone` 會推游標，這裡似乎該退一格。
+/// 但使用者從歷史刪掉的可能是三個月前的某一場，把「現在輪到哪一張」往回挪是錯的——
+/// 循環的位置反映的是接下來要練什麼，不是歷史紀錄的計數。這是決定，不是漏掉。
 public struct RevertPlanWorkoutDone: Sendable {
     private let repository: any PlanWorkoutRepository
     public init(repository: any PlanWorkoutRepository) { self.repository = repository }
@@ -221,7 +272,11 @@ public struct UpdateTemplate: Sendable {
 }
 
 /// 複製範本（14a）：深拷貝全部 sets（含逐組表達式），重新產生所有 id，
-/// 名稱加「· 副本」，接在清單末端。複製出來的是完全獨立的一份，改它不影響原本那份。
+/// 名稱接上呼叫端給的後綴，排在清單末端。複製出來的是完全獨立的一份，改它不影響原本那份。
+///
+/// 後綴由呼叫端傳入而不是寫在這裡：Domain 拿不到 locale，寫死「· 副本」的話
+/// 英文介面複製出來也會是中文（體檢 E2）。名稱會被持久化，所以要在寫入當下就解析成
+/// 使用者當時的語言，不能像 UI 文案那樣延後解析。
 public struct DuplicateTemplate: Sendable {
     private let repository: any WorkoutTemplateRepository
     private let makeID: @Sendable () -> UUID
@@ -238,7 +293,8 @@ public struct DuplicateTemplate: Sendable {
     }
 
     @discardableResult
-    public func callAsFunction(id: UUID) async throws -> WorkoutTemplate {
+    /// - Parameter nameSuffix: 接在原名後面的後綴（含分隔符），例如 `" · 副本"` / `" · Copy"`。
+    public func callAsFunction(id: UUID, nameSuffix: String) async throws -> WorkoutTemplate {
         guard let original = try await repository.get(id: id) else {
             throw WorkoutTemplateRepositoryError.notFound(id: id)
         }
@@ -246,7 +302,7 @@ public struct DuplicateTemplate: Sendable {
         let timestamp = now()
         let copy = WorkoutTemplate(
             id: makeID(),
-            name: "\(original.name) · 副本",
+            name: original.name + nameSuffix,
             source: .user,
             orderIndex: orderIndex,
             sets: original.sets.map { set in
@@ -318,6 +374,7 @@ public struct InstantiateTemplate: Sendable {
             date: date,
             status: .notStarted,
             templateId: template.id,
+            origin: .template,
             orderIndex: orderIndex,
             sets: sets
         )

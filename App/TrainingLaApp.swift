@@ -1,22 +1,44 @@
 import SharedKernel
 import SwiftUI
 
+private enum LaunchPhase {
+    case ready(AppDependencies)
+    case failed(Error)
+}
+
 @main
 struct TrainingLaApp: App {
-    private let dependencies: AppDependencies
+    var body: some Scene {
+        WindowGroup {
+            AppLaunchView()
+        }
+    }
+}
+
+private struct AppLaunchView: View {
+    @State private var phase: LaunchPhase
 
     init() {
+        _phase = State(initialValue: Self.attemptInit())
+    }
+
+    private static func attemptInit() -> LaunchPhase {
+        let inMemory = CommandLine.arguments.contains("--uitest-inmemory")
         do {
-            let inMemory = CommandLine.arguments.contains("--uitest-inmemory")
-            dependencies = try AppDependencies.live(inMemory: inMemory)
+            return .ready(try AppDependencies.live(inMemory: inMemory))
         } catch {
-            fatalError("無法初始化資料層：\(error)")
+            return .failed(error)
         }
     }
 
-    var body: some Scene {
-        WindowGroup {
+    var body: some View {
+        switch phase {
+        case .ready(let dependencies):
             RootContainerView(dependencies: dependencies)
+        case .failed(let error):
+            LaunchErrorView(error: error) {
+                phase = Self.attemptInit()
+            }
         }
     }
 }
@@ -33,5 +55,8 @@ private struct RootContainerView: View {
             onEraseAll: { resetToken = UUID() }
         )
         .id(resetToken)
+        // DEBUG 的假資料產生器（`--debug-seed=`）。沒帶參數就什麼都不做，
+        // release build 連這個 closure 都是空的。
+        .task { await dependencies.seedDebugDataIfRequested() }
     }
 }

@@ -1,0 +1,83 @@
+<!-- @dsCard group="Organisms" name="WorkoutHistoryRow" subtitle="歷史清單（依日期）的一列" -->
+<!doctype html>
+<meta charset="utf-8">
+<title>WorkoutHistoryRow</title>
+<link rel="stylesheet" href="../../tokens/tokens.css">
+<link rel="stylesheet" href="../../preview.css">
+<link rel="stylesheet" href="../../components.preview.css">
+<h1>WorkoutHistoryRow</h1>
+<p class="note">
+  L3 有機體。歷史清單（依日期）的一列。左件是<b>日期柱</b>：日數 ＋ 星期兩行堆疊、固定寬。
+</p>
+
+<div class="kicker">狀態</div>
+<div class="group">
+  <div class="row tl-list-row--with-sub" data-state="default">
+    <span class="tl-date-column">
+      <span class="tl-date-column__day num">27</span>
+      <span class="tl-date-column__weekday">週一</span>
+    </span>
+    <span class="tl-row-content__text">
+      <span class="tl-row-content__title">項目名稱</span>
+      <span class="tl-row-content__sub">內容一 · 內容二 · 42 分</span>
+    </span>
+    <svg class="tl-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg>
+  </div>
+  <div class="row tl-list-row--with-sub">
+    <span class="tl-date-column">
+      <span class="tl-date-column__day num">9</span>
+      <span class="tl-date-column__weekday">週三</span>
+    </span>
+    <span class="tl-row-content__text">
+      <span class="tl-row-content__title">另一個項目</span>
+      <span class="tl-row-content__sub">內容一 · 內容二</span>
+    </span>
+    <svg class="tl-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg>
+  </div>
+</div>
+<p class="note">
+  <b>固定寬是為了讓整個月的日期左緣對齊</b> —— 寬度跟著內容走的話，
+  上面那兩列（27 與 9）就會差一個字寬。
+</p>
+
+<div class="kicker">⚠ 列首固定欄有三種寬度</div>
+<p class="note">
+  <code>40</code>（日期柱）、<code>44</code>（逐組列的組序）、<code>48</code>（範本編輯的組序）。
+  <b>後兩者是同一個角色的兩個值</b>，待收斂。
+</p>
+
+<div class="kicker">主題</div>
+<div class="themes">
+  <div class="pane" data-theme="light">
+    <div class="kicker">light</div>
+    <div class="group"><div class="row tl-list-row--with-sub">
+      <span class="tl-date-column">
+        <span class="tl-date-column__day num">27</span>
+        <span class="tl-date-column__weekday">週一</span>
+      </span>
+      <span class="tl-row-content__text">
+        <span class="tl-row-content__title">項目名稱</span>
+        <span class="tl-row-content__sub">內容一 · 內容二</span>
+      </span></div></div>
+  </div>
+  <div class="pane" data-theme="dark">
+    <div class="kicker">dark（目前是 light 的複製）</div>
+    <div class="group"><div class="row tl-list-row--with-sub">
+      <span class="tl-date-column">
+        <span class="tl-date-column__day num">27</span>
+        <span class="tl-date-column__weekday">週一</span>
+      </span>
+      <span class="tl-row-content__text">
+        <span class="tl-row-content__title">項目名稱</span>
+        <span class="tl-row-content__sub">內容一 · 內容二</span>
+      </span></div></div>
+  </div>
+</div>
+
+<div class="kicker">不適用的狀態</div>
+<p class="note">
+  disabled／selected —— 歷史是唯讀的清單，不做選取。<br>
+  empty —— 空清單是 <code>TLEmptyState</code> 的事。
+</p>

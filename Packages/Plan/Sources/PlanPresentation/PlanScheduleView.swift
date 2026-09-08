@@ -1,9 +1,10 @@
+import DesignControls
 import DesignSystem
 import PlanDomain
 import SharedKernel
 import SwiftUI
 
-/// 課表分頁（設計稿 `21a` / `22h` / `22j`）：週列與月檢視是 `MonthDateStrip` 的兩個高度，
+/// 課表分頁（設計稿 `21a` / `22h` / `22j`）：週列與月檢視是 `TLMonthDateStrip` 的兩個高度，
 /// 原地展開，沒有 sheet、沒有遮罩、沒有「取消」。預設是收合的一列（`22j`）。
 public struct PlanScheduleView: View {
     @Bindable private var viewModel: PlanScheduleViewModel
@@ -14,6 +15,7 @@ public struct PlanScheduleView: View {
     /// （翻到 12 月再往下一個月，年份得跳到隔年）。
     @State private var calendarAnchor: Date?
     @Environment(\.locale) private var locale
+    @Environment(\.scenePhase) private var scenePhase
 
     public init(viewModel: PlanScheduleViewModel) {
         self.viewModel = viewModel
@@ -23,7 +25,7 @@ public struct PlanScheduleView: View {
         NavigationStack {
             ScrollView {
                 VStack(alignment: .leading, spacing: 0) {
-                    PageHeader(localText("plan.title"), kicker: monthKicker) {
+                    TLPageHeader(localText("plan.title"), kicker: monthKicker) {
                         Menu {
                             Button {
                                 editing = .create(viewModel.selectedDate)
@@ -39,22 +41,24 @@ public struct PlanScheduleView: View {
                             Button {
                                 applyingProgram = true
                             } label: {
-                                Label { localText("plan.applyProgram") } icon: { Image(systemName: "calendar.badge.clock") }
+                                Label {
+                                    // 長期課表尚未完成（見 ProgramListView.experimentalNotice），
+                                    // 入口保留但要標明，別讓人以為是完成品。
+                                    localText("plan.applyProgram")
+                                        + Text(verbatim: " ")
+                                        + localText("plan.applyProgram.experimental")
+                                } icon: { Image(systemName: "calendar.badge.clock") }
                             }
                             .accessibilityIdentifier("plan.applyProgram")
                         } label: {
-                            Image(systemName: "plus")
-                                .font(.system(size: 18, weight: .semibold))
-                                .foregroundStyle(TLColor.bg)
-                                .frame(width: TLSize.iconButton, height: TLSize.iconButton)
-                                .background(TLColor.accent)
-                                .clipShape(Capsule())
+                            // Menu 的 label 不是 Button，所以用視覺元件而不是 TLCircleIconButton
+                            TLCircleIcon(systemImage: "plus")
                         }
                         .accessibilityLabel(localText("plan.new"))
                         .accessibilityIdentifier("plan.new")
                     }
 
-                    MonthDateStrip(
+                    TLMonthDateStrip(
                         selectedDate: selectedDateBinding,
                         anchorDate: calendarAnchorBinding,
                         today: viewModel.today.asDate,
@@ -69,13 +73,17 @@ public struct PlanScheduleView: View {
                         .padding(.horizontal, TLSpace.page)
                         .padding(.top, TLSpace.section)
                 }
-                .padding(.bottom, 40)
+                .padding(.bottom, TLSpace.pageBottom)
             }
             .background(TLColor.bg.ignoresSafeArea())
             #if os(iOS)
             .toolbar(.hidden, for: .navigationBar)
             #endif
             .task { await viewModel.load() }
+            // 回前景重新載入：App 擺著過午夜後「今天」已經變了，補登邊界與投影起點都要跟著重算。
+            .onChange(of: scenePhase) { _, phase in
+                if phase == .active { Task { await viewModel.load() } }
+            }
             .sheet(item: $editing) { target in
                 PlanWorkoutFormView(
                     target: target,
@@ -91,7 +99,7 @@ public struct PlanScheduleView: View {
                 }
             }
             .sheet(isPresented: $pickingTemplate) {
-                PickerSheet(
+                TLPickerSheet(
                     title: localText("plan.addFromTemplate"),
                     searchPrompt: localText("plan.searchTemplates"),
                     allItems: viewModel.templates.map { TemplatePickerItem(template: $0, name: viewModel.name(for:)) },
@@ -124,17 +132,31 @@ public struct PlanScheduleView: View {
             ) {
                 Button(role: .cancel) {} label: { localText("plan.ok") }
             } message: {
-                Text(viewModel.errorMessage ?? "")
+                // `?? ""` 會讓那個空字串變成可翻譯字面量，被抽進 String Catalog
+                // 變成一個永遠不會被翻譯的空 key（體檢 E11）。改成條件式。
+                if let message = viewModel.errorMessage { Text(message) }
             }
         }
     }
 
     // MARK: - 月曆橋接
 
-    /// 月曆的日期運算用固定的西曆，只有「顯示字串」才吃 locale（星期縮寫、月名）。
-    private static let calendar = Calendar(identifier: .gregorian)
+    /// 月曆的**曆法**鎖死西曆（不跟隨裝置，避免佛曆／和曆把年份算成別的數字），
+    /// 但「一週從星期幾開始」要跟隨裝置的**地區**設定。
+    ///
+    /// `Calendar(identifier:)` 不帶 locale，`firstWeekday` 會固定是 1（週日）——
+    /// 那是搭便車跟著曆法一起被鎖死的，並非本意。結果是月曆永遠週日起算，
+    /// 而訓練首頁的本週進度列原本寫死週一起算，同一個 app 兩個畫面對「一週」的定義不同。
+    /// 現在兩邊都吃 `Calendar.current.firstWeekday`（台灣／美國＝週日，英國＝週一）。
+    ///
+    /// 顯示字串（星期縮寫、月名）仍在 View 那層依 app 語言處理，跟這裡無關。
+    private static let calendar: Calendar = {
+        var calendar = Calendar(identifier: .gregorian)
+        calendar.firstWeekday = Calendar.current.firstWeekday
+        return calendar
+    }()
 
-    /// `MonthDateStrip` 只吃 `Date`；`PlanScheduleViewModel.selectedDate` 是 `DayDate`
+    /// `TLMonthDateStrip` 只吃 `Date`；`PlanScheduleViewModel.selectedDate` 是 `DayDate`
     /// （見 SharedKernel：純日曆日，避免時區把日期偏移一天），這裡互轉。
     private var selectedDateBinding: Binding<Date> {
         Binding(
@@ -153,7 +175,7 @@ public struct PlanScheduleView: View {
 
     /// 四種狀態一對一。`projected` 不再壓成 `scheduled` —— 長期課表說這天要練、但還沒按
     /// 「加入這天」落地，畫成虛線外框才不會讓建議看起來像已確定的排課。
-    private func calendarMark(for date: DayDate) -> MonthDateStrip.DayMark {
+    private func calendarMark(for date: DayDate) -> TLMonthDateStrip.DayMark {
         switch viewModel.mark(on: date) {
         case .done: .completed
         case .scheduled: .scheduled
@@ -162,8 +184,8 @@ public struct PlanScheduleView: View {
         }
     }
 
-    private var calendarLabels: MonthDateStrip.Labels {
-        MonthDateStrip.Labels(
+    private var calendarLabels: TLMonthDateStrip.Labels {
+        TLMonthDateStrip.Labels(
             today: localText("plan.calendar.today"),
             legendCompleted: localText("plan.calendar.legend.completed"),
             legendScheduled: localText("plan.calendar.legend.scheduled"),
@@ -187,7 +209,7 @@ public struct PlanScheduleView: View {
         let items = viewModel.workouts(on: viewModel.selectedDate)
         let projected = viewModel.projections(on: viewModel.selectedDate)
         return VStack(alignment: .leading, spacing: 0) {
-            SectionHeader(dayHeader(
+            TLSectionHeader(dayHeader(
                 // 一列是一份排課，裡面可能有好幾個動作 —— 標題寫的是「動作」，
                 // 就得數動作（blocks 一塊一個動作），不是數列數。
                 exerciseCount: items.reduce(0) { $0 + $1.blocks.count }
@@ -216,28 +238,17 @@ public struct PlanScheduleView: View {
         localText("plan.day.empty")
             .font(TLFont.zh(TLFont.rowSub, .regular))
             .foregroundStyle(TLColor.neutral500)
-            .padding(.vertical, 18)
+            .padding(.vertical, TLSpace.rowInset)
     }
 
     private func row(_ plan: PlanWorkout) -> some View {
-        ListRow(
+        PlanWorkoutRow(
             title: plan.name.map { Text(verbatim: $0) } ?? localText("plan.untitled"),
-            subtitle: Text(PlanFormatting.summary(plan, name: viewModel.name(for:), language: AppLanguage(locale: locale))),
-            showChevron: true,
-            onTap: { editing = .edit(plan) },
-            leading: {
-                CircleBadge(fill: plan.status == .done ? TLColor.accent : TLColor.neutral300) {
-                    if plan.status == .done {
-                        Image(systemName: "checkmark")
-                            .font(.system(size: 13, weight: .bold))
-                            .foregroundStyle(TLColor.bg)
-                    } else {
-                        Text(verbatim: "\(plan.orderIndex + 1)")
-                            .font(TLFont.display(15))
-                            .foregroundStyle(TLColor.neutral700)
-                    }
-                }
-            }
+            summary: Text(PlanFormatting.summary(plan, name: viewModel.name(for:),
+                                                 language: AppLanguage(locale: locale))),
+            orderIndex: plan.orderIndex,
+            isDone: plan.status == .done,
+            onTap: { editing = .edit(plan) }
         )
         .contextMenu {
             Button(role: .destructive) {
@@ -249,25 +260,13 @@ public struct PlanScheduleView: View {
     }
 
     /// 長期課表投影建議（尚未落地）：顯示「排定：X」＋「加入這天」把它變成真實排課。
-    /// 「加入這天」是獨立按鈕（不是整列 tap）——這一列本身還不是真的排課，不該點哪裡都觸發落地。
     private func projectedRow(_ projected: ProjectedWorkout) -> some View {
-        ListRow(
+        ProjectedWorkoutRow(
             title: Text(verbatim: projected.spec.name),
-            subtitle: Text(PlanFormatting.summary(projected.spec, name: viewModel.name(for:), language: AppLanguage(locale: locale))),
-            leading: {
-                CircleBadge(icon: "calendar.badge.clock", fill: TLColor.neutral200, tint: TLColor.neutral600)
-            },
-            trailing: {
-                Button {
-                    Task { await viewModel.materialize(projected) }
-                } label: {
-                    Text("plan.addThisDay", bundle: .module)
-                        .font(TLFont.zh(TLFont.rowSub, .semibold))
-                        .foregroundStyle(TLColor.accent700)
-                }
-                .buttonStyle(.plain)
-                .accessibilityIdentifier("plan.addThisDay")
-            }
+            summary: Text(PlanFormatting.summary(projected.spec, name: viewModel.name(for:),
+                                                 language: AppLanguage(locale: locale))),
+            addLabel: Text("plan.addThisDay", bundle: .module),
+            onAdd: { Task { await viewModel.materialize(projected) } }
         )
     }
 

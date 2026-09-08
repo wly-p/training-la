@@ -1,0 +1,60 @@
+<!-- @dsCard group="Molecules" name="TLGroup" subtitle="把一組列包成一張卡" -->
+<!doctype html>
+<meta charset="utf-8">
+<title>TLGroup</title>
+<link rel="stylesheet" href="../../tokens/tokens.css">
+<link rel="stylesheet" href="../../preview.css">
+<link rel="stylesheet" href="../../components.preview.css">
+<h1>TLGroup</h1>
+<p class="note">
+  L2 分子。把一組列包成一張卡：圓角、底色、列間分隔線（頭尾不畫）。<br>
+  <b>無變體是刻意的</b> —— 一種容器樣式是這套視覺的辨識點。
+</p>
+
+<div class="kicker">狀態</div>
+<div class="group" data-state="default">
+  <div class="row"><span class="label">第一列</span></div>
+  <div class="row"><span class="label">第二列</span></div>
+<div class="kicker">bordered —— 標「這一區是進行中的」</div>
+<div class="group tl-group--bordered" data-state="bordered">
+  <div class="row"><span class="label">項目甲</span></div>
+  <div class="row"><span class="label">項目乙</span></div>
+</div>
+<p class="note">
+  描邊<b>不是另一種容器樣式</b>，是一個標記 —— 所以它是 prop 不是變體。
+</p>
+
+  <div class="row"><span class="label">第三列</span></div>
+</div>
+
+<div class="kicker">內容極值</div>
+<div class="group">
+  <div class="row"><span class="label">只有一列時，不畫任何分隔線</span></div>
+</div>
+
+<div class="kicker">主題</div>
+<div class="themes">
+  <div class="pane" data-theme="light">
+    <div class="kicker">light</div>
+    <div class="group">
+      <div class="row"><span class="label">卡片比頁面底亮</span></div>
+      <div class="row"><span class="label">它是浮起來的</span></div>
+    </div>
+  </div>
+  <div class="pane" data-theme="dark">
+    <div class="kicker">dark（目前是 light 的複製）</div>
+    <div class="group">
+      <div class="row"><span class="label">卡片比頁面底亮</span></div>
+      <div class="row"><span class="label">它是浮起來的</span></div>
+    </div>
+  </div>
+</div>
+
+<div class="kicker">不適用的狀態</div>
+<p class="note">
+  pressed／disabled／focused —— 容器不可互動，互動歸各列。<br>
+  selected —— 它不表達選取。<br>
+  loading／error —— 沒有資料輸入。<br>
+  <b>empty 要注意</b>：沒有子項時會渲染成高度 0 的圓角矩形（看不見但佔位）。
+  沒有內容時不要放這個容器。
+</p>

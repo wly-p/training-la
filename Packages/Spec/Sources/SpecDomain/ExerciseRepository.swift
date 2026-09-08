@@ -43,3 +43,15 @@ public struct ExerciseUsageRef: Identifiable, Equatable, Sendable {
 public protocol ExerciseUsageListing: Sendable {
     func usages(exerciseId: UUID) async throws -> [ExerciseUsageRef]
 }
+
+/// 「每個動作練過幾次」的統計 port（動作庫「常用」分組用）。
+///
+/// 計次單位是**場次**不是組數：一場練 5 組臥推只算 1 次。用組數的話，
+/// 高組數動作會永遠壓過真正常做的動作——「常用」問的是「你多常做它」，不是「你做了幾組」。
+///
+/// 資料在 Training 的訓練紀錄裡，而 Spec 不依賴 Training，所以走 port 由 App 接線
+/// （同 `ExerciseUsageListing` 的作法）。
+public protocol ExerciseUsageCounting: Sendable {
+    /// 回傳 exerciseId → 練過的場次數。沒練過的動作不會出現在字典裡。
+    func usageCounts() async throws -> [UUID: Int]
+}

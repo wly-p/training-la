@@ -7,6 +7,7 @@ import TrainingDomain
 struct FinishWorkoutSheet: View {
     /// 目前語言：`localString` 要靠它才能查到 app 設定的語言（而非手機語系）。
     @Environment(\.locale) private var locale
+    @Environment(\.weightDisplayUnit) private var weightUnit
     let workout: Workout
     let workoutName: String?
     let exerciseName: (UUID) -> String
@@ -22,14 +23,29 @@ struct FinishWorkoutSheet: View {
     @State private var showsDiscardConfirm = false
 
     private var exerciseSummaries: [FinishSummaryFormatting.ExerciseSummary] {
-        FinishSummaryFormatting.exerciseSummaries(workout.blocks, nameLookup: exerciseName)
+        FinishSummaryFormatting.exerciseSummaries(workout.blocks, in: weightUnit, nameLookup: exerciseName)
     }
 
     private var achievedCount: (achieved: Int, total: Int) {
         FinishSummaryFormatting.achievedSetCount(workout.sets)
     }
 
-    private var totalVolume: Double { FinishSummaryFormatting.totalVolume(workout.sets) }
+    private var totals: SessionTotals { FinishSummaryFormatting.totals(workout.sets) }
+    private var totalVolume: Double { totals.volumeKilograms }
+
+    /// 非重量模式的分項（時間／距離／純次數）。各模式各自累計、不互相換算——
+    /// 「撐 90 秒」跟「推 100 公斤」之間沒有大小關係，湊成一個數字只會是假的總量。
+    ///
+    /// **排版與樣式屬於 B2-ui 那張設計票**，這裡只是最小呈現，讓數字不至於算完就沒人看得到。
+    /// 現階段沒有 B2-ui 就建立不了非重量模式的動作，所以這一行實際上不會出現。
+    private var otherWorkText: String? {
+        guard totals.hasNonWeightWork else { return nil }
+        var parts: [String] = []
+        if totals.durationSeconds > 0 { parts.append("\(totals.durationSeconds / 60) min") }
+        if totals.distanceMeters > 0 { parts.append("\(WeightDisplay.value(totals.distanceMeters / 1000)) km") }
+        if totals.repsOnly > 0 { parts.append("\(totals.repsOnly) reps") }
+        return parts.joined(separator: " · ")
+    }
     private var targetVolume: Double { FinishSummaryFormatting.targetVolume(workout.sets) }
 
     private var durationMinutes: Int {
@@ -49,10 +65,9 @@ struct FinishWorkoutSheet: View {
                     exerciseList
                     feelingSection
                     if showsNoteField {
-                        TextField("", text: $note, prompt: localText("training.notes.placeholder"), axis: .vertical)
-                            .padding(TLSpace.rowInset)
-                            .background(TLColor.neutral100)
-                            .clipShape(RoundedRectangle(cornerRadius: TLRadius.inner, style: .continuous))
+                        TLCard(radius: .inner) {
+                            TextField(text: $note, prompt: localText("training.notes.placeholder"), axis: .vertical) { Text(verbatim: "") }
+                        }
                     }
                     Button {
                         // 不自己 dismiss()：外層 ActiveWorkoutView 監聽 viewModel.isDismissed
@@ -78,7 +93,7 @@ struct FinishWorkoutSheet: View {
                     .frame(maxWidth: .infinity)
                 }
                 .padding(TLSpace.page)
-                .padding(.bottom, 20)
+                .padding(.bottom, TLSpace.gapL)
             }
             .background(TLColor.bg.ignoresSafeArea())
             .toolbar {
@@ -116,10 +131,10 @@ struct FinishWorkoutSheet: View {
                 .textCase(.uppercase)
                 .foregroundStyle(TLColor.accent700)
             Text(verbatim: workoutName ?? localString("training.free", locale))
-                .font(TLFont.zh(30, .bold))
+                .font(TLFont.zh(TLFont.sheetTitle, .bold))
                 .foregroundStyle(TLColor.text)
             Text(verbatim: subtitleTimeRange)
-                .font(.footnote)
+                .font(TLFont.zh(TLFont.caption))
                 .foregroundStyle(TLColor.neutral600)
         }
     }
@@ -139,54 +154,50 @@ struct FinishWorkoutSheet: View {
     // MARK: - 數字卡
 
     private var statsCard: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            HStack(alignment: .firstTextBaseline) {
-                statNumber(String(durationMinutes), label: "training.finish.minutes", alignment: .leading)
-                Spacer()
-                statNumber(WeightDisplay.value(totalVolume), label: "training.finish.totalVolume", alignment: .center)
-                Spacer()
-                achievedStat
-            }
-            if targetVolume > 0 {
-                // 6pt 圓角進度條（neutral-200 軌 ＋ 赭紅填），取代偏細的原生 ProgressView。
-                GeometryReader { geo in
-                    ZStack(alignment: .leading) {
-                        Capsule().fill(TLColor.neutral200)
-                        Capsule().fill(TLColor.accent)
-                            .frame(width: geo.size.width * min(totalVolume / targetVolume, 1))
-                    }
+        TLCard(fill: TLColor.neutral300) {
+            VStack(alignment: .leading, spacing: TLSpace.cardGap) {
+                HStack(alignment: .firstTextBaseline) {
+                    statNumber(String(durationMinutes), label: "training.finish.minutes", alignment: .leading)
+                    Spacer()
+                    statNumber(WeightDisplay.volume(totalVolume, in: weightUnit), label: "training.finish.totalVolume", alignment: .center)
+                    Spacer()
+                    achievedStat
                 }
-                .frame(height: 6)
-                Text(verbatim: String(
-                    format: localString("training.finish.volumeGoal %@ %@", locale),
-                    WeightDisplay.value(targetVolume), String(format: "%.0f%%", totalVolume / targetVolume * 100)
-                ))
-                .font(.footnote)
-                .foregroundStyle(TLColor.neutral600)
+                if let otherWorkText {
+                    Text(verbatim: String(format: localString("training.finish.otherWork %@", locale), otherWorkText))
+                        .font(TLFont.zh(TLFont.caption, .regular))
+                        .foregroundStyle(TLColor.neutral600)
+                }
+                if targetVolume > 0 {
+                    // 深底的卡上，軌道要往更淺的方向換一階（見 TLProgressBar 規格第 3 節）。
+                    TLProgressBar(ratio: totalVolume / targetVolume, track: TLColor.neutral200)
+                    Text(verbatim: String(
+                        format: localString("training.finish.volumeGoal %@ %@", locale),
+                        WeightDisplay.volume(targetVolume, in: weightUnit), String(format: "%.0f%%", totalVolume / targetVolume * 100)
+                    ))
+                    .font(TLFont.zh(TLFont.caption))
+                    .foregroundStyle(TLColor.neutral600)
+                }
             }
+            .frame(maxWidth: .infinity, alignment: .leading)
         }
-        .padding(TLSpace.rowInset)
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .background(TLColor.neutral300)
-        .clipShape(RoundedRectangle(cornerRadius: TLRadius.container, style: .continuous))
     }
 
     private func statNumber(
         _ value: String, label: String, alignment: HorizontalAlignment
     ) -> some View {
-        VStack(alignment: alignment, spacing: 2) {
-            Text(verbatim: value)
-                .font(TLFont.display(34))
-                .foregroundStyle(TLColor.text)
-            Text(LocalizedStringKey(label), bundle: .module)
-                .font(.caption2)
-                .foregroundStyle(TLColor.neutral600)
-        }
+        TLStat(
+            value: Text(verbatim: value),
+            label: Text(LocalizedStringKey(label), bundle: .module),
+            // ⚠ 34 在 display 尺度裡還沒有角色名（第二批），先由呼叫端傳。
+            numberFont: TLFont.display(34),
+            alignment: alignment
+        )
     }
 
     /// 達標組數：分子 34pt、分母縮小（`12/13` 的 `/13`），對齊右欄。
     private var achievedStat: some View {
-        VStack(alignment: .trailing, spacing: 2) {
+        VStack(alignment: .trailing, spacing: TLSpace.titleSubGap) {
             HStack(alignment: .firstTextBaseline, spacing: 0) {
                 Text(verbatim: "\(achievedCount.achieved)")
                     .font(TLFont.display(34))
@@ -196,7 +207,7 @@ struct FinishWorkoutSheet: View {
             }
             .foregroundStyle(TLColor.text)
             Text("training.finish.achievedSets", bundle: .module)
-                .font(.caption2)
+                .font(TLFont.zh(TLFont.rowSub))
                 .foregroundStyle(TLColor.neutral600)
         }
     }
@@ -205,25 +216,30 @@ struct FinishWorkoutSheet: View {
 
     private func prBanner(_ pr: ExercisePRAnnouncement) -> some View {
         let name = exerciseName(pr.exerciseId)
-        let weightText = WeightDisplay.weight(pr.weight)
+        // 重量模式的三種文案沿用既有 key；時間／距離／純次數的文案排版屬於 B2-ui 那張設計票，
+        // 現階段建立不了那種動作所以走不到，先用同一組 key 的最小填法，別讓它變成死路。
+        let weightText = pr.measurement.displayWeight.map { WeightDisplay.weight($0, in: weightUnit) } ?? ""
+        let reps = pr.measurement.displayReps ?? 0
         let text: String
         switch pr.kind {
         case .newRepsAtWeight:
-            text = String(format: localString("training.finish.pr.newReps %@ %@ %lld", locale), name, weightText, pr.reps)
-        case .newWeightAtReps:
-            text = String(format: localString("training.finish.pr.newWeight %@ %@ %lld", locale), name, weightText, pr.reps)
+            text = String(format: localString("training.finish.pr.newReps %@ %@ %lld", locale), name, weightText, reps)
+        case .newWeightAtReps, .newDuration, .newDistance, .newReps:
+            text = String(format: localString("training.finish.pr.newWeight %@ %@ %lld", locale), name, weightText, reps)
+        case .firstEver:
+            // 第一次練這個動作：說「創新高」很怪（沒有舊紀錄可破），改寫成「第一筆紀錄」。
+            text = String(format: localString("training.finish.pr.firstEver %@ %@ %lld", locale), name, weightText, reps)
         }
-        return Label {
-            Text(verbatim: text)
-        } icon: {
-            Image(systemName: "trophy.fill")
+        return TLCard(radius: .inner, fill: TLColor.sage200) {
+            Label {
+                Text(verbatim: text)
+            } icon: {
+                Image(systemName: "trophy.fill")
+            }
+            .font(TLFont.zh(TLFont.rowTitle, .semibold))
+            .foregroundStyle(TLColor.sage800)
+            .frame(maxWidth: .infinity, alignment: .leading)
         }
-        .font(.subheadline.weight(.semibold))
-        .foregroundStyle(TLColor.sage800)
-        .padding(TLSpace.rowInset)
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .background(TLColor.sage200)
-        .clipShape(RoundedRectangle(cornerRadius: TLRadius.inner, style: .continuous))
     }
 
     // MARK: - 這場做了什麼
@@ -252,7 +268,7 @@ struct FinishWorkoutSheet: View {
                         achievementBadge(summary.allAchieved)
                     }
                     .padding(.horizontal, TLSpace.rowInset)
-                    .padding(.vertical, 14)
+                    .padding(.vertical, TLSpace.fieldPadV)
                 }
             }
         }
@@ -274,13 +290,13 @@ struct FinishWorkoutSheet: View {
     private var feelingSection: some View {
         VStack(alignment: .leading, spacing: TLSpace.gapS) {
             localText("training.howFeel")
-                .font(.footnote)
+                .font(TLFont.zh(TLFont.caption))
                 .foregroundStyle(TLColor.neutral500)
-            HStack(spacing: 8) {
+            HStack(spacing: TLSpace.gapS) {
                 feelingChip(value: 1, label: "training.finish.feeling.easy")
                 feelingChip(value: 3, label: "training.finish.feeling.justRight")
                 feelingChip(value: 5, label: "training.finish.feeling.hard")
-                SelectableChip(
+                TLSelectableChip(
                     localString("training.finish.addNote", locale),
                     isSelected: showsNoteField,
                     selectedFill: TLColor.accent, selectedText: TLColor.bg,
@@ -291,7 +307,7 @@ struct FinishWorkoutSheet: View {
     }
 
     private func feelingChip(value: Int, label: String) -> some View {
-        SelectableChip(
+        TLSelectableChip(
             localString(label, locale),
             isSelected: feeling == value,
             selectedFill: TLColor.accent, selectedText: TLColor.bg,

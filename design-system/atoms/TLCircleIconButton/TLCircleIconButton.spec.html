@@ -1,0 +1,311 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>TLCircleIconButton</title>
+<link rel="stylesheet" href="../../tokens/tokens.css">
+<link rel="stylesheet" href="../../preview.css">
+<style>
+  body { max-width: 62rem; line-height: 1.7; }
+  h1, h2, h3 { font-family: var(--font-page-title-family); line-height: 1.35; }
+  h1 { font-size: var(--font-page-title); margin: 0 0 var(--space-gap-l); }
+  h2 { font-size: var(--font-card-title); margin: var(--space-section) 0 var(--space-gap-m);
+       padding-top: var(--space-gap-m); border-top: 1px solid var(--border-subtle); }
+  h3 { font-size: var(--font-row-title); margin: var(--space-gap-l) 0 var(--space-gap-s); }
+  a { color: var(--accent-on-surface); }
+  table { border-collapse: collapse; width: 100%; margin: var(--space-gap-m) 0;
+          display: block; overflow-x: auto; }
+  th, td { text-align: left; padding: var(--space-gap-s) var(--space-gap-m);
+           border-bottom: 1px solid var(--border-subtle); vertical-align: top; }
+  th { font-size: var(--font-kicker); letter-spacing: var(--font-kicker-tracking);
+       text-transform: uppercase; color: var(--text-tertiary); }
+  pre { background: var(--surface-raised); border-radius: var(--radius-inner);
+        padding: var(--space-gap-m); overflow-x: auto; }
+  pre code { background: none; padding: 0; }
+  blockquote { margin: var(--space-gap-m) 0; padding-left: var(--space-gap-m);
+               border-left: 3px solid var(--border-subtle); color: var(--text-secondary); }
+  .back { font-size: var(--font-row-sub); margin-bottom: var(--space-gap-l); display: block; }
+</style>
+<a class="back" href="../../index.html">← 元件庫索引</a>
+<h1>TLCircleIconButton</h1>
+<h2>1 身分</h2>
+<table>
+<thead>
+<tr>
+<th></th>
+<th></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>層級</td>
+<td>L1 原子</td>
+</tr>
+<tr>
+<td>職責</td>
+<td>圓形的圖示按鈕</td>
+</tr>
+<tr>
+<td>原型 id</td>
+<td><code>4c</code>（標題右側的＋）、月曆標題列的 <code>‹ ›</code>、drill-in 子頁的返回</td>
+</tr>
+<tr>
+<td>獨立使用</td>
+<td>是 —— 它自己就是一個完整的觸控目標</td>
+</tr>
+<tr>
+<td>容器責任</td>
+<td>與相鄰元素的間距由放它的列或列容器負責</td>
+</tr>
+<tr>
+<td>實作</td>
+<td><code>Packages/DesignSystem/Sources/DesignSystem/Atoms/TLCircleIconButton.swift</code></td>
+</tr>
+<tr>
+<td>Preview</td>
+<td><code>design-system/atoms/TLCircleIconButton/TLCircleIconButton.preview.html</code></td>
+</tr>
+<tr>
+<td>Preview CSS</td>
+<td><code>components.preview.css</code> §TLCircleIconButton</td>
+</tr>
+</tbody>
+</table>
+<h2>2 介面 ★</h2>
+<p><strong>Props</strong></p>
+<table>
+<thead>
+<tr>
+<th>名稱</th>
+<th>型別</th>
+<th>值域</th>
+<th>必填</th>
+<th>預設</th>
+<th>說明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>systemImage</code></td>
+<td><code>String</code></td>
+<td></td>
+<td>是</td>
+<td>—</td>
+<td>SF Symbol 名稱</td>
+</tr>
+<tr>
+<td><code>style</code></td>
+<td><code>Style</code></td>
+<td><code>accent</code> / <code>outline</code> / <code>neutral</code></td>
+<td>否</td>
+<td><code>accent</code></td>
+<td>材質。見第 3 節</td>
+</tr>
+<tr>
+<td><code>size</code></td>
+<td><code>CGFloat</code></td>
+<td>只吃 <code>size.*</code> token</td>
+<td>否</td>
+<td><code>size.iconButton</code></td>
+<td>整顆的直徑</td>
+</tr>
+<tr>
+<td><code>iconSize</code></td>
+<td><code>CGFloat</code></td>
+<td>只吃 <code>icon.*</code> token</td>
+<td>否</td>
+<td><code>icon.inIconButton</code></td>
+<td>圖示字級。⚠ 設計端拍板<strong>不開成 prop 的替代品</strong>——容器內圖示是配對值，改容器就改 token</td>
+</tr>
+<tr>
+<td><code>iconWeight</code></td>
+<td><code>Font.Weight</code></td>
+<td></td>
+<td>否</td>
+<td><code>semibold</code></td>
+<td>圖示字重</td>
+</tr>
+<tr>
+<td><code>action</code></td>
+<td><code>() -&gt; Void</code></td>
+<td></td>
+<td>是</td>
+<td>—</td>
+<td>點擊</td>
+</tr>
+<tr>
+<td><code>filled</code></td>
+<td><code>Bool</code></td>
+<td></td>
+<td>—</td>
+<td>—</td>
+<td>⚠ <strong>舊 API</strong>。<code>true</code>／<code>false</code> ＝ <code>style: .accent</code>／<code>.outline</code>。新程式碼用 <code>style:</code>，見第 12 節</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Slots</strong> — N/A（內容固定是一個 SF Symbol）
+<strong>事件</strong> — <code>action</code>（見上）</p>
+<h2>3 變體 variants</h2>
+<table>
+<thead>
+<tr>
+<th>變體</th>
+<th>說明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>accent</code></td>
+<td>赭紅實心、淺色圖示。主要動作</td>
+</tr>
+<tr>
+<td><code>outline</code></td>
+<td>線框、赭色圖示。次要動作（返回、關閉）</td>
+</tr>
+<tr>
+<td><code>neutral</code></td>
+<td><code>surfaceTrack</code> 實心、深墨圖示。月曆標題列的 <code>‹ ›</code> 用 —— 與「今天」膠囊同材質，導航鍵不跟狀態搶顏色</td>
+</tr>
+</tbody>
+</table>
+<p>三個變體的 pressed 態都是整顆縮放，沒有變體專屬的差異。</p>
+<h2>4 狀態 states ★</h2>
+<!-- states: default, pressed -->
+<!-- themes: light, dark -->
+
+<table>
+<thead>
+<tr>
+<th>類別</th>
+<th>狀態</th>
+<th>這個元件</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>互動</td>
+<td>default / pressed / disabled / focused</td>
+<td><strong>default 與 pressed。</strong> 沒有 disabled —— 目前所有使用情境都永遠可用；真的需要時要先補設計</td>
+</tr>
+<tr>
+<td>選取</td>
+<td>selected / unselected / indeterminate</td>
+<td>N/A —— 它是動作不是選項</td>
+</tr>
+<tr>
+<td>資料</td>
+<td>empty / loading / error</td>
+<td>N/A —— 沒有資料輸入</td>
+</tr>
+<tr>
+<td>內容極值</td>
+<td>最短 / 最長 / 溢出 / 數字最大位數</td>
+<td>N/A —— 內容固定是一個圖示</td>
+</tr>
+<tr>
+<td>主題</td>
+<td>light / dark</td>
+<td>三個變體的底色與圖示色都走語意 token</td>
+</tr>
+<tr>
+<td>語言</td>
+<td>中文 / 英文</td>
+<td>N/A —— 無文字</td>
+</tr>
+</tbody>
+</table>
+<h2>5 度量與行為</h2>
+<table>
+<thead>
+<tr>
+<th></th>
+<th></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>直徑</td>
+<td><code>size.iconButton</code>（＝最小觸控 44）；月曆導航用 <code>size.iconButtonSmall</code>，觸控區另外補到 44</td>
+</tr>
+<tr>
+<td>圖示</td>
+<td><code>icon.inIconButton</code> ＋ <code>semibold</code></td>
+</tr>
+<tr>
+<td>內距</td>
+<td>無 —— 圖示置中</td>
+</tr>
+<tr>
+<td>最小寬度</td>
+<td>固定，不壓縮</td>
+</tr>
+<tr>
+<td>壓縮行為</td>
+<td>永遠保持原尺寸；空間不夠時先讓的是它旁邊的東西</td>
+</tr>
+</tbody>
+</table>
+<h3>文字與溢出</h3>
+<p>無文字。</p>
+<p><strong>Dynamic Type</strong>：<strong>不跟隨</strong>。它是固定的觸控目標，跟著字級長大會把標題列撐爛。</p>
+<h3>動態</h3>
+<p>按下時整顆縮放，時長 <code>motion.fast</code>、曲線 <code>motion.curve</code>。無觸覺回饋。</p>
+<h2>6 配色 ★</h2>
+<table>
+<thead>
+<tr>
+<th>變體</th>
+<th>底</th>
+<th>圖示</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>accent</code></td>
+<td><code>actionPrimary</code></td>
+<td><code>surfaceBase</code></td>
+</tr>
+<tr>
+<td><code>outline</code></td>
+<td>透明 ＋ <code>accentOnSurface</code> 外框</td>
+<td><code>accentOnSurface</code></td>
+</tr>
+<tr>
+<td><code>neutral</code></td>
+<td><code>surfaceTrack</code></td>
+<td><code>textPrimary</code></td>
+</tr>
+</tbody>
+</table>
+<h2>7 用法與禁用法</h2>
+<p><strong>用它</strong>：需要一個只有圖示、沒有文字的圓形動作時。</p>
+<p><strong>易混淆</strong>：<code>TLIconThumbnail</code>（列裡的方形圖片預覽）—— 這個是<strong>可點的動作</strong>，那個是唯讀的縮圖。</p>
+<p><strong>不要用它</strong>：
+- 放文字進去 —— 它是圖示按鈕，文字動作用文字按鈕樣式
+- 用 <code>size.iconButtonSmall</code> 卻不補觸控區 —— 那會做出 34pt 的觸控目標
+- 用 <code>accent</code> 當次要動作 —— 一個畫面最多一個主要動作區</p>
+<h2>8 變更紀錄</h2>
+<table>
+<thead>
+<tr>
+<th>日期</th>
+<th>改動</th>
+<th>原因</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>2026-08-30</td>
+<td>從 <code>Support/ButtonStyles.swift</code> 抽出成獨立檔</td>
+<td>它是 View 不是 ButtonStyle，卻和 8 個 <code>ButtonStyle</code> 住同一個檔。第一輪就記進已知缺口了</td>
+</tr>
+<tr>
+<td>2026-08-30</td>
+<td><code>iconSize</code> 的預設從字面 <code>18</code> 改成 <code>icon.inIconButton</code></td>
+<td>元件內部的字面值也是字面值。⚠ 順帶發現 icon 尺度有 <strong>13/14/16/18/20 五個特設值</strong>，彼此沒有比例關係——這已經不是尺度，見 <code>CHANGELOG.md</code> 已知缺口</td>
+</tr>
+<tr>
+<td>2026-08-30</td>
+<td><code>init(systemImage:filled:action:)</code> 標為舊 API，新程式碼用 <code>style:</code></td>
+<td>那個 init 的註解自己寫著「舊呼叫端相容」。全專案還有 3 處在用，之後順手換掉</td>
+</tr>
+</tbody>
+</table>

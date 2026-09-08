@@ -7,6 +7,10 @@ public enum PlanOrigin: String, Codable, Sendable {
     case template   // 從課表範本實例化
     case program    // 多週長期課表投影落地
     case rotation   // 循環課表落地
+    /// 「重複上次」產生的一次性排課：只複製動作序列與組數，不含重量/次數。
+    /// 跟 `.rotation` 一樣是「按下當下才生出來、沒有別人引用」的排課——
+    /// 捨棄整場訓練後應徹底清除，見 `DiscardOrphanPlanWorkout`。
+    case repeatLast
 }
 
 /// 一次排課（個人層 plan_workout）：一定綁定某一天，由課表範本實例化或手動建立。
@@ -23,6 +27,9 @@ public struct PlanWorkout: Identifiable, Equatable, Sendable {
     public var origin: PlanOrigin
     /// 若來自多週長期課表投影落地，指向對應的 ProgramAssignment；用於補登去重。
     public var assignmentId: UUID?
+    /// 若由循環課表落地（`origin == .rotation`），指向那組循環。
+    /// 循環的游標要等這張排課「完成」才前進，所以完成的當下必須查得到是哪一組。
+    public var rotationId: UUID?
     /// 同一天多張排課的排序。
     public var orderIndex: Int
     /// 依 (exerciseIndex, setIndex) 排序的目標。
@@ -36,6 +43,7 @@ public struct PlanWorkout: Identifiable, Equatable, Sendable {
         templateId: UUID? = nil,
         origin: PlanOrigin = .manual,
         assignmentId: UUID? = nil,
+        rotationId: UUID? = nil,
         orderIndex: Int,
         sets: [PlanSet] = []
     ) {
@@ -46,6 +54,7 @@ public struct PlanWorkout: Identifiable, Equatable, Sendable {
         self.templateId = templateId
         self.origin = origin
         self.assignmentId = assignmentId
+        self.rotationId = rotationId
         self.orderIndex = orderIndex
         self.sets = sets
     }

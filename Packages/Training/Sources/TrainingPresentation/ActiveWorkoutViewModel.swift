@@ -55,6 +55,9 @@ public final class ActiveWorkoutViewModel {
     private var adjustedRestByExercise: [UUID: Int] = [:]
     /// 排/取消通知的非同步工作（fire-and-forget，不擋 UI）；測試可 await 它確認已排。
     var pendingRestNotify: Task<Void, Never>?
+    /// `onAppear()` 提前請求通知授權的非同步工作（fire-and-forget，不擋畫面載入）；
+    /// 測試可 await 它確認已呼叫。
+    var pendingAuthPrepare: Task<Void, Never>?
     /// 這段休息期間 App 真的被切到背景過（不只是 `.inactive`）。
     /// 背景到點時系統通知已經提醒過一次，回前景就不該再彈一次彈窗（見 `enterForeground`）。
     private var didEnterBackgroundDuringRest = false
@@ -91,6 +94,8 @@ public final class ActiveWorkoutViewModel {
     private let saveProgress: SaveWorkoutProgress
     private let finishWorkout: FinishWorkout
     private let discardWorkout: DiscardWorkout
+    /// 偏好的重量單位來源。保留而不是只在 init 讀一次——設定中途改了，預填要跟得上。
+    private let weightUnitStore: any WeightUnitPreferenceStoring
     private let lastPerformance: LastPerformance
     private let detectPersonalRecords: DetectPersonalRecords?
     private let exerciseCatalog: any ExerciseCatalog
@@ -125,6 +130,7 @@ public final class ActiveWorkoutViewModel {
         self.exerciseCatalog = exerciseCatalog
         self.plannedProvider = plannedProvider
         self.reminder = reminder
+        self.weightUnitStore = weightUnitStore
         self.draftWeightUnit = weightUnitStore.load()
         self.preferences = preferences
         self.now = now
@@ -141,7 +147,8 @@ public final class ActiveWorkoutViewModel {
 
     public var durationMinutes: Int {
         guard let start = workout.startedAt else { return 0 }
-        return max(0, Int(Date().timeIntervalSince(start) / 60))
+        // 用注入的 now() 而不是 Date()：跟休息倒數同一個時間來源，測試才控得住時長。
+        return max(0, Int(now().timeIntervalSince(start) / 60))
     }
 
     public func name(for exerciseId: UUID) -> String {
@@ -158,9 +165,11 @@ public final class ActiveWorkoutViewModel {
     }
 
     /// 上次同動作的組摘要「60kg × 8, 8, 6」；沒有歷史回 nil。「上次：」前綴由 View 本地化組。
-    public func lastSummary(for exerciseId: UUID) -> String? {
+    /// `unit` 由 View 傳 `@Environment(\.weightDisplayUnit)`——ViewModel 讀不到 Environment，
+    /// 而讓它自己去讀偏好 store 會多一條繞過根部注入的路徑。
+    public func lastSummary(for exerciseId: UUID, in unit: WeightUnit) -> String? {
         guard let sets = lastPerformances[exerciseId], !sets.isEmpty else { return nil }
-        return WeightDisplay.summary(of: sets)
+        return WeightDisplay.summary(of: sets, in: unit)
     }
 
     /// 照課表時，當前這一組的目標；自由訓練回 nil。
@@ -254,7 +263,13 @@ public final class ActiveWorkoutViewModel {
     /// 用「做滿」而非「有紀錄」判斷——否則做一半就跳走的動作會被當成已完成，導致提早跳訓練結束。
     public var nextPlannedExerciseId: UUID? {
         guard blueprint != nil else { return nil }
-        return plannedOrderIds.first { $0 != currentExerciseId && !isPlannedExerciseFullyDone($0) }
+        // 一併排除「從這場移除」的動作——它已經不在本場清單裡（見 sessionSequence），
+        // 不排除的話「下一個」與完成區的主按鈕會指回一個使用者剛移掉的動作。
+        return plannedOrderIds.first {
+            $0 != currentExerciseId
+                && !removedExerciseIds.contains($0)
+                && !isPlannedExerciseFullyDone($0)
+        }
     }
 
     /// 下一個課表動作的名稱（給按鈕標題）。
@@ -326,6 +341,9 @@ public final class ActiveWorkoutViewModel {
     // MARK: - 動作
 
     public func onAppear() async {
+        // 提前到「進入訓練畫面」就問，而不是等第一次休息才彈系統彈窗——那是最爛的時機。
+        // fire-and-forget：不擋動作庫載入。
+        pendingAuthPrepare = Task { [reminder] in await reminder.prepareNotificationAuthorization() }
         do {
             catalog = try await exerciseCatalog.exercises()
         } catch {
@@ -443,11 +461,16 @@ public final class ActiveWorkoutViewModel {
     /// 「從這場移除」：只允許還沒開始（沒有任何記錄）的動作；不寫入任何 WorkoutSet——跟
     /// 「跳過」不同，跳過會留下 skipped 紀錄，移除則什麼都不留。只在本場 session 記憶體內
     /// 有效：離開又恢復這場時，這個動作會依原課表重新出現（跟 `reorderedPlan` 同一個既定取捨）。
-    public func removeFromSession(exerciseId: UUID) {
+    public func removeFromSession(exerciseId: UUID) async {
         guard (doneSetCounts[exerciseId] ?? 0) == 0 else { return }
         removedExerciseIds.insert(exerciseId)
-        if currentExerciseId == exerciseId {
-            currentExerciseId = nil
+        guard currentExerciseId == exerciseId else { return }
+        // 移掉的是當前動作 → 自動接到下一個還沒做滿的課表動作。
+        // 只把 currentExerciseId 設成 nil 的話畫面會掉進「挑一個動作開始」空狀態，
+        // 看起來像操作失敗（bug：從這場移除後畫面空掉）。
+        currentExerciseId = nil
+        if let next = nextPlannedExerciseId {
+            await select(exerciseId: next)
         }
     }
 
@@ -485,7 +508,8 @@ public final class ActiveWorkoutViewModel {
     /// 重量取最重的一組——逐組不同重量時，「做到多重」講的是那個上限。
     public var completedExerciseStats: (setCount: Int, heaviest: Weight?, volume: Double) {
         let done = currentBlockSets.filter { $0.status == .done }
-        return (done.count, done.map(\.weight).max(), FinishSummaryFormatting.totalVolume(done))
+        return (done.count, done.compactMap(\.measurement.displayWeight).max(),
+                FinishSummaryFormatting.totalVolume(done))
     }
 
     /// 整場的成績（16e 說明行「4 個動作 · 12 組 · 1920 kg」）。
@@ -710,8 +734,10 @@ public final class ActiveWorkoutViewModel {
 
     /// 快捷「同上組」：把草稿設回本場這個動作上一組記錄的值；沒有上一組時無效。
     public func applyLastSetValues() {
-        guard let last = currentBlockSets.last else { return }
-        apply(weight: last.weight, reps: last.reps)
+        guard let last = currentBlockSets.last,
+              let weight = last.measurement.displayWeight, let reps = last.measurement.displayReps
+        else { return }
+        apply(weight: weight, reps: reps)
     }
 
     /// 快捷「回到目標」：把草稿重設回這組的課表目標；沒有目標時無效。
@@ -738,12 +764,15 @@ public final class ActiveWorkoutViewModel {
         workout.appendSet(
             id: newSetId,
             exerciseId: exerciseId,
-            weight: Weight(value: draftWeightValue, unit: draftWeightUnit),
-            reps: draftReps,
+            // 記錄畫面目前只輸入「重量 × 次數」；其餘模式的輸入元件屬於 B2-ui 那張設計票。
+            measurement: .weightReps(
+                weight: Weight(value: draftWeightValue, unit: draftWeightUnit), reps: draftReps
+            ),
             status: status,
             fromPlanSetId: target?.id,
-            targetWeight: target?.targetWeight,
-            targetReps: target?.targetReps
+            targetMeasurement: target?.targetWeight.map {
+                .weightReps(weight: $0, reps: target?.targetReps ?? 0)
+            }
         )
         lastRecordedSetId = newSetId
         do {
@@ -760,18 +789,28 @@ public final class ActiveWorkoutViewModel {
         guard let exerciseId = currentExerciseId else { return }
         if let target = currentTarget, let weight = target.targetWeight {
             apply(weight: weight, reps: target.targetReps ?? draftReps)
-        } else if let last = currentBlockSets.last {
-            apply(weight: last.weight, reps: last.reps)
-        } else if let history = lastPerformances[exerciseId], let first = history.first {
-            apply(weight: first.weight, reps: first.reps)
+        } else if let last = currentBlockSets.last,
+                  let weight = last.measurement.displayWeight, let reps = last.measurement.displayReps {
+            apply(weight: weight, reps: reps)
+        } else if let history = lastPerformances[exerciseId], let first = history.first,
+                  let weight = first.measurement.displayWeight, let reps = first.measurement.displayReps {
+            apply(weight: weight, reps: reps)
         } else {
-            apply(weight: Weight(value: 20, unit: .kg), reps: 8)
+            // 沒有任何線索時的退路。用偏好單位的 20，不是寫死的 20 kg——
+            // lb 使用者不該在空白紀錄上看到一個 kg 的數字。
+            apply(weight: Weight(value: 20, unit: weightUnitStore.load()), reps: 8)
         }
     }
 
+    /// 把草稿設成指定的重量／次數。
+    ///
+    /// **一律換算成偏好單位**：來源可能是課表目標、本場上一組、或上次紀錄，
+    /// 它們各自帶著當初輸入的單位。不換算的話，切成 lb 之後預填仍會跳出 kg 的數字
+    /// （這正是「切成 lb 幾乎是無效操作」的一半病因）。
     private func apply(weight: Weight, reps: Int) {
-        draftWeightValue = weight.value
-        draftWeightUnit = weight.unit
+        let preferred = weight.converted(to: weightUnitStore.load())
+        draftWeightValue = preferred.value
+        draftWeightUnit = preferred.unit
         draftReps = reps
     }
 }

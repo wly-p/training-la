@@ -1,0 +1,411 @@
+/* 元件在 preview 裡的視覺表述。**手改，不是生成物。**
+ *
+ * 這裡的每一段都是某個元件的**第二份實作**（Swift 一份、CSS 一份），
+ * 沒有東西能自動驗證兩者一致——那要跨語言比對，不值得做。
+ * 能擋的是另外兩種漂移，而那兩種才是實際會發生的：
+ *
+ *   1. 孤兒：CSS 有段落但元件庫沒有那個元件
+ *   2. 遺漏：元件的 preview 用了 .tl-x 但這裡沒有對應段落
+ *
+ * 機器檢查（第 16 條）擋這兩種。規格第 1 節有一列指回這裡。
+ *
+ * 規則：
+ *   - 一個元件一段，段落順序與 components.json 相同
+ *   - 選擇器一律 .tl-<kebab-name>，不用通用名（.btn/.check 這種等 TLButton
+ *     進來一定撞，靠後代選擇器閃避撐不到 40 個元件）
+ *   - 只用 token，不用字面值
+ */
+
+/* TLBadge */
+.tl-badge {
+  width: var(--size-badge); height: var(--size-badge); flex: none;
+  border-radius: var(--radius-pill);
+  background: var(--sage-200); color: var(--sage-800); font-weight: 600;
+  display: flex; align-items: center; justify-content: center;
+}
+.tl-badge--text { font-size: var(--font-badge-text); }
+.tl-badge--number { font-size: var(--font-row-number); font-family: var(--font-row-number-family); }
+/* 數字圓章的 neutral 版：數字是「含幾項」，是資訊不是狀態。
+   赭紅／鼠尾草留給有狀態的東西。 */
+.tl-badge--neutral { background: var(--neutral-300); color: var(--neutral-800); }
+.tl-badge--accent { background: var(--action-primary); color: var(--surface-base); }
+.tl-badge svg { width: var(--icon-inline); height: var(--icon-inline); stroke-width: var(--icon-stroke); }
+
+/* TLCircleIcon */
+/* 圓形圖示的視覺。互動歸 TLCircleIconButton——這一段只有樣子。 */
+.tl-circle-icon {
+  flex: none; width: var(--size-icon-button); height: var(--size-icon-button);
+  border-radius: var(--radius-pill);
+  display: flex; align-items: center; justify-content: center;
+}
+.tl-circle-icon svg {
+  width: var(--icon-inIconButton); height: var(--icon-inIconButton);
+  stroke-width: var(--icon-stroke);
+}
+.tl-circle-icon--accent { background: var(--action-primary); color: var(--surface-base); }
+.tl-circle-icon--outline {
+  background: transparent; color: var(--accent-700);
+  border: var(--size-hairline) solid var(--border-subtle);
+}
+.tl-circle-icon--neutral { background: var(--neutral-200); color: var(--text-primary); }
+/* 月曆導航的小尺寸；觸控區另外補到 minTap，那個在 Swift 端 */
+.tl-circle-icon--small { width: var(--size-icon-button-small); height: var(--size-icon-button-small); }
+
+/* PlanWorkoutRow / ProjectedWorkoutRow（L3）—— 純由 L2／L1 組成，沒有自己的樣式。 */
+
+/* TLCheckCircle */
+.tl-check-circle {
+  width: var(--size-check-circle); height: var(--size-check-circle); flex: none;
+  border-radius: var(--radius-pill);
+  border: var(--size-hairline-thick) solid var(--neutral-400);
+  display: flex; align-items: center; justify-content: center;
+}
+.tl-check-circle--on {
+  background: var(--action-primary); border-color: transparent; color: var(--surface-base);
+}
+.tl-check-circle svg { width: var(--icon-inCheckCircle); height: var(--icon-inCheckCircle); stroke-width: var(--icon-stroke); }
+
+/* TLChevron */
+.tl-chevron {
+  display: block; color: var(--text-tertiary);
+  width: var(--icon-inline); height: var(--icon-inline); stroke-width: var(--icon-stroke);
+}
+
+/* TLCircleIconButton */
+.tl-circle-icon-button {
+  width: var(--size-icon-button); height: var(--size-icon-button); flex: none;
+  border-radius: var(--radius-pill);
+  display: inline-flex; align-items: center; justify-content: center;
+  transition: transform var(--motion-fast) var(--motion-curve);
+}
+.tl-circle-icon-button svg {
+  width: var(--icon-inIconButton); height: var(--icon-inIconButton); stroke-width: var(--icon-stroke);
+}
+.tl-circle-icon-button--accent { background: var(--action-primary); color: var(--surface-base); }
+.tl-circle-icon-button--outline {
+  background: transparent; color: var(--accent-on-surface);
+  border: var(--size-hairline) solid var(--accent-on-surface);
+}
+.tl-circle-icon-button--neutral { background: var(--surface-track); color: var(--text-primary); }
+.tl-circle-icon-button--pressed { transform: scale(0.92); }
+.tl-circle-icon-button--small {
+  width: var(--size-icon-button-small); height: var(--size-icon-button-small);
+}
+
+/* TLIconThumbnail */
+.tl-icon-thumbnail {
+  width: var(--size-icon-thumb); height: var(--size-icon-thumb); flex: none;
+  border-radius: var(--radius-icon-thumb);
+  /* 示意用的圖案，不是真的 asset */
+  background: linear-gradient(135deg, var(--accent-300), var(--accent-600));
+}
+
+/* TLPillButton */
+.tl-pill-row { display: flex; gap: var(--space-gap-s); flex-wrap: wrap; }
+.tl-pill-grid { display: flex; gap: var(--space-gap-s); }
+.tl-pill-button {
+  font-size: var(--font-button-label-small); font-weight: 600;
+  color: var(--accent-700); background: var(--surface-base);
+  border-radius: var(--radius-pill);
+  padding: var(--space-pill-pad-v) var(--space-pill-pad-h);
+  white-space: nowrap;
+}
+/* ⚠ fill 版的上下內距比 hug 版多 2px——待收斂，見規格第 3 節 */
+.tl-pill-button--fill {
+  flex: 1; text-align: center;
+  padding-top: var(--space-pill-pad-v-wide); padding-bottom: var(--space-pill-pad-v-wide);
+}
+
+/* TLStat */
+.tl-stat-row { display: flex; justify-content: space-between; gap: var(--space-stat-gap); }
+.tl-stat { display: flex; flex-direction: column; gap: var(--space-title-sub-gap); }
+.tl-stat--trailing { align-items: flex-end; }
+.tl-stat__value { font-family: var(--font-display); font-size: var(--font-card-number);
+                  color: var(--text-primary); }
+.tl-stat__label { font-size: var(--font-row-sub); color: var(--neutral-600); }
+
+/* TLProgressBar */
+.tl-progress-bar {
+  display: block; height: var(--size-progress-bar);
+  border-radius: var(--radius-pill); background: var(--surface-track);
+  overflow: hidden;
+}
+.tl-progress-bar i {
+  display: block; height: 100%;
+  border-radius: var(--radius-pill); background: var(--action-primary);
+}
+/* 深底的卡（長期課表詳情，neutral-300）上，軌道要往**淺**的方向換一階才看得出來。
+   淺底的卡用預設的 surface-track 就好——方向不是固定的，所以它是 prop。 */
+.tl-progress-bar--on-card { background: var(--surface-raised); }
+
+/* TLRowValue */
+.tl-row-value { display: flex; align-items: baseline; gap: var(--space-value-unit-gap); }
+.tl-row-value__number {
+  font-family: var(--font-row-number-family); font-size: var(--font-row-number);
+  color: var(--text-primary);
+}
+.tl-row-value__unit { font-size: var(--font-row-title); color: var(--text-secondary); }
+
+/* TLSettingsValue */
+.tl-settings-value { font-size: var(--font-row-value); color: var(--text-secondary); }
+
+/* TLToggle */
+.tl-toggle {
+  width: var(--size-switch-w); height: var(--size-switch-h); flex: none;
+  border-radius: var(--radius-pill); background: var(--surface-input);
+  position: relative; transition: background var(--motion-base) var(--motion-curve);
+}
+.tl-toggle--on { background: var(--action-primary); }
+.tl-toggle::after {
+  content: ""; position: absolute;
+  top: var(--space-switch-knob-inset); left: var(--space-switch-knob-inset);
+  width: calc(var(--size-switch-h) - var(--space-switch-knob-inset) * 2);
+  height: calc(var(--size-switch-h) - var(--space-switch-knob-inset) * 2);
+  border-radius: var(--radius-pill); background: var(--surface-raised);
+}
+.tl-toggle--on::after {
+  left: auto; right: var(--space-switch-knob-inset); background: var(--surface-base);
+}
+
+/* TLBackBar */
+.tl-back-bar {
+  display: flex; align-items: center;
+  padding: var(--space-gap-s) var(--space-page) 0;
+}
+
+/* TLPageHeader */
+.tl-page-header {
+  font-family: var(--font-page-title-family); font-size: var(--font-page-title);
+  padding: 0 var(--space-page);
+}
+.tl-page-header__row { display: flex; align-items: baseline; gap: var(--space-gap-m);
+                       padding: 0 var(--space-page); }
+.tl-page-header__row .tl-page-header { flex: 1; padding: 0; }
+.tl-page-header__kicker {
+  font-size: var(--font-kicker); letter-spacing: var(--font-kicker-tracking);
+  text-transform: uppercase; color: var(--action-pressed);
+  padding: 0 var(--space-page); margin-bottom: var(--space-kicker-gap);
+}
+
+/* TLSectionHeader */
+.tl-section-header {
+  display: flex; align-items: baseline; margin-bottom: var(--space-section-header-gap);
+}
+.tl-section-header__title {
+  flex: 1; font-size: var(--font-kicker); letter-spacing: var(--font-kicker-tracking);
+  text-transform: uppercase; color: var(--text-tertiary); font-weight: 600;
+}
+.tl-section-header__title--tinted { color: var(--action-pressed); }
+.tl-section-header__action { font-size: var(--font-row-sub); color: var(--accent-on-surface); }
+
+/* TLSegmentedControl */
+.tl-segmented-control {
+  display: inline-flex; background: var(--surface-track); border-radius: var(--radius-pill);
+}
+.tl-segmented-control span {
+  border-radius: var(--radius-pill); color: var(--text-secondary);
+  font-weight: 500; text-align: center;
+}
+.tl-segmented-control .is-on {
+  background: var(--surface-base); color: var(--text-primary); font-weight: 700;
+}
+.tl-segmented-control--compact { padding: var(--space-seg-track-pad-compact); }
+.tl-segmented-control--compact span {
+  padding: var(--space-seg-item-pad-v-compact) var(--space-seg-item-pad-h);
+  font-size: var(--font-seg-compact);
+}
+.tl-segmented-control--regular { padding: var(--space-seg-track-pad); display: flex; width: 100%; }
+.tl-segmented-control--regular span {
+  padding: var(--space-seg-item-pad-v) 0; flex: 1; font-size: var(--font-row-title);
+}
+.tl-segmented-control--regular .is-on { box-shadow: var(--shadow-sm); }
+
+/* TLSettingsRow */
+.tl-settings-row__hint { font-size: var(--font-row-sub); color: var(--text-tertiary); }
+.tl-settings-row--pressed { background: var(--border-subtle); }
+.tl-settings-row--destructive { color: var(--danger-on-surface); font-weight: 600; }
+.tl-settings-row__icon { margin-right: var(--space-section-header-gap); }
+
+/* TLSettingsToggleRow */
+.tl-settings-toggle-row__sub { font-size: var(--font-row-sub); color: var(--text-tertiary); }
+.tl-settings-toggle-row--tall { height: var(--size-row-with-sub); }
+
+/* TLInlineEmptyState */
+.tl-inline-empty-state {
+  display: flex; flex-direction: column; align-items: center;
+  gap: var(--space-empty-state-gap);
+  padding: var(--space-empty-state-pad-v) 0;
+  text-align: center;
+}
+.tl-inline-empty-state__title { font-size: var(--font-empty-title); font-weight: 700;
+                                color: var(--text-primary); }
+.tl-inline-empty-state__hint { font-size: var(--font-caption); color: var(--text-secondary); }
+
+/* TLGroup */
+/* 容器本體的樣式在 preview.css 的 .group（它「是」容器本身）；
+   這一段只放 border 這個標記。 */
+.tl-group--bordered { border: var(--size-hairline-thick) solid var(--accent-300); }
+
+/* TLCard */
+/* 內容卡。跟 .group（TLGroup）的差別：那個是列的容器、會切掉溢出並畫分隔線，
+   這個是內容的容器，裡面放什麼都可以。 */
+.tl-card {
+  background: var(--surface-raised);
+  border-radius: var(--radius-container);
+  padding: var(--space-row-inset);
+  margin-bottom: var(--space-gap-s);
+}
+.tl-card--roomy { padding: var(--space-section) var(--space-page); }
+.tl-card--page { padding: var(--space-page); }
+/* 巢狀的那一層換小圓角——兩層 28 疊在一起內圈看起來是壞的 */
+.tl-card--inner { border-radius: var(--radius-inner); margin-bottom: 0; }
+.tl-card--bordered { border: var(--size-hairline-thick) solid var(--accent-300); }
+/* ⚠ 這兩階目前沒有語意名字，直接用原始色階——命名是設計決策 */
+.tl-card--deep { background: var(--neutral-300); }
+.tl-card--accent { background: var(--accent-200); }
+
+/* WorkoutHistoryRow */
+/* 唯一有自己樣式的 History L3：左件的日期柱。 */
+.tl-date-column {
+  flex: none; width: var(--size-date-column);
+  display: flex; flex-direction: column; align-items: center;
+  gap: var(--space-date-stack-gap);
+}
+.tl-date-column__day { font-size: var(--font-row-number); color: var(--text-primary); }
+.tl-date-column__weekday { font-size: var(--font-kicker); color: var(--neutral-500); }
+
+/* TLRowContent */
+/* 列的內容排版。**沒有左右內距、沒有高度** —— 骨架的 .row 才是「內容 ＋ 外框」，
+   也就是 TLListRow。兩者的差別在這裡看得見：這一段沒有 padding 也沒有 height。 */
+.tl-row-content {
+  display: flex; align-items: center; gap: var(--space-gap-m);
+}
+.tl-row-content__text {
+  flex: 1; min-width: 0;
+  display: flex; flex-direction: column; gap: var(--space-title-sub-gap);
+}
+.tl-row-content__title { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+/* ⚠ 副標是 neutral-500 而不是語意的 text-secondary：文字階合併後 Swift 端還沒遷移。
+   鏡像跟著**實作**走，不跟著意圖走——否則設計端看到的顏色與 app 不同。 */
+.tl-row-content__sub { font-size: var(--font-row-sub); color: var(--neutral-500); }
+
+/* TLTitleWithTag */
+.tl-title-with-tag { display: flex; align-items: center; gap: var(--space-gap-s); min-width: 0; }
+.tl-title-with-tag__name {
+  min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+
+/* TLListRow */
+/* ＝ TLRowContent ＋ 外框（左右內距、最小高度、整列可點）。外框在骨架的 .row。 */
+.tl-list-row__sub { font-size: var(--font-row-sub); color: var(--neutral-500); }
+.tl-list-row--pressed { background: var(--border-subtle); }
+.tl-list-row--with-sub { height: var(--size-row-with-sub); }
+.tl-list-row--with-detail { height: var(--size-row-with-detail); }
+.tl-list-row__pill {
+  display: inline-block; font-size: var(--font-row-sub); color: var(--text-secondary);
+  background: var(--surface-track); border-radius: var(--radius-pill);
+  padding: 0 var(--space-gap-s); margin-right: var(--space-gap-s);
+}
+
+
+/* TLEquipmentTag */
+.tl-equipment-tag {
+  flex: none; white-space: nowrap;
+  font-size: var(--font-kicker); font-weight: 600;
+  color: var(--sage-900); background: var(--sage-200);
+  border-radius: var(--radius-pill);
+  padding: var(--space-tag-pad-v) var(--space-tag-pad-h);
+}
+
+/* ExerciseRow（L3）—— 它只是 TLListRow ＋ TLEquipmentTag 的組合，
+   沒有自己的樣式。這一段留空是刻意的，證明「L3 = L2 的組合」在它身上成立。 */
+
+/* TemplateRow / RotationRow（L3）—— 純由 L2 組成，沒有自己的樣式。
+   留空是刻意的：那正是「L3 ＝ L2 的組合」在它們身上成立的證據。 */
+
+/* ProgramRow */
+/* 唯一有自己樣式的 L3：啟用態不是一列而是**一張卡**。
+   卡的外框是它自己的（描邊、內距、圓角），列的排版來自 TLRowContent。 */
+.tl-program-card {
+  display: flex; flex-direction: column; gap: var(--space-gap-m);
+  padding: var(--space-row-inset);
+  background: var(--surface-raised);
+  border: var(--size-hairline-thick) solid var(--accent-300);
+  border-radius: var(--radius-container);
+}
+.tl-program-card__meta { display: flex; align-items: baseline; justify-content: space-between; }
+.tl-program-card__day { font-family: var(--font-display); font-size: var(--font-card-number); }
+.tl-program-card__unit { font-size: var(--font-row-sub); color: var(--neutral-500); }
+.tl-program-card__today { font-size: var(--font-row-sub); font-weight: 600;
+                          color: var(--text-secondary); }
+/* 未啟用態是一般列，但右側按鈕要獨立可點——所以它自己補外框，不是 TLListRow。 */
+.tl-program-row--inactive {
+  display: flex; align-items: center; gap: var(--space-gap-m);
+  padding: 0 var(--space-row-inset);
+  height: var(--size-row-with-sub);
+}
+
+/* SetTableRow（L3）*/
+.tl-set-table { display: flex; flex-direction: column; gap: var(--space-gap-s); }
+.tl-set-row {
+  display: flex; align-items: center; gap: var(--space-set-column-gap);
+  padding: var(--space-row-inset);
+  background: var(--surface-raised); border-radius: var(--radius-inner);
+}
+.tl-set-row--done { }
+.tl-set-row--current { background: var(--surface-input); }
+.tl-set-row--upcoming { opacity: 0.6; }
+.tl-set-row__index { width: var(--size-set-index-column-narrow); flex: none; }
+.tl-set-row__target, .tl-set-row__actual {
+  flex: 1; text-align: right; color: var(--neutral-600); font-variant-numeric: tabular-nums;
+}
+.tl-set-row__target--current { color: var(--accent-800); font-weight: 700; }
+.tl-set-badge {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: var(--size-set-badge); height: var(--size-set-badge);
+  border-radius: var(--radius-pill);
+  background: var(--accent-800); color: var(--surface-base);
+  font-size: var(--font-badge-text); font-weight: 700;
+}
+
+/* ExerciseCompleteBand（L3）*/
+/* 不對稱色帶：左緣貼齊螢幕、右緣不到底。跟輸入色帶同一個形狀。 */
+.tl-band {
+  background: var(--sage-200);
+  padding: var(--space-row-inset) var(--space-row-inset) var(--space-row-inset) var(--space-page);
+  border-radius: 0 var(--radius-band) var(--radius-band) 0;
+  margin-bottom: var(--space-gap-s);
+}
+.tl-band__title { font-size: var(--font-row-title); font-weight: 600; color: var(--sage-900); }
+.tl-band__message { font-size: var(--font-row-sub); color: var(--sage-800);
+                    margin-top: var(--space-section-header-gap); }
+.tl-band__actions { display: flex; gap: var(--space-label-gap);
+                    margin-top: var(--space-value-unit-gap); }
+.tl-band__outline {
+  min-width: var(--size-band-button-min-w); text-align: center;
+  font-size: var(--font-row-title); font-weight: 600; color: var(--sage-900);
+  padding: var(--space-field-pad-v) var(--space-label-gap);
+  border: var(--size-hairline-thick) solid var(--sage-400); border-radius: var(--radius-pill);
+}
+.tl-band__primary {
+  flex: 1; text-align: center;
+  font-size: var(--font-button-label); font-weight: 700;
+  color: var(--surface-base); background: var(--action-primary);
+  padding: var(--space-field-pad-v); border-radius: var(--radius-pill);
+}
+
+/* UpNextRow（L3）*/
+/* 刻意沒有卡片底——設計稿是直接排在頁面底色上、只用細線分隔。 */
+.tl-upnext { display: flex; flex-direction: column; }
+.tl-upnext__row {
+  display: flex; align-items: center; gap: var(--space-gap-m);
+  padding: var(--space-field-pad-v) 0;
+  border-bottom: var(--size-hairline) solid var(--border-subtle);
+}
+.tl-upnext__name { flex: 1; min-width: 0; }
+.tl-upnext__row--current .tl-upnext__name { font-weight: 600; }
+.tl-upnext__target { color: var(--neutral-500); flex: none; }
+
+/* TLGroup / TLDivider / TLDividedVStack —— 它們的視覺表述就是骨架的 .group / .row，
+   在 preview.css 裡。這是刻意的：那三個元件「是」容器與分隔線本身，
+   不是放在容器裡的東西。 */

@@ -1,0 +1,275 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>TLPillButton</title>
+<link rel="stylesheet" href="../../tokens/tokens.css">
+<link rel="stylesheet" href="../../preview.css">
+<style>
+  body { max-width: 62rem; line-height: 1.7; }
+  h1, h2, h3 { font-family: var(--font-page-title-family); line-height: 1.35; }
+  h1 { font-size: var(--font-page-title); margin: 0 0 var(--space-gap-l); }
+  h2 { font-size: var(--font-card-title); margin: var(--space-section) 0 var(--space-gap-m);
+       padding-top: var(--space-gap-m); border-top: 1px solid var(--border-subtle); }
+  h3 { font-size: var(--font-row-title); margin: var(--space-gap-l) 0 var(--space-gap-s); }
+  a { color: var(--accent-on-surface); }
+  table { border-collapse: collapse; width: 100%; margin: var(--space-gap-m) 0;
+          display: block; overflow-x: auto; }
+  th, td { text-align: left; padding: var(--space-gap-s) var(--space-gap-m);
+           border-bottom: 1px solid var(--border-subtle); vertical-align: top; }
+  th { font-size: var(--font-kicker); letter-spacing: var(--font-kicker-tracking);
+       text-transform: uppercase; color: var(--text-tertiary); }
+  pre { background: var(--surface-raised); border-radius: var(--radius-inner);
+        padding: var(--space-gap-m); overflow-x: auto; }
+  pre code { background: none; padding: 0; }
+  blockquote { margin: var(--space-gap-m) 0; padding-left: var(--space-gap-m);
+               border-left: 3px solid var(--border-subtle); color: var(--text-secondary); }
+  .back { font-size: var(--font-row-sub); margin-bottom: var(--space-gap-l); display: block; }
+</style>
+<a class="back" href="../../index.html">← 元件庫索引</a>
+<h1>TLPillButton</h1>
+<h2>1 身分</h2>
+<table>
+<thead>
+<tr>
+<th></th>
+<th></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>層級</td>
+<td>L1 原子</td>
+</tr>
+<tr>
+<td>職責</td>
+<td>填色的小膠囊鈕</td>
+</tr>
+<tr>
+<td>原型 id</td>
+<td><code>11c</code> <code>13c</code></td>
+</tr>
+<tr>
+<td>獨立使用</td>
+<td>是（但它預設坐在有色底上，見第 7 節）</td>
+</tr>
+<tr>
+<td>容器責任</td>
+<td>與相鄰鈕的間距由容器負責</td>
+</tr>
+<tr>
+<td>實作</td>
+<td><code>Packages/DesignSystem/Sources/DesignSystem/Atoms/TLPillButton.swift</code></td>
+</tr>
+<tr>
+<td>Preview</td>
+<td><code>design-system/atoms/TLPillButton/TLPillButton.preview.html</code></td>
+</tr>
+<tr>
+<td>Preview CSS</td>
+<td><code>components.preview.css</code> §TLPillButton</td>
+</tr>
+</tbody>
+</table>
+<p><strong>組成</strong>：不由其他 <code>TL*</code> 元件組成。</p>
+<h2>2 介面 ★</h2>
+<p><strong>Props</strong></p>
+<table>
+<thead>
+<tr>
+<th>名稱</th>
+<th>型別</th>
+<th>值域</th>
+<th>必填</th>
+<th>預設</th>
+<th>說明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>title</code></td>
+<td><code>Text</code></td>
+<td></td>
+<td>是</td>
+<td>—</td>
+<td>鈕上的字</td>
+</tr>
+<tr>
+<td><code>tint</code></td>
+<td><code>Color</code></td>
+<td>只吃語意 token</td>
+<td>否</td>
+<td><code>accent-700</code></td>
+<td>文字色。底一律是 <code>surfaceBase</code></td>
+</tr>
+<tr>
+<td><code>width</code></td>
+<td><code>Width</code></td>
+<td><code>hug</code> / <code>fill</code></td>
+<td>否</td>
+<td><code>hug</code></td>
+<td>見第 3 節</td>
+</tr>
+<tr>
+<td><code>action</code></td>
+<td><code>() -&gt; Void</code></td>
+<td></td>
+<td>是</td>
+<td>—</td>
+<td>按下</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Slots</strong> — N/A
+<strong>事件</strong> — <code>action</code></p>
+<h2>3 變體 variants</h2>
+<table>
+<thead>
+<tr>
+<th><code>width</code></th>
+<th>寬度</th>
+<th>上下內距</th>
+<th>用在哪</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>hug</code></td>
+<td>跟著內容</td>
+<td><code>space.pillPadV</code> 8</td>
+<td>輸入色帶的快捷鍵（一排並列）</td>
+</tr>
+<tr>
+<td><code>fill</code></td>
+<td>撐滿可用寬度</td>
+<td><code>space.pillPadVWide</code> 10</td>
+<td>休息畫面的預設秒數（格狀排列）</td>
+</tr>
+</tbody>
+</table>
+<p>⚠ <strong>兩者的上下內距差 2px。</strong> 同一顆鈕的兩種寬度該不該有不同的高度，
+是膠囊幾何那組待決問題的一部分 —— 先如實保留兩個值，不自己收。</p>
+<h2>4 狀態 states ★</h2>
+<!-- states: hug, fill -->
+<!-- themes: light, dark -->
+
+<table>
+<thead>
+<tr>
+<th>類別</th>
+<th>狀態</th>
+<th>這個元件</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>互動</td>
+<td>default / pressed / disabled / focused</td>
+<td>default。<strong>沒有按下態的視覺</strong>（<code>.plain</code> 樣式）—— 它坐在有色底上，加底色回饋會糊掉</td>
+</tr>
+<tr>
+<td>選取</td>
+<td>selected / unselected / indeterminate</td>
+<td>N/A —— 它是動作不是選項</td>
+</tr>
+<tr>
+<td>資料</td>
+<td>empty / loading / error</td>
+<td>N/A</td>
+</tr>
+<tr>
+<td>內容極值</td>
+<td>最短 / 最長 / 溢出</td>
+<td><code>hug</code> 跟著內容長；<code>fill</code> 等分容器，字太長會截斷</td>
+</tr>
+<tr>
+<td>主題</td>
+<td>light / dark</td>
+<td>兩者都有</td>
+</tr>
+<tr>
+<td>語言</td>
+<td>中文 / 英文</td>
+<td>英文較長，<code>hug</code> 的一排在英文可能換行</td>
+</tr>
+</tbody>
+</table>
+<h2>5 度量與行為</h2>
+<table>
+<thead>
+<tr>
+<th></th>
+<th></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>字級</td>
+<td><code>type.buttonLabelSmall</code> ＋ <code>semibold</code></td>
+</tr>
+<tr>
+<td>左右內距</td>
+<td><code>space.pillPadH</code></td>
+</tr>
+<tr>
+<td>上下內距</td>
+<td>見第 3 節</td>
+</tr>
+<tr>
+<td>形狀</td>
+<td><code>radius.pill</code></td>
+</tr>
+<tr>
+<td>底</td>
+<td><code>surfaceBase</code></td>
+</tr>
+</tbody>
+</table>
+<h3>動態</h3>
+<p>無。</p>
+<h2>6 配色 ★</h2>
+<table>
+<thead>
+<tr>
+<th>用途</th>
+<th>token</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>底</td>
+<td><code>surfaceBase</code></td>
+</tr>
+<tr>
+<td>文字</td>
+<td>預設 <code>accent-700</code>；休息畫面用 <code>accent-800</code>（那個底更深）</td>
+</tr>
+</tbody>
+</table>
+<h2>7 用法與禁用法</h2>
+<p><strong>用它</strong>：坐在<strong>有色底</strong>上的小動作 —— 休息畫面的秒數、輸入色帶的快捷鍵。</p>
+<p><strong>易混淆</strong>：<code>.tlSecondarySmall</code> 按鈕樣式 —— 那個是<strong>線框</strong>。
+判準：<strong>它坐在什麼上面？</strong> 坐在頁面底上用線框，坐在色塊上用這個。</p>
+<p><strong>不要用它</strong>：
+- 當頁面級的主要動作 —— 那是 <code>.tlPrimary</code>，這顆太小
+- 放在白底上 —— 它的底就是 <code>surfaceBase</code>，會消失</p>
+<h2>8 變更紀錄</h2>
+<table>
+<thead>
+<tr>
+<th>日期</th>
+<th>改動</th>
+<th>原因</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>2026-09-04</td>
+<td>新增</td>
+<td><code>ActiveWorkoutView</code> 裡有 <strong><code>restPill</code> 與 <code>quickPill</code> 兩份實作</strong>，只差 2px 內距與一階文字色。兩份實作就是漂移本身</td>
+</tr>
+<tr>
+<td>2026-09-04</td>
+<td>兩種寬度保留兩個上下內距</td>
+<td>收成一個是<strong>視覺決定</strong>，屬於膠囊幾何那組待決問題 —— 我只收實作，不收像素</td>
+</tr>
+</tbody>
+</table>

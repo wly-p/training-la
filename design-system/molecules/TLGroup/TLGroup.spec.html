@@ -1,0 +1,230 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>TLGroup</title>
+<link rel="stylesheet" href="../../tokens/tokens.css">
+<link rel="stylesheet" href="../../preview.css">
+<style>
+  body { max-width: 62rem; line-height: 1.7; }
+  h1, h2, h3 { font-family: var(--font-page-title-family); line-height: 1.35; }
+  h1 { font-size: var(--font-page-title); margin: 0 0 var(--space-gap-l); }
+  h2 { font-size: var(--font-card-title); margin: var(--space-section) 0 var(--space-gap-m);
+       padding-top: var(--space-gap-m); border-top: 1px solid var(--border-subtle); }
+  h3 { font-size: var(--font-row-title); margin: var(--space-gap-l) 0 var(--space-gap-s); }
+  a { color: var(--accent-on-surface); }
+  table { border-collapse: collapse; width: 100%; margin: var(--space-gap-m) 0;
+          display: block; overflow-x: auto; }
+  th, td { text-align: left; padding: var(--space-gap-s) var(--space-gap-m);
+           border-bottom: 1px solid var(--border-subtle); vertical-align: top; }
+  th { font-size: var(--font-kicker); letter-spacing: var(--font-kicker-tracking);
+       text-transform: uppercase; color: var(--text-tertiary); }
+  pre { background: var(--surface-raised); border-radius: var(--radius-inner);
+        padding: var(--space-gap-m); overflow-x: auto; }
+  pre code { background: none; padding: 0; }
+  blockquote { margin: var(--space-gap-m) 0; padding-left: var(--space-gap-m);
+               border-left: 3px solid var(--border-subtle); color: var(--text-secondary); }
+  .back { font-size: var(--font-row-sub); margin-bottom: var(--space-gap-l); display: block; }
+</style>
+<a class="back" href="../../index.html">← 元件庫索引</a>
+<h1>TLGroup</h1>
+<h2>1 身分</h2>
+<table>
+<thead>
+<tr>
+<th></th>
+<th></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>層級</td>
+<td>L2 分子</td>
+</tr>
+<tr>
+<td>職責</td>
+<td>群組容器 —— 把一組列包成一張卡</td>
+</tr>
+<tr>
+<td>原型 id</td>
+<td>每一頁</td>
+</tr>
+<tr>
+<td>獨立使用</td>
+<td>是</td>
+</tr>
+<tr>
+<td>容器責任</td>
+<td>自己負責圓角、底色、列間分隔線；<strong>左右邊距由畫面給</strong>（<code>space.page</code>）</td>
+</tr>
+<tr>
+<td>實作</td>
+<td><code>Packages/DesignSystem/Sources/DesignSystem/Molecules/TLGroup.swift</code></td>
+</tr>
+<tr>
+<td>Preview</td>
+<td><code>design-system/molecules/TLGroup/TLGroup.preview.html</code></td>
+</tr>
+<tr>
+<td>Preview CSS</td>
+<td><code>components.preview.css</code> §TLGroup</td>
+</tr>
+</tbody>
+</table>
+<p><strong>組成</strong>：由 <code>TLDividedVStack</code>（L2）組成，後者再用 <code>TLDivider</code>（L1）。</p>
+<h2>2 介面 ★</h2>
+<p><strong>Props</strong></p>
+<table>
+<thead>
+<tr>
+<th>名稱</th>
+<th>型別</th>
+<th>值域</th>
+<th>必填</th>
+<th>預設</th>
+<th>說明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>border</code></td>
+<td><code>Color?</code></td>
+<td></td>
+<td>否</td>
+<td><code>nil</code></td>
+<td>描邊色。用來標「這一區是進行中的」。<code>nil</code> ＝ 無描邊</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Slots</strong> — <code>content</code>：一組列。<strong>異質靜態列也可以</strong>（不必是 <code>ForEach</code>）——
+分隔線靠 <code>_VariadicView</code> 解析子 View 自動插入。
+<strong>事件</strong> — N/A（互動歸各列）</p>
+<h2>3 變體 variants</h2>
+<p>無。<strong>這是刻意的</strong> —— 一種容器樣式是這套視覺的辨識點，開變體會讓它散掉。</p>
+<p><code>border</code> 不算變體：它是「這一區進行中」的<strong>標記</strong>，不是另一種容器樣式。</p>
+<h2>4 狀態 states ★</h2>
+<!-- states: default, bordered -->
+<!-- themes: light, dark -->
+
+<table>
+<thead>
+<tr>
+<th>類別</th>
+<th>狀態</th>
+<th>這個元件</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>互動</td>
+<td>default / pressed / disabled / focused</td>
+<td><strong>只有 default。</strong> 容器不可互動，互動歸各列</td>
+</tr>
+<tr>
+<td>選取</td>
+<td>selected / unselected / indeterminate</td>
+<td>N/A</td>
+</tr>
+<tr>
+<td>資料</td>
+<td>empty / loading / error</td>
+<td><strong>empty 要注意</strong>：沒有子項時會渲染成一個高度為 0 的圓角矩形（看不見但佔位）。呼叫端應該在沒有內容時不要放這個容器，或改用 <code>TLEmptyState</code></td>
+</tr>
+<tr>
+<td>內容極值</td>
+<td>1 列 / 多列</td>
+<td>1 列時不畫任何分隔線；列數無上限</td>
+</tr>
+<tr>
+<td>主題</td>
+<td>light / dark</td>
+<td>兩者都有</td>
+</tr>
+<tr>
+<td>語言</td>
+<td>中文 / 英文</td>
+<td>由各列自己處理</td>
+</tr>
+</tbody>
+</table>
+<h2>5 度量與行為</h2>
+<table>
+<thead>
+<tr>
+<th></th>
+<th></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>圓角</td>
+<td><code>radius.container</code></td>
+</tr>
+<tr>
+<td>底色</td>
+<td>見第 6 節</td>
+</tr>
+<tr>
+<td>內距</td>
+<td>無 —— 列自己有 <code>space.rowInset</code></td>
+</tr>
+<tr>
+<td>分隔線</td>
+<td>由 <code>TLDividedVStack</code> 插入，頭尾不畫</td>
+</tr>
+</tbody>
+</table>
+<h3>文字與溢出</h3>
+<p>自己無文字。</p>
+<h3>動態</h3>
+<p>無轉場。列的按下態由列自己處理，<strong>不會被容器的圓角裁掉</strong> ——
+按下態畫在列上，而列在容器的 clip 範圍內。</p>
+<h2>6 配色 ★</h2>
+<table>
+<thead>
+<tr>
+<th>用途</th>
+<th>token</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>容器底</td>
+<td><code>surfaceRaised</code></td>
+</tr>
+</tbody>
+</table>
+<p><strong>它比頁面底(<code>surfaceBase</code>)亮</strong>：卡片是浮起來的，不是凹進去的。</p>
+<h2>7 用法與禁用法</h2>
+<p><strong>用它</strong>：一組相關的列要成為視覺上的一張卡時。</p>
+<p><strong>易混淆</strong>：<code>TLSectionHeader</code>（區塊標題）—— 那個是卡<strong>上方</strong>的標籤，這個是卡本身。
+兩者常一起出現但可以分開用：一張卡不一定要有標題。</p>
+<p><strong>不要用它</strong>：
+- 包單一個非列的東西（例如一張圖）—— 那不是「一組列」，會拿到不該有的分隔線邏輯
+- 巢狀 —— 卡中卡沒有設計，而且分隔線會亂
+- 沒有內容時還放著 —— 見第 4 節的 empty</p>
+<h2>8 變更紀錄</h2>
+<table>
+<thead>
+<tr>
+<th>日期</th>
+<th>改動</th>
+<th>原因</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>2026-08-30</td>
+<td>從 <code>Support/</code> 移到 <code>Molecules/</code></td>
+<td>它是元件不是支援工具；分層原本只存在於文件裡</td>
+</tr>
+<tr>
+<td>2026-08-30</td>
+<td>底色 <code>neutral100</code> → <code>surfaceRaised</code>、圓角維持 <code>radius.container</code></td>
+<td>改用語意層才有深色的位置</td>
+</tr>
+<tr>
+<td>2026-08-31</td>
+<td>新增 <code>border</code></td>
+<td>循環清單要標「進行中」的區塊，但這個元件不收描邊，於是呼叫端自己在外面疊了一個 <code>strokeBorder</code> 的 overlay —— 同一件事的第二份實作。跟 <code>TLSectionHeader</code> 的右側、<code>TLBadge(count:)</code> 的顏色同一型</td>
+</tr>
+</tbody>
+</table>

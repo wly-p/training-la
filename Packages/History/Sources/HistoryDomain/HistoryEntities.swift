@@ -71,6 +71,8 @@ public struct HistorySetLine: Identifiable, Equatable, Sendable {
     public let status: WorkoutSetStatus
     public let targetWeight: Weight?
     public let targetReps: Int?
+    /// 熱身組：仍然列在逐組明細裡，但不進總量／達標／趨勢圖（見 HistoryFormatting）。
+    public let isWarmup: Bool
 
     public init(
         id: UUID,
@@ -79,7 +81,8 @@ public struct HistorySetLine: Identifiable, Equatable, Sendable {
         reps: Int,
         status: WorkoutSetStatus,
         targetWeight: Weight?,
-        targetReps: Int?
+        targetReps: Int?,
+        isWarmup: Bool = false
     ) {
         self.id = id
         self.setIndex = setIndex
@@ -88,6 +91,7 @@ public struct HistorySetLine: Identifiable, Equatable, Sendable {
         self.status = status
         self.targetWeight = targetWeight
         self.targetReps = targetReps
+        self.isWarmup = isWarmup
     }
 }
 

@@ -1,9 +1,10 @@
+import DesignControls
 import DesignSystem
 import SharedKernel
 import SpecDomain
 import SwiftUI
 
-/// 新增／編輯動作（設計稿 9a）。套 DesignSystem `EditScaffold`：inline 標題＝名稱、
+/// 新增／編輯動作（設計稿 9a）。套 DesignSystem `TLEditScaffold`：inline 標題＝名稱、
 /// 肌群（單選 sage）／器材（單選 accent＋遞增 hint）／備註／被使用於（編輯模式護欄）／刪除列。
 /// ⚠️ 沒有組數／次數／休息／重量 —— 那些屬於範本（設計原則 9）。
 struct ExerciseFormView: View {
@@ -61,7 +62,7 @@ struct ExerciseFormView: View {
     }
 
     var body: some View {
-        EditScaffold(
+        TLEditScaffold(
             title: $name,
             titlePrompt: localText("spec.name.placeholder"),
             canSave: canSave,
@@ -104,10 +105,10 @@ struct ExerciseFormView: View {
     // MARK: - 肌群（單選）
 
     private var muscleSection: some View {
-        EditSection(localText("spec.muscleGroup")) {
-            FlowLayout(spacing: 8, lineSpacing: 8) {
+        TLEditSection(localText("spec.muscleGroup")) {
+            TLFlowLayout(spacing: TLSpace.gapS, lineSpacing: TLSpace.gapS) {
                 ForEach(MuscleGroup.allCases, id: \.self) { group in
-                    SelectableChip(
+                    TLSelectableChip(
                         group.displayName(locale),
                         isSelected: muscleGroup == group,
                         selectedFill: TLColor.sage200,
@@ -123,10 +124,10 @@ struct ExerciseFormView: View {
     // MARK: - 器材（單選）＋遞增 hint
 
     private var equipmentSection: some View {
-        EditSection(localText("spec.equipment"), footer: localText("spec.equipment.hint")) {
-            FlowLayout(spacing: 8, lineSpacing: 8) {
+        TLEditSection(localText("spec.equipment"), footer: localText("spec.equipment.hint")) {
+            TLFlowLayout(spacing: TLSpace.gapS, lineSpacing: TLSpace.gapS) {
                 ForEach(Equipment.allCases, id: \.self) { item in
-                    SelectableChip(
+                    TLSelectableChip(
                         item.displayName(locale),
                         isSelected: equipment == item,
                         selectedFill: TLColor.accent,
@@ -142,26 +143,25 @@ struct ExerciseFormView: View {
     // MARK: - 備註
 
     private var notesSection: some View {
-        EditSection(localText("spec.notes.section")) {
-            TextField("", text: $descriptionText, prompt: localText("spec.notes.optional"), axis: .vertical)
-                .font(TLFont.zh(TLFont.rowTitle))
-                .foregroundStyle(TLColor.text)
-                .lineLimit(3, reservesSpace: true)
-                .padding(TLSpace.rowInset)
-                .background(TLColor.neutral100)
-                .clipShape(RoundedRectangle(cornerRadius: TLRadius.container, style: .continuous))
+        TLEditSection(localText("spec.notes.section")) {
+            TLCard {
+                TextField(text: $descriptionText, prompt: localText("spec.notes.optional"), axis: .vertical) { Text(verbatim: "") }
+                    .font(TLFont.zh(TLFont.rowTitle))
+                    .foregroundStyle(TLColor.text)
+                    .lineLimit(3, reservesSpace: true)
+            }
         }
     }
 
     // MARK: - 被使用於（編輯模式護欄）
 
     private var usedInSection: some View {
-        EditSection(localText("spec.usedIn.section")) {
+        TLEditSection(localText("spec.usedIn.section")) {
             TLGroup {
                 if usages.isEmpty {
-                    ListRow(title: localText("spec.usedIn.empty"))
+                    TLListRow(title: localText("spec.usedIn.empty"))
                 } else {
-                    ListRow(
+                    TLListRow(
                         title: localText("spec.usedIn.count \(usages.count)"),
                         trailing: {
                             Text(verbatim: usages.map(\.name).joined(separator: " · "))
@@ -180,7 +180,7 @@ struct ExerciseFormView: View {
 
     private var deleteSection: some View {
         TLGroup {
-            SettingsRow(
+            TLSettingsRow(
                 localText("spec.delete.exercise"),
                 role: .destructive,
                 onTap: { showDeleteConfirm = true }
