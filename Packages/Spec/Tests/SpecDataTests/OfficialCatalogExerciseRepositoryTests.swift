@@ -44,9 +44,9 @@ struct OfficialCatalogExerciseRepositoryTests {
 
         let listed = try await makeRepo(base).list(muscleGroup: nil)
 
-        #expect(listed.count == OfficialExerciseCatalog.all.count + 1)
+        #expect(listed.count == OfficialExerciseCatalog.listed.count + 1)
         #expect(listed.contains { $0.id == mine.id })
-        #expect(listed.filter { $0.source == .official }.count == OfficialExerciseCatalog.all.count)
+        #expect(listed.filter { $0.source == .official }.count == OfficialExerciseCatalog.listed.count)
     }
 
     @Test func listIsSortedByResolvedName() async throws {
@@ -69,7 +69,7 @@ struct OfficialCatalogExerciseRepositoryTests {
         let listed = try await makeRepo(base).list(muscleGroup: .back)
 
         #expect(listed.allSatisfy { $0.muscleGroup == .back })
-        #expect(listed.count == OfficialExerciseCatalog.all.filter { $0.muscleGroup == .back }.count + 1)
+        #expect(listed.count == OfficialExerciseCatalog.listed.filter { $0.muscleGroup == .back }.count + 1)
     }
 
     @Test func getFallsBackToBuiltInCatalog() async throws {

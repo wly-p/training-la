@@ -52,7 +52,8 @@ progressed over time — no account, no backend, no network required. All data l
   workout or an unplanned one.
 - **History** — browse past sessions by date, or drill into a single exercise to see every set
   you've ever logged for it.
-- **Theme** — light / dark / follow system.
+- **Appearance** — light only for now. Dark mode is gated off until the dark palette has been
+  verified screen by screen (`AppTheme.isSelectionEnabled`); the theme model is already in place.
 
 ## Project status
 

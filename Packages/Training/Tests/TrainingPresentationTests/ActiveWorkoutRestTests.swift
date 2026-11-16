@@ -615,6 +615,32 @@ struct ActiveWorkoutUndoTests {
         #expect(vm.canUndoLastSet == false)
     }
 
+    /// 連按兩下「完成」之後，復原可以一路退回去——不是只救得回最後一下。
+    /// 復原鍵每次都掛在「目前最後一組」上。
+    @Test func undoWalksBackThroughSetsRecordedOnThisExercise() async {
+        let vm = makeViewModel(benchSets: 3)
+        await vm.onAppear()
+
+        await vm.completeCurrentSet()
+        await vm.completeCurrentSet()
+        let ids = vm.currentBlockSets.map(\.id)
+        #expect(ids.count == 2)
+        #expect(vm.isUndoable(setId: ids[1]))
+        #expect(vm.isUndoable(setId: ids[0]) == false)
+
+        await vm.undoLastSet()
+        #expect(vm.currentBlockSets.map(\.id) == [ids[0]])
+        #expect(vm.isUndoable(setId: ids[0])) // 復原鍵往回掛到上一組
+
+        await vm.undoLastSet()
+        #expect(vm.currentBlockSets.isEmpty)
+        #expect(vm.canUndoLastSet == false)
+
+        // 堆疊空了再按不會出事，也不會動到任何東西。
+        await vm.undoLastSet()
+        #expect(vm.currentBlockSets.isEmpty)
+    }
+
     @Test func undoCancelsRestStartedByCompletion() async {
         let vm = makeViewModel(benchSets: 3)
         await vm.onAppear()

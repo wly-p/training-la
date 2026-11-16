@@ -172,12 +172,19 @@ public enum WorkoutHistoryExporter {
             ]
             lines.append(fields.map(csvEscaped).joined(separator: ","))
         }
-        return lines.joined(separator: "\n").data(using: .utf8) ?? Data()
+        return Data(utf8BOM) + Data(lines.joined(separator: "\n").utf8)
     }
 
+    /// UTF-8 BOM。CSV 沒有欄位可以宣告編碼，Excel 看到沒有 BOM 的檔就用系統 ANSI 碼頁
+    /// （繁中 Windows 是 Big5）去解——動作名稱與備註的中文整排變亂碼，而 CSV 存在的理由
+    /// 正是「拿去試算表開」。Numbers／Google Sheets 有沒有 BOM 都讀得對，加了沒有壞處。
+    /// JSON 不加：RFC 8259 明講不該有，會讓嚴格的 parser 直接失敗。
+    static let utf8BOM: [UInt8] = [0xEF, 0xBB, 0xBF]
+
     /// 逗號、引號、換行都要用雙引號包起來，內部的雙引號自我轉義（標準 CSV 規則）。
+    /// 換行包含 `\r`——備註是自由輸入，貼上的文字可能帶 CRLF，漏掉它會把一筆拆成兩列。
     private static func csvEscaped(_ field: String) -> String {
-        guard field.contains(",") || field.contains("\"") || field.contains("\n") else { return field }
+        guard field.contains(where: { $0 == "," || $0 == "\"" || $0.isNewline }) else { return field }
         return "\"\(field.replacingOccurrences(of: "\"", with: "\"\""))\""
     }
 }

@@ -314,6 +314,17 @@ if __name__ == "__main__":
     payload = {"generatedAt": datetime.date.today().isoformat(),
                "tokensVersion": json.loads((DS / "tokens/tokens.json").read_text())["meta"]["version"],
                "components": comps}
+    # generatedAt 只在「內容真的變了」時才往前推。否則它每天都不一樣，
+    # `--check` 會在生成當天以外的每一天都判定不一致——`make lint` 隔天就紅，
+    # 而且重跑生成器只會產生一個只改日期的 diff。
+    try:
+        existing = json.loads(JSON.read_text())
+    except (OSError, ValueError):
+        existing = None
+    if isinstance(existing, dict) and "generatedAt" in existing \
+            and {k: v for k, v in existing.items() if k != "generatedAt"} \
+            == {k: v for k, v in payload.items() if k != "generatedAt"}:
+        payload["generatedAt"] = existing["generatedAt"]
     new_json = json.dumps(payload, ensure_ascii=False, indent=2) + "\n"
     new_html = render(comps)
     if "--check" in sys.argv:

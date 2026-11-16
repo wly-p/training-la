@@ -13,9 +13,18 @@ public struct DayDate: Equatable, Hashable, Comparable, Codable, Sendable {
         self.day = day
     }
 
-    /// 以使用者當前行事曆取出年月日。
+    /// 取出 `date` 落在哪一個日曆日。**年月日一律是西元（Gregorian）**，
+    /// 傳入的 `calendar` 只借它的時區來決定「現在是哪一天」。
+    ///
+    /// 不能直接用 `calendar` 取年份：`Calendar.current` 跟著「設定 › 一般 › 語言與地區 › 行事曆」走，
+    /// 台灣可以選民國曆、泰國預設佛曆、日本可以選和曆——那些裝置上 2026 年會拿到 115／2569／8。
+    /// 而這個型別的其餘部分（`isoString` 儲存格式、`adding(days:)`、`weekdayNumber`、
+    /// 各畫面的月曆與日期格式化）全部以西元解讀，於是「今天」會被存成西元 115 年：
+    /// 今天的排課對不上月曆、星期幾算錯、本週統計整排是空的，而且錯的日期已經寫進資料庫。
     public init(_ date: Date, calendar: Calendar = .current) {
-        let parts = calendar.dateComponents([.year, .month, .day], from: date)
+        var gregorian = Calendar(identifier: .gregorian)
+        gregorian.timeZone = calendar.timeZone
+        let parts = gregorian.dateComponents([.year, .month, .day], from: date)
         self.init(year: parts.year!, month: parts.month!, day: parts.day!)
     }
 

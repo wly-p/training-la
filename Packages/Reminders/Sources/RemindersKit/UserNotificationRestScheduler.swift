@@ -24,6 +24,8 @@ public struct UserNotificationRestScheduler: RestNotificationScheduling {
     public func scheduleRestEnd(at date: Date, withSound: Bool) async {
         let center = UNUserNotificationCenter.current()
         center.removePendingNotificationRequests(withIdentifiers: [identifier])
+        // 上一段休息已經投遞出去的那則也收掉——它講的是上一組，新的倒數開始後就是過期訊息。
+        center.removeDeliveredNotifications(withIdentifiers: [identifier])
 
         let interval = date.timeIntervalSinceNow
         guard interval > 0 else { return } // 已過期就不排
@@ -45,7 +47,10 @@ public struct UserNotificationRestScheduler: RestNotificationScheduling {
     }
 
     public func cancelRestEnd() async {
-        UNUserNotificationCenter.current()
-            .removePendingNotificationRequests(withIdentifiers: [identifier])
+        let center = UNUserNotificationCenter.current()
+        center.removePendingNotificationRequests(withIdentifiers: [identifier])
+        // 已經投遞的也一併清掉。只清 pending 的話，背景到點的那則通知會一直留在通知中心：
+        // 使用者早就回到 app 做完下一組、甚至結束整場了，鎖定畫面上還掛著「休息結束」。
+        center.removeDeliveredNotifications(withIdentifiers: [identifier])
     }
 }

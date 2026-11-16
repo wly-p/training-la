@@ -15,7 +15,7 @@ final class ExerciseListUITests: XCTestCase {
         nameField.typeText("測試臥推")
         app.buttons["editScaffold.save"].tap() // 器材用預設（槓鈴）
 
-        // 內建動作清單（80 筆）常駐，先搜尋縮到只剩剛建的那筆再驗——不然下面的器材標
+        // 內建動作清單（75 筆）常駐，先搜尋縮到只剩剛建的那筆再驗——不然下面的器材標
         // 會被一堆內建動作的器材標籤誤打誤撞地滿足，等於沒測到。
         app.searchExerciseList("測試臥推")
         XCTAssertTrue(app.staticTexts["測試臥推"].waitForExistence(timeout: 5))

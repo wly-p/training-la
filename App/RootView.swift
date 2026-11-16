@@ -92,8 +92,9 @@ struct RootView: View {
                       label: Text("tab.settings"), identifier: "settings"),
             ])
         }
-        // 主題套在根部：設定 tab 一改，整個 App 立即換色
-        .preferredColorScheme(settingsViewModel.theme.colorScheme)
+        // 主題套在根部：設定 tab 一改，整個 App 立即換色。
+        // 目前深色閘門關著，`effectiveColorScheme` 一律回淺色（見 `AppTheme.isSelectionEnabled`）。
+        .preferredColorScheme(settingsViewModel.theme.effectiveColorScheme)
         // 語言套在根部：注入 \.locale 讓所有 Text(key, bundle:) 依此語言查表，body 內文字即時重繪。
         .environment(\.locale, settingsViewModel.language.locale)
         // 重量單位同理套在根部：設定一改，全 App 的重量顯示立即換算（儲存端不變，見 Weight）。

@@ -57,7 +57,7 @@ enum DebugSeeding {
             print("[DebugSeeding] store already has workouts, skipping")
             return
         }
-        let catalog = OfficialExerciseCatalog.all
+        let catalog = OfficialExerciseCatalog.listed
         guard !catalog.isEmpty else { return }
 
         let started = Date()

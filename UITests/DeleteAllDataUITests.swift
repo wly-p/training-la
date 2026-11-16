@@ -32,7 +32,7 @@ final class DeleteAllDataUITests: XCTestCase {
 
         // 畫面重建後，回動作庫，使用者自建的那筆應該不見了。
         //
-        // 不能再斷言「動作庫是空的」：內建動作清單（80 筆）常駐、不進 DB，所以刪光使用者資料
+        // 不能再斷言「動作庫是空的」：內建動作清單（75 筆）常駐、不進 DB，所以刪光使用者資料
         // 之後它們仍然在。用搜尋把清單縮到只剩目標，才不會因為那筆剛好被擠到畫面外
         // 而誤判成「已刪除」。
         let exercisesTab = app.buttons["tabBar.item.exercises"]

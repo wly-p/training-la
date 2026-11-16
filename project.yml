@@ -48,10 +48,27 @@ targets:
   TrainingLa:
     type: application
     platform: iOS
-    sources: [App]
+    sources:
+      - path: App
+        # icon-exports 是 app icon 的 1024 原始輸出檔（給 asset catalog 與設計端對照用），
+        # 執行期沒有任何程式碼讀它。不排除的話 8 張 PNG 會被當成 resource 原樣塞進 .app。
+        excludes:
+          - "icon-exports/**"
     info:
       path: App/Info.plist
       properties:
+        # ── 上架相關 ──
+        # 深色閘門的另一半（見 AppTheme.isSelectionEnabled）：SwiftUI 的 preferredColorScheme
+        # 要等根 view 起來才生效，這個 key 管的是那之前（啟動畫面）與任何漏網的系統 UI。
+        # 開放深色時兩邊一起拿掉。
+        UIUserInterfaceStyle: Light
+        # 只支援直向：版面（自訂分頁列、訓練頁的輸入色帶、月曆條）都是照直向設計與驗證的，
+        # 橫向沒有任何一頁測過。沒有這個 key 時 iPhone 預設會跟著轉。
+        UISupportedInterfaceOrientations:
+          - UIInterfaceOrientationPortrait
+        # 沒有用到任何非豁免的加密（只有系統的 HTTPS，而且 app 本身不連網）。
+        # 宣告之後每次上傳 TestFlight 不會再被問出口合規問卷。
+        ITSAppUsesNonExemptEncryption: false
         # 由 per-config 的 build settings 注入、build 時展開；App 啟動讀成 AppEnvironment
         AppEnv: $(APP_ENV)
         # 隱私政策頁網址；值在 Config.xcconfig，App 讀成 PrivacyPolicy.baseURL
@@ -59,7 +76,9 @@ targets:
         CFBundleDisplayName: $(APP_DISPLAY_NAME)
         CFBundleShortVersionString: $(MARKETING_VERSION)
         CFBundleVersion: $(CURRENT_PROJECT_VERSION)
-        UILaunchScreen: {}
+        # 啟動畫面底色＝頁面底色（surfaceBase），不然冷啟動會先閃一下純白才換成沙色。
+        UILaunchScreen:
+          UIColorName: LaunchBackground
     dependencies:
       - package: Spec
         products: [SpecDomain, SpecData, SpecPresentation]
@@ -82,6 +101,10 @@ targets:
       base:
         SWIFT_VERSION: "6.0"
         CODE_SIGN_STYLE: Automatic
+        # 只出 iPhone。版面沒有為 iPad 設計過，而一旦以 universal 上架，
+        # App Store 不允許之後的版本拿掉 iPad 支援（反過來隨時可以加）；
+        # universal 還要多交一組 iPad 截圖、支援四個方向與多工。
+        TARGETED_DEVICE_FAMILY: "1"
         # 版號單一真實來源：改版動這兩行（marketing version 開發週期開頭 bump；
         # build number 每次上傳 TestFlight 遞增）。Info.plist 只放 $() 引用。
         MARKETING_VERSION: "1.0.0"

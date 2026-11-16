@@ -2,7 +2,7 @@ import XCTest
 
 /// 動作庫與「選動作」picker 的共用操作。
 ///
-/// 為什麼不再直接 `app.staticTexts["臥推"].tap()`：內建動作清單（`OfficialExerciseCatalog`，80 筆）
+/// 為什麼不再直接 `app.staticTexts["臥推"].tap()`：內建動作清單（`OfficialExerciseCatalog`，75 筆）
 /// 常駐在動作庫與每一個 picker 裡，所以
 /// 1. 名稱可能撞（測試自己建的動作要取不會跟內建撞的名字），且
 /// 2. 目標可能被擠到畫面外——`LazyVStack` 沒算繪的列連查都查不到，更別說點。

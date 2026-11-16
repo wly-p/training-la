@@ -62,6 +62,11 @@ i18n 主線（Part 1–3）完成了全 app 介面文字的中英雙語，但依
 
 這張表是內建動作庫的來源。落點：
 
+> **目前列出 75 筆，不是 80 筆。** 記錄畫面只有「重量 × 次數」一種輸入，所以計時的
+> 棒式、側棒式、戰繩與計距的雪橇推拉、農夫走路在 JSON 裡標了 `trackingMode`，
+> 由 `OfficialExerciseCatalog.listed` 濾掉不列出（資料與翻譯都留著，依 id 仍查得到名字）。
+> 記錄畫面支援時間／距離之後把那個過濾拿掉，它們就原封不動回來。
+
 - 結構（固定 UUID／catalog key／肌群／器材）→
   `Packages/Spec/Sources/SpecDomain/Resources/OfficialExercises.json`
 - 中英名稱 → `Packages/Spec/Sources/SpecDomain/Localizable.xcstrings`
