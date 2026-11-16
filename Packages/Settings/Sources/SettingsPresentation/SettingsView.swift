@@ -98,6 +98,10 @@ public struct SettingsView: View {
                 Button { Task { await viewModel.exportJSON() } } label: { localText("settings.export.json") }
                 Button { Task { await viewModel.exportCSV() } } label: { localText("settings.export.csv") }
                 Button(role: .cancel) {} label: { localText("settings.common.cancel") }
+            } message: {
+                // 匯出不是備份：不含課表與能力值、也匯不回來；資料只在這支裝置上。
+                // 這是 App 裡唯一講到「資料安不安全」的地方，放在使用者正想著這件事的當下。
+                localText("settings.export.message")
             }
             #if os(iOS)
             .sheet(item: $viewModel.exportedFile) { file in
@@ -293,6 +297,8 @@ public struct SettingsView: View {
     private var exportRow: some View {
         TLSettingsRow(
             localText("settings.export.title"),
+            // 匯出的只有訓練紀錄。不寫出來的話「匯出資料」四個字會被讀成「備份全部」。
+            hint: localText("settings.export.hint"),
             showChevron: !viewModel.isExporting,
             onTap: { if !viewModel.isExporting { showExportOptions = true } }
         ) {
