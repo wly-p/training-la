@@ -33,6 +33,34 @@ struct DayDateTests {
         #expect(day == DayDate(year: 2026, month: 3, day: 15))
     }
 
+    /// 裝置行事曆不是西元（民國曆、佛曆、和曆）時，年份仍然要是西元。
+    /// 原本直接拿 `Calendar.current` 的年份，民國曆裝置上「今天」會被存成西元 115 年。
+    @Test(arguments: [Calendar.Identifier.republicOfChina, .buddhist, .japanese, .gregorian])
+    func initFromDateIsAlwaysGregorian(identifier: Calendar.Identifier) {
+        let taipei = TimeZone(identifier: "Asia/Taipei")!
+        var gregorian = Calendar(identifier: .gregorian)
+        gregorian.timeZone = taipei
+        let date = gregorian.date(from: DateComponents(year: 2026, month: 11, day: 16, hour: 9))!
+
+        var deviceCalendar = Calendar(identifier: identifier)
+        deviceCalendar.timeZone = taipei
+
+        #expect(DayDate(date, calendar: deviceCalendar) == DayDate(year: 2026, month: 11, day: 16))
+    }
+
+    /// 「哪一天」跟著傳入行事曆的時區走：同一個瞬間在台北已經是隔天。
+    @Test func initFromDateUsesCalendarTimeZone() {
+        var utc = Calendar(identifier: .gregorian)
+        utc.timeZone = TimeZone(identifier: "UTC")!
+        let date = utc.date(from: DateComponents(year: 2026, month: 11, day: 16, hour: 20))!
+
+        var taipei = Calendar(identifier: .republicOfChina)
+        taipei.timeZone = TimeZone(identifier: "Asia/Taipei")!
+
+        #expect(DayDate(date, calendar: utc) == DayDate(year: 2026, month: 11, day: 16))
+        #expect(DayDate(date, calendar: taipei) == DayDate(year: 2026, month: 11, day: 17))
+    }
+
     @Test func isoStringRoundTrips() {
         let day = DayDate(year: 2026, month: 1, day: 5)
         #expect(day.isoString == "2026-01-05")
