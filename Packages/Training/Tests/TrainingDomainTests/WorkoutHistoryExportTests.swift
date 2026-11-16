@@ -50,15 +50,25 @@ struct WorkoutHistoryExporterTests {
         #expect(Set(decoded.map(\.exerciseId)) == Set(workout.sets.map(\.exerciseId)))
     }
 
+    /// 把 CSV 解成文字，**自己把開頭的 BOM 剝掉**。
+    ///
+    /// 不能靠 `String(data:encoding:)`：它吃不吃 BOM 隨 Foundation 版本而異——
+    /// macOS 26 會吃掉，CI 的 macOS 15 會留成一個 U+FEFF。斷言寫成任一種都會在另一邊紅。
+    private func csvText(from workouts: [Workout], exerciseNames: [UUID: String]) -> String {
+        let data = WorkoutHistoryExporter.csv(from: workouts, exerciseNames: exerciseNames)
+        let bom: [UInt8] = [0xEF, 0xBB, 0xBF]
+        let body = Array(data.prefix(bom.count)) == bom ? data.dropFirst(bom.count) : data[...]
+        return String(decoding: body, as: UTF8.self)
+    }
+
     @Test func csvHasHeaderAndOneLinePerSet() {
         let workout = makeWorkout()
 
-        let csv = String(data: WorkoutHistoryExporter.csv(from: [workout], exerciseNames: [benchPress: "臥推"]), encoding: .utf8)!
+        let csv = csvText(from: [workout], exerciseNames: [benchPress: "臥推"])
         let lines = csv.split(separator: "\n", omittingEmptySubsequences: false)
 
         #expect(lines.count == 4) // header + 3 sets
-        // `String(data:encoding:)` 解碼時會吃掉開頭的 BOM，所以這裡看到的直接是表頭；
-        // BOM 本身由 `csvStartsWithUTF8BOM` 在 byte 層驗。
+        // BOM 已經由 `csvText` 剝掉，這裡看到的直接是表頭；BOM 本身由 `csvStartsWithUTF8BOM` 在 byte 層驗。
         #expect(lines[0].hasPrefix("workoutId,day,"))
         #expect(lines[1].contains("臥推"))
     }
@@ -81,7 +91,7 @@ struct WorkoutHistoryExporterTests {
         var workout = Workout(id: UUID(), day: DayDate(year: 2026, month: 7, day: 20), note: "第一行\r\n第二行")
         workout.appendSet(exerciseId: benchPress, measurement: .reps(10))
 
-        let csv = String(data: WorkoutHistoryExporter.csv(from: [workout], exerciseNames: [:]), encoding: .utf8)!
+        let csv = csvText(from: [workout], exerciseNames: [:])
 
         #expect(csv.contains("\"第一行\r\n第二行\""))
     }
@@ -90,13 +100,13 @@ struct WorkoutHistoryExporterTests {
         var workout = Workout(id: UUID(), day: DayDate(year: 2026, month: 7, day: 20), note: "備註, 含逗號與\"引號\"")
         workout.appendSet(exerciseId: benchPress, measurement: .reps(10))
 
-        let csv = String(data: WorkoutHistoryExporter.csv(from: [workout], exerciseNames: [:]), encoding: .utf8)!
+        let csv = csvText(from: [workout], exerciseNames: [:])
 
         #expect(csv.contains("\"備註, 含逗號與\"\"引號\"\"\""))
     }
 
     @Test func emptyWorkoutListProducesHeaderOnlyCsv() {
-        let csv = String(data: WorkoutHistoryExporter.csv(from: [], exerciseNames: [:]), encoding: .utf8)!
+        let csv = csvText(from: [], exerciseNames: [:])
         #expect(csv.split(separator: "\n").count == 1)
     }
 }
