@@ -119,14 +119,18 @@ public struct SettingsView: View {
         VStack(alignment: .leading, spacing: 0) {
             TLSectionHeader(localText("settings.appearance.section"))
             TLGroup {
-                TLSettingsRow(
-                    localText("settings.theme.title"),
-                    showChevron: true,
-                    onTap: { route = .theme }
-                ) {
-                    TLSettingsValue(localText(viewModel.theme.displayName))
+                // 深色閘門關著時不給入口——留一個選了沒效果的列比沒有更糟
+                // （見 `AppTheme.isSelectionEnabled`）。
+                if AppTheme.isSelectionEnabled {
+                    TLSettingsRow(
+                        localText("settings.theme.title"),
+                        showChevron: true,
+                        onTap: { route = .theme }
+                    ) {
+                        TLSettingsValue(localText(viewModel.theme.displayName))
+                    }
+                    .accessibilityIdentifier("settings.row.theme")
                 }
-                .accessibilityIdentifier("settings.row.theme")
                 TLSettingsRow(
                     localText("settings.language.title"),
                     showChevron: true,

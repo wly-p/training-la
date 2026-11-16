@@ -19,4 +19,17 @@ struct AppThemeTests {
     @Test func allCasesCoversThreeThemes() {
         #expect(AppTheme.allCases == [.system, .light, .dark])
     }
+
+    /// 深色閘門：關著的時候，不管存的偏好是什麼（包含「跟隨系統」），根部一律拿到淺色。
+    /// 「跟隨系統」是最容易漏的一條——它回 nil，手機開深色的人照樣會看到破版。
+    /// 閘門打開後則原樣回傳使用者選的值。
+    @Test func effectiveColorSchemeHonoursDarkGate() {
+        for theme in AppTheme.allCases {
+            if AppTheme.isSelectionEnabled {
+                #expect(theme.effectiveColorScheme == theme.colorScheme)
+            } else {
+                #expect(theme.effectiveColorScheme == .light)
+            }
+        }
+    }
 }

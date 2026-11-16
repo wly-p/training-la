@@ -19,11 +19,11 @@ struct LaunchErrorView: View {
                         .font(.system(size: 48))
                         .foregroundStyle(TLColor.accent)
 
-                    Text(LocalizedStringKey("launch.error.title"))
+                    Text("launch.error.title")
                         .font(.system(size: 18, weight: .semibold))
                         .foregroundStyle(TLColor.text)
 
-                    Text(LocalizedStringKey("launch.error.message"))
+                    Text("launch.error.message")
                         .font(.system(size: 14))
                         .foregroundStyle(TLColor.textSecondary)
                         .multilineTextAlignment(.center)
@@ -40,7 +40,7 @@ struct LaunchErrorView: View {
                 Spacer()
 
                 Button(action: onRetry) {
-                    Text(LocalizedStringKey("launch.error.retry"))
+                    Text("launch.error.retry")
                         .frame(maxWidth: .infinity)
                         .padding(.vertical, 12)
                         .font(.system(size: 16, weight: .semibold))

@@ -17,31 +17,22 @@ final class SettingsUITests: XCTestCase {
         )
     }
 
+    /// 深色閘門關著（`AppTheme.isSelectionEnabled == false`）：設定頁不該有主題列。
+    ///
+    /// 原本這裡是「點進主題 → 選深色 → 列上的值更新」。深色色階還沒逐畫面驗證完，
+    /// 開放切換只會讓人選到一個白字壓奶油底的畫面，所以入口整個收起來。
+    /// 閘門打開時把那支 drill-in 測試從 git 歷史撿回來（`testThemeSelectionDrillInUpdatesValue`）。
     @MainActor
-    func testThemeSelectionDrillInUpdatesValue() throws {
+    func testThemeRowHiddenWhileLockedToLight() throws {
         let app = XCUIApplication()
         launchForUITest(app)
 
         app.buttons["tabBar.item.settings"].tap()
 
-        // 主題列（drill-in）：點進去選「深色」
-        let themeRow = app.buttons["settings.row.theme"]
-        XCTAssertTrue(themeRow.waitForExistence(timeout: 5))
-        themeRow.tap()
-
-        let darkOption = app.buttons["settings.option.dark"]
-        XCTAssertTrue(darkOption.waitForExistence(timeout: 5))
-        // 選項顯示文字跟著語言換，所以拿它當「等一下列上該出現的值」的期望值，而不是寫死中文。
-        let darkLabel = darkOption.label
-        darkOption.tap()
-
-        // 選完自動返回設定根頁
-        XCTAssertTrue(app.staticTexts["settings.title"].waitForExistence(timeout: 5))
-
-        // 主題列的目前值 = 剛才選的那個
-        let row = app.buttons["settings.row.theme"]
-        XCTAssertTrue(row.waitForExistence(timeout: 5))
-        assertRowValue(row, darkLabel)
+        // 先等同一個群組裡一定在的語言列出現，再斷言主題列不存在——
+        // 不然畫面還沒畫完時「不存在」永遠成立，測試等於沒測。
+        XCTAssertTrue(app.buttons["settings.row.language"].waitForExistence(timeout: 5))
+        XCTAssertFalse(app.buttons["settings.row.theme"].exists)
     }
 
     @MainActor
