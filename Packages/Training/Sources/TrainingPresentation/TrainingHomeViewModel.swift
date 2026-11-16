@@ -219,13 +219,9 @@ public final class TrainingHomeViewModel {
     private static let recentSessionLimit = 2
 
     private static func summary(for workout: Workout, name: String?) -> RecentSessionSummary {
-        var minutes: Int?
-        if let start = workout.startedAt, let end = workout.endedAt {
-            minutes = max(0, Int(end.timeIntervalSince(start) / 60))
-        }
         return RecentSessionSummary(
             workoutId: workout.id, day: workout.day, name: name, setCount: workout.sets.count,
-            minutes: minutes, planWorkoutId: workout.planWorkoutId
+            minutes: workout.durationMinutes, planWorkoutId: workout.planWorkoutId
         )
     }
 
@@ -245,10 +241,7 @@ public final class TrainingHomeViewModel {
         let weekDates = (0..<7).map { weekStart.adding(days: $0) }
         let doneDates = Set(finished.map(\.day)).intersection(weekDates)
         let thisWeek = finished.filter { weekDates.contains($0.day) }
-        let totalMinutes = thisWeek.reduce(0) { sum, workout in
-            guard let start = workout.startedAt, let end = workout.endedAt else { return sum }
-            return sum + max(0, Int(end.timeIntervalSince(start) / 60))
-        }
+        let totalMinutes = thisWeek.reduce(0) { $0 + ($1.durationMinutes ?? 0) }
         let totalVolume = thisWeek.reduce(0.0) { $0 + FinishSummaryFormatting.totalVolume($1.sets) }
         let days = weekDates.map { date in
             WeekTrainingSummary.Day(date: date, isToday: date == today, completed: doneDates.contains(date))
@@ -342,6 +335,13 @@ public final class TrainingHomeViewModel {
     public func endResumableNow() async {
         guard let workout = resumable, let finishWorkout else { return }
         do {
+            // 一組都沒記的場次沒有東西可以「存成紀錄」：存下去歷史頁會多一筆 0 組的空場次。
+            // 剛開始訓練 app 就被滑掉時會走到這裡。跟 `ActiveWorkoutViewModel.leave()` 同一個規則。
+            if workout.sets.isEmpty, let discardWorkout {
+                try await discardWorkout(id: workout.id)
+                await refresh()
+                return
+            }
             _ = try await finishWorkout(workout, overallFeeling: nil, note: nil)
             await refresh()
         } catch {

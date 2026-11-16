@@ -465,6 +465,62 @@ struct TrainingHomeViewModelTests {
         #expect(saved?.isFinished == true)
     }
 
+    /// 一組都沒記的場次按「結束它」＝直接丟掉，不在歷史留一筆 0 組的空場次。
+    @Test func endResumableNowDiscardsWorkoutWithNoSets() async {
+        let repo = MockHomeWorkoutRepo()
+        let active = Workout(id: UUID(), day: DayDate(year: 2026, month: 7, day: 27), startedAt: Date())
+        await repo.setActive(active)
+        let vm = TrainingHomeViewModel(
+            startWorkout: StartWorkout(repository: repo),
+            resumeWorkout: ResumeWorkout(repository: repo),
+            finishWorkout: FinishWorkout(repository: repo),
+            discardWorkout: DiscardWorkout(repository: repo)
+        )
+        await vm.refresh()
+
+        await vm.endResumableNow()
+
+        #expect(vm.resumable == nil)
+        let saved = (try? await repo.get(id: active.id)) ?? nil
+        #expect(saved == nil)
+    }
+
+    /// 有記錄的場次照舊存成完成紀錄——丟掉空場次的規則不能誤傷它。
+    @Test func endResumableNowKeepsWorkoutThatHasSets() async {
+        let repo = MockHomeWorkoutRepo()
+        var active = Workout(id: UUID(), day: DayDate(year: 2026, month: 7, day: 27), startedAt: Date())
+        active.appendSet(exerciseId: UUID(), measurement: .reps(10))
+        await repo.setActive(active)
+        let vm = TrainingHomeViewModel(
+            startWorkout: StartWorkout(repository: repo),
+            resumeWorkout: ResumeWorkout(repository: repo),
+            finishWorkout: FinishWorkout(repository: repo),
+            discardWorkout: DiscardWorkout(repository: repo)
+        )
+        await vm.refresh()
+
+        await vm.endResumableNow()
+
+        let saved = (try? await repo.get(id: active.id)) ?? nil
+        #expect(saved?.isFinished == true)
+        #expect(saved?.sets.count == 1)
+    }
+
+    /// 隔夜才結束的場次（時長不可信）不計入本週累計時長，但仍算一次訓練。
+    @Test func weekSummaryIgnoresImplausibleDuration() {
+        let today = DayDate(year: 2026, month: 7, day: 27)
+        let start = Date(timeIntervalSince1970: 1_800_000_000)
+        let normal = Workout(id: UUID(), day: today, startedAt: start,
+                             endedAt: start.addingTimeInterval(50 * 60))
+        let overnight = Workout(id: UUID(), day: today, startedAt: start,
+                                endedAt: start.addingTimeInterval(14 * 60 * 60))
+
+        let summary = TrainingHomeViewModel.weekSummary(from: [normal, overnight], today: today)
+
+        #expect(summary.sessionCount == 2)
+        #expect(summary.totalMinutes == 50)
+    }
+
     @Test func discardResumableDeletesAndClearsResumable() async {
         let repo = MockHomeWorkoutRepo()
         let active = Workout(id: UUID(), day: DayDate(year: 2026, month: 7, day: 27), startedAt: Date())
