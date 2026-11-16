@@ -12,6 +12,9 @@ struct OfficialExerciseCatalogTests {
     /// `docs/exercise-glossary.md` 表 3 的筆數。改動清單時這個數字要一起改，
     /// 免得「不小心刪掉幾筆」這種事悄悄過關。
     private static let expectedCount = 80
+    /// 其中列得出來的筆數：扣掉記錄畫面還記不了的 5 筆（棒式、側棒式、戰繩＝計時；
+    /// 雪橇推拉、農夫走路＝計距）。記錄畫面支援時間／距離後這個數字要回到 80。
+    private static let expectedListedCount = 75
 
     @Test func jsonLoadsCompletely() {
         // 解不出來（例如 muscleGroup 打錯字）時 `all` 會是空陣列，所以這條同時守住 rawValue 有效性。
@@ -28,13 +31,35 @@ struct OfficialExerciseCatalogTests {
         for group in MuscleGroup.allCases {
             let matched = OfficialExerciseCatalog.exercises(muscleGroup: group, language: .zhHant)
             #expect(matched.allSatisfy { $0.muscleGroup == group })
-            #expect(matched.count == OfficialExerciseCatalog.all.filter { $0.muscleGroup == group }.count)
+            #expect(matched.count == OfficialExerciseCatalog.listed.filter { $0.muscleGroup == group }.count)
         }
     }
 
-    @Test func nilFilterReturnsEverything() {
+    @Test func nilFilterReturnsEverythingListed() {
         #expect(OfficialExerciseCatalog.exercises(muscleGroup: nil, language: .zhHant).count
-                == Self.expectedCount)
+                == Self.expectedListedCount)
+    }
+
+    /// 列出來的只有「重量 × 次數」記得了的動作。
+    @Test func listedExcludesExercisesTheRecordingScreenCannotMeasure() {
+        #expect(OfficialExerciseCatalog.listed.count == Self.expectedListedCount)
+        #expect(OfficialExerciseCatalog.listed.filter { !$0.isRecordable }.isEmpty)
+
+        let hiddenKeys = Set(OfficialExerciseCatalog.all.filter { !$0.isRecordable }.map(\.key))
+        #expect(hiddenKeys == [
+            "exercise.plank.bodyweight", "exercise.sidePlank.bodyweight", "exercise.battleRope.other",
+            "exercise.sledPushDrag.other", "exercise.farmerSWalk.dumbbell",
+        ])
+    }
+
+    /// 不列出不等於不認得：已經引用到它的紀錄／課表仍要查得出名字，而且它仍是唯讀的內建動作
+    /// （`contains` 為 true，repository 才會擋住編輯與刪除）。
+    @Test func hiddenExercisesStillResolveById() throws {
+        let hidden = try #require(OfficialExerciseCatalog.all.first { !$0.isRecordable })
+        #expect(OfficialExerciseCatalog.contains(id: hidden.id))
+        #expect(OfficialExerciseCatalog.exercise(id: hidden.id, language: .zhHant)?.source == .official)
+        let listedIds = OfficialExerciseCatalog.exercises(muscleGroup: nil, language: .zhHant).map(\.id)
+        #expect(!listedIds.contains(hidden.id))
     }
 
     @Test func producedExercisesAreOfficialAndStable() throws {

@@ -363,13 +363,15 @@
     "id": "1248729D-0E21-4245-B7CE-6DC07A130ADB",
     "key": "exercise.plank.bodyweight",
     "muscleGroup": "core",
-    "equipment": "bodyweight"
+    "equipment": "bodyweight",
+    "trackingMode": "duration"
   },
   {
     "id": "59EB8A88-EDF7-4FBB-9876-459981998BE7",
     "key": "exercise.sidePlank.bodyweight",
     "muscleGroup": "core",
-    "equipment": "bodyweight"
+    "equipment": "bodyweight",
+    "trackingMode": "duration"
   },
   {
     "id": "24A057A0-B01F-4183-ADF8-372E46DCC23C",
@@ -465,18 +467,21 @@
     "id": "504A7ACF-EA71-4693-BB96-F365B3B0E1A7",
     "key": "exercise.battleRope.other",
     "muscleGroup": "functional",
-    "equipment": "other"
+    "equipment": "other",
+    "trackingMode": "duration"
   },
   {
     "id": "0425C6E4-7DA5-4AC2-8929-3864F30111A1",
     "key": "exercise.sledPushDrag.other",
     "muscleGroup": "functional",
-    "equipment": "other"
+    "equipment": "other",
+    "trackingMode": "distance"
   },
   {
     "id": "1E14DD3F-F83F-428E-AAA0-3ED882D56F58",
     "key": "exercise.farmerSWalk.dumbbell",
     "muscleGroup": "functional",
-    "equipment": "dumbbell"
+    "equipment": "dumbbell",
+    "trackingMode": "distance"
   }
 ]
