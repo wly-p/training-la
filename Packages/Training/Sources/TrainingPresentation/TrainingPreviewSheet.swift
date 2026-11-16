@@ -20,7 +20,9 @@ struct TrainingPreviewSheet: View {
     @Environment(\.dismiss) private var dismiss
 
     private struct ExerciseRow: Identifiable {
-        let id: UUID
+        /// 區塊的 exerciseIndex，不是 exerciseId——同一個動作可以在課表裡出現兩次，
+        /// 拿 exerciseId 當 id 會讓 ForEach 拿到重複的 id。
+        let id: Int
         let name: String
         let equipment: Equipment
         let setCount: Int
@@ -28,16 +30,17 @@ struct TrainingPreviewSheet: View {
     }
 
     private var rows: [ExerciseRow] {
-        blueprint.exercises.map { exercise in
-            let representative = blueprint.targets
-                .filter { $0.exerciseId == exercise.exerciseId }
-                .sorted { ($0.exerciseIndex, $0.setIndex) < ($1.exerciseIndex, $1.setIndex) }
-                .first
-            return ExerciseRow(
-                id: exercise.exerciseId, name: exercise.name, equipment: exercise.equipment,
-                setCount: exercise.setCount, representative: representative
-            )
-        }
+        // 一個區塊一列（依 exerciseIndex），代表組取該區塊自己的第一組——
+        // 同動作出現兩次時，第二個區塊才不會顯示成第一個區塊的重量。
+        Dictionary(grouping: blueprint.targets, by: \.exerciseIndex)
+            .sorted { $0.key < $1.key }
+            .compactMap { index, targets in
+                guard let first = targets.min(by: { $0.setIndex < $1.setIndex }) else { return nil }
+                return ExerciseRow(
+                    id: index, name: first.exerciseName, equipment: first.equipment,
+                    setCount: targets.count, representative: first
+                )
+            }
     }
 
     private var totalSets: Int { blueprint.exercises.reduce(0) { $0 + $1.setCount } }

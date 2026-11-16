@@ -224,7 +224,7 @@ public struct ActiveWorkoutView: View {
         return ScrollView {
             VStack(alignment: .leading, spacing: TLSpace.gapL) {
                 // 動作名已經是 navigationTitle（native 大標題），這裡不重複，只加課表進度 kicker。
-                if let plannedCount = viewModel.blueprint?.exercises.first(where: { $0.exerciseId == exerciseId })?.setCount {
+                if let plannedCount = viewModel.plannedSetCount(for: exerciseId) {
                     Text(verbatim: String(
                         format: localString("training.rest.doneOfTotal %lld %lld", locale),
                         doneCount, plannedCount
@@ -561,7 +561,7 @@ public struct ActiveWorkoutView: View {
     private var exerciseTableSummary: String? {
         if viewModel.showExerciseComplete { return completedExerciseSummary }
         guard let exerciseId = viewModel.currentExerciseId,
-              let plannedCount = viewModel.blueprint?.exercises.first(where: { $0.exerciseId == exerciseId })?.setCount
+              let plannedCount = viewModel.plannedSetCount(for: exerciseId)
         else { return nil }
         var parts = [String(format: localString("training.table.setCount %lld", locale), plannedCount)]
         if let pill = WeightSourceFormatting.intensityPillText(viewModel.blueprint?.intensityFactor ?? 1.0) {

@@ -57,8 +57,33 @@ struct WorkoutHistoryExporterTests {
         let lines = csv.split(separator: "\n", omittingEmptySubsequences: false)
 
         #expect(lines.count == 4) // header + 3 sets
+        // `String(data:encoding:)` 解碼時會吃掉開頭的 BOM，所以這裡看到的直接是表頭；
+        // BOM 本身由 `csvStartsWithUTF8BOM` 在 byte 層驗。
         #expect(lines[0].hasPrefix("workoutId,day,"))
         #expect(lines[1].contains("臥推"))
+    }
+
+    /// Excel 沒看到 BOM 就用系統碼頁（繁中 Windows＝Big5）解，中文動作名會變亂碼。
+    @Test func csvStartsWithUTF8BOM() {
+        let data = WorkoutHistoryExporter.csv(from: [makeWorkout()], exerciseNames: [benchPress: "臥推"])
+        #expect(Array(data.prefix(3)) == [0xEF, 0xBB, 0xBF])
+    }
+
+    /// JSON 不能有 BOM（RFC 8259）。
+    @Test func jsonHasNoBOM() throws {
+        let data = try WorkoutHistoryExporter.json(from: [makeWorkout()], exerciseNames: [:])
+        #expect(Array(data.prefix(3)) != [0xEF, 0xBB, 0xBF])
+        #expect(data.first == UInt8(ascii: "["))
+    }
+
+    /// 備註貼進來的文字可能帶 CRLF；沒包起來的話一筆會被拆成兩列。
+    @Test func csvEscapesCarriageReturn() {
+        var workout = Workout(id: UUID(), day: DayDate(year: 2026, month: 7, day: 20), note: "第一行\r\n第二行")
+        workout.appendSet(exerciseId: benchPress, measurement: .reps(10))
+
+        let csv = String(data: WorkoutHistoryExporter.csv(from: [workout], exerciseNames: [:]), encoding: .utf8)!
+
+        #expect(csv.contains("\"第一行\r\n第二行\""))
     }
 
     @Test func csvEscapesFieldsContainingCommaOrQuote() {

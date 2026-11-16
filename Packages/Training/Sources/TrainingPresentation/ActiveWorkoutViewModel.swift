@@ -71,9 +71,14 @@ public final class ActiveWorkoutViewModel {
     /// （bug：加一組後不再回到完成區）。
     private var completionShownAtSetCount: [UUID: Int] = [:]
 
-    /// 剛記錄（完成/跳過）的那一組 id，供「復原上一組」撤銷用。
-    /// 切換動作即清空 → 單層 undo，只撤銷「當下這格剛按的」那組。
-    private var lastRecordedSetId: UUID?
+    /// 這次停在當前動作期間記錄（完成/跳過）的各組 id，由舊到新；供「復原上一組」逐組撤銷。
+    ///
+    /// 是堆疊而不是單一值：原本只記最後一組，連按兩下「完成」就只救得回第二下，
+    /// 第一下的誤按只能等練完去歷史頁改。現在復原鍵會一路往回掛到上一組，按幾次退幾組。
+    /// 切換動作即清空——只撤銷「還在這個動作上、剛剛按的」那幾組；更早的屬於歷史編輯的範圍，
+    /// 而且 `Workout.removeSet` 只保證移除某動作的最後一組不留洞，堆疊的後進先出正好守住這一點。
+    private var undoStack: [UUID] = []
+    private var lastRecordedSetId: UUID? { undoStack.last }
     /// 是否有可撤銷的上一組（driving 完成卡片上的復原入口）。
     public var canUndoLastSet: Bool { lastRecordedSetId != nil }
     /// 這一組是不是「剛記錄、可撤銷」的那組（記錄列上的復原鍵只掛在它身上）。
@@ -205,7 +210,7 @@ public final class ActiveWorkoutViewModel {
             target: blueprint?.target(exerciseId: exerciseId, position: currentPosition),
             actual: nil, status: .current
         ))
-        if let plannedCount = blueprint?.exercises.first(where: { $0.exerciseId == exerciseId })?.setCount,
+        if let plannedCount = plannedSetCount(for: exerciseId),
            currentPosition + 1 < plannedCount {
             for position in (currentPosition + 1)..<plannedCount {
                 rows.append(SetTableRow(
@@ -221,11 +226,26 @@ public final class ActiveWorkoutViewModel {
     /// 是否照課表訓練。
     public var isFollowingPlan: Bool { blueprint != nil }
 
+    /// 這個動作在課表裡原定幾組（未套本場的加減組覆寫）；不是課表動作回 nil。
+    ///
+    /// View 要顯示「第 N / M 組」時問這裡，不要自己去 `blueprint.exercises.first { … }`——
+    /// 同一個動作在課表出現兩次時，那樣只會拿到第一個區塊的組數。
+    public func plannedSetCount(for exerciseId: UUID) -> Int? {
+        plannedSetCounts[exerciseId]
+    }
+
     /// 本場課表動作順序：訓練中可拖拉調整（session 內有效，不落地回課表範本/排課）。
     /// nil＝沿用課表原順序。
     private var reorderedPlan: [UUID]?
+    ///
+    /// 同一個動作在課表裡可以出現不只一次（臥推 → 深蹲 → 再回來臥推；編輯器的動作選擇器
+    /// 不排除已加過的動作）。這個畫面的狀態全部以 exerciseId 為 key，所以這裡去重、只留
+    /// 第一次出現的位置——那個動作在本場清單裡是一列，組數是各區塊加總（見 `plannedSetCounts`），
+    /// 跟 `Workout.appendSet` 把同動作的組都接在同一個區塊後面是同一個取捨。
     private var plannedOrderIds: [UUID] {
-        reorderedPlan ?? blueprint?.exercises.map(\.exerciseId) ?? []
+        if let reorderedPlan { return reorderedPlan }
+        var seen = Set<UUID>()
+        return (blueprint?.exercises ?? []).map(\.exerciseId).filter { seen.insert($0).inserted }
     }
 
     /// 各動作已記錄組數（done／skipped 都算「已處理一組」）。
@@ -236,8 +256,11 @@ public final class ActiveWorkoutViewModel {
     }
 
     /// 各課表動作的目標組數（課表原定，未套 13e 的本場覆寫）。
+    ///
+    /// 重複出現的動作要**加總**，不能用 `uniqueKeysWithValues`——那個遇到重複的 key 會直接 trap，
+    /// 症狀是「一開始訓練就閃退，而且那份課表每次點開都閃退」。
     private var plannedSetCounts: [UUID: Int] {
-        Dictionary(uniqueKeysWithValues: (blueprint?.exercises ?? []).map { ($0.exerciseId, $0.setCount) })
+        Dictionary((blueprint?.exercises ?? []).map { ($0.exerciseId, $0.setCount) }, uniquingKeysWith: +)
     }
 
     /// 中途改課（13e）「再加一組／少做一組」的本場覆寫；只在這個 session 記憶體內有效，
@@ -362,7 +385,7 @@ public final class ActiveWorkoutViewModel {
     }
 
     public func select(exerciseId: UUID) async {
-        lastRecordedSetId = nil // 換動作 → 先前那組不再可撤銷
+        undoStack.removeAll() // 換動作 → 先前那些組不再可撤銷
         // 換動作代表完成區過期了。清除放在這裡而不是各個呼叫端：漏掉任何一條路徑，
         // 完成區就會蓋在新動作上面，看起來像「選了沒反應」（bug：加練選完動作沒切過去）。
         showExerciseComplete = false
@@ -485,7 +508,7 @@ public final class ActiveWorkoutViewModel {
             completionShownAtSetCount[exerciseId] = nil
         }
         workout.removeSet(id: id)
-        lastRecordedSetId = nil
+        undoStack.removeLast()
         do {
             try await saveProgress(workout)
         } catch {
@@ -774,7 +797,7 @@ public final class ActiveWorkoutViewModel {
                 .weightReps(weight: $0, reps: target?.targetReps ?? 0)
             }
         )
-        lastRecordedSetId = newSetId
+        undoStack.append(newSetId)
         do {
             try await saveProgress(workout) // 每組立即落地，中途被殺不掉資料
         } catch {
