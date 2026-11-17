@@ -111,12 +111,6 @@ struct HistoryReadingAdapter: WorkoutHistoryReading, WorkoutHistoryEditing {
     // MARK: - Mapping
 
     private func summary(of workout: Workout) async -> HistoryWorkoutSummary {
-        let duration: Int?
-        if let start = workout.startedAt, let end = workout.endedAt {
-            duration = max(0, Int(end.timeIntervalSince(start) / 60))
-        } else {
-            duration = nil
-        }
         var name: String?
         if let planWorkoutId = workout.planWorkoutId {
             name = (try? await getPlanWorkout(planWorkoutId))?.name
@@ -128,7 +122,7 @@ struct HistoryReadingAdapter: WorkoutHistoryReading, WorkoutHistoryEditing {
             exerciseCount: workout.blocks.count,
             totalSets: workout.sets.count,
             overallFeeling: workout.overallFeeling,
-            durationMinutes: duration
+            durationMinutes: workout.durationMinutes
         )
     }
 

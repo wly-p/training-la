@@ -38,6 +38,21 @@ public struct Workout: Identifiable, Equatable, Sendable {
 
     public var isFinished: Bool { endedAt != nil }
 
+    /// 這場練了幾分鐘；算不出或**不可信**時回 nil（呼叫端就不顯示時長、也不計入統計）。
+    ///
+    /// 不可信＝超過 `maxPlausibleDuration`。組沒有逐組時間戳，`endedAt` 只能是「按下結束的那一刻」：
+    /// 練到一半 app 被滑掉、隔天早上才回來按「結束它」或接著收尾，算出來會是十幾個小時，
+    /// 然後原樣進到歷史列表與「本週累計時長」。那個數字不是訓練時間，寧可不顯示。
+    public var durationMinutes: Int? {
+        guard let start = startedAt, let end = endedAt else { return nil }
+        let seconds = end.timeIntervalSince(start)
+        guard seconds >= 0, seconds <= Self.maxPlausibleDuration else { return nil }
+        return Int(seconds / 60)
+    }
+
+    /// 一場訓練合理的時長上限（6 小時）。再長的幾乎可以確定是中斷後隔很久才結束。
+    public static let maxPlausibleDuration: TimeInterval = 6 * 60 * 60
+
     /// 「重複上次」用：依 exerciseIndex 順序的動作序列與各自組數（熱身、跳過的組都不計入組數——
     /// 只算真的做完的，跟「上次紀錄」的既有判斷慣例一致，見 `WorkoutUseCases.swift`）。
     public var repeatSequence: [RepeatWorkoutExercise] {
